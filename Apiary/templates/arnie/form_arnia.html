@@ -1,0 +1,233 @@
+<!-- templates/arnie/form_arnia.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}Modifica{% else %}Nuova{% endif %} Arnia - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1>
+            {% if form.instance.pk %}
+                <i class="bi bi-pencil-square"></i> Modifica Arnia
+            {% else %}
+                <i class="bi bi-plus-circle"></i> Nuova Arnia
+            {% endif %}
+        </h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                {% if form.instance.apiario %}
+                    <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' form.instance.apiario.id %}">{{ form.instance.apiario.nome }}</a></li>
+                {% elif form.initial.apiario %}
+                    <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' form.initial.apiario %}">Apiario</a></li>
+                {% endif %}
+                <li class="breadcrumb-item active">
+                    {% if form.instance.pk %}
+                        Modifica Arnia #{{ form.instance.numero }}
+                    {% else %}
+                        Nuova Arnia
+                    {% endif %}
+                </li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header {% if form.instance.colore_hex %}bg-custom text-white{% else %}bg-primary text-white{% endif %}" 
+                 {% if form.instance.colore_hex %}style="background-color: {{ form.instance.colore_hex }} !important;"{% endif %}>
+                <h5 class="mb-0">Informazioni Arnia</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="arniaForm">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.apiario|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.numero|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.colore|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3 color-hex-field">
+                            {{ form.colore_hex|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.data_installazione|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-group">
+                                <label class="form-label">Anteprima colore</label>
+                                <div class="color-preview" id="colorPreview" 
+                                     style="height: 38px; border-radius: 0.25rem; border: 1px solid #ced4da; background-color: {{ form.instance.colore_hex|default:'#FFFFFF' }};">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.note|as_crispy_field }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.attiva|as_crispy_field }}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        {% if form.instance.apiario %}
+                            <a href="{% url 'visualizza_apiario' form.instance.apiario.id %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Annulla
+                            </a>
+                        {% elif form.initial.apiario %}
+                            <a href="{% url 'visualizza_apiario' form.initial.apiario %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Annulla
+                            </a>
+                        {% else %}
+                            <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Annulla
+                            </a>
+                        {% endif %}
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> 
+                            {% if form.instance.pk %}
+                                Aggiorna Arnia
+                            {% else %}
+                                Crea Arnia
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    Per creare una nuova arnia, compila il modulo con i seguenti dettagli:
+                </p>
+                <ul>
+                    <li><strong>Apiario:</strong> L'apiario in cui si trova l'arnia</li>
+                    <li><strong>Numero:</strong> Un numero identificativo univoco per l'arnia all'interno dell'apiario</li>
+                    <li><strong>Colore:</strong> Il colore dell'arnia (aiuta nell'identificazione visiva)</li>
+                    <li><strong>Data installazione:</strong> La data in cui l'arnia è stata installata</li>
+                    <li><strong>Note:</strong> Eventuali note o dettagli aggiuntivi</li>
+                    <li><strong>Attiva:</strong> Indica se l'arnia è attualmente in uso</li>
+                </ul>
+                
+                <div class="alert alert-primary mt-3">
+                    <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong>
+                    Scegli "Altro" nel campo colore se vuoi utilizzare un colore personalizzato con il selettore.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Definisci i colori predefiniti come oggetto JavaScript
+        const coloriPredefiniti = {
+            'bianco': '#FFFFFF',
+            'giallo': '#FFC107',
+            'blu': '#0d6efd',
+            'verde': '#198754',
+            'rosso': '#dc3545',
+            'arancione': '#fd7e14',
+            'viola': '#6f42c1',
+            'nero': '#212529',
+            'altro': '#6c757d'
+        };
+        
+        // Mostra/nascondi il campo colore_hex in base alla selezione di colore
+        const coloreSelect = document.getElementById('id_colore');
+        const coloreHexField = document.querySelector('.color-hex-field');
+        const coloreHexInput = document.getElementById('id_colore_hex');
+        const colorPreview = document.getElementById('colorPreview');
+        const cardHeader = document.querySelector('.card-header');
+        
+        function updateColorVisibility() {
+            if (coloreSelect.value === 'altro') {
+                coloreHexField.style.display = 'block';
+            } else {
+                // Per i colori predefiniti, impostiamo il colore_hex automaticamente
+                if (coloreSelect.value in coloriPredefiniti) {
+                    coloreHexInput.value = coloriPredefiniti[coloreSelect.value];
+                }
+                coloreHexField.style.display = 'none';
+            }
+            updatePreview();
+        }
+        
+        function updatePreview() {
+            const selectedColor = coloreHexInput.value;
+            colorPreview.style.backgroundColor = selectedColor;
+            
+            // Aggiorna anche l'intestazione della card
+            cardHeader.style.backgroundColor = selectedColor;
+            cardHeader.classList.add('bg-custom', 'text-white');
+            
+            // Cambia il colore del testo in base alla luminosità del colore di sfondo
+            const rgb = hexToRgb(selectedColor);
+            if (rgb) {
+                const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+                if (brightness > 128) {
+                    cardHeader.classList.remove('text-white');
+                    cardHeader.classList.add('text-dark');
+                } else {
+                    cardHeader.classList.remove('text-dark');
+                    cardHeader.classList.add('text-white');
+                }
+            }
+        }
+        
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+        
+        // Inizializza la visibilità del campo colore_hex
+        updateColorVisibility();
+        
+        // Aggiungi listener per gli eventi di cambio
+        coloreSelect.addEventListener('change', updateColorVisibility);
+        coloreHexInput.addEventListener('input', updatePreview);
+        
+        // Auto-focus sul campo numero se l'apiario è già selezionato
+        if (document.getElementById('id_apiario').value) {
+            document.getElementById('id_numero').focus();
+        }
+        
+        // Imposta la data di installazione al giorno corrente se è un nuovo record
+        var dataInstallazione = document.getElementById('id_data_installazione');
+        if (!dataInstallazione.value) {
+            const oggi = new Date();
+            const formatoData = oggi.toISOString().split('T')[0];
+            dataInstallazione.value = formatoData;
+        }
+    });
+</script>
+{% endblock %}

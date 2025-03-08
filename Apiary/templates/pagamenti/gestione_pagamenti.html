@@ -1,0 +1,154 @@
+<!-- templates/pagamenti/gestione_pagamenti.html -->
+{% extends 'base.html' %}
+
+{% block title %}Gestione Pagamenti - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1>Gestione Pagamenti</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-people"></i> Riepilogo Quote Utenti</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-3">
+                    <strong>Totale Pagamenti:</strong> {{ totale_pagamenti|floatformat:2 }}€
+                </div>
+
+                <!-- Aggiunto il pulsante Gestione Quote qui sopra, ma mantenendo lo stile del primo blocco -->
+                <div class="d-flex justify-content-end mb-4">
+                    <a href="{% url 'gestione_quote' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-gear"></i> Gestione Quote
+                    </a>
+                </div>
+                
+                {% if pagamenti_per_utente %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Utente</th>
+                                    <th>Quota %</th>
+                                    <th>Dovuto</th>
+                                    <th>Pagato</th>
+                                    <th>Saldo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user_id, dati in pagamenti_per_utente.items %}
+                                    <tr>
+                                        <td>{{ dati.utente.username }}</td>
+                                        <td>{{ dati.quota_percentuale }}%</td>
+                                        <td>{{ dati.dovuto|floatformat:2 }}€</td>
+                                        <td>{{ dati.totale_pagato|floatformat:2 }}€</td>
+                                        <td>
+                                            <span class="badge {% if dati.saldo >= 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                                {{ dati.saldo|floatformat:2 }}€
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p>Non sono state impostate quote per gli utenti.</p>
+                        <a href="{% url 'gestione_quote' %}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-circle"></i> Gestisci Quote
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-cash-coin"></i> Registro Pagamenti</h5>
+            </div>
+            <div class="card-body">
+                {% if pagamenti %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Utente</th>
+                                    <th>Descrizione</th>
+                                    <th>Importo</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pagamento in pagamenti %}
+                                    <tr>
+                                        <td>{{ pagamento.data|date:"d/m/Y" }}</td>
+                                        <td>{{ pagamento.utente.username }}</td>
+                                        <td>{{ pagamento.descrizione }}</td>
+                                        <td>{{ pagamento.importo|floatformat:2 }}€</td>
+                                        <td>
+                                            <a href="{% url 'modifica_pagamento' pagamento.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{% url 'elimina_pagamento' pagamento.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Sei sicuro di voler eliminare questo pagamento?')">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p>Non ci sono pagamenti registrati.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card sticky-top" style="top: 20px;">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Nuovo Pagamento</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.utente.id_for_label }}" class="form-label">Utente</label>
+                        {{ form.utente }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.importo.id_for_label }}" class="form-label">Importo (€)</label>
+                        {{ form.importo }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.data.id_for_label }}" class="form-label">Data</label>
+                        {{ form.data }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.descrizione.id_for_label }}" class="form-label">Descrizione</label>
+                        {{ form.descrizione }}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Registra Pagamento
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

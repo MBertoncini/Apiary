@@ -1,0 +1,62 @@
+<!-- templates/maps/base_map.html -->
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map {
+        height: 500px;
+        width: 100%;
+        border-radius: 6px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .map-container {
+        margin-bottom: 20px;
+    }
+    .map-controls {
+        margin-bottom: 15px;
+    }
+    .marker-apiario {
+        background-color: #28a745;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+    .marker-fioritura {
+        background-color: #ffc107;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+    .marker-attiva {
+        background-color: #20c997;
+    }
+    .marker-inattiva {
+        background-color: #6c757d;
+    }
+    .leaflet-popup-content {
+        min-width: 200px;
+    }
+    /* Per la mappa nella pagina di modifica */
+    .map-picker {
+        height: 400px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        border: 1px solid #ced4da;
+    }
+    .coordinate-display {
+        font-family: monospace;
+        background-color: #f8f9fa;
+        padding: 6px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% endblock %}

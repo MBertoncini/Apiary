@@ -1,0 +1,353 @@
+<!-- templates/arnie/visualizza_apiario.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ apiario.nome }} - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="bi bi-grid"></i> {{ apiario.nome }}</h1>
+            <div>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Dashboard
+                </a>
+                <a href="{% url 'crea_arnia' %}?apiario_id={{ apiario.id }}" class="btn btn-success ms-2">
+                    <i class="bi bi-plus-circle"></i> Nuova Arnia
+                </a>
+            </div>
+        </div>
+        <p class="text-muted">
+            <i class="bi bi-geo-alt"></i> {{ apiario.posizione }}
+            {% if apiario.has_coordinates %}
+            <a href="{% url 'mappa_apiari' %}?focus={{ apiario.id }}" class="ms-2 text-decoration-none">
+                <i class="bi bi-map"></i> Visualizza sulla mappa
+            </a>
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Filtro per data -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-calendar"></i> Data di Riferimento</h5>
+            </div>
+            <div class="card-body">
+                <form id="dataForm" method="get" class="d-flex align-items-center">
+                    <div class="me-2">
+                        <label for="dataSelezionata" class="form-label">Visualizza la situazione al:</label>
+                    </div>
+                    <div class="me-2 flex-grow-1">
+                        <input type="date" id="dataSelezionata" name="data" class="form-control" value="{{ data_selezionata|date:'Y-m-d' }}">
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> 
+                            {% if is_edit %}
+                                Aggiorna Controllo
+                            {% else %}
+                                Salva Controllo
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-flower1"></i> Fioriture Attive</h5>
+            </div>
+            <div class="card-body">
+                {% if fioriture %}
+                    <div class="list-group">
+                        {% for fioritura in fioriture %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ fioritura.pianta }}</h6>
+                                    <small>
+                                        Dal {{ fioritura.data_inizio|date:"d/m/Y" }}
+                                        {% if fioritura.data_fine %}
+                                            al {{ fioritura.data_fine|date:"d/m/Y" }}
+                                        {% else %}
+                                            (in corso)
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-center mb-0">Nessuna fioritura attiva per questa data.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Riepilogo Arnie -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-grid-3x3"></i> Arnie</h5>
+            </div>
+            <div class="card-body">
+                {% if arnie %}
+                    <div class="row">
+                        {% for arnia in arnie %}
+                            <!-- Questo è il codice da inserire all'interno del ciclo per le arnie in visualizza_apiario.html -->
+                            <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header d-flex justify-content-between align-items-center"
+                                        {% if arnia.colore_hex %}
+                                            style="background-color: {{ arnia.colore_hex }}; color: {% if arnia.colore_hex == '#FFFFFF' or arnia.colore_hex == '#FFC107' %}#212529{% else %}white{% endif %};"
+                                        {% else %}
+                                            class="{% if arnia.colore == 'giallo' %}bg-warning text-dark{% elif arnia.colore == 'blu' %}bg-primary text-white{% elif arnia.colore == 'verde' %}bg-success text-white{% elif arnia.colore == 'rosso' %}bg-danger text-white{% elif arnia.colore == 'bianco' %}bg-light text-dark{% elif arnia.colore == 'nero' %}bg-dark text-white{% elif arnia.colore == 'arancione' %}bg-orange text-white{% elif arnia.colore == 'viola' %}bg-purple text-white{% else %}bg-secondary text-white{% endif %}"
+                                        {% endif %}>
+                                        <h6 class="mb-0">Arnia #{{ arnia.numero }}</h6>
+                                        <div class="small">
+                                            {% if arnia.colore_hex and arnia.colore == 'altro' %}
+                                                Personalizzato
+                                            {% else %}
+                                                {{ arnia.get_colore_display }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card-body">
+                                        {% for controllo in ultimi_controlli %}
+                                            {% if controllo.arnia.id == arnia.id %}
+                                                <div class="mb-3">
+                                                    <small class="text-muted">Ultimo controllo: {{ controllo.data|date:"d/m/Y" }}</small>
+                                                </div>
+                                                
+                                                <!-- Inizio Visualizzazione Grafica dell'Arnia -->
+                                                <div class="arnia-visualization mb-3">
+                                                    <div class="bg-light border rounded p-2 mb-2">
+                                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                                            <small class="text-muted">Vista dall'alto</small>
+                                                            <div class="d-flex">
+                                                                <div class="d-flex align-items-center me-2">
+                                                                    <div style="width: 10px; height: 10px; background-color: #dc3545; margin-right: 3px;"></div>
+                                                                    <span style="font-size: 0.7rem;">Covata</span>
+                                                                </div>
+                                                                <div class="d-flex align-items-center me-2">
+                                                                    <div style="width: 10px; height: 10px; background-color: #ffc107; margin-right: 3px;"></div>
+                                                                    <span style="font-size: 0.7rem;">Scorte</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div style="border: 2px solid #b17c2b; border-radius: 5px; padding: 5px; background-color: #FFF8E1;">
+                                                            <div class="d-flex justify-content-center" style="gap: 3px;">
+                                                            <!-- Telaini di scorte a sinistra -->
+                                                            {% for i in "x"|ljust:controllo.scorte_sinistra|default:"" %}
+                                                                <div style="width: 15px; height: 80px; background-color: #ffc107; border-radius: 2px;"
+                                                                    title="Telaino con scorte (lato sinistro)"></div>
+                                                            {% endfor %}
+
+                                                            <!-- Telaini di covata (al centro) -->
+                                                            {% for i in "x"|ljust:controllo.telaini_covata|default:"" %}
+                                                                <div style="width: 15px; height: 80px; background-color: #dc3545; border-radius: 2px;" 
+                                                                    title="Telaino con covata"></div>
+                                                            {% endfor %}
+
+                                                            <!-- Telaini di scorte a destra -->
+                                                            {% for i in "x"|ljust:controllo.scorte_destra|default:"" %}
+                                                                <div style="width: 15px; height: 80px; background-color: #ffc107; border-radius: 2px;"
+                                                                    title="Telaino con scorte (lato destro)"></div>
+                                                            {% endfor %}
+                                                                
+                                                                <!-- Diaframma se necessario -->
+                                                                {% if controllo.telaini_covata|add:controllo.telaini_scorte < 10 %}
+                                                                    <div style="width: 6px; height: 80px; background-color: #6c757d; border-radius: 2px;"
+                                                                        title="Diaframma"></div>
+                                                                {% endif %}
+                                                                
+                                                                <!-- Spazi vuoti -->
+                                                                {% with total=controllo.telaini_covata|add:controllo.telaini_scorte %}
+                                                                    {% with vuoti=10|add:"-total"|add:"-1" %}
+                                                                        {% if controllo.telaini_covata|add:controllo.telaini_scorte < 10 %}
+                                                                            {% for i in "x"|rjust:vuoti %}
+                                                                                {% if forloop.counter <= vuoti and vuoti > 0 %}
+                                                                                    <div style="width: 15px; height: 80px; background-color: #e9ecef; border: 1px dashed #ced4da; border-radius: 2px;"
+                                                                                        title="Spazio vuoto"></div>
+                                                                                {% endif %}
+                                                                            {% endfor %}
+                                                                        {% endif %}
+                                                                    {% endwith %}
+                                                                {% endwith %}
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="text-center mt-1">
+                                                            <small>
+                                                                <span class="fw-bold">{{ controllo.telaini_covata|add:controllo.telaini_scorte }}</span> telaini totali
+                                                                (<span class="text-danger fw-bold">{{ controllo.telaini_covata }}</span> covata,
+                                                                <span style="color: #ffc107; font-weight: bold;">{{ controllo.telaini_scorte }}</span> scorte)
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- Fine Visualizzazione Grafica dell'Arnia -->
+                                                
+                                                <div class="mb-2">
+                                                    {% if controllo.presenza_regina %}
+                                                        <span class="badge bg-success">Regina presente</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">Regina assente</span>
+                                                    {% endif %}
+                                                    
+                                                    {% if controllo.sciamatura %}
+                                                        <span class="badge bg-warning text-dark">Sciamatura</span>
+                                                    {% endif %}
+                                                    
+                                                    {% if controllo.problemi_sanitari %}
+                                                        <span class="badge bg-danger">Problemi sanitari</span>
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                        {% empty %}
+                                            <div class="alert alert-warning mb-0">
+                                                <i class="bi bi-exclamation-triangle"></i> Nessun controllo registrato
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <div class="card-footer">
+                                        <div class="btn-group w-100">
+                                            <a href="{% url 'nuovo_controllo' arnia.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-clipboard-check"></i> Nuovo Controllo
+                                            </a>
+                                            <a href="{% url 'modifica_arnia' arnia.id %}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            {% for controllo in ultimi_controlli %}
+                                                {% if controllo.arnia.id == arnia.id %}
+                                                    <a href="{% url 'copia_controllo' controllo.id %}" class="btn btn-sm btn-outline-success" title="Copia controllo su altre arnie">
+                                                        <i class="bi bi-files"></i>
+                                                    </a>
+                                                    <a href="{% url 'modifica_controllo' controllo.id %}" class="btn btn-sm btn-outline-primary" title="Modifica controllo">
+                                                        <i class="bi bi-pencil-square"></i>
+                                                    </a>
+                                                    <a href="{% url 'elimina_controllo' controllo.id %}?next=apiario" class="btn btn-sm btn-outline-danger" title="Elimina controllo">
+                                                        <i class="bi bi-trash"></i>
+                                                    </a>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p>Non ci sono arnie registrate per questo apiario.</p>
+                        <a href="{% url 'crea_arnia' %}?apiario_id={{ apiario.id }}" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Aggiungi la prima arnia
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Note dell'apiario -->
+{% if apiario.note %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-journal-text"></i> Note</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ apiario.note|linebreaks }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filtro per data
+        document.getElementById('dataSelezionata').addEventListener('change', function() {
+            document.getElementById('dataForm').submit();
+        });
+    });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Funzione per aggiungere hover effects ai telaini
+    const telaini = document.querySelectorAll('.arnia-visualization [title]');
+    
+    telaini.forEach(telaino => {
+        // Aggiungi effetto hover
+        telaino.addEventListener('mouseenter', function() {
+            // Salva le dimensioni originali
+            if (!this.dataset.originalWidth) {
+                this.dataset.originalWidth = this.style.width;
+                this.dataset.originalHeight = this.style.height;
+            }
+            
+            // Aumenta leggermente la dimensione al passaggio del mouse
+            this.style.width = (parseInt(this.dataset.originalWidth) + 2) + 'px';
+            this.style.height = (parseInt(this.dataset.originalHeight) + 5) + 'px';
+            this.style.zIndex = '10';
+            this.style.boxShadow = '0 0 5px rgba(0,0,0,0.3)';
+            
+            // Mostra tooltip con informazioni
+            const tooltip = document.createElement('div');
+            tooltip.className = 'telaino-tooltip';
+            tooltip.innerHTML = this.getAttribute('title');
+            tooltip.style.position = 'absolute';
+            tooltip.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            tooltip.style.color = 'white';
+            tooltip.style.padding = '5px 8px';
+            tooltip.style.borderRadius = '4px';
+            tooltip.style.fontSize = '12px';
+            tooltip.style.zIndex = '100';
+            tooltip.style.pointerEvents = 'none';
+            
+            // Posiziona il tooltip
+            const rect = this.getBoundingClientRect();
+            tooltip.style.left = (rect.left + window.scrollX) + 'px';
+            tooltip.style.top = (rect.top + window.scrollY - 30) + 'px';
+            
+            document.body.appendChild(tooltip);
+            this.dataset.tooltip = true;
+        });
+        
+        // Ripristina lo stato originale quando il mouse esce
+        telaino.addEventListener('mouseleave', function() {
+            if (this.dataset.originalWidth) {
+                this.style.width = this.dataset.originalWidth;
+                this.style.height = this.dataset.originalHeight;
+                this.style.zIndex = '1';
+                this.style.boxShadow = 'none';
+            }
+            
+            // Rimuovi il tooltip
+            if (this.dataset.tooltip) {
+                const tooltips = document.querySelectorAll('.telaino-tooltip');
+                tooltips.forEach(t => t.remove());
+                delete this.dataset.tooltip;
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}

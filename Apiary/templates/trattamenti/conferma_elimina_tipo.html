@@ -1,0 +1,41 @@
+<!-- templates/trattamenti/conferma_elimina_tipo.html -->
+{% extends 'base.html' %}
+
+{% block title %}Conferma Eliminazione Tipo - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Conferma Eliminazione</h5>
+            </div>
+            <div class="card-body">
+                <p>Sei sicuro di voler eliminare questo tipo di trattamento?</p>
+                
+                <div class="alert alert-warning">
+                    <strong>Attenzione:</strong> Questa operazione non può essere annullata e potrebbe influire sui trattamenti esistenti.
+                </div>
+                
+                <h6>Dettagli tipo trattamento:</h6>
+                <ul>
+                    <li><strong>Nome:</strong> {{ tipo.nome }}</li>
+                    <li><strong>Principio attivo:</strong> {{ tipo.principio_attivo }}</li>
+                    <li><strong>Tempo sospensione:</strong> {{ tipo.tempo_sospensione }} giorni</li>
+                </ul>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <form method="post">
+                    {% csrf_token %}
+                    <a href="{% url 'tipi_trattamento' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Annulla
+                    </a>
+                    <button type="submit" class="btn btn-danger ms-2">
+                        <i class="bi bi-trash"></i> Elimina
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

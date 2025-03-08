@@ -1,0 +1,100 @@
+<!-- templates/auth/login.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Accedi - Gestione Apiario{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-container {
+        max-width: 500px;
+        margin: 2rem auto;
+    }
+    
+    .login-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .login-header {
+        background-color: #28a745;
+        color: white;
+        border-radius: 10px 10px 0 0;
+        padding: 1.5rem;
+    }
+    
+    .login-body {
+        padding: 2rem;
+    }
+    
+    .login-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .btn-login {
+        background-color: #28a745;
+        border-color: #28a745;
+        padding: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .btn-login:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+    
+    .login-footer {
+        background-color: #f8f9fa;
+        border-radius: 0 0 10px 10px;
+        padding: 1rem;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="card login-card">
+        <div class="login-header text-center">
+            <div class="login-icon">
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <h2 class="mb-0">Accedi</h2>
+            <p class="mb-0">Inserisci le tue credenziali</p>
+        </div>
+        
+        <div class="login-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                {{ form|crispy }}
+                
+                {% if form.errors %}
+                    <div class="alert alert-danger mt-3">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Username o password non validi. Riprova.
+                    </div>
+                {% endif %}
+                
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary btn-login">
+                        <i class="bi bi-box-arrow-in-right"></i> Accedi
+                    </button>
+                </div>
+                
+                <input type="hidden" name="next" value="{{ next }}">
+            </form>
+        </div>
+        
+        <div class="login-footer">
+            <p class="mb-0">Non hai un account? Contatta l'amministratore.</p>
+        </div>
+    </div>
+    
+    <div class="text-center mt-3">
+        <a href="{% url 'homepage' %}" class="text-muted">
+            <i class="bi bi-arrow-left"></i> Torna alla homepage
+        </a>
+    </div>
+</div>
+{% endblock %}

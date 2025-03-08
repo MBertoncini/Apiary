@@ -1,0 +1,196 @@
+<!-- templates/trattamenti/form_trattamento.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if trattamento %}Modifica{% else %}Nuovo{% endif %} Trattamento - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1>
+            {% if trattamento %}
+                <i class="bi bi-pencil-square"></i> Modifica Trattamento
+            {% else %}
+                <i class="bi bi-plus-circle"></i> Nuovo Trattamento
+            {% endif %}
+        </h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'gestione_trattamenti' %}">Trattamenti</a></li>
+                <li class="breadcrumb-item active">
+                    {% if trattamento %}
+                        Modifica
+                    {% else %}
+                        Nuovo
+                    {% endif %}
+                </li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Informazioni Trattamento</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.apiario|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.tipo_trattamento|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.data_inizio|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.data_fine|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.stato|as_crispy_field }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.seleziona_tutte_arnie|as_crispy_field }}
+                    </div>
+                    
+                    <div class="mb-3 arnie-selection">
+                        <label class="form-label">Arnie da trattare</label>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="seleziona-tutte">Seleziona tutte</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="deseleziona-tutte">Deseleziona tutte</button>
+                                </div>
+                                
+                                {{ form.arnie|as_crispy_field }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.note|as_crispy_field }}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'gestione_trattamenti' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Annulla
+                        </a>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> 
+                            {% if trattamento %}
+                                Aggiorna Trattamento
+                            {% else %}
+                                Crea Trattamento
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    I trattamenti sanitari sono essenziali per la salute delle api.
+                </p>
+                
+                <ul>
+                    <li><strong>Apiario:</strong> Seleziona l'apiario dove verrà applicato il trattamento</li>
+                    <li><strong>Tipo:</strong> Seleziona il tipo di trattamento da applicare</li>
+                    <li><strong>Data inizio:</strong> La data in cui si inizia il trattamento</li>
+                    <li><strong>Data fine:</strong> Opzionale, la data in cui termina il trattamento</li>
+                    <li><strong>Stato:</strong> Stato attuale del trattamento</li>
+                    <li><strong>Arnie:</strong> Seleziona le arnie da trattare o applica a tutte</li>
+                </ul>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="bi bi-exclamation-triangle"></i> <strong>Attenzione:</strong>
+                    Ricorda di rispettare i periodi di sospensione dopo il trattamento prima di raccogliere il miele.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestione pulsanti "Seleziona tutte" e "Deseleziona tutte"
+        document.getElementById('seleziona-tutte').addEventListener('click', function() {
+            document.querySelectorAll('input[name="arnie"]').forEach(function(checkbox) {
+                checkbox.checked = true;
+            });
+        });
+        
+        document.getElementById('deseleziona-tutte').addEventListener('click', function() {
+            document.querySelectorAll('input[name="arnie"]').forEach(function(checkbox) {
+                checkbox.checked = false;
+            });
+        });
+        
+        // Gestione checkbox "Applica a tutte le arnie"
+        const selectAllCheckbox = document.getElementById('id_seleziona_tutte_arnie');
+        const arnieSelection = document.querySelector('.arnie-selection');
+        
+        function toggleArnieSelection() {
+            if (selectAllCheckbox.checked) {
+                arnieSelection.style.display = 'none';
+            } else {
+                arnieSelection.style.display = 'block';
+            }
+        }
+        
+        // Trigger iniziale
+        toggleArnieSelection();
+        
+        // Event listener
+        selectAllCheckbox.addEventListener('change', toggleArnieSelection);
+        
+        // Aggiornamento delle arnie disponibili quando cambia l'apiario
+        const apiarioSelect = document.getElementById('id_apiario');
+        
+        apiarioSelect.addEventListener('change', function() {
+            const apiarioId = this.value;
+            
+            if (apiarioId) {
+                // Recupera le arnie dell'apiario selezionato tramite AJAX
+                fetch(`/api/arnie-per-apiario/${apiarioId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Aggiorna le opzioni delle arnie
+                        updateArnieOptions(data);
+                    })
+                    .catch(error => {
+                        console.error('Errore nel recupero delle arnie:', error);
+                    });
+            }
+        });
+        
+        function updateArnieOptions(arnie) {
+            // Questa funzione potrebbe essere implementata se hai un endpoint API
+            // Per ora è solo un segnaposto
+            console.log('Arnie da caricare:', arnie);
+        }
+    });
+</script>
+{% endblock %}
