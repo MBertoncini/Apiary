@@ -1,0 +1,98 @@
+<!-- templates/auth/register.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Registrazione - Gestione Apiario{% endblock %}
+
+{% block extra_css %}
+<style>
+    .register-container {
+        max-width: 500px;
+        margin: 2rem auto;
+    }
+    
+    .register-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .register-header {
+        background-color: #198754;
+        color: white;
+        border-radius: 10px 10px 0 0;
+        padding: 1.5rem;
+    }
+    
+    .register-body {
+        padding: 2rem;
+    }
+    
+    .register-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .btn-register {
+        background-color: #198754;
+        border-color: #198754;
+        padding: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .btn-register:hover {
+        background-color: #157347;
+        border-color: #146c43;
+    }
+    
+    .register-footer {
+        background-color: #f8f9fa;
+        border-radius: 0 0 10px 10px;
+        padding: 1rem;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-container">
+    <div class="card register-card">
+        <div class="register-header text-center">
+            <div class="register-icon">
+                <i class="bi bi-person-plus-fill"></i>
+            </div>
+            <h2 class="mb-0">Registrazione</h2>
+            <p class="mb-0">Crea un nuovo account</p>
+        </div>
+        
+        <div class="register-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                {{ form|crispy }}
+                
+                {% if form.errors %}
+                    <div class="alert alert-danger mt-3">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Si sono verificati degli errori nel form.
+                    </div>
+                {% endif %}
+                
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary btn-register">
+                        <i class="bi bi-person-plus"></i> Registrati
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="register-footer">
+            <p class="mb-0">Hai già un account? <a href="{% url 'login' %}">Accedi</a></p>
+        </div>
+    </div>
+    
+    <div class="text-center mt-3">
+        <a href="{% url 'homepage' %}" class="text-muted">
+            <i class="bi bi-arrow-left"></i> Torna alla homepage
+        </a>
+    </div>
+</div>
+{% endblock %}

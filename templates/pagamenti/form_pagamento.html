@@ -1,0 +1,111 @@
+<!-- templates/pagamenti/form_pagamento.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if pagamento %}Modifica{% else %}Nuovo{% endif %} Pagamento - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1>
+            {% if pagamento %}
+                <i class="bi bi-pencil-square"></i> Modifica Pagamento
+            {% else %}
+                <i class="bi bi-plus-circle"></i> Nuovo Pagamento
+            {% endif %}
+        </h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'gestione_pagamenti' %}">Pagamenti</a></li>
+                <li class="breadcrumb-item active">
+                    {% if pagamento %}
+                        Modifica Pagamento
+                    {% else %}
+                        Nuovo Pagamento
+                    {% endif %}
+                </li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Informazioni Pagamento</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.utente|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.importo|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.data|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.descrizione|as_crispy_field }}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'gestione_pagamenti' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Annulla
+                        </a>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> 
+                            {% if pagamento %}
+                                Aggiorna Pagamento
+                            {% else %}
+                                Salva Pagamento
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    I pagamenti registrati vengono utilizzati per il calcolo delle quote e dei saldi tra utenti.
+                </p>
+                <p>
+                    <strong>Utente:</strong> L'utente che ha effettuato il pagamento
+                </p>
+                <p>
+                    <strong>Importo:</strong> La somma pagata (in euro)
+                </p>
+                <p>
+                    <strong>Data:</strong> La data in cui è stato effettuato il pagamento
+                </p>
+                <p>
+                    <strong>Descrizione:</strong> Una breve descrizione dello scopo del pagamento
+                </p>
+                
+                <div class="alert alert-primary mt-3">
+                    <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong>
+                    Registra tutti i pagamenti relativi all'apiario per mantenere una contabilità accurata.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

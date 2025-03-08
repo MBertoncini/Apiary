@@ -1,0 +1,263 @@
+<!-- templates/maps/seleziona_posizione.html -->
+{% extends 'maps/base_map.html' %}
+
+{% block title %}Seleziona Posizione - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1><i class="bi bi-geo-alt"></i> Seleziona Posizione</h1>
+        <p class="text-muted">Fai click sulla mappa per selezionare la posizione</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-map"></i> Mappa</h5>
+            </div>
+            <div class="card-body">
+                <div id="map-picker" class="map-picker"></div>
+                
+                <div class="coordinate-display" id="coordinates">
+                    Latitudine: <span id="lat">{{ lat|default:"--" }}</span>, 
+                    Longitudine: <span id="lng">{{ lng|default:"--" }}</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="search-input">Cerca località:</label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="search-input" placeholder="Inserisci indirizzo o località">
+                        <button class="btn btn-primary" type="button" id="search-button">
+                            <i class="bi bi-search"></i> Cerca
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Fai click sulla mappa per selezionare il punto esatto, oppure cerca una località.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-check-circle"></i> Conferma Posizione</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="lat-input" class="form-label">Latitudine:</label>
+                    <input type="number" id="lat-input" class="form-control" value="{{ lat|default_if_none:'' }}" step="0.000001" min="-90" max="90">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="lng-input" class="form-label">Longitudine:</label>
+                    <input type="number" id="lng-input" class="form-control" value="{{ lng|default_if_none:'' }}" step="0.000001" min="-180" max="180">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="radius-input" class="form-label">Raggio (metri):</label>
+                    <input type="number" id="radius-input" class="form-control" value="500" min="50" max="5000" step="50">
+                    <small class="form-text text-muted">Solo per fioriture: area approssimativa.</small>
+                </div>
+                
+                <button id="confirm-button" class="btn btn-success w-100">
+                    <i class="bi bi-check-circle"></i> Conferma Posizione
+                </button>
+                
+                <button id="cancel-button" class="btn btn-secondary w-100 mt-2">
+                    <i class="bi bi-x-circle"></i> Annulla
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inizializza la mappa
+        var map = L.map('map-picker');
+        
+        // Aggiungi il layer di OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Coordinate di default (Italia)
+        var defaultLat = 42.83;
+        var defaultLng = 12.83;
+        var defaultZoom = 6;
+        
+        // Usa le coordinate passate o quelle di default
+        var initialLat = {{ lat|default:"null" }};
+        var initialLng = {{ lng|default:"null" }};
+        
+        if (initialLat && initialLng) {
+            map.setView([initialLat, initialLng], 15);
+            addMarker(initialLat, initialLng);
+        } else {
+            // Prova a ottenere la posizione dell'utente, altrimenti usa le coordinate di default
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var userLat = position.coords.latitude;
+                    var userLng = position.coords.longitude;
+                    map.setView([userLat, userLng], 13);
+                }, function(error) {
+                    // Geolocalizzazione non disponibile, usa le coordinate di default
+                    map.setView([defaultLat, defaultLng], defaultZoom);
+                });
+            } else {
+                // Geolocalizzazione non supportata, usa le coordinate di default
+                map.setView([defaultLat, defaultLng], defaultZoom);
+            }
+        }
+        
+        // Marker corrente
+        var currentMarker = null;
+        var currentCircle = null;
+        
+        // Funzione per aggiungere un marker alla mappa
+        function addMarker(lat, lng, radius) {
+            // Rimuovi marker precedenti
+            if (currentMarker) {
+                map.removeLayer(currentMarker);
+            }
+            if (currentCircle) {
+                map.removeLayer(currentCircle);
+            }
+            
+            // Aggiungi nuovo marker
+            currentMarker = L.marker([lat, lng], {
+                draggable: true
+            }).addTo(map);
+            
+            // Aggiungi cerchio se è specificato un raggio
+            radius = radius || parseInt(document.getElementById('radius-input').value) || 500;
+            currentCircle = L.circle([lat, lng], {
+                radius: radius,
+                color: '#28a745',
+                fillColor: '#28a745',
+                fillOpacity: 0.2,
+                weight: 1
+            }).addTo(map);
+            
+            // Aggiorna coordinate quando il marker viene trascinato
+            currentMarker.on('dragend', function(e) {
+                var position = currentMarker.getLatLng();
+                updateCoordinates(position.lat, position.lng);
+                
+                // Aggiorna anche il cerchio
+                currentCircle.setLatLng(position);
+            });
+            
+            // Aggiorna i campi di input
+            updateCoordinates(lat, lng);
+        }
+        
+        // Funzione per aggiornare i campi di coordinate
+        function updateCoordinates(lat, lng) {
+            document.getElementById('lat').textContent = lat.toFixed(6);
+            document.getElementById('lng').textContent = lng.toFixed(6);
+            document.getElementById('lat-input').value = lat.toFixed(6);
+            document.getElementById('lng-input').value = lng.toFixed(6);
+        }
+        
+        // Aggiungi marker quando si fa click sulla mappa
+        map.on('click', function(e) {
+            addMarker(e.latlng.lat, e.latlng.lng);
+        });
+        
+        // Aggiorna marker quando si modificano manualmente le coordinate
+        document.getElementById('lat-input').addEventListener('change', function() {
+            var lat = parseFloat(this.value);
+            var lng = parseFloat(document.getElementById('lng-input').value);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                addMarker(lat, lng);
+                map.setView([lat, lng], map.getZoom());
+            }
+        });
+        
+        document.getElementById('lng-input').addEventListener('change', function() {
+            var lat = parseFloat(document.getElementById('lat-input').value);
+            var lng = parseFloat(this.value);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                addMarker(lat, lng);
+                map.setView([lat, lng], map.getZoom());
+            }
+        });
+        
+        // Aggiorna il cerchio quando si modifica il raggio
+        document.getElementById('radius-input').addEventListener('change', function() {
+            if (currentCircle) {
+                var radius = parseInt(this.value) || 500;
+                currentCircle.setRadius(radius);
+            }
+        });
+        
+        // Gestisci il pulsante di conferma
+        document.getElementById('confirm-button').addEventListener('click', function() {
+            var lat = document.getElementById('lat-input').value;
+            var lng = document.getElementById('lng-input').value;
+            var radius = document.getElementById('radius-input').value;
+            
+            // Passa i valori alla finestra opener (se presente)
+            if (window.opener) {
+                window.opener.document.querySelector('.lat-input').value = lat;
+                window.opener.document.querySelector('.lng-input').value = lng;
+                
+                // Se è presente un campo per il raggio, aggiorna anche quello
+                var radiusInput = window.opener.document.querySelector('input[name="raggio"]');
+                if (radiusInput) {
+                    radiusInput.value = radius;
+                }
+                
+                window.close();
+            }
+        });
+        
+        // Gestisci il pulsante annulla
+        document.getElementById('cancel-button').addEventListener('click', function() {
+            window.close();
+        });
+        
+        // Funzione di ricerca
+        document.getElementById('search-button').addEventListener('click', function() {
+            var searchText = document.getElementById('search-input').value;
+            if (searchText.trim() === '') return;
+            
+            // Usa il servizio di geocoding di Nominatim (OpenStreetMap)
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchText)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        var location = data[0];
+                        var lat = parseFloat(location.lat);
+                        var lng = parseFloat(location.lon);
+                        
+                        map.setView([lat, lng], 15);
+                        addMarker(lat, lng);
+                    } else {
+                        alert('Nessun risultato trovato');
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore nella ricerca:', error);
+                    alert('Errore durante la ricerca');
+                });
+        });
+        
+        // Permetti di cercare premendo Invio
+        document.getElementById('search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('search-button').click();
+            }
+        });
+    });
+</script>
+{% endblock %}

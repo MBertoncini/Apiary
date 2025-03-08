@@ -1,0 +1,196 @@
+<!-- templates/dashboard.html -->
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1>Dashboard</h1>
+        <p class="text-muted">Data: {{ data_selezionata|date:"l d F Y" }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-grid"></i> I tuoi Apiari</h5>
+            </div>
+            <div class="card-body">
+                {% if apiari %}
+                    <div class="list-group">
+                        {% for apiario in apiari %}
+                            <a href="{% url 'visualizza_apiario' apiario.id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ apiario.nome }}</h5>
+                                    <small>{{ apiario.arnie.count }} arnie</small>
+                                </div>
+                                <p class="mb-1">{{ apiario.posizione }}</p>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p>Non hai ancora creato nessun apiario.</p>
+                        <a href="{% url 'crea_apiario' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Crea il tuo primo apiario
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'crea_apiario' %}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle"></i> Nuovo Apiario
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-flower1"></i> Fioriture Attuali</h5>
+            </div>
+            <div class="card-body">
+                {% if fioriture_attuali %}
+                    <div class="list-group">
+                        {% for fioritura in fioriture_attuali %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ fioritura.pianta }}</h5>
+                                    <small>{{ fioritura.apiario.nome }}</small>
+                                </div>
+                                <p class="mb-1">
+                                    Dal {{ fioritura.data_inizio|date:"d/m/Y" }}
+                                    {% if fioritura.data_fine %}
+                                        al {{ fioritura.data_fine|date:"d/m/Y" }}
+                                    {% else %}
+                                        (in corso)
+                                    {% endif %}
+                                </p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p>Non ci sono fioriture attive al momento.</p>
+                        <a href="{% url 'gestione_fioriture' %}" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Aggiungi una fioritura
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'gestione_fioriture' %}" class="btn btn-sm btn-success">
+                    <i class="bi bi-flower1"></i> Gestisci Fioriture
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add this section to your dashboard.html where you want to display the controls -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-clipboard-check"></i> Controlli Recenti</h5>
+            </div>
+            <div class="card-body">
+                {% if ultimi_controlli %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Arnia</th>
+                                    <th>Apiario</th>
+                                    <th>Operatore</th>
+                                    <th>Stato</th>
+                                    <th>Dettagli</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for controllo in ultimi_controlli %}
+                                <tr>
+                                    <td>{{ controllo.data|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="color-square me-2" style="width: 16px; height: 16px; display: inline-block; {% if controllo.arnia.colore_hex %}background-color: {{ controllo.arnia.colore_hex }};{% else %}background-color: {{ controllo.arnia.get_colore_display|lower }};{% endif %} border: 1px solid #ccc;"></div>
+                                            {{ controllo.arnia.numero }}
+                                        </div>
+                                    </td>
+                                    <td>{{ controllo.arnia.apiario.nome }}</td>
+                                    <td>{{ controllo.utente.username }}</td>
+                                    <td>
+                                        {% if controllo.presenza_regina %}
+                                            <span class="badge bg-success">Regina ✓</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Regina ✗</span>
+                                        {% endif %}
+                                        
+                                        {% if controllo.sciamatura %}
+                                            <span class="badge bg-warning text-dark">Sciamatura</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalControllo{{ controllo.id }}">
+                                            <i class="bi bi-info-circle"></i>
+                                        </button>
+                                        
+                                        <!-- Modal per i dettagli -->
+                                        <div class="modal fade" id="modalControllo{{ controllo.id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header" {% if controllo.arnia.colore_hex %}style="background-color: {{ controllo.arnia.colore_hex }}; color: {% if controllo.arnia.colore_hex == '#FFFFFF' or controllo.arnia.colore_hex == '#FFC107' %}#212529{% else %}white{% endif %};"{% else %}class="bg-primary text-white"{% endif %}>
+                                                        <h5 class="modal-title">Dettagli Controllo</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p>
+                                                            <strong>Arnia:</strong> 
+                                                            <span class="color-square me-1" style="width: 16px; height: 16px; display: inline-block; {% if controllo.arnia.colore_hex %}background-color: {{ controllo.arnia.colore_hex }};{% else %}background-color: {{ controllo.arnia.get_colore_display|lower }};{% endif %} border: 1px solid #ccc;"></span>
+                                                            {{ controllo.arnia.numero }} ({{ controllo.arnia.apiario.nome }})
+                                                        </p>
+                                                        <p><strong>Data:</strong> {{ controllo.data|date:"d/m/Y" }}</p>
+                                                        <p><strong>Operatore:</strong> {{ controllo.utente.username }}</p>
+                                                        <p><strong>Telaini di scorte:</strong> {{ controllo.telaini_scorte }}</p>
+                                                        <p><strong>Telaini di covata:</strong> {{ controllo.telaini_covata }}</p>
+                                                        <p><strong>Presenza regina:</strong> {% if controllo.presenza_regina %}Sì{% else %}No{% endif %}</p>
+                                                        <p><strong>Sciamatura:</strong> {% if controllo.sciamatura %}Sì{% else %}No{% endif %}</p>
+                                                        {% if controllo.note %}
+                                                            <p><strong>Note:</strong> {{ controllo.note }}</p>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'modifica_controllo' controllo.id %}" class="btn btn-sm btn-outline-primary" title="Modifica controllo">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            <a href="{% url 'elimina_controllo' controllo.id %}?next=dashboard" class="btn btn-sm btn-outline-danger" title="Elimina controllo">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-center py-3">Non ci sono controlli recenti da visualizzare.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
