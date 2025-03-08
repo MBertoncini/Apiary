@@ -6,6 +6,65 @@ from .models import (
     TipoTrattamento, TrattamentoSanitario
 )
 
+# core/forms.py
+# Aggiungi questi form al file esistente 
+
+from django import forms
+from django.contrib.auth.models import User
+from .models import Gruppo, MembroGruppo, InvitoGruppo, Apiario
+
+class GruppoForm(forms.ModelForm):
+    """Form per la creazione e modifica di un gruppo"""
+    class Meta:
+        model = Gruppo
+        fields = ['nome', 'descrizione']
+        widgets = {
+            'descrizione': forms.Textarea(attrs={'rows': 3}),
+        }
+
+class InvitoGruppoForm(forms.ModelForm):
+    """Form per l'invio di un invito a un gruppo"""
+    class Meta:
+        model = InvitoGruppo
+        fields = ['email', 'ruolo_proposto']
+        
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        gruppo = self.instance.gruppo if self.instance and self.instance.pk else self.initial.get('gruppo')
+        
+        # Verifica se l'utente con questa email è già membro del gruppo
+        if User.objects.filter(email=email).exists():
+            user = User.objects.get(email=email)
+            if gruppo and gruppo.membri.filter(id=user.id).exists():
+                raise forms.ValidationError("Questo utente è già membro del gruppo.")
+        
+        # Verifica se esiste già un invito attivo per questa email nel gruppo
+        if InvitoGruppo.objects.filter(email=email, gruppo=gruppo, stato='inviato').exists():
+            raise forms.ValidationError("Esiste già un invito attivo per questa email.")
+            
+        return email
+
+class MembroGruppoRoleForm(forms.ModelForm):
+    """Form per modificare il ruolo di un membro del gruppo"""
+    class Meta:
+        model = MembroGruppo
+        fields = ['ruolo']
+
+class ApiarioGruppoForm(forms.ModelForm):
+    """Form per condividere un apiario con un gruppo"""
+    class Meta:
+        model = Apiario
+        fields = ['gruppo', 'condiviso_con_gruppo']
+        
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        if user:
+            # Mostra solo i gruppi di cui l'utente è membro
+            self.fields['gruppo'].queryset = Gruppo.objects.filter(membri=user)
+            self.fields['gruppo'].empty_label = "Nessun gruppo (privato)"
+
 class DateInput(forms.DateInput):
     input_type = 'date'
 

@@ -1,0 +1,49 @@
+<!-- templates/gruppi/conferma_eliminazione_gruppo.html -->
+{% extends 'base.html' %}
+
+{% block title %}Conferma Eliminazione Gruppo - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-trash"></i> Conferma Eliminazione Gruppo</h5>
+            </div>
+            <div class="card-body">
+                <p>Sei sicuro di voler eliminare il gruppo <strong>{{ gruppo.nome }}</strong>?</p>
+                
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> <strong>Attenzione:</strong> Questa operazione è irreversibile.
+                </div>
+                
+                <p>Dettagli del gruppo:</p>
+                <ul>
+                    <li><strong>Nome:</strong> {{ gruppo.nome }}</li>
+                    <li><strong>Descrizione:</strong> {{ gruppo.descrizione }}</li>
+                    <li><strong>Numero membri:</strong> {{ gruppo.membri.count }}</li>
+                    <li><strong>Data creazione:</strong> {{ gruppo.data_creazione|date:"d/m/Y" }}</li>
+                </ul>
+                
+                <p>L'eliminazione di questo gruppo comporterà:</p>
+                <ul>
+                    <li>La perdita di accesso alle risorse condivise per tutti i membri</li>
+                    <li>La cancellazione di tutti gli inviti attivi</li>
+                    <li>La rimozione del gruppo da tutti gli apiari condivisi</li>
+                </ul>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <form method="post">
+                    {% csrf_token %}
+                    <a href="{% url 'dettaglio_gruppo' gruppo.id %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Annulla
+                    </a>
+                    <button type="submit" class="btn btn-danger ms-2">
+                        <i class="bi bi-trash"></i> Elimina Gruppo
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

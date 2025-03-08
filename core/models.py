@@ -1,3 +1,81 @@
+
+from django.db import models
+from django.contrib.auth.models import User
+from django.utils import timezone
+import uuid
+
+class Gruppo(models.Model):
+    """Modello per gestire gruppi di apicoltori collaborativi"""
+    nome = models.CharField(max_length=100)
+    descrizione = models.TextField(blank=True, null=True)
+    data_creazione = models.DateTimeField(auto_now_add=True)
+    creatore = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gruppi_creati')
+    membri = models.ManyToManyField(User, through='MembroGruppo', related_name='gruppi')
+    
+    def __str__(self):
+        return self.nome
+    
+    class Meta:
+        verbose_name = "Gruppo"
+        verbose_name_plural = "Gruppi"
+
+class MembroGruppo(models.Model):
+    """Modello per la relazione tra utenti e gruppi con ruoli"""
+    RUOLO_CHOICES = [
+        ('admin', 'Amministratore'),
+        ('editor', 'Editor'),
+        ('viewer', 'Visualizzatore'),
+    ]
+    
+    utente = models.ForeignKey(User, on_delete=models.CASCADE)
+    gruppo = models.ForeignKey(Gruppo, on_delete=models.CASCADE)
+    ruolo = models.CharField(max_length=20, choices=RUOLO_CHOICES, default='viewer')
+    data_aggiunta = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.utente.username} - {self.gruppo.nome} ({self.get_ruolo_display()})"
+    
+    class Meta:
+        verbose_name = "Membro Gruppo"
+        verbose_name_plural = "Membri Gruppo"
+        unique_together = ['utente', 'gruppo']
+
+class InvitoGruppo(models.Model):
+    """Modello per gestire gli inviti ai gruppi"""
+    STATO_CHOICES = [
+        ('inviato', 'Inviato'),
+        ('accettato', 'Accettato'),
+        ('rifiutato', 'Rifiutato'),
+        ('scaduto', 'Scaduto'),
+    ]
+    
+    gruppo = models.ForeignKey(Gruppo, on_delete=models.CASCADE, related_name='inviti')
+    email = models.EmailField()
+    ruolo_proposto = models.CharField(max_length=20, choices=MembroGruppo.RUOLO_CHOICES, default='viewer')
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    data_invio = models.DateTimeField(auto_now_add=True)
+    data_scadenza = models.DateTimeField()
+    stato = models.CharField(max_length=20, choices=STATO_CHOICES, default='inviato')
+    invitato_da = models.ForeignKey(User, on_delete=models.CASCADE, related_name='inviti_inviati')
+    
+    def __str__(self):
+        return f"Invito a {self.email} per {self.gruppo.nome}"
+    
+    def save(self, *args, **kwargs):
+        # Imposta la data di scadenza predefinita a 7 giorni dal momento dell'invio
+        if not self.data_scadenza:
+            self.data_scadenza = timezone.now() + timezone.timedelta(days=7)
+        super().save(*args, **kwargs)
+    
+    def is_valid(self):
+        """Verifica se l'invito è ancora valido"""
+        now = timezone.now()
+        return self.stato == 'inviato' and now <= self.data_scadenza
+    
+    class Meta:
+        verbose_name = "Invito Gruppo"
+        verbose_name_plural = "Inviti Gruppo"
+
 # core/models.py
 from django.db import models
 from django.contrib.auth.models import User
@@ -14,6 +92,11 @@ class Apiario(models.Model):
     longitudine = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True,
                                       help_text="Longitudine in gradi decimali (es. 9.123456)")
     
+    # Aggiungi questi campi
+    proprietario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='apiari_posseduti')
+    gruppo = models.ForeignKey(Gruppo, on_delete=models.SET_NULL, null=True, blank=True, related_name='apiari')
+    condiviso_con_gruppo = models.BooleanField(default=False, help_text="Se abilitato, l'apiario è condiviso con tutti i membri del gruppo")    
+
     def __str__(self):
         return self.nome
     
@@ -142,6 +225,8 @@ class Pagamento(models.Model):
     importo = models.DecimalField(max_digits=10, decimal_places=2)
     data = models.DateField()
     descrizione = models.CharField(max_length=200)
+    # Aggiungi questo campo
+    gruppo = models.ForeignKey(Gruppo, on_delete=models.SET_NULL, null=True, blank=True, related_name='pagamenti')
     
     def __str__(self):
         return f"Pagamento {self.utente.username} - {self.importo}€ ({self.data})"
@@ -154,6 +239,8 @@ class Pagamento(models.Model):
 class QuotaUtente(models.Model):
     utente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quote')
     percentuale = models.DecimalField(max_digits=5, decimal_places=2)  # Percentuale di partecipazione
+    # Aggiungi questo campo
+    gruppo = models.ForeignKey(Gruppo, on_delete=models.SET_NULL, null=True, blank=True, related_name='quote')
     
     def __str__(self):
         return f"Quota {self.utente.username} - {self.percentuale}%"

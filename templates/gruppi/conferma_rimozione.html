@@ -1,0 +1,59 @@
+<!-- templates/gruppi/conferma_rimozione.html -->
+{% extends 'base.html' %}
+
+{% block title %}Conferma Rimozione - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-dash"></i> 
+                    {% if is_self_removal %}
+                        Conferma Uscita dal Gruppo
+                    {% else %}
+                        Conferma Rimozione Membro
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if is_self_removal %}
+                    <p>Sei sicuro di voler lasciare il gruppo <strong>{{ gruppo.nome }}</strong>?</p>
+                    <p>Non avrai più accesso alle risorse condivise in questo gruppo.</p>
+                    
+                    {% if membro.ruolo == 'admin' %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i> Sei un amministratore del gruppo. Se lasci il gruppo, verrà automaticamente assegnato un nuovo amministratore o il gruppo sarà eliminato se non ci sono altri membri.
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p>Sei sicuro di voler rimuovere <strong>{{ membro.utente.username }}</strong> dal gruppo <strong>{{ gruppo.nome }}</strong>?</p>
+                    <p>Questo utente non avrà più accesso alle risorse condivise in questo gruppo.</p>
+                    
+                    {% if membro.ruolo == 'admin' %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i> Stai rimuovendo un amministratore del gruppo. Assicurati che ci siano altri amministratori disponibili.
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <form method="post">
+                    {% csrf_token %}
+                    <a href="{% url 'dettaglio_gruppo' gruppo.id %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Annulla
+                    </a>
+                    <button type="submit" class="btn btn-danger ms-2">
+                        {% if is_self_removal %}
+                            <i class="bi bi-box-arrow-left"></i> Lascia Gruppo
+                        {% else %}
+                            <i class="bi bi-person-dash"></i> Rimuovi Membro
+                        {% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

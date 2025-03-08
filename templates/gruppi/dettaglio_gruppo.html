@@ -1,0 +1,250 @@
+<!-- templates/gruppi/dettaglio_gruppo.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ gruppo.nome }} - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="bi bi-people"></i> {{ gruppo.nome }}</h1>
+            <div>
+                <a href="{% url 'gestione_gruppi' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Torna ai Gruppi
+                </a>
+                {% if is_admin %}
+                    <button type="button" class="btn btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#modifyGroupModal">
+                        <i class="bi bi-pencil"></i> Modifica Gruppo
+                    </button>
+                    <button type="button" class="btn btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#deleteGroupModal">
+                        <i class="bi bi-trash"></i> Elimina Gruppo
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+        <p class="text-muted">
+            <span class="badge bg-info">{{ membri.count }} membri</span>
+            {% if gruppo.creatore == user %}
+                <span class="badge bg-success">Sei il creatore di questo gruppo</span>
+            {% endif %}
+            <span class="badge bg-secondary">
+                Ruolo: 
+                {% for membro in membri %}
+                    {% if membro.utente == user %}
+                        {{ membro.get_ruolo_display }}
+                    {% endif %}
+                {% endfor %}
+            </span>
+        </p>
+        <p>{{ gruppo.descrizione }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-people"></i> Membri del Gruppo</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Utente</th>
+                                <th>Email</th>
+                                <th>Ruolo</th>
+                                <th>Data aggiunta</th>
+                                {% if is_admin %}
+                                    <th>Azioni</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for membro in membri %}
+                                <tr>
+                                    <td>
+                                        {{ membro.utente.username }}
+                                        {% if membro.utente == gruppo.creatore %}
+                                            <span class="badge bg-info">Creatore</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ membro.utente.email }}</td>
+                                    <td>
+                                        <span class="badge {% if membro.ruolo == 'admin' %}bg-danger{% elif membro.ruolo == 'editor' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                            {{ membro.get_ruolo_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ membro.data_aggiunta|date:"d/m/Y" }}</td>
+                                    {% if is_admin %}
+                                        <td>
+                                            <div class="btn-group">
+                                                {% if membro.utente != gruppo.creatore or user == gruppo.creatore %}
+                                                    <a href="{% url 'modifica_ruolo_membro' membro.id %}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                {% endif %}
+                                                {% if membro.utente != gruppo.creatore or user == gruppo.creatore %}
+                                                    <a href="{% url 'rimuovi_membro' membro.id %}" class="btn btn-sm btn-outline-danger">
+                                                        <i class="bi bi-person-dash"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if not is_admin %}
+                    <div class="mt-3">
+                        <a href="{% url 'rimuovi_membro' membro.id %}" class="btn btn-outline-danger">
+                            <i class="bi bi-box-arrow-left"></i> Lascia Gruppo
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Sezione Apiari condivisi -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-grid"></i> Apiari Condivisi nel Gruppo</h5>
+            </div>
+            <div class="card-body">
+                {% if apiari_gruppo %}
+                    <div class="list-group">
+                        {% for apiario in apiari_gruppo %}
+                            <a href="{% url 'visualizza_apiario' apiario.id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ apiario.nome }}</h5>
+                                    <small>{{ apiario.arnie.count }} arnie</small>
+                                </div>
+                                <p class="mb-1">{{ apiario.posizione }}</p>
+                                <small class="text-muted">Proprietario: {{ apiario.proprietario.username }}</small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p>Non ci sono apiari condivisi in questo gruppo.</p>
+                        <p>Per condividere un apiario con il gruppo, vai nella pagina dell'apiario e seleziona "Condividi con gruppo".</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        {% if is_admin %}
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-person-plus"></i> Invita Nuovi Membri</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="invita" value="1">
+                        
+                        {{ form_invito|crispy }}
+                        
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-envelope"></i> Invia Invito
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if inviti_attivi %}
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-envelope-open"></i> Inviti in Attesa</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for invito in inviti_attivi %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ invito.email }}</h6>
+                                        <p class="mb-1">Ruolo: {{ invito.get_ruolo_proposto_display }}</p>
+                                        <small class="text-muted">Scade il {{ invito.data_scadenza|date:"d/m/Y" }}</small>
+                                    </div>
+                                    {% if is_admin %}
+                                        <a href="{% url 'annulla_invito' invito.id %}" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-x-circle"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni sui Ruoli</h5>
+            </div>
+            <div class="card-body">
+                <p>I membri del gruppo possono avere diversi livelli di accesso:</p>
+                <ul>
+                    <li><strong>Amministratore:</strong> Può gestire membri, invitare nuovi utenti, modificare e eliminare il gruppo.</li>
+                    <li><strong>Editor:</strong> Può modificare le risorse condivise, ma non può gestire i membri del gruppo.</li>
+                    <li><strong>Visualizzatore:</strong> Può solo visualizzare le risorse condivise, senza apportare modifiche.</li>
+                </ul>
+                <p>Solo il creatore del gruppo o un amministratore può promuovere altri membri a ruoli superiori.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal di modifica gruppo -->
+<div class="modal fade" id="modifyGroupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modifica Gruppo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" name="modifica" value="1">
+                    
+                    {{ form_gruppo|crispy }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Salva Modifiche</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal di eliminazione gruppo -->
+<div class="modal fade" id="deleteGroupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Conferma Eliminazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Sei sicuro di voler eliminare il gruppo "{{ gruppo.nome }}"?</p>
+                <p>Questa operazione è irreversibile. Tutti i membri perderanno l'accesso alle risorse condivise.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <a href="{% url 'elimina_gruppo' gruppo.id %}" class="btn btn-danger">Elimina Gruppo</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -9,6 +9,7 @@ urlpatterns = [
     # Apiari
     path('apiario/nuovo/', views.ApiarioCreateView.as_view(), name='crea_apiario'),
     path('apiario/<int:apiario_id>/', views.visualizza_apiario, name='visualizza_apiario'),
+    path('apiario/<int:apiario_id>/condividi/', views.condividi_apiario, name='condividi_apiario'),
     
     # Arnie
     path('arnia/nuova/', views.ArniaCreateView.as_view(), name='crea_arnia'),
@@ -49,5 +50,14 @@ urlpatterns = [
     # Mappe
     path('mappa/', views.mappa_apiari, name='mappa_apiari'),
     path('mappa/seleziona-posizione/', views.seleziona_posizione, name='seleziona_posizione'),
-
+    
+    # Gestione Gruppi
+    path('gruppi/', views.gestione_gruppi, name='gestione_gruppi'),
+    path('gruppi/<int:gruppo_id>/', views.dettaglio_gruppo, name='dettaglio_gruppo'),
+    path('gruppi/<int:gruppo_id>/elimina/', views.elimina_gruppo, name='elimina_gruppo'),
+    path('gruppi/membro/<int:membro_id>/ruolo/', views.modifica_ruolo_membro, name='modifica_ruolo_membro'),
+    path('gruppi/membro/<int:membro_id>/rimuovi/', views.rimuovi_membro, name='rimuovi_membro'),
+    path('gruppi/inviti/<int:invito_id>/<str:azione>/', views.gestisci_invito, name='gestisci_invito'),
+    path('gruppi/inviti/<int:invito_id>/annulla/', views.annulla_invito, name='annulla_invito'),
+    path('gruppi/inviti/attiva/<uuid:token>/', views.attiva_invito, name='attiva_invito'),
 ]

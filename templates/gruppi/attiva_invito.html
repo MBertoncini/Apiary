@@ -1,0 +1,51 @@
+<!-- templates/gruppi/attiva_invito.html -->
+{% extends 'base.html' %}
+
+{% block title %}Attiva Invito - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-envelope-open"></i> Invito a Unirsi al Gruppo</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="display-1 text-success">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <h2>Sei stato invitato a unirti al gruppo</h2>
+                    <h3 class="text-primary">{{ invito.gruppo.nome }}</h3>
+                </div>
+                
+                <div class="alert alert-info">
+                    <p><strong>Dettagli dell'invito:</strong></p>
+                    <ul>
+                        <li><strong>Gruppo:</strong> {{ invito.gruppo.nome }}</li>
+                        <li><strong>Invitato da:</strong> {{ invito.invitato_da.username }}</li>
+                        <li><strong>Ruolo proposto:</strong> {{ invito.get_ruolo_proposto_display }}</li>
+                        <li><strong>Data scadenza:</strong> {{ invito.data_scadenza|date:"d/m/Y" }}</li>
+                    </ul>
+                </div>
+                
+                <p>{{ invito.gruppo.descrizione }}</p>
+                
+                <p>Unendoti a questo gruppo, avrai accesso alle risorse condivise dagli altri membri e potrai collaborare nella gestione degli apiari, secondo il ruolo che ti è stato assegnato.</p>
+                
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" name="accetta" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Accetta Invito
+                        </button>
+                        <button type="submit" name="rifiuta" class="btn btn-outline-danger">
+                            <i class="bi bi-x-circle"></i> Rifiuta Invito
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

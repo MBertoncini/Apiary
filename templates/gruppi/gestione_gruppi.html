@@ -1,0 +1,131 @@
+<!-- templates/gruppi/gestione_gruppi.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Gestione Gruppi - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="bi bi-people"></i> I Miei Gruppi</h1>
+        </div>
+    </div>
+</div>
+
+<!-- Inviti in attesa -->
+{% if inviti_ricevuti %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-envelope"></i> Inviti Ricevuti</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for invito in inviti_ricevuti %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1">{{ invito.gruppo.nome }}</h5>
+                                    <p class="mb-1">Invitato da: {{ invito.invitato_da.username }}</p>
+                                    <p class="mb-1">Ruolo proposto: {{ invito.get_ruolo_proposto_display }}</p>
+                                    <small class="text-muted">Scade il {{ invito.data_scadenza|date:"d/m/Y" }}</small>
+                                </div>
+                                <div class="btn-group">
+                                    <a href="{% url 'gestisci_invito' invito.id 'accetta' %}" class="btn btn-success">
+                                        <i class="bi bi-check-circle"></i> Accetta
+                                    </a>
+                                    <a href="{% url 'gestisci_invito' invito.id 'rifiuta' %}" class="btn btn-danger">
+                                        <i class="bi bi-x-circle"></i> Rifiuta
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-people"></i> I Miei Gruppi</h5>
+            </div>
+            <div class="card-body">
+                {% if gruppi %}
+                    <div class="list-group">
+                        {% for gruppo in gruppi %}
+                            <a href="{% url 'dettaglio_gruppo' gruppo.id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ gruppo.nome }}</h5>
+                                    <small>{{ gruppo.membri.count }} membri</small>
+                                </div>
+                                <p class="mb-1">{{ gruppo.descrizione|truncatechars:150 }}</p>
+                                <small class="text-muted">
+                                    {% if gruppo.creatore == user %}
+                                        <span class="badge bg-info">Creatore</span>
+                                    {% endif %}
+                                    {% for membro in gruppo.membrogruppo_set.all %}
+                                        {% if membro.utente == user %}
+                                            <span class="badge bg-secondary">{{ membro.get_ruolo_display }}</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p>Non fai parte di nessun gruppo.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Crea Nuovo Gruppo</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {{ form|crispy }}
+                    
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-plus-circle"></i> Crea Gruppo
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
+            </div>
+            <div class="card-body">
+                <p>I gruppi ti permettono di collaborare con altri utenti nella gestione degli apiari.</p>
+                <p>Come membro di un gruppo, potrai:</p>
+                <ul>
+                    <li>Condividere apiari e arnie</li>
+                    <li>Visualizzare e gestire fioriture e trattamenti</li>
+                    <li>Registrare pagamenti e quote di partecipazione</li>
+                </ul>
+                <p>Ogni membro può avere ruoli diversi:</p>
+                <ul>
+                    <li><strong>Amministratore:</strong> Gestione completa del gruppo</li>
+                    <li><strong>Editor:</strong> Può modificare risorse condivise</li>
+                    <li><strong>Visualizzatore:</strong> Può solo visualizzare</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

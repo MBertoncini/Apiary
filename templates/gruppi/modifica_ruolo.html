@@ -1,0 +1,52 @@
+<!-- templates/gruppi/modifica_ruolo.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Modifica Ruolo - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-gear"></i> Modifica Ruolo Membro</h5>
+            </div>
+            <div class="card-body">
+                <p>Stai modificando il ruolo di <strong>{{ membro.utente.username }}</strong> nel gruppo <strong>{{ gruppo.nome }}</strong>.</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {{ form|crispy }}
+                    
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-exclamation-triangle"></i> Attenzione: modificare il ruolo di un membro influisce sui suoi permessi all'interno del gruppo.
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-3">
+                        <a href="{% url 'dettaglio_gruppo' gruppo.id %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Annulla
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Salva Modifiche
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni sui Ruoli</h5>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li><strong>Amministratore:</strong> Può gestire membri, invitare nuovi utenti, modificare e eliminare il gruppo.</li>
+                    <li><strong>Editor:</strong> Può modificare le risorse condivise, ma non può gestire i membri del gruppo.</li>
+                    <li><strong>Visualizzatore:</strong> Può solo visualizzare le risorse condivise, senza apportare modifiche.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
