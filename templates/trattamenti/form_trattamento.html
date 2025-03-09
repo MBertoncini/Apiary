@@ -1,4 +1,4 @@
-<!-- templates/trattamenti/form_trattamento.html -->
+<!-- Aggiorna templates/trattamenti/form_trattamento.html -->
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
@@ -40,7 +40,7 @@
                 <h5 class="mb-0">Informazioni Trattamento</h5>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" id="trattamentoForm">
                     {% csrf_token %}
                     
                     <div class="row">
@@ -83,6 +83,40 @@
                         </div>
                     </div>
                     
+                    <!-- Nuova sezione per il blocco di covata -->
+                    <div class="card mb-4 blocco-covata-section" style="{% if not tipo_trattamento_info.richiede_blocco_covata %}display:none;{% endif %}">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0"><i class="bi bi-calendar-x"></i> Blocco di Covata</h5>
+                            {% if tipo_trattamento_info.richiede_blocco_covata %}
+                            <p class="mb-0 small">Questo trattamento richiede un blocco di covata.</p>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                {{ form.blocco_covata_attivo|as_crispy_field }}
+                            </div>
+                            
+                            <div class="blocco-covata-details" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.data_inizio_blocco|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.data_fine_blocco|as_crispy_field }}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ form.metodo_blocco|as_crispy_field }}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ form.note_blocco|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="mb-3">
                         {{ form.note|as_crispy_field }}
                     </div>
@@ -98,6 +132,7 @@
                             </a>
                         {% endif %}
                         
+                        <input type="hidden" name="save" value="1">
                         <button type="submit" class="btn btn-success">
                             <i class="bi bi-check-circle"></i> 
                             {% if trattamento %}
@@ -141,6 +176,16 @@
                     <h6>Informazioni sul tipo di trattamento selezionato:</h6>
                     <p><strong>Principio attivo:</strong> {{ tipo_trattamento_info.principio_attivo }}</p>
                     <p><strong>Tempo sospensione:</strong> {{ tipo_trattamento_info.tempo_sospensione }} giorni</p>
+                    
+                    {% if tipo_trattamento_info.richiede_blocco_covata %}
+                    <div class="alert alert-warning">
+                        <p><strong>Blocco covata richiesto:</strong> {{ tipo_trattamento_info.giorni_blocco_covata }} giorni</p>
+                        {% if tipo_trattamento_info.nota_blocco_covata %}
+                            <p>{{ tipo_trattamento_info.nota_blocco_covata }}</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
                     {% if tipo_trattamento_info.istruzioni %}
                         <p><strong>Istruzioni:</strong> {{ tipo_trattamento_info.istruzioni }}</p>
                     {% endif %}
@@ -186,6 +231,24 @@
         // Event listener
         selectAllCheckbox.addEventListener('change', toggleArnieSelection);
         
+        // Gestione di blocco covata
+        const bloccoCovataCheckbox = document.getElementById('id_blocco_covata_attivo');
+        const bloccoCovataDetails = document.querySelector('.blocco-covata-details');
+        
+        function toggleBloccoCovataDetails() {
+            if (bloccoCovataCheckbox.checked) {
+                bloccoCovataDetails.style.display = 'block';
+            } else {
+                bloccoCovataDetails.style.display = 'none';
+            }
+        }
+        
+        // Imposta lo stato iniziale del blocco covata
+        toggleBloccoCovataDetails();
+        
+        // Event listener per il blocco covata
+        bloccoCovataCheckbox.addEventListener('change', toggleBloccoCovataDetails);
+        
         // Aggiornamento del tipo di trattamento selezionato
         const tipoTrattamentoSelect = document.getElementById('id_tipo_trattamento');
         
@@ -194,6 +257,13 @@
                 document.getElementById('trattamentoForm').submit();
             });
         }
+        
+        // Prefill blocco covata date se il tipo di trattamento lo richiede
+        const dataInizioField = document.getElementById('id_data_inizio');
+        const dataInizioBlockField = document.getElementById('id_data_inizio_blocco');
+        
+        if (dataInizioField && dataInizioBlockField && !dataInizioBlockField.value) {
+            dataInizioBlockField.value = dataInizioField.value;
+        }
     });
-</script>
-{% endblock %}
+    {% endblock %}

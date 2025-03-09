@@ -14,6 +14,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 import uuid
+from functools import wraps
 
 from .models import (
     Apiario, Arnia, ControlloArnia, Fioritura, Pagamento, QuotaUtente, 
@@ -429,10 +430,57 @@ def gestione_apiario_gruppo(request, apiario_id):
     
     return render(request, 'apiari/gestione_apiario_gruppo.html', context)
 
+def verifica_permessi_fioritura(view_func):
+    """
+    Decoratore che verifica che l'utente abbia permessi per modificare/eliminare una fioritura.
+    Criterio: è il creatore della fioritura o è un amministratore.
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        if not pk:
+            messages.error(request, "Fioritura non specificata.")
+            return redirect('gestione_fioriture')
+        
+        try:
+            fioritura = Fioritura.objects.get(pk=pk)
+            
+            # Determina se l'utente è un admin
+            is_admin = request.user.is_staff or request.user.is_superuser
+            
+            # Se è una fioritura associata a un apiario, verifica anche i permessi del gruppo
+            is_group_admin = False
+            if fioritura.apiario and fioritura.apiario.gruppo and fioritura.apiario.condiviso_con_gruppo:
+                try:
+                    membro = MembroGruppo.objects.get(utente=request.user, gruppo=fioritura.apiario.gruppo)
+                    is_group_admin = membro.ruolo in ['admin', 'editor']
+                except MembroGruppo.DoesNotExist:
+                    pass
+            
+            # Verifica se l'utente è il creatore della fioritura o ha permessi speciali
+            if fioritura.apiario and fioritura.apiario.proprietario == request.user:
+                # Proprietario dell'apiario ha sempre accesso
+                return view_func(request, *args, **kwargs)
+            elif is_admin or is_group_admin:
+                # Admin di sistema o del gruppo hanno accesso
+                return view_func(request, *args, **kwargs)
+            elif hasattr(fioritura, 'creatore') and fioritura.creatore == request.user:
+                # Creatore della fioritura ha accesso
+                return view_func(request, *args, **kwargs)
+            else:
+                messages.error(request, "Non hai i permessi per modificare questa fioritura.")
+                return redirect('gestione_fioriture')
+                
+        except Fioritura.DoesNotExist:
+            messages.error(request, "Fioritura non trovata.")
+            return redirect('gestione_fioriture')
+    
+    return _wrapped_view
+
 @login_required
 def gestione_fioriture(request):
     """Gestione delle fioriture"""
-    # Ottieni apiari a cui l'utente ha accesso
+    # Ottieni apiari a cui l'utente ha accesso (per visualizzare tutte le fioriture)
     apiari_propri = Apiario.objects.filter(proprietario=request.user)
     gruppi_utente = Gruppo.objects.filter(membri=request.user)
     apiari_condivisi = Apiario.objects.filter(
@@ -441,30 +489,37 @@ def gestione_fioriture(request):
     ).exclude(proprietario=request.user)
     apiari = (apiari_propri | apiari_condivisi).distinct()
     
-    # Ottieni fioriture degli apiari accessibili
-    fioriture = Fioritura.objects.filter(apiario__in=apiari).order_by('-data_inizio')
+    # Ottieni tutte le fioriture accessibili all'utente
+    # Include fioriture associate agli apiari + fioriture senza apiario (creati dall'utente)
+    fioriture_apiari = Fioritura.objects.filter(apiario__in=apiari)
+    fioriture_senza_apiario = Fioritura.objects.filter(apiario__isnull=True)
+    fioriture = (fioriture_apiari | fioriture_senza_apiario).order_by('-data_inizio')
     
     if request.method == 'POST':
         form = FiorituraForm(request.POST)
         if form.is_valid():
             fioritura = form.save(commit=False)
             
-            # Verifica i permessi per l'apiario selezionato
-            apiario = fioritura.apiario
-            can_add = False
-            if apiario.proprietario == request.user:
-                can_add = True
-            elif apiario.gruppo and apiario.condiviso_con_gruppo:
-                try:
-                    membro = MembroGruppo.objects.get(utente=request.user, gruppo=apiario.gruppo)
-                    if membro.ruolo in ['admin', 'editor']:
-                        can_add = True
-                except MembroGruppo.DoesNotExist:
-                    pass
+            # Salva il creatore della fioritura
+            fioritura.creatore = request.user
             
-            if not can_add:
-                messages.error(request, "Non hai i permessi per aggiungere fioriture a questo apiario.")
-                return redirect('gestione_fioriture')
+            # Verifica i permessi per l'apiario selezionato se presente
+            apiario = fioritura.apiario
+            if apiario:
+                can_add = False
+                if apiario.proprietario == request.user:
+                    can_add = True
+                elif apiario.gruppo and apiario.condiviso_con_gruppo:
+                    try:
+                        membro = MembroGruppo.objects.get(utente=request.user, gruppo=apiario.gruppo)
+                        if membro.ruolo in ['admin', 'editor']:
+                            can_add = True
+                    except MembroGruppo.DoesNotExist:
+                        pass
+                
+                if not can_add:
+                    messages.error(request, "Non hai i permessi per aggiungere fioriture a questo apiario.")
+                    return redirect('gestione_fioriture')
             
             fioritura.save()
             messages.success(request, "Fioritura aggiunta con successo.")
@@ -473,6 +528,8 @@ def gestione_fioriture(request):
         form = FiorituraForm()
         # Limita le opzioni del campo apiario agli apiari a cui l'utente ha accesso
         form.fields['apiario'].queryset = apiari
+        # Imposta l'apiario come non obbligatorio nel form
+        form.fields['apiario'].required = False
     
     context = {
         'fioriture': fioriture,
@@ -482,40 +539,29 @@ def gestione_fioriture(request):
     return render(request, 'fioriture/gestione_fioriture.html', context)
 
 @login_required
-@richiedi_permesso_scrittura
+@verifica_permessi_fioritura
 def fioritura_delete(request, pk):
     """Elimina una fioritura"""
     fioritura = get_object_or_404(Fioritura, pk=pk)
-    apiario = fioritura.apiario
     
-    # Verifica i permessi
-    can_delete = False
-    if apiario.proprietario == request.user:
-        can_delete = True
-    elif apiario.gruppo and apiario.condiviso_con_gruppo:
-        try:
-            membro = MembroGruppo.objects.get(utente=request.user, gruppo=apiario.gruppo)
-            if membro.ruolo in ['admin', 'editor']:
-                can_delete = True
-        except MembroGruppo.DoesNotExist:
-            pass
+    if request.method == 'POST':
+        fioritura.delete()
+        messages.success(request, "Fioritura eliminata con successo.")
     
-    if not can_delete:
-        messages.error(request, "Non hai i permessi per eliminare questa fioritura.")
-        return redirect('gestione_fioriture')
-    
-    fioritura.delete()
-    messages.success(request, "Fioritura eliminata con successo.")
     return redirect('gestione_fioriture')
+
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 @login_required
 def gestione_pagamenti(request):
-    """Gestione dei pagamenti"""
+    """Vista per gestire i pagamenti"""
     # Ottieni i gruppi dell'utente
     gruppi = Gruppo.objects.filter(membri=request.user)
     
     # Determina se visualizzare i pagamenti di un gruppo specifico
     gruppo_id = request.GET.get('gruppo_id')
+    gruppo_selezionato = None
+    
     if gruppo_id:
         try:
             gruppo_selezionato = Gruppo.objects.get(pk=gruppo_id)
@@ -530,10 +576,20 @@ def gestione_pagamenti(request):
         # Filtra i pagamenti e le quote per questo gruppo
         pagamenti = Pagamento.objects.filter(gruppo=gruppo_selezionato).order_by('-data')
         quote = QuotaUtente.objects.filter(gruppo=gruppo_selezionato)
+        
+        # Verifica i permessi per aggiungere/modificare pagamenti nel gruppo
+        try:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=gruppo_selezionato)
+            can_edit = membro.ruolo in ['admin', 'editor']
+        except MembroGruppo.DoesNotExist:
+            can_edit = False
     else:
         # Se non è selezionato un gruppo, mostra solo i pagamenti personali
         pagamenti = Pagamento.objects.filter(utente=request.user, gruppo__isnull=True).order_by('-data')
         quote = QuotaUtente.objects.filter(utente=request.user, gruppo__isnull=True)
+        
+        # Per i pagamenti personali, l'utente ha sempre i permessi
+        can_edit = True
     
     # Calcola il totale dei pagamenti per utente
     pagamenti_per_utente = {}
@@ -557,35 +613,30 @@ def gestione_pagamenti(request):
         pagamenti_per_utente[user_id]['dovuto'] = dovuto
         pagamenti_per_utente[user_id]['saldo'] = saldo
     
-    if request.method == 'POST':
-        form = PagamentoForm(request.POST)
+    if request.method == 'POST' and can_edit:
+        # Creiamo il form con i dati della richiesta
+        form = PagamentoForm(request.POST, gruppo=gruppo_selezionato, 
+                            initial={'utente': request.user})
+        
         if form.is_valid():
             pagamento = form.save(commit=False)
             
             # Se è selezionato un gruppo, associa il pagamento al gruppo
-            if gruppo_id:
+            if gruppo_selezionato:
                 pagamento.gruppo = gruppo_selezionato
-                
-                # Verifica che l'utente possa aggiungere pagamenti al gruppo
-                try:
-                    membro = MembroGruppo.objects.get(utente=request.user, gruppo=gruppo_selezionato)
-                    if membro.ruolo not in ['admin', 'editor']:
-                        messages.error(request, "Non hai i permessi per aggiungere pagamenti a questo gruppo.")
-                        return redirect('gestione_pagamenti')
-                except MembroGruppo.DoesNotExist:
-                    messages.error(request, "Non sei membro di questo gruppo.")
-                    return redirect('gestione_pagamenti')
             
             pagamento.save()
             messages.success(request, "Pagamento registrato con successo.")
             
             # Redirect mantenendo il filtro gruppo se applicato
-            redirect_url = 'gestione_pagamenti'
             if gruppo_id:
-                redirect_url += f'?gruppo_id={gruppo_id}'
-            return redirect(redirect_url)
+                # Correzione: costruisci l'URL completo con i parametri di query
+                return redirect(f'{reverse("gestione_pagamenti")}?gruppo_id={gruppo_id}')
+            else:
+                return redirect('gestione_pagamenti')
     else:
-        form = PagamentoForm()
+        # Inizializza il form con l'utente corrente
+        form = PagamentoForm(gruppo=gruppo_selezionato, initial={'utente': request.user})
     
     context = {
         'pagamenti': pagamenti,
@@ -593,87 +644,101 @@ def gestione_pagamenti(request):
         'totale_pagamenti': totale_pagamenti,
         'form': form,
         'gruppi': gruppi,
-        'gruppo_selezionato': gruppo_selezionato if gruppo_id else None,
+        'gruppo_selezionato': gruppo_selezionato,
+        'can_edit': can_edit,
     }
     
     return render(request, 'pagamenti/gestione_pagamenti.html', context)
 
 @login_required
-@richiedi_permesso_scrittura
 def pagamento_update(request, pk):
     """Vista per modificare un pagamento esistente"""
     pagamento = get_object_or_404(Pagamento, pk=pk)
+    gruppo = pagamento.gruppo
     
     # Verifica i permessi
     can_edit = False
-    if pagamento.utente == request.user:
+    
+    # Se è un pagamento personale dell'utente, può sempre modificarlo
+    if pagamento.utente == request.user and not gruppo:
         can_edit = True
-    elif pagamento.gruppo:
+    # Se fa parte di un gruppo, verifica i permessi nel gruppo
+    elif gruppo:
         try:
-            membro = MembroGruppo.objects.get(utente=request.user, gruppo=pagamento.gruppo)
-            if membro.ruolo in ['admin', 'editor']:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=gruppo)
+            if membro.ruolo in ['admin', 'editor'] or (pagamento.utente == request.user and membro.ruolo == 'viewer'):
                 can_edit = True
         except MembroGruppo.DoesNotExist:
             pass
     
     if not can_edit:
         messages.error(request, "Non hai i permessi per modificare questo pagamento.")
+        if gruppo:
+            return redirect(f'{reverse("gestione_pagamenti")}?gruppo_id={gruppo.id}')
         return redirect('gestione_pagamenti')
     
     if request.method == 'POST':
-        form = PagamentoForm(request.POST, instance=pagamento)
+        form = PagamentoForm(request.POST, instance=pagamento, gruppo=gruppo)
         if form.is_valid():
             form.save()
             messages.success(request, "Pagamento aggiornato con successo.")
             
             # Redirect mantenendo il filtro gruppo se applicato
-            redirect_url = 'gestione_pagamenti'
-            if pagamento.gruppo:
-                redirect_url += f'?gruppo_id={pagamento.gruppo.id}'
-            return redirect(redirect_url)
+            if gruppo:
+                # Correzione: costruisci l'URL completo con i parametri di query
+                return redirect(f'{reverse("gestione_pagamenti")}?gruppo_id={gruppo.id}')
+            else:
+                return redirect('gestione_pagamenti')
     else:
-        form = PagamentoForm(instance=pagamento)
+        form = PagamentoForm(instance=pagamento, gruppo=gruppo)
     
     context = {
         'form': form,
         'pagamento': pagamento,
+        'gruppo': gruppo,
     }
     
     return render(request, 'pagamenti/form_pagamento.html', context)
 
 @login_required
-@richiedi_permesso_scrittura
 def pagamento_delete(request, pk):
     """Vista per eliminare un pagamento"""
     pagamento = get_object_or_404(Pagamento, pk=pk)
+    gruppo = pagamento.gruppo
     
     # Verifica i permessi
     can_delete = False
-    if pagamento.utente == request.user:
+    
+    # Se è un pagamento personale dell'utente, può sempre eliminarlo
+    if pagamento.utente == request.user and not gruppo:
         can_delete = True
-    elif pagamento.gruppo:
+    # Se fa parte di un gruppo, verifica i permessi nel gruppo
+    elif gruppo:
         try:
-            membro = MembroGruppo.objects.get(utente=request.user, gruppo=pagamento.gruppo)
-            if membro.ruolo in ['admin', 'editor']:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=gruppo)
+            if membro.ruolo in ['admin', 'editor'] or (pagamento.utente == request.user and membro.ruolo == 'viewer'):
                 can_delete = True
         except MembroGruppo.DoesNotExist:
             pass
     
     if not can_delete:
         messages.error(request, "Non hai i permessi per eliminare questo pagamento.")
+        if gruppo:
+            return redirect(f'{reverse("gestione_pagamenti")}?gruppo_id={gruppo.id}')
         return redirect('gestione_pagamenti')
     
-    # Memorizza il gruppo per il redirect
-    gruppo_id = pagamento.gruppo.id if pagamento.gruppo else None
+    # Memorizza l'ID del gruppo per il redirect
+    gruppo_id = gruppo.id if gruppo else None
     
     pagamento.delete()
     messages.success(request, "Pagamento eliminato con successo.")
     
     # Redirect mantenendo il filtro gruppo se applicato
-    redirect_url = 'gestione_pagamenti'
     if gruppo_id:
-        redirect_url += f'?gruppo_id={gruppo_id}'
-    return redirect(redirect_url)
+        # Correzione: costruisci l'URL completo con i parametri di query
+        return redirect(f'{reverse("gestione_pagamenti")}?gruppo_id={gruppo_id}')
+    else:
+        return redirect('gestione_pagamenti')
 
 @login_required
 def gestione_quote(request):
@@ -683,6 +748,8 @@ def gestione_quote(request):
     
     # Determina se visualizzare le quote di un gruppo specifico
     gruppo_id = request.GET.get('gruppo_id')
+    gruppo_selezionato = None
+    
     if gruppo_id:
         try:
             gruppo_selezionato = Gruppo.objects.get(pk=gruppo_id)
@@ -696,101 +763,127 @@ def gestione_quote(request):
             
         # Filtra le quote per questo gruppo
         quote = QuotaUtente.objects.filter(gruppo=gruppo_selezionato)
-    else:
-        # Se non è selezionato un gruppo, mostra solo le quote personali
-        quote = QuotaUtente.objects.filter(utente=request.user, gruppo__isnull=True)
-    
-    # Verifica i permessi per aggiungere quote
-    can_add = True
-    if gruppo_id:
+        
+        # Verifica i permessi per aggiungere/modificare quote nel gruppo
         try:
             membro = MembroGruppo.objects.get(utente=request.user, gruppo=gruppo_selezionato)
             can_add = membro.ruolo in ['admin', 'editor']
         except MembroGruppo.DoesNotExist:
             can_add = False
+    else:
+        # Se non è selezionato un gruppo, mostra solo le quote personali
+        quote = QuotaUtente.objects.filter(utente=request.user, gruppo__isnull=True)
+        
+        # Per le quote personali, l'utente ha sempre i permessi
+        can_add = True
     
-    if request.method == 'POST' and can_add:
-        form = QuotaUtenteForm(request.POST)
+    # Calcola il totale delle percentuali per verificare se arrivano a 100%
+    total_percentuale = sum(q.percentuale for q in quote)
+    
+    if request.method == 'POST':
+        # Se siamo in modalità gruppo, ricontrolliamo i permessi
+        if gruppo_selezionato and not can_add:
+            messages.error(request, "Non hai i permessi per aggiungere quote in questo gruppo.")
+            return redirect(f'{reverse("gestione_quote")}?gruppo_id={gruppo_id}')
+            
+        form = QuotaUtenteForm(request.POST, gruppo=gruppo_selezionato)
         if form.is_valid():
             quota = form.save(commit=False)
             
             # Se è selezionato un gruppo, associa la quota al gruppo
-            if gruppo_id:
+            if gruppo_selezionato:
                 quota.gruppo = gruppo_selezionato
             
             quota.save()
             messages.success(request, "Quota aggiunta con successo.")
             
             # Redirect mantenendo il filtro gruppo se applicato
-            redirect_url = 'gestione_quote'
             if gruppo_id:
-                redirect_url += f'?gruppo_id={gruppo_id}'
-            return redirect(redirect_url)
+                # Correzione: costruisci l'URL completo con i parametri di query
+                return redirect(f'{reverse("gestione_quote")}?gruppo_id={gruppo_id}')
+            else:
+                return redirect('gestione_quote')
     else:
-        form = QuotaUtenteForm()
+        form = QuotaUtenteForm(gruppo=gruppo_selezionato)
     
     context = {
         'quote': quote,
         'form': form,
         'gruppi': gruppi,
-        'gruppo_selezionato': gruppo_selezionato if gruppo_id else None,
+        'gruppo_selezionato': gruppo_selezionato,
         'can_add': can_add,
+        'total_percentuale': total_percentuale,
     }
     
     return render(request, 'pagamenti/gestione_quote.html', context)
 
 @login_required
-@richiedi_permesso_scrittura
 def quota_update(request, pk):
     """Vista per modificare una quota utente esistente"""
     quota = get_object_or_404(QuotaUtente, pk=pk)
+    gruppo = quota.gruppo
     
     # Verifica i permessi per aggiornare la quota
     can_update = False
-    if quota.utente == request.user:
+    
+    # Se è una quota personale dell'utente, può sempre modificarla
+    if quota.utente == request.user and not gruppo:
         can_update = True
-    elif quota.gruppo:
+    # Se fa parte di un gruppo, verifica i permessi nel gruppo
+    elif gruppo:
         try:
-            membro = MembroGruppo.objects.get(utente=request.user, gruppo=quota.gruppo)
-            if membro.ruolo in ['admin', 'editor']:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=gruppo)
+            if membro.ruolo in ['admin', 'editor'] or (quota.utente == request.user and membro.ruolo == 'viewer'):
                 can_update = True
         except MembroGruppo.DoesNotExist:
             pass
     
     if not can_update:
         messages.error(request, "Non hai i permessi per modificare questa quota.")
+        if gruppo:
+            return redirect(f'{reverse("gestione_quote")}?gruppo_id={gruppo.id}')
         return redirect('gestione_quote')
     
     if request.method == 'POST':
-        form = QuotaUtenteForm(request.POST, instance=quota)
+        form = QuotaUtenteForm(request.POST, instance=quota, gruppo=gruppo)
         if form.is_valid():
             form.save()
             messages.success(request, "Quota aggiornata con successo.")
-            return redirect('gestione_quote')
+            
+            # Redirect mantenendo il filtro gruppo se applicato
+            if gruppo:
+                # Correzione: costruisci l'URL completo con i parametri di query
+                return redirect(f'{reverse("gestione_quote")}?gruppo_id={gruppo.id}')
+            else:
+                return redirect('gestione_quote')
     else:
-        form = QuotaUtenteForm(instance=quota)
+        form = QuotaUtenteForm(instance=quota, gruppo=gruppo)
     
     context = {
         'form': form,
         'quota': quota,
+        'gruppo': gruppo,
         'is_update': True,
     }
     
     return render(request, 'pagamenti/form_quota.html', context)
 
 @login_required
-@richiedi_permesso_scrittura
 def quota_delete(request, pk):
     """Vista per eliminare una quota utente"""
     quota = get_object_or_404(QuotaUtente, pk=pk)
+    gruppo = quota.gruppo
     
     # Verifica i permessi per eliminare la quota
     can_delete = False
-    if quota.utente == request.user:
+    
+    # Se è una quota personale dell'utente, può sempre eliminarla
+    if quota.utente == request.user and not gruppo:
         can_delete = True
-    elif quota.gruppo:
+    # Se fa parte di un gruppo, verifica i permessi nel gruppo
+    elif gruppo:
         try:
-            membro = MembroGruppo.objects.get(utente=request.user, gruppo=quota.gruppo)
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=gruppo)
             if membro.ruolo in ['admin', 'editor']:
                 can_delete = True
         except MembroGruppo.DoesNotExist:
@@ -798,19 +891,30 @@ def quota_delete(request, pk):
     
     if not can_delete:
         messages.error(request, "Non hai i permessi per eliminare questa quota.")
+        if gruppo:
+            return redirect(f'{reverse("gestione_quote")}?gruppo_id={gruppo.id}')
         return redirect('gestione_quote')
+    
+    # Memorizza l'ID del gruppo per il redirect
+    gruppo_id = gruppo.id if gruppo else None
     
     if request.method == 'POST':
         quota.delete()
         messages.success(request, "Quota eliminata con successo.")
-        return redirect('gestione_quote')
+        
+        # Redirect mantenendo il filtro gruppo se applicato
+        if gruppo_id:
+            # Correzione: costruisci l'URL completo con i parametri di query
+            return redirect(f'{reverse("gestione_quote")}?gruppo_id={gruppo_id}')
+        else:
+            return redirect('gestione_quote')
     
     context = {
         'quota': quota,
+        'gruppo': gruppo,
     }
     
     return render(request, 'pagamenti/conferma_elimina_quota.html', context)
-
 
 @login_required
 def gestione_trattamenti(request):
@@ -844,6 +948,8 @@ def gestione_trattamenti(request):
     }
     
     return render(request, 'trattamenti/gestione_trattamenti.html', context)
+
+# Aggiornamento delle funzioni in views.py per gestire il blocco di covata
 
 @login_required
 @richiedi_permesso_scrittura
@@ -896,6 +1002,16 @@ def nuovo_trattamento(request, apiario_id=None):
             if trattamento.stato == 'completato' and trattamento.data_fine and trattamento.tipo_trattamento.tempo_sospensione > 0:
                 trattamento.data_fine_sospensione = trattamento.data_fine + timedelta(days=trattamento.tipo_trattamento.tempo_sospensione)
             
+            # Se il tipo di trattamento richiede blocco di covata e l'utente lo ha attivato
+            if trattamento.blocco_covata_attivo and trattamento.data_inizio_blocco:
+                # Se non è specificata la data di fine blocco, calcolarla in base ai giorni consigliati
+                if not trattamento.data_fine_blocco and trattamento.tipo_trattamento.giorni_blocco_covata > 0:
+                    trattamento.data_fine_blocco = trattamento.data_inizio_blocco + timedelta(days=trattamento.tipo_trattamento.giorni_blocco_covata)
+                
+                # Se non è specificato un metodo di blocco, suggerire il valore predefinito
+                if not trattamento.metodo_blocco:
+                    trattamento.metodo_blocco = "Gabbia"
+            
             trattamento.save()
             
             if not seleziona_tutte:
@@ -916,6 +1032,16 @@ def nuovo_trattamento(request, apiario_id=None):
         initial_data = {}
         if apiario:
             initial_data['apiario'] = apiario.id
+        
+        # Se è stato selezionato un tipo che richiede blocco covata, pre-popoliamo alcuni valori
+        if tipo_trattamento_info and tipo_trattamento_info.richiede_blocco_covata:
+            initial_data['blocco_covata_attivo'] = True
+            
+            # Calcoliamo una data di inizio per il blocco (potrebbe essere la stessa del trattamento)
+            today = timezone.now().date()
+            initial_data['data_inizio_blocco'] = today
+            if tipo_trattamento_info.giorni_blocco_covata > 0:
+                initial_data['data_fine_blocco'] = today + timedelta(days=tipo_trattamento_info.giorni_blocco_covata)
         
         form = TrattamentoSanitarioForm(initial=initial_data)
         
@@ -972,6 +1098,9 @@ def modifica_trattamento(request, pk):
     arnie_trattamento = set(trattamento.arnie.values_list('id', flat=True))
     seleziona_tutte = len(arnie_trattamento) == 0 or arnie_trattamento == tutte_arnie_apiario
     
+    # Ottieni informazioni sul tipo di trattamento selezionato
+    tipo_trattamento_info = trattamento.tipo_trattamento
+    
     if request.method == 'POST':
         form = TrattamentoSanitarioForm(request.POST, instance=trattamento)
         if form.is_valid():
@@ -979,6 +1108,16 @@ def modifica_trattamento(request, pk):
             
             # Gestione della selezione "tutte le arnie"
             seleziona_tutte = form.cleaned_data.get('seleziona_tutte_arnie')
+            
+            # Calcola automaticamente la data_fine_sospensione se è stato completato il trattamento
+            if trattamento.stato == 'completato' and trattamento.data_fine and trattamento.tipo_trattamento.tempo_sospensione > 0:
+                trattamento.data_fine_sospensione = trattamento.data_fine + timedelta(days=trattamento.tipo_trattamento.tempo_sospensione)
+            
+            # Gestione del blocco di covata
+            if trattamento.blocco_covata_attivo and trattamento.data_inizio_blocco:
+                # Se non è specificata la data di fine blocco, calcolarla in base ai giorni consigliati
+                if not trattamento.data_fine_blocco and trattamento.tipo_trattamento.giorni_blocco_covata > 0:
+                    trattamento.data_fine_blocco = trattamento.data_inizio_blocco + timedelta(days=trattamento.tipo_trattamento.giorni_blocco_covata)
             
             trattamento.save()
             
@@ -1012,6 +1151,8 @@ def modifica_trattamento(request, pk):
     context = {
         'form': form,
         'trattamento': trattamento,
+        'apiario': apiario,
+        'tipo_trattamento_info': tipo_trattamento_info,
         'is_edit': True,
     }
     
@@ -1980,9 +2121,36 @@ class ApiarioCreateView(LoginRequiredMixin, CreateView):
     template_name = 'apiari/form_apiario.html'
     success_url = reverse_lazy('dashboard')
 
-class FiorituraUpdateView(LoginRequiredMixin, UpdateView):
+class FiorituraUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Fioritura
     form_class = FiorituraForm
     template_name = 'fioriture/form_fioritura.html'
     success_url = reverse_lazy('gestione_fioriture')
+    
+    def test_func(self):
+        # Verifica dei permessi
+        fioritura = self.get_object()
+        
+        # Admin hanno sempre accesso
+        if self.request.user.is_staff or self.request.user.is_superuser:
+            return True
+            
+        # Proprietario dell'apiario ha sempre accesso
+        if fioritura.apiario and fioritura.apiario.proprietario == self.request.user:
+            return True
+            
+        # Admin del gruppo hanno accesso
+        if fioritura.apiario and fioritura.apiario.gruppo and fioritura.apiario.condiviso_con_gruppo:
+            try:
+                membro = MembroGruppo.objects.get(utente=self.request.user, gruppo=fioritura.apiario.gruppo)
+                if membro.ruolo in ['admin', 'editor']:
+                    return True
+            except MembroGruppo.DoesNotExist:
+                pass
+        
+        # Creatore della fioritura ha accesso
+        if hasattr(fioritura, 'creatore') and fioritura.creatore == self.request.user:
+            return True
+            
+        return False
 

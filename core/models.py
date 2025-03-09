@@ -197,24 +197,34 @@ class ControlloArnia(models.Model):
         verbose_name_plural = "Controlli Arnie"
         ordering = ['-data']
 
-# Modifica al modello Fioritura in core/models.py
+from django.db import models
+from django.contrib.auth.models import User
+from django.utils import timezone
+
 class Fioritura(models.Model):
-    apiario = models.ForeignKey(Apiario, on_delete=models.CASCADE, related_name='fioriture')
+    # Campo apiario opzionale
+    apiario = models.ForeignKey(Apiario, on_delete=models.CASCADE, related_name='fioriture', null=True, blank=True)
     pianta = models.CharField(max_length=100)
     data_inizio = models.DateField()
     data_fine = models.DateField(blank=True, null=True)
     note = models.TextField(blank=True, null=True)
     
-    # Aggiungi questi campi per le coordinate geografiche
-    latitudine = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True,
-                                     help_text="Latitudine in gradi decimali (es. 45.123456)")
-    longitudine = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True,
-                                      help_text="Longitudine in gradi decimali (es. 9.123456)")
+    # Coordinate geografiche obbligatorie
+    latitudine = models.DecimalField(max_digits=9, decimal_places=6,
+                                   help_text="Latitudine in gradi decimali (es. 45.123456)")
+    longitudine = models.DecimalField(max_digits=9, decimal_places=6,
+                                    help_text="Longitudine in gradi decimali (es. 9.123456)")
     raggio = models.IntegerField(default=500, blank=True, null=True,
-                                 help_text="Raggio approssimativo della fioritura in metri")
+                               help_text="Raggio approssimativo della fioritura in metri")
+    
+    # Aggiunta del campo creatore per il sistema di permessi
+    creatore = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='fioriture_create')
+    data_creazione = models.DateTimeField(auto_now_add=True, null=True)
+    data_modifica = models.DateTimeField(auto_now=True, null=True)
     
     def __str__(self):
-        return f"{self.pianta} - {self.apiario.nome} ({self.data_inizio})"
+        apiario_nome = self.apiario.nome if self.apiario else "Non associato"
+        return f"{self.pianta} - {apiario_nome} ({self.data_inizio})"
     
     def has_coordinates(self):
         """Controlla se la fioritura ha coordinate geografiche valide"""
@@ -265,8 +275,6 @@ class QuotaUtente(models.Model):
         verbose_name_plural = "Quote Utenti"
 
 
-# Aggiungi questo modello in core/models.py
-
 class TipoTrattamento(models.Model):
     """Modello per gestire i diversi tipi di trattamenti sanitari disponibili"""
     nome = models.CharField(max_length=100)
@@ -274,6 +282,14 @@ class TipoTrattamento(models.Model):
     descrizione = models.TextField(blank=True, null=True)
     istruzioni = models.TextField(blank=True, null=True, help_text="Istruzioni dettagliate per l'applicazione del trattamento")
     tempo_sospensione = models.IntegerField(default=0, help_text="Giorni di sospensione prima della raccolta del miele")
+    
+    # Nuovi campi per il blocco di covata
+    richiede_blocco_covata = models.BooleanField(default=False, 
+                                               help_text="Indica se questo trattamento richiede un blocco di covata")
+    giorni_blocco_covata = models.IntegerField(default=0, 
+                                             help_text="Durata consigliata in giorni del blocco di covata")
+    nota_blocco_covata = models.TextField(blank=True, null=True, 
+                                        help_text="Note specifiche sul blocco di covata (ad es. metodo, tempistiche)")
     
     def __str__(self):
         return self.nome
@@ -303,6 +319,18 @@ class TrattamentoSanitario(models.Model):
     note = models.TextField(blank=True, null=True)
     data_creazione = models.DateTimeField(auto_now_add=True)
     
+    # Nuovi campi per il blocco di covata
+    blocco_covata_attivo = models.BooleanField(default=False, 
+                                             help_text="Indica se il blocco di covata è attualmente attivo")
+    data_inizio_blocco = models.DateField(blank=True, null=True, 
+                                        help_text="Data di inizio del blocco di covata")
+    data_fine_blocco = models.DateField(blank=True, null=True, 
+                                      help_text="Data prevista per la fine del blocco di covata")
+    metodo_blocco = models.CharField(max_length=100, blank=True, null=True, 
+                                   help_text="Metodo utilizzato per il blocco (es. ingabbiamento, rimozione regina)")
+    note_blocco = models.TextField(blank=True, null=True, 
+                                 help_text="Note sul blocco di covata")
+    
     def __str__(self):
         return f"{self.tipo_trattamento} - {self.apiario} ({self.data_inizio})"
     
@@ -310,6 +338,11 @@ class TrattamentoSanitario(models.Model):
         # Calcola automaticamente la data di fine sospensione
         if self.data_fine and self.tipo_trattamento.tempo_sospensione > 0:
             self.data_fine_sospensione = self.data_fine + timedelta(days=self.tipo_trattamento.tempo_sospensione)
+            
+        # Calcola automaticamente la data di fine blocco covata se non specificata
+        if self.blocco_covata_attivo and self.data_inizio_blocco and not self.data_fine_blocco and self.tipo_trattamento.giorni_blocco_covata > 0:
+            self.data_fine_blocco = self.data_inizio_blocco + timedelta(days=self.tipo_trattamento.giorni_blocco_covata)
+            
         super().save(*args, **kwargs)
     
     # Aggiunti nuovi metodi utili per la gestione dei trattamenti
@@ -349,7 +382,20 @@ class TrattamentoSanitario(models.Model):
             return 0
             
         return (self.data_fine_sospensione - timezone.now().date()).days
-    
+
+    def is_blocco_covata_attivo(self, date=None):
+        """Verifica se il blocco di covata è attivo in una data specifica"""
+        if not self.blocco_covata_attivo or not self.data_inizio_blocco:
+            return False
+            
+        if date is None:
+            date = timezone.now().date()
+            
+        if self.data_inizio_blocco <= date:
+            if self.data_fine_blocco is None or self.data_fine_blocco >= date:
+                return True
+        return False
+
     class Meta:
         verbose_name = "Trattamento Sanitario"
         verbose_name_plural = "Trattamenti Sanitari"

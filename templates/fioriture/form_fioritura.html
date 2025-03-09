@@ -1,0 +1,157 @@
+<!-- templates/fioriture/form_fioritura.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}Modifica{% else %}Nuova{% endif %} Fioritura - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1>
+            {% if form.instance.pk %}
+                <i class="bi bi-pencil-square"></i> Modifica Fioritura
+            {% else %}
+                <i class="bi bi-plus-circle"></i> Nuova Fioritura
+            {% endif %}
+        </h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'gestione_fioriture' %}">Fioriture</a></li>
+                <li class="breadcrumb-item active">
+                    {% if form.instance.pk %}
+                        Modifica
+                    {% else %}
+                        Nuova
+                    {% endif %}
+                </li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Informazioni Fioritura</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.pianta.id_for_label }}" class="form-label">Pianta/Fioritura *</label>
+                        {{ form.pianta }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.data_inizio.id_for_label }}" class="form-label">Data Inizio *</label>
+                            {{ form.data_inizio }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.data_fine.id_for_label }}" class="form-label">Data Fine</label>
+                            {{ form.data_fine }}
+                            <small class="form-text text-muted">Opzionale se in corso</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.apiario.id_for_label }}" class="form-label">Apiario (opzionale)</label>
+                        {{ form.apiario }}
+                        <small class="form-text text-muted">Puoi lasciare vuoto se la fioritura non è associata a un apiario specifico</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Posizione Geografica *</label>
+                        <div class="input-group mb-2">
+                            <span class="input-group-text">Lat</span>
+                            {{ form.latitudine }}
+                            <span class="input-group-text">Lng</span>
+                            {{ form.longitudine }}
+                        </div>
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-outline-secondary" id="selectOnMap">
+                                <i class="bi bi-geo-alt"></i> Seleziona sulla mappa
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.raggio.id_for_label }}" class="form-label">Raggio (metri)</label>
+                        {{ form.raggio }}
+                        <small class="form-text text-muted">Area approssimativa della fioritura</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.note.id_for_label }}" class="form-label">Note</label>
+                        {{ form.note }}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'gestione_fioriture' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Annulla
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> 
+                            {% if form.instance.pk %}
+                                Aggiorna Fioritura
+                            {% else %}
+                                Crea Fioritura
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    Le fioriture ti permettono di tenere traccia delle risorse nettarifere disponibili nell'area.
+                </p>
+                <ul>
+                    <li><strong>Pianta:</strong> Il nome della pianta o del tipo di fioritura</li>
+                    <li><strong>Data inizio:</strong> Quando inizia la fioritura</li>
+                    <li><strong>Data fine:</strong> Opzionale, quando termina la fioritura</li>
+                    <li><strong>Coordinate:</strong> La posizione geografica della fioritura</li>
+                    <li><strong>Raggio:</strong> L'area approssimativa della fioritura</li>
+                </ul>
+                
+                <div class="alert alert-primary mt-3">
+                    <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong>
+                    Utilizza il pulsante "Seleziona sulla mappa" per posizionare facilmente la fioritura.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestione del pulsante "Seleziona sulla mappa"
+        document.getElementById('selectOnMap').addEventListener('click', function() {
+            // Recupera le coordinate attuali (se presenti)
+            var lat = document.querySelector('[name="latitudine"]').value;
+            var lng = document.querySelector('[name="longitudine"]').value;
+            
+            // Costruisci l'URL con i parametri
+            var url = '{% url "seleziona_posizione" %}';
+            if (lat && lng) {
+                url += '?lat=' + lat + '&lng=' + lng;
+            }
+            
+            // Apri la finestra di selezione mappa
+            window.open(url, 'mapWindow', 'width=800,height=600');
+        });
+    });
+</script>
+{% endblock %}

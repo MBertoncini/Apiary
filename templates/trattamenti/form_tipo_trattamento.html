@@ -1,19 +1,27 @@
-<!-- templates/trattamenti/form_tipo_trattamento.html -->
+<!-- Aggiorna templates/trattamenti/form_tipo_trattamento.html -->
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Modifica Tipo di Trattamento - Gestione Apiario{% endblock %}
+{% block title %}{% if tipo %}Modifica{% else %}Nuovo{% endif %} Tipo di Trattamento - Gestione Apiario{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12 mb-4">
-        <h1><i class="bi bi-pencil-square"></i> Modifica Tipo di Trattamento</h1>
+        <h1>
+            {% if tipo %}
+                <i class="bi bi-pencil-square"></i> Modifica Tipo di Trattamento
+            {% else %}
+                <i class="bi bi-plus-circle"></i> Nuovo Tipo di Trattamento
+            {% endif %}
+        </h1>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
                 <li class="breadcrumb-item"><a href="{% url 'gestione_trattamenti' %}">Trattamenti</a></li>
                 <li class="breadcrumb-item"><a href="{% url 'tipi_trattamento' %}">Tipi di Trattamento</a></li>
-                <li class="breadcrumb-item active">Modifica</li>
+                <li class="breadcrumb-item active">
+                    {% if tipo %}Modifica{% else %}Nuovo{% endif %}
+                </li>
             </ol>
         </nav>
     </div>
@@ -50,13 +58,42 @@
                         {{ form.istruzioni|as_crispy_field }}
                     </div>
                     
+                    <!-- Nuova sezione per gestione blocco covata -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">Gestione Blocco di Covata</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                {{ form.richiede_blocco_covata|as_crispy_field }}
+                            </div>
+                            
+                            <div class="blocco-covata-details" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        {{ form.giorni_blocco_covata|as_crispy_field }}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ form.nota_blocco_covata|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'tipi_trattamento' %}" class="btn btn-secondary">
                             <i class="bi bi-arrow-left"></i> Annulla
                         </a>
                         
                         <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check-circle"></i> Aggiorna
+                            <i class="bi bi-check-circle"></i> 
+                            {% if tipo %}
+                                Aggiorna
+                            {% else %}
+                                Crea Tipo di Trattamento
+                            {% endif %}
                         </button>
                     </div>
                 </form>
@@ -71,7 +108,8 @@
             </div>
             <div class="card-body">
                 <p>
-                    I tipi di trattamento definiscono le diverse opzioni di trattamenti sanitari che possono essere applicati alle arnie.
+                    I tipi di trattamento definiscono le diverse opzioni di trattamenti sanitari 
+                    che possono essere applicati alle arnie.
                 </p>
                 
                 <ul>
@@ -82,12 +120,42 @@
                     <li><strong>Istruzioni:</strong> Dettagli su come applicare correttamente il trattamento</li>
                 </ul>
                 
+                <div class="alert alert-warning mt-3">
+                    <i class="bi bi-exclamation-triangle"></i> <strong>Blocco di Covata:</strong>
+                    Se il trattamento richiede un blocco di covata, indica la durata consigliata e fornisci 
+                    istruzioni specifiche. Questo sarà utile per programmare adeguatamente i trattamenti.
+                </div>
+                
                 <div class="alert alert-primary mt-3">
                     <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong>
-                    Include istruzioni dettagliate per garantire che tutti gli apicoltori seguano lo stesso protocollo.
+                    Includi istruzioni dettagliate per garantire che tutti gli apicoltori seguano lo stesso protocollo.
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestione della visualizzazione condizionale per il blocco di covata
+        const requiresBloccoCheckbox = document.getElementById('id_richiede_blocco_covata');
+        const bloccoDetails = document.querySelector('.blocco-covata-details');
+        
+        function toggleBloccoDetails() {
+            if (requiresBloccoCheckbox.checked) {
+                bloccoDetails.style.display = 'block';
+            } else {
+                bloccoDetails.style.display = 'none';
+            }
+        }
+        
+        // Imposta lo stato iniziale
+        toggleBloccoDetails();
+        
+        // Aggiungi l'event listener per il cambio
+        requiresBloccoCheckbox.addEventListener('change', toggleBloccoDetails);
+    });
+</script>
 {% endblock %}

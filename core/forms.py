@@ -154,12 +154,13 @@ class ControlloArniaForm(forms.ModelForm):
         self.fields['note_sciamatura'].required = False
         self.fields['note_problemi'].required = False
 
+# Modifica a FiorituraForm in core/forms.py
 class FiorituraForm(forms.ModelForm):
     class Meta:
         model = Fioritura
         fields = [
-            'apiario', 'pianta', 'data_inizio', 'data_fine', 
-            'latitudine', 'longitudine', 'raggio', 'note'
+            'pianta', 'data_inizio', 'data_fine', 
+            'latitudine', 'longitudine', 'raggio', 'apiario', 'note'
         ]
         widgets = {
             'data_inizio': DateInput(),
@@ -172,57 +173,119 @@ class FiorituraForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['latitudine'].required = False
-        self.fields['longitudine'].required = False
+        self.fields['data_fine'].required = False
+        self.fields['apiario'].required = False        
         self.fields['raggio'].required = False
-        
-        # Aggiungi un campo per copiare le coordinate dall'apiario
-        self.fields['use_apiario_coordinates'] = forms.BooleanField(
-            required=False,
-            initial=False,
-            label="Usa coordinate dell'apiario",
-            help_text="Se selezionato, verranno utilizzate le coordinate dell'apiario selezionato"
-        )
+
 
 class PagamentoForm(forms.ModelForm):
+    """Form per la creazione e modifica di un pagamento"""
     class Meta:
         model = Pagamento
         fields = ['utente', 'importo', 'data', 'descrizione']
         widgets = {
             'utente': forms.Select(attrs={'class': 'form-control'}),
-            'importo': forms.NumberInput(attrs={'class': 'form-control'}),
+            'importo': forms.NumberInput(attrs={'class': 'form-control', 'min': '0.01', 'step': '0.01'}),
             'data': DateInput(attrs={'class': 'form-control'}),
             'descrizione': forms.TextInput(attrs={'class': 'form-control'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        gruppo = kwargs.pop('gruppo', None)
+        super().__init__(*args, **kwargs)
+        
+        # Se è specificato un gruppo, filtra gli utenti mostrati nel form
+        if gruppo:
+            self.fields['utente'].queryset = User.objects.filter(gruppi=gruppo)
+        else:
+            # Se non è specificato un gruppo, mostra solo l'utente corrente
+            current_user = kwargs.get('initial', {}).get('utente')
+            if current_user:
+                self.fields['utente'].queryset = User.objects.filter(id=current_user.id)
+            else:
+                self.fields['utente'].queryset = User.objects.none()
 
 class QuotaUtenteForm(forms.ModelForm):
+    """Form per la creazione e modifica di una quota utente"""
     class Meta:
         model = QuotaUtente
         fields = ['utente', 'percentuale']
+        widgets = {
+            'utente': forms.Select(attrs={'class': 'form-control'}),
+            'percentuale': forms.NumberInput(attrs={'class': 'form-control', 'min': '0.01', 'max': '100', 'step': '0.01'}),
+        }
         
+    def __init__(self, *args, **kwargs):
+        gruppo = kwargs.pop('gruppo', None)
+        super().__init__(*args, **kwargs)
+        
+        # Se è specificato un gruppo, filtra gli utenti mostrati nel form
+        if gruppo:
+            self.fields['utente'].queryset = User.objects.filter(gruppi=gruppo)
+        else:
+            # Se non è specificato un gruppo, mostra solo l'utente corrente
+            current_user = kwargs.get('initial', {}).get('utente')
+            if current_user:
+                self.fields['utente'].queryset = User.objects.filter(id=current_user.id)
+            else:
+                self.fields['utente'].queryset = User.objects.none()
+                
     def clean_percentuale(self):
         percentuale = self.cleaned_data.get('percentuale')
         if percentuale <= 0 or percentuale > 100:
             raise forms.ValidationError("La percentuale deve essere compresa tra 0 e 100.")
         return percentuale
 
+
 class TipoTrattamentoForm(forms.ModelForm):
     class Meta:
         model = TipoTrattamento
-        fields = ['nome', 'principio_attivo', 'descrizione', 'istruzioni', 'tempo_sospensione']
+        fields = [
+            'nome', 
+            'principio_attivo', 
+            'descrizione', 
+            'istruzioni', 
+            'tempo_sospensione',
+            'richiede_blocco_covata',
+            'giorni_blocco_covata',
+            'nota_blocco_covata'
+        ]
         widgets = {
             'descrizione': forms.Textarea(attrs={'rows': 3}),
             'istruzioni': forms.Textarea(attrs={'rows': 4}),
+            'nota_blocco_covata': forms.Textarea(attrs={'rows': 3}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Rendi alcuni campi condizionali tramite JavaScript
+        self.fields['giorni_blocco_covata'].required = False
+        self.fields['nota_blocco_covata'].required = False
 
 class TrattamentoSanitarioForm(forms.ModelForm):
     class Meta:
         model = TrattamentoSanitario
-        fields = ['apiario', 'tipo_trattamento', 'data_inizio', 'data_fine', 'stato', 'arnie', 'note']
+        fields = [
+            'apiario', 
+            'tipo_trattamento', 
+            'data_inizio', 
+            'data_fine', 
+            'stato', 
+            'arnie',
+            'blocco_covata_attivo',
+            'data_inizio_blocco',
+            'data_fine_blocco',
+            'metodo_blocco',
+            'note_blocco',
+            'note'
+        ]
         widgets = {
             'data_inizio': DateInput(),
             'data_fine': DateInput(),
+            'data_inizio_blocco': DateInput(),
+            'data_fine_blocco': DateInput(),
             'note': forms.Textarea(attrs={'rows': 3}),
+            'note_blocco': forms.Textarea(attrs={'rows': 3}),
             'arnie': forms.CheckboxSelectMultiple(),
         }
     
@@ -239,6 +302,12 @@ class TrattamentoSanitarioForm(forms.ModelForm):
             label="Applica a tutte le arnie dell'apiario",
             help_text="Se selezionato, il trattamento sarà applicato a tutte le arnie dell'apiario"
         )
+        
+        # Campi per gestire il blocco di covata resi condizionali
+        self.fields['data_inizio_blocco'].required = False
+        self.fields['data_fine_blocco'].required = False
+        self.fields['metodo_blocco'].required = False
+        self.fields['note_blocco'].required = False
     
     def clean(self):
         cleaned_data = super().clean()
@@ -249,9 +318,19 @@ class TrattamentoSanitarioForm(forms.ModelForm):
         if data_inizio and data_fine and data_fine < data_inizio:
             self.add_error('data_fine', "La data di fine deve essere successiva alla data di inizio.")
         
+        # Verifica le date del blocco di covata
+        blocco_covata_attivo = cleaned_data.get('blocco_covata_attivo')
+        data_inizio_blocco = cleaned_data.get('data_inizio_blocco')
+        data_fine_blocco = cleaned_data.get('data_fine_blocco')
+        
+        if blocco_covata_attivo:
+            if not data_inizio_blocco:
+                self.add_error('data_inizio_blocco', "La data di inizio blocco covata è richiesta se il blocco è attivo.")
+            
+            if data_inizio_blocco and data_fine_blocco and data_fine_blocco < data_inizio_blocco:
+                self.add_error('data_fine_blocco', "La data di fine blocco covata deve essere successiva alla data di inizio.")
+        
         return cleaned_data
-
-# Aggiungi questi form al file forms.py
 
 from django import forms
 from django.contrib.auth.models import User

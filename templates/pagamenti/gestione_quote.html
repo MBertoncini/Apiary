@@ -7,11 +7,36 @@
 {% block content %}
 <div class="row">
     <div class="col-12 mb-4">
-        <h1>Gestione Quote Utenti</h1>
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="bi bi-percent"></i> Gestione Quote Utenti</h1>
+            
+            <!-- Selezione gruppo -->
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="groupDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    {% if gruppo_selezionato %}
+                        <i class="bi bi-people"></i> {{ gruppo_selezionato.nome }}
+                    {% else %}
+                        <i class="bi bi-person"></i> Quote Personali
+                    {% endif %}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="groupDropdown">
+                    <li><a class="dropdown-item {% if not gruppo_selezionato %}active{% endif %}" href="{% url 'gestione_quote' %}">
+                        <i class="bi bi-person"></i> Quote Personali
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    {% for gruppo in gruppi %}
+                        <li><a class="dropdown-item {% if gruppo_selezionato.id == gruppo.id %}active{% endif %}" 
+                               href="{% url 'gestione_quote' %}?gruppo_id={{ gruppo.id }}">
+                            <i class="bi bi-people"></i> {{ gruppo.nome }}
+                        </a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'gestione_pagamenti' %}">Pagamenti</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'gestione_pagamenti' %}{% if gruppo_selezionato %}?gruppo_id={{ gruppo_selezionato.id }}{% endif %}">Pagamenti</a></li>
                 <li class="breadcrumb-item active">Quote Utenti</li>
             </ol>
         </nav>
@@ -38,15 +63,26 @@
                             <tbody>
                                 {% for quota in quote %}
                                     <tr>
-                                        <td>{{ quota.utente.username }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ quota.utente.profilo.immagine.url }}" alt="{{ quota.utente.username }}" 
+                                                     class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                                {{ quota.utente.username }}
+                                                {% if quota.utente == request.user %}
+                                                    <span class="badge bg-info ms-2">Tu</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
                                         <td>{{ quota.percentuale }}%</td>
                                         <td>
-                                            <a href="{% url 'modifica_quota' quota.id %}" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <a href="{% url 'elimina_quota' quota.id %}" class="btn btn-sm btn-outline-danger">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
+                                            {% if can_add %}
+                                                <a href="{% url 'modifica_quota' quota.id %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{% url 'elimina_quota' quota.id %}" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -55,17 +91,34 @@
                     </div>
                     
                     <!-- Calcolo del totale delle percentuali -->
-                    {% with total_percentuale=quote|dictsort:"percentuale"|dictsortreversed:"percentuale"|slice:":"|length|default:0 %}
-                        <div class="alert {% if total_percentuale == 100 %}alert-success{% else %}alert-warning{% endif %} mt-3">
-                            <strong>Totale percentuali:</strong> {{ total_percentuale }}%
-                            {% if total_percentuale != 100 %}
-                                <div class="mt-1">
-                                    <i class="bi bi-exclamation-triangle"></i> 
-                                    Attenzione: il totale delle percentuali dovrebbe essere 100%.
+                    <div class="alert {% if total_percentuale == 100 %}alert-success{% else %}alert-warning{% endif %} mt-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Totale percentuali:</strong> {{ total_percentuale }}%
+                                {% if total_percentuale != 100 %}
+                                    <div class="mt-1">
+                                        <i class="bi bi-exclamation-triangle"></i> 
+                                        Attenzione: il totale delle percentuali dovrebbe essere 100%.
+                                    </div>
+                                {% else %}
+                                    <div>
+                                        <i class="bi bi-check-circle"></i> 
+                                        Le quote sono correttamente distribuite.
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="progress" style="width: 200px; height: 25px;">
+                                <div class="progress-bar {% if total_percentuale > 100 %}bg-danger{% elif total_percentuale == 100 %}bg-success{% else %}bg-warning{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ total_percentuale }}%;"
+                                     aria-valuenow="{{ total_percentuale }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    {{ total_percentuale }}%
                                 </div>
-                            {% endif %}
+                            </div>
                         </div>
-                    {% endwith %}
+                    </div>
                 {% else %}
                     <div class="text-center py-4">
                         <p>Non sono state impostate quote per gli utenti.</p>
@@ -81,15 +134,20 @@
                 <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Nuova Quota</h5>
             </div>
             <div class="card-body">
+                {% if can_add %}
                 <form method="post" id="quotaForm">
                     {% csrf_token %}
                     
                     <div class="mb-3">
-                        {{ form.utente|as_crispy_field }}
+                        <label for="{{ form.utente.id_for_label }}" class="form-label">Utente</label>
+                        {{ form.utente }}
+                        <small class="form-text text-muted">L'utente a cui assegnare la quota</small>
                     </div>
                     
                     <div class="mb-3">
-                        {{ form.percentuale|as_crispy_field }}
+                        <label for="{{ form.percentuale.id_for_label }}" class="form-label">Percentuale (%)</label>
+                        {{ form.percentuale }}
+                        <small class="form-text text-muted">La percentuale di partecipazione alle spese (0-100)</small>
                     </div>
                     
                     <div class="d-grid">
@@ -98,6 +156,12 @@
                         </button>
                     </div>
                 </form>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> Non hai i permessi per aggiungere quote in questo gruppo.
+                    <p class="mt-2 mb-0">Solo gli amministratori e gli editor possono gestire le quote.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
         
@@ -117,22 +181,29 @@
                     In base alle quote impostate, il sistema calcolerà automaticamente quanto ogni utente
                     deve contribuire alle spese comuni.
                 </p>
+                
+                <div class="alert alert-primary mt-3">
+                    <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong>
+                    Per una distribuzione equa, puoi assegnare a ciascun membro una quota uguale 
+                    (ad es. 5 membri = 20% ciascuno).
+                </div>
+                
+                <a href="{% url 'gestione_pagamenti' %}{% if gruppo_selezionato %}?gruppo_id={{ gruppo_selezionato.id }}{% endif %}" class="btn btn-outline-primary mt-2 w-100">
+                    <i class="bi bi-cash-coin"></i> Gestione Pagamenti
+                </a>
             </div>
         </div>
     </div>
 </div>
-
-
 {% endblock %}
 
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Calcolo automatico della somma delle percentuali
-        const totalPercentualeElement = document.querySelector('.alert strong:last-child');
         const percentualeInput = document.getElementById('id_percentuale');
         
-        if (percentualeInput && totalPercentualeElement) {
+        if (percentualeInput) {
             percentualeInput.addEventListener('input', function() {
                 // Fornisci feedback immediato all'utente sulla validità del valore
                 const value = parseFloat(this.value);

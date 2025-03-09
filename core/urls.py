@@ -24,7 +24,7 @@ urlpatterns = [
     path('fioriture/', views.gestione_fioriture, name='gestione_fioriture'),
     path('fioritura/<int:pk>/modifica/', views.FiorituraUpdateView.as_view(), name='modifica_fioritura'),
     path('fioritura/<int:pk>/elimina/', views.fioritura_delete, name='elimina_fioritura'),
-    
+
     # Pagamenti
     path('pagamenti/', views.gestione_pagamenti, name='gestione_pagamenti'),
     path('pagamento/<int:pk>/modifica/', views.pagamento_update, name='modifica_pagamento'),

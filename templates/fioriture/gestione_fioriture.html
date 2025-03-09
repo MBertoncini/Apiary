@@ -36,6 +36,7 @@
                                     <th>Apiario</th>
                                     <th>Periodo</th>
                                     <th>Stato</th>
+                                    <th>Creatore</th>
                                     <th>Azioni</th>
                                 </tr>
                             </thead>
@@ -43,7 +44,7 @@
                                 {% for fioritura in fioriture %}
                                     <tr>
                                         <td>{{ fioritura.pianta }}</td>
-                                        <td>{{ fioritura.apiario.nome }}</td>
+                                        <td>{% if fioritura.apiario %}{{ fioritura.apiario.nome }}{% else %}<span class="badge bg-info">Indipendente</span>{% endif %}</td>
                                         <td>
                                             {{ fioritura.data_inizio|date:"d/m/Y" }}
                                             {% if fioritura.data_fine %}
@@ -63,14 +64,25 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <div class="btn-group">
-                                                <a href="{% url 'modifica_fioritura' fioritura.id %}" class="btn btn-sm btn-outline-primary">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                                <a href="{% url 'elimina_fioritura' fioritura.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Sei sicuro di voler eliminare questa fioritura?')">
-                                                    <i class="bi bi-trash"></i>
-                                                </a>
-                                            </div>
+                                            {% if fioritura.creatore %}
+                                                {{ fioritura.creatore.username }}
+                                            {% else %}
+                                                <span class="text-muted">Sconosciuto</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if fioritura.creatore == request.user or fioritura.apiario.proprietario == request.user or user.is_staff %}
+                                                <div class="btn-group">
+                                                    <a href="{% url 'modifica_fioritura' fioritura.id %}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <a href="{% url 'elimina_fioritura' fioritura.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Sei sicuro di voler eliminare questa fioritura?')">
+                                                        <i class="bi bi-trash"></i>
+                                                    </a>
+                                                </div>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Solo Lettura</span>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -96,18 +108,13 @@
                     {% csrf_token %}
                     
                     <div class="mb-3">
-                        <label for="{{ form.apiario.id_for_label }}" class="form-label">Apiario</label>
-                        {{ form.apiario }}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.pianta.id_for_label }}" class="form-label">Pianta/Fioritura</label>
+                        <label for="{{ form.pianta.id_for_label }}" class="form-label">Pianta/Fioritura *</label>
                         {{ form.pianta }}
                     </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="{{ form.data_inizio.id_for_label }}" class="form-label">Data Inizio</label>
+                            <label for="{{ form.data_inizio.id_for_label }}" class="form-label">Data Inizio *</label>
                             {{ form.data_inizio }}
                         </div>
                         <div class="col-md-6 mb-3">
@@ -118,16 +125,13 @@
                     </div>
                     
                     <div class="mb-3">
-                        <div class="form-check">
-                            {{ form.use_apiario_coordinates }}
-                            <label class="form-check-label" for="{{ form.use_apiario_coordinates.id_for_label }}">
-                                Usa coordinate dell'apiario
-                            </label>
-                        </div>
+                        <label for="{{ form.apiario.id_for_label }}" class="form-label">Apiario (opzionale)</label>
+                        {{ form.apiario }}
+                        <small class="form-text text-muted">Puoi lasciare vuoto se la fioritura non è associata a un apiario specifico</small>
                     </div>
                     
-                    <div class="mb-3 coordinate-fields">
-                        <label class="form-label">Posizione Geografica</label>
+                    <div class="mb-3">
+                        <label class="form-label">Posizione Geografica *</label>
                         <div class="input-group mb-2">
                             <span class="input-group-text">Lat</span>
                             {{ form.latitudine }}
@@ -141,7 +145,7 @@
                         </div>
                     </div>
                     
-                    <div class="mb-3 coordinate-fields">
+                    <div class="mb-3">
                         <label for="{{ form.raggio.id_for_label }}" class="form-label">Raggio (metri)</label>
                         {{ form.raggio }}
                         <small class="form-text text-muted">Area approssimativa della fioritura</small>
@@ -180,46 +184,6 @@
             // Apri la finestra di selezione mappa
             window.open(url, 'mapWindow', 'width=800,height=600');
         });
-        
-        // Gestisci la casella di controllo per usare le coordinate dell'apiario
-        var useApiarioCoord = document.getElementById('id_use_apiario_coordinates');
-        var apiarioSelect = document.getElementById('id_apiario');
-        var coordFields = document.querySelectorAll('.coordinate-fields');
-        
-        function toggleCoordFields() {
-            // Verifica se è selezionato un apiario
-            var apiarioSelezionato = apiarioSelect.value !== '';
-            
-            // Se l'opzione "Usa coordinate dell'apiario" è selezionata E c'è un apiario selezionato
-            if (useApiarioCoord.checked && apiarioSelezionato) {
-                // Nascondi i campi delle coordinate
-                coordFields.forEach(function(field) {
-                    field.style.display = 'none';
-                });
-            } else {
-                // Mostra i campi delle coordinate
-                coordFields.forEach(function(field) {
-                    field.style.display = 'block';
-                });
-                
-                // Se non c'è un apiario selezionato, deseleziona l'opzione "Usa coordinate dell'apiario"
-                if (!apiarioSelezionato && useApiarioCoord.checked) {
-                    useApiarioCoord.checked = false;
-                }
-            }
-            
-            // Disabilita l'opzione "Usa coordinate dell'apiario" se non c'è un apiario selezionato
-            useApiarioCoord.disabled = !apiarioSelezionato;
-        }
-        
-        // Inizializza lo stato
-        toggleCoordFields();
-        
-        // Aggiungi listener per il cambio
-        useApiarioCoord.addEventListener('change', toggleCoordFields);
-        
-        // Aggiorna lo stato quando cambia l'apiario selezionato
-        apiarioSelect.addEventListener('change', toggleCoordFields);
     });
 </script>
 {% endblock %}
