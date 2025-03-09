@@ -14,7 +14,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-yourkey1234567
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['yourusername.pythonanywhere.com']
+ALLOWED_HOSTS = ['Cible99.pythonanywhere.com']
 
 # Application definition
 INSTALLED_APPS = [
@@ -90,9 +90,9 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/yourusername/apiario_manager/staticfiles'
+STATIC_ROOT = '/home/Cible99/Apiary/static'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/home/yourusername/apiario_manager/media'
+MEDIA_ROOT = '/home/Cible99/Apiary/media'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
