@@ -105,16 +105,18 @@ def visualizza_apiario(request, apiario_id, data=None):
         except ControlloArnia.DoesNotExist:
             pass
     
-    # Recupera le fioriture attive per la data selezionata
-    fioriture = Fioritura.objects.filter(
+    # Recupera i trattamenti attivi per l'apiario alla data selezionata
+    trattamenti_attivi = TrattamentoSanitario.objects.filter(
         apiario=apiario,
-        data_inizio__lte=data_selezionata,
-        data_fine__gte=data_selezionata
-    ) | Fioritura.objects.filter(
-        apiario=apiario,
-        data_inizio__lte=data_selezionata,
-        data_fine__isnull=True
+        data_inizio__lte=data_selezionata
+    ).filter(
+        Q(data_fine__isnull=True) | Q(data_fine__gte=data_selezionata)
+    ).filter(
+        Q(stato='programmato') | Q(stato='in_corso')
     )
+    
+    # Ottieni tutti i trattamenti per visualizzazione sulle singole arnie
+    trattamenti_per_arnia = trattamenti_attivi
     
     for controllo in ultimi_controlli:
         # Calcola la distribuzione dei telaini di scorte
@@ -128,7 +130,8 @@ def visualizza_apiario(request, apiario_id, data=None):
         'arnie': arnie,
         'ultimi_controlli': ultimi_controlli,
         'data_selezionata': data_selezionata,
-        'fioriture': fioriture,
+        'trattamenti_attivi': trattamenti_attivi,
+        'trattamenti_per_arnia': trattamenti_per_arnia,
     }
     
     # Se l'apiario è condiviso con un gruppo, aggiungi informazioni
@@ -394,6 +397,37 @@ def elimina_controllo(request, pk):
     
     return render(request, 'arnie/conferma_elimina_controllo.html', context)
 
+
+@login_required
+def gestione_apiario_gruppo(request, apiario_id):
+    """Vista per gestire le impostazioni di gruppo di un apiario"""
+    apiario = get_object_or_404(Apiario, pk=apiario_id)
+    
+    # Verifica che l'utente sia il proprietario dell'apiario
+    if apiario.proprietario != request.user:
+        messages.error(request, "Solo il proprietario può modificare le impostazioni di condivisione.")
+        return redirect('visualizza_apiario', apiario_id=apiario.id)
+    
+    if request.method == 'POST':
+        form = ApiarioGruppoForm(request.POST, instance=apiario, user=request.user)
+        if form.is_valid():
+            form.save()
+            
+            if apiario.condiviso_con_gruppo and apiario.gruppo:
+                messages.success(request, f"L'apiario è stato associato al gruppo '{apiario.gruppo.nome}'.")
+            else:
+                messages.success(request, "L'apiario non è più condiviso con il gruppo.")
+                
+            return redirect('visualizza_apiario', apiario_id=apiario.id)
+    else:
+        form = ApiarioGruppoForm(instance=apiario, user=request.user)
+    
+    context = {
+        'form': form,
+        'apiario': apiario,
+    }
+    
+    return render(request, 'apiari/gestione_apiario_gruppo.html', context)
 
 @login_required
 def gestione_fioriture(request):
@@ -826,7 +860,7 @@ def nuovo_trattamento(request, apiario_id=None):
         if apiario.proprietario == request.user:
             can_add_treatment = True
         # Se l'utente è membro del gruppo dell'apiario con ruolo admin o editor
-        elif apiario.gruppo:
+        elif apiario.gruppo and apiario.condiviso_con_gruppo:
             try:
                 membro = MembroGruppo.objects.get(utente=request.user, gruppo=apiario.gruppo)
                 if membro.ruolo in ['admin', 'editor']:
@@ -835,12 +869,21 @@ def nuovo_trattamento(request, apiario_id=None):
                 pass
     
     # Se l'utente non ha i permessi, mostra un messaggio di errore
-    if not can_add_treatment:
+    if not can_add_treatment and apiario:
         messages.error(request, "Non hai i permessi per aggiungere un trattamento a questo apiario.")
-        return redirect('gestione_trattamenti')
+        return redirect('visualizza_apiario', apiario_id=apiario.id)
+
+    # Ottieni informazioni sul tipo di trattamento selezionato
+    tipo_trattamento_info = None
+    if request.method == 'POST' and 'tipo_trattamento' in request.POST:
+        try:
+            tipo_id = int(request.POST.get('tipo_trattamento'))
+            tipo_trattamento_info = TipoTrattamento.objects.get(pk=tipo_id)
+        except (ValueError, TipoTrattamento.DoesNotExist):
+            pass
 
     # Procedi con il salvataggio del trattamento
-    if request.method == 'POST':
+    if request.method == 'POST' and 'save' in request.POST:
         form = TrattamentoSanitarioForm(request.POST)
         if form.is_valid():
             trattamento = form.save(commit=False)
@@ -848,6 +891,10 @@ def nuovo_trattamento(request, apiario_id=None):
             
             # Se è selezionato "Applica a tutte le arnie", non salviamo specifiche arnie
             seleziona_tutte = form.cleaned_data.get('seleziona_tutte_arnie')
+            
+            # Calcola automaticamente la data_fine_sospensione se è stato completato il trattamento
+            if trattamento.stato == 'completato' and trattamento.data_fine and trattamento.tipo_trattamento.tempo_sospensione > 0:
+                trattamento.data_fine_sospensione = trattamento.data_fine + timedelta(days=trattamento.tipo_trattamento.tempo_sospensione)
             
             trattamento.save()
             
@@ -859,17 +906,38 @@ def nuovo_trattamento(request, apiario_id=None):
                 trattamento.arnie.clear()
             
             messages.success(request, f"Trattamento {trattamento.tipo_trattamento} programmato con successo.")
-            return redirect('gestione_trattamenti')
+            
+            # Reindirizza alla pagina dell'apiario se applicabile
+            if apiario:
+                return redirect('visualizza_apiario', apiario_id=apiario.id)
+            else:
+                return redirect('gestione_trattamenti')
     else:
         initial_data = {}
         if apiario:
             initial_data['apiario'] = apiario.id
         
         form = TrattamentoSanitarioForm(initial=initial_data)
+        
+        # Limita le opzioni alle arnie dell'apiario selezionato
+        if apiario:
+            form.fields['arnie'].queryset = Arnia.objects.filter(apiario=apiario, attiva=True)
+            # Disabilita il campo apiario se siamo già in un apiario specifico
+            form.fields['apiario'].disabled = True
+        elif 'apiario' in request.POST:
+            try:
+                apiario_id = int(request.POST.get('apiario'))
+                apiario = Apiario.objects.get(pk=apiario_id)
+                form.fields['arnie'].queryset = Arnia.objects.filter(apiario=apiario, attiva=True)
+            except (ValueError, Apiario.DoesNotExist):
+                form.fields['arnie'].queryset = Arnia.objects.none()
+        else:
+            form.fields['arnie'].queryset = Arnia.objects.none()
     
     context = {
         'form': form,
         'apiario': apiario,
+        'tipo_trattamento_info': tipo_trattamento_info,
     }
     
     return render(request, 'trattamenti/form_trattamento.html', context)
@@ -1097,14 +1165,29 @@ def cambio_stato_trattamento(request, pk, nuovo_stato):
 @login_required
 def mappa_apiari(request):
     """Vista per la mappa degli apiari e delle fioriture"""
-    # Ottieni apiari a cui l'utente ha accesso
-    apiari_propri = Apiario.objects.filter(proprietario=request.user)
+    # Ottieni apiari a cui l'utente ha accesso diretto (propri o condivisi in gruppo)
+    apiari_propri = list(Apiario.objects.filter(proprietario=request.user))
+    
     gruppi_utente = Gruppo.objects.filter(membri=request.user)
-    apiari_condivisi = Apiario.objects.filter(
+    apiari_condivisi = list(Apiario.objects.filter(
         gruppo__in=gruppi_utente, 
         condiviso_con_gruppo=True
-    ).exclude(proprietario=request.user)
-    apiari = (apiari_propri | apiari_condivisi).distinct()
+    ).exclude(proprietario=request.user))
+    
+    # Ottieni apiari visibili sulla mappa in base alle impostazioni di visibilità
+    apiari_visibili_gruppo = list(Apiario.objects.filter(
+        visibilita_mappa='gruppo',
+        gruppo__in=gruppi_utente
+    ).exclude(id__in=[a.id for a in apiari_propri]).exclude(id__in=[a.id for a in apiari_condivisi]))
+    
+    apiari_pubblici = list(Apiario.objects.filter(
+        visibilita_mappa='pubblico'
+    ).exclude(id__in=[a.id for a in apiari_propri])
+     .exclude(id__in=[a.id for a in apiari_condivisi])
+     .exclude(id__in=[a.id for a in apiari_visibili_gruppo]))
+    
+    # Combina tutti gli apiari accessibili all'utente
+    apiari = apiari_propri + apiari_condivisi + apiari_visibili_gruppo + apiari_pubblici
     
     # Ottieni la data corrente
     oggi = timezone.now().date()
@@ -1133,6 +1216,10 @@ def mappa_apiari(request):
     
     context = {
         'apiari': apiari,
+        'apiari_propri': apiari_propri,
+        'apiari_condivisi': apiari_condivisi,
+        'apiari_visibili_gruppo': apiari_visibili_gruppo,
+        'apiari_pubblici': apiari_pubblici,
         'fioriture_attive': fioriture_attive,
         'fioriture_programmate': fioriture_programmate,
         'fioriture_passate': fioriture_passate,
@@ -1317,6 +1404,78 @@ def dettaglio_gruppo(request, gruppo_id):
     }
     
     return render(request, 'gruppi/dettaglio_gruppo.html', context)
+
+@login_required
+def invita_utente(request, user_id):
+    """Vista per invitare un utente a un gruppo"""
+    if request.method != 'POST':
+        messages.error(request, "Metodo non valido.")
+        return redirect('ricerca')
+    
+    try:
+        utente = User.objects.get(pk=user_id)
+        gruppo_id = request.POST.get('gruppo')
+        ruolo = request.POST.get('ruolo')
+        
+        if not gruppo_id or not ruolo:
+            messages.error(request, "Dati mancanti.")
+            return redirect('ricerca')
+        
+        gruppo = Gruppo.objects.get(pk=gruppo_id)
+        
+        # Verifica che l'utente corrente sia admin del gruppo
+        try:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=gruppo)
+            if membro.ruolo != 'admin' and request.user != gruppo.creatore:
+                messages.error(request, "Non hai i permessi per invitare utenti a questo gruppo.")
+                return redirect('ricerca')
+        except MembroGruppo.DoesNotExist:
+            messages.error(request, "Non sei membro di questo gruppo.")
+            return redirect('ricerca')
+        
+        # Verifica che l'utente non sia già membro del gruppo
+        if gruppo.membri.filter(id=utente.id).exists():
+            messages.error(request, f"{utente.username} è già membro del gruppo.")
+            return redirect('ricerca')
+        
+        # Verifica che non esista già un invito attivo
+        invito_esistente = InvitoGruppo.objects.filter(
+            email=utente.email,
+            gruppo=gruppo,
+            stato='inviato',
+            data_scadenza__gte=timezone.now()
+        ).exists()
+        
+        if invito_esistente:
+            messages.error(request, f"Esiste già un invito attivo per {utente.username}.")
+            return redirect('ricerca')
+        
+        # Crea l'invito
+        invito = InvitoGruppo(
+            gruppo=gruppo,
+            email=utente.email,
+            ruolo_proposto=ruolo,
+            invitato_da=request.user,
+            data_scadenza=timezone.now() + timezone.timedelta(days=7)
+        )
+        invito.save()
+        
+        # Invia l'email (se la funzione è disponibile)
+        try:
+            from .views import invia_email_invito
+            invia_email_invito(invito)
+        except:
+            pass
+        
+        messages.success(request, f"Invito inviato a {utente.username}.")
+        return redirect('dettaglio_gruppo', gruppo_id=gruppo.id)
+        
+    except User.DoesNotExist:
+        messages.error(request, "Utente non trovato.")
+    except Gruppo.DoesNotExist:
+        messages.error(request, "Gruppo non trovato.")
+    except Exception as e:
+        messages.error(request, f"Si è verificato un errore: {str(e)}")
 
 @login_required
 def modifica_ruolo_membro(request, membro_id):
@@ -1617,6 +1776,148 @@ def attiva_invito(request, token):
     }
     
     return render(request, 'gruppi/attiva_invito.html', context)
+
+from django.contrib.auth.models import User
+from django.db.models import Q
+@login_required
+def ricerca(request):
+    """Vista per la ricerca di utenti e gruppi"""
+    query = request.GET.get('q', '')
+    tipo = request.GET.get('tipo', 'tutti')  # 'utenti', 'gruppi', o 'tutti'
+    
+    utenti = []
+    gruppi = []
+    
+    if query:
+        if tipo in ['utenti', 'tutti']:
+            # Ricerca utenti
+            utenti = User.objects.filter(
+                Q(username__icontains=query) | 
+                Q(email__icontains=query) |
+                Q(first_name__icontains=query) |
+                Q(last_name__icontains=query)
+            ).distinct()
+        
+        if tipo in ['gruppi', 'tutti']:
+            # Ricerca gruppi
+            gruppi_query = Gruppo.objects.filter(
+                Q(nome__icontains=query) | 
+                Q(descrizione__icontains=query)
+            )
+            
+            # Filtra in base ai gruppi a cui l'utente ha accesso
+            gruppi_propri = gruppi_query.filter(creatore=request.user)
+            gruppi_membro = gruppi_query.filter(membri=request.user)
+            
+            # Unisci i risultati
+            gruppi = (gruppi_propri | gruppi_membro).distinct()
+    
+    context = {
+        'query': query,
+        'tipo': tipo,
+        'utenti': utenti,
+        'gruppi': gruppi,
+    }
+    
+    return render(request, 'ricerca/risultati.html', context)
+
+# Aggiungi queste viste al file views.py
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib import messages
+from .models import Profilo, ImmagineProfilo, MembroGruppo
+from .forms import UserUpdateForm, ProfiloUpdateForm, GruppoImmagineForm
+from .decorators import richiedi_ruolo_admin, richiedi_permesso_scrittura
+
+@login_required
+def profilo(request, username=None):
+    """Vista per visualizzare il profilo di un utente"""
+    # Se non è specificato un username, mostra il profilo dell'utente loggato
+    if username is None:
+        user = request.user
+    else:
+        user = get_object_or_404(User, username=username)
+    
+    # Ottieni gli apiari dell'utente
+    apiari_propri = user.apiari_posseduti.all()
+    
+    # Ottieni i gruppi dell'utente
+    gruppi = user.gruppi.all()
+    
+    # Controlla se l'utente corrente può modificare questo profilo
+    can_edit = (user == request.user)
+    
+    context = {
+        'user_profile': user,
+        'apiari': apiari_propri,
+        'gruppi': gruppi,
+        'can_edit': can_edit,
+    }
+    
+    return render(request, 'profilo/profilo.html', context)
+
+@login_required
+def modifica_profilo(request):
+    """Vista per modificare il proprio profilo"""
+    if request.method == 'POST':
+        user_form = UserUpdateForm(request.POST, instance=request.user)
+        profile_form = ProfiloUpdateForm(request.POST, request.FILES, instance=request.user.profilo)
+        
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, "Il tuo profilo è stato aggiornato con successo.")
+            return redirect('profilo')
+    else:
+        user_form = UserUpdateForm(instance=request.user)
+        profile_form = ProfiloUpdateForm(instance=request.user.profilo)
+    
+    context = {
+        'user_form': user_form,
+        'profile_form': profile_form,
+    }
+    
+    return render(request, 'profilo/modifica_profilo.html', context)
+
+@login_required
+@richiedi_permesso_scrittura
+def modifica_immagine_gruppo(request, gruppo_id):
+    """Vista per modificare l'immagine del profilo del gruppo"""
+    gruppo = get_object_or_404(request.user.gruppi, id=gruppo_id)
+    
+    # Verifica se l'utente ha i permessi per modificare il gruppo (admin o editor)
+    try:
+        membro = MembroGruppo.objects.get(utente=request.user, gruppo=gruppo)
+        if membro.ruolo not in ['admin', 'editor']:
+            messages.error(request, "Non hai i permessi per modificare l'immagine del gruppo.")
+            return redirect('dettaglio_gruppo', gruppo_id=gruppo.id)
+    except MembroGruppo.DoesNotExist:
+        messages.error(request, "Non sei membro di questo gruppo.")
+        return redirect('gestione_gruppi')
+    
+    # Ottieni o crea l'oggetto immagine profilo
+    try:
+        immagine_profilo = gruppo.immagine_profilo
+    except:
+        immagine_profilo = ImmagineProfilo.objects.create(gruppo=gruppo)
+    
+    if request.method == 'POST':
+        form = GruppoImmagineForm(request.POST, request.FILES, instance=immagine_profilo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "L'immagine del gruppo è stata aggiornata con successo.")
+            return redirect('dettaglio_gruppo', gruppo_id=gruppo.id)
+    else:
+        form = GruppoImmagineForm(instance=immagine_profilo)
+    
+    context = {
+        'form': form,
+        'gruppo': gruppo,
+    }
+    
+    return render(request, 'gruppi/modifica_immagine_gruppo.html', context)
 
 # Altre viste necessarie per la gestione completa
 class ArniaCreateView(LoginRequiredMixin, CreateView):

@@ -12,11 +12,29 @@
                 <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Dashboard
                 </a>
+                {% if is_proprietario %}
+                    <a href="{% url 'gestione_apiario_gruppo' apiario.id %}" class="btn btn-outline-primary ms-2">
+                        <i class="bi bi-people"></i> Gestione Gruppi
+                    </a>
+                {% endif %}
                 <a href="{% url 'crea_arnia' %}?apiario_id={{ apiario.id }}" class="btn btn-success ms-2">
                     <i class="bi bi-plus-circle"></i> Nuova Arnia
                 </a>
+                <a href="{% url 'nuovo_trattamento_apiario' apiario.id %}" class="btn btn-warning ms-2">
+                    <i class="bi bi-capsule"></i> Nuovo Trattamento
+                </a>
             </div>
         </div>
+        
+            <!-- Informazioni sulla condivisione dell'apiario -->
+            {% if apiario.gruppo and apiario.condiviso_con_gruppo %}
+                <div class="alert alert-info mt-2">
+                    <i class="bi bi-people"></i> Questo apiario è condiviso con il gruppo <strong>{{ apiario.gruppo.nome }}</strong>.
+                    {% if membro_gruppo %}
+                        Il tuo ruolo nel gruppo è: <span class="badge bg-primary">{{ membro_gruppo.get_ruolo_display }}</span>
+                    {% endif %}
+                </div>
+            {% endif %}
         <p class="text-muted">
             <i class="bi bi-geo-alt"></i> {{ apiario.posizione }}
             {% if apiario.has_coordinates %}
@@ -44,13 +62,8 @@
                         <input type="date" id="dataSelezionata" name="data" class="form-control" value="{{ data_selezionata|date:'Y-m-d' }}">
                     </div>
                     <div>
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check-circle"></i> 
-                            {% if is_edit %}
-                                Aggiorna Controllo
-                            {% else %}
-                                Salva Controllo
-                            {% endif %}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Aggiorna
                         </button>
                     </div>
                 </form>
@@ -60,30 +73,40 @@
     
     <div class="col-md-6">
         <div class="card">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="bi bi-flower1"></i> Fioriture Attive</h5>
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-capsule"></i> Trattamenti Attivi</h5>
             </div>
             <div class="card-body">
-                {% if fioriture %}
+                {% if trattamenti_attivi %}
                     <div class="list-group">
-                        {% for fioritura in fioriture %}
+                        {% for trattamento in trattamenti_attivi %}
                             <div class="list-group-item">
                                 <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">{{ fioritura.pianta }}</h6>
+                                    <h6 class="mb-1">{{ trattamento.tipo_trattamento.nome }}</h6>
                                     <small>
-                                        Dal {{ fioritura.data_inizio|date:"d/m/Y" }}
-                                        {% if fioritura.data_fine %}
-                                            al {{ fioritura.data_fine|date:"d/m/Y" }}
-                                        {% else %}
-                                            (in corso)
+                                        {% if trattamento.stato == 'programmato' %}
+                                            <span class="badge bg-info">Programmato per {{ trattamento.data_inizio|date:"d/m/Y" }}</span>
+                                        {% elif trattamento.stato == 'in_corso' %}
+                                            <span class="badge bg-warning text-dark">In corso dal {{ trattamento.data_inizio|date:"d/m/Y" }}</span>
                                         {% endif %}
                                     </small>
                                 </div>
+                                <p class="mb-1">{{ trattamento.tipo_trattamento.principio_attivo }}</p>
+                                <small>
+                                    {% if trattamento.arnie.count > 0 %}
+                                        Applicato su {{ trattamento.arnie.count }} arnie
+                                    {% else %}
+                                        Applicato su tutte le arnie
+                                    {% endif %}
+                                    <a href="{% url 'modifica_trattamento' trattamento.id %}" class="ms-2 text-decoration-none">
+                                        <i class="bi bi-pencil"></i> Dettagli
+                                    </a>
+                                </small>
                             </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="text-center mb-0">Nessuna fioritura attiva per questa data.</p>
+                    <p class="text-center mb-0">Nessun trattamento attivo per questa data.</p>
                 {% endif %}
             </div>
         </div>
@@ -147,43 +170,43 @@
                                                         
                                                         <div style="border: 2px solid #b17c2b; border-radius: 5px; padding: 5px; background-color: #FFF8E1;">
                                                             <div class="d-flex justify-content-center" style="gap: 3px;">
-                                                            <!-- Telaini di scorte a sinistra -->
+                                                                <!-- Telaini di scorte a sinistra -->
                                                             {% for i in "x"|ljust:controllo.scorte_sinistra|default:"" %}
-                                                                <div style="width: 15px; height: 80px; background-color: #ffc107; border-radius: 2px;"
-                                                                    title="Telaino con scorte (lato sinistro)"></div>
-                                                            {% endfor %}
+                                                            <div style="width: 15px; height: 80px; background-color: #ffc107; border-radius: 2px;"
+                                                                title="Telaino con scorte (lato sinistro)"></div>
+                                                        {% endfor %}
 
-                                                            <!-- Telaini di covata (al centro) -->
-                                                            {% for i in "x"|ljust:controllo.telaini_covata|default:"" %}
-                                                                <div style="width: 15px; height: 80px; background-color: #dc3545; border-radius: 2px;" 
-                                                                    title="Telaino con covata"></div>
-                                                            {% endfor %}
+                                                        <!-- Telaini di covata (al centro) -->
+                                                        {% for i in "x"|ljust:controllo.telaini_covata|default:"" %}
+                                                            <div style="width: 15px; height: 80px; background-color: #dc3545; border-radius: 2px;" 
+                                                                title="Telaino con covata"></div>
+                                                        {% endfor %}
 
-                                                            <!-- Telaini di scorte a destra -->
-                                                            {% for i in "x"|ljust:controllo.scorte_destra|default:"" %}
-                                                                <div style="width: 15px; height: 80px; background-color: #ffc107; border-radius: 2px;"
-                                                                    title="Telaino con scorte (lato destro)"></div>
-                                                            {% endfor %}
-                                                                
-                                                                <!-- Diaframma se necessario -->
-                                                                {% if controllo.telaini_covata|add:controllo.telaini_scorte < 10 %}
-                                                                    <div style="width: 6px; height: 80px; background-color: #6c757d; border-radius: 2px;"
-                                                                        title="Diaframma"></div>
-                                                                {% endif %}
-                                                                
-                                                                <!-- Spazi vuoti -->
-                                                                {% with total=controllo.telaini_covata|add:controllo.telaini_scorte %}
-                                                                    {% with vuoti=10|add:"-total"|add:"-1" %}
-                                                                        {% if controllo.telaini_covata|add:controllo.telaini_scorte < 10 %}
-                                                                            {% for i in "x"|rjust:vuoti %}
-                                                                                {% if forloop.counter <= vuoti and vuoti > 0 %}
-                                                                                    <div style="width: 15px; height: 80px; background-color: #e9ecef; border: 1px dashed #ced4da; border-radius: 2px;"
-                                                                                        title="Spazio vuoto"></div>
-                                                                                {% endif %}
-                                                                            {% endfor %}
-                                                                        {% endif %}
-                                                                    {% endwith %}
+                                                        <!-- Telaini di scorte a destra -->
+                                                        {% for i in "x"|ljust:controllo.scorte_destra|default:"" %}
+                                                            <div style="width: 15px; height: 80px; background-color: #ffc107; border-radius: 2px;"
+                                                                title="Telaino con scorte (lato destro)"></div>
+                                                        {% endfor %}
+                                                            
+                                                            <!-- Diaframma se necessario -->
+                                                            {% if controllo.telaini_covata|add:controllo.telaini_scorte < 9 %}
+                                                                <div style="width: 6px; height: 80px; background-color: #6c757d; border-radius: 2px;"
+                                                                    title="Diaframma"></div>
+                                                            {% endif %}
+                                                            
+                                                            <!-- Spazi vuoti -->
+                                                            {% with total=controllo.telaini_covata|add:controllo.telaini_scorte %}
+                                                                {% with vuoti=9|add:"-total"|add:"-1" %}
+                                                                    {% if controllo.telaini_covata|add:controllo.telaini_scorte < 9 %}
+                                                                        {% for i in "x"|rjust:vuoti %}
+                                                                            {% if forloop.counter <= vuoti and vuoti > 0 %}
+                                                                                <div style="width: 15px; height: 80px; background-color: #e9ecef; border: 1px dashed #ced4da; border-radius: 2px;"
+                                                                                    title="Spazio vuoto"></div>
+                                                                            {% endif %}
+                                                                        {% endfor %}
+                                                                    {% endif %}
                                                                 {% endwith %}
+                                                            {% endwith %}
                                                             </div>
                                                         </div>
                                                         
@@ -213,6 +236,17 @@
                                                         <span class="badge bg-danger">Problemi sanitari</span>
                                                     {% endif %}
                                                 </div>
+                                                
+                                                <!-- Badge per trattamenti attivi su questa arnia -->
+                                                {% for trattamento in trattamenti_per_arnia %}
+                                                    {% if arnia in trattamento.arnie.all or not trattamento.arnie.exists %}
+                                                        <div class="mb-2">
+                                                            <span class="badge bg-warning text-dark">
+                                                                <i class="bi bi-capsule"></i> {{ trattamento.tipo_trattamento.nome }}
+                                                            </span>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
                                             {% endif %}
                                         {% empty %}
                                             <div class="alert alert-warning mb-0">
@@ -221,6 +255,43 @@
                                         {% endfor %}
                                     </div>
                                     
+                                        {% if is_proprietario %}
+                                        <div class="mb-3">
+                                            <div class="card">
+                                                <div class="card-header bg-info text-white">
+                                                    <h5 class="mb-0"><i class="bi bi-gear"></i> Impostazioni di Condivisione</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <h6><i class="bi bi-people"></i> Condivisione con gruppo</h6>
+                                                            {% if apiario.gruppo and apiario.condiviso_con_gruppo %}
+                                                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Condiviso con il gruppo {{ apiario.gruppo.nome }}</span>
+                                                            {% else %}
+                                                                <span class="badge bg-secondary"><i class="bi bi-x-circle"></i> Non condiviso con gruppi</span>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <h6><i class="bi bi-map"></i> Visibilità sulla mappa</h6>
+                                                            {% if apiario.visibilita_mappa == 'privato' %}
+                                                                <span class="badge bg-secondary">Solo proprietario</span>
+                                                            {% elif apiario.visibilita_mappa == 'gruppo' %}
+                                                                <span class="badge bg-primary">Membri del gruppo</span>
+                                                            {% elif apiario.visibilita_mappa == 'pubblico' %}
+                                                                <span class="badge bg-warning text-dark">Tutti gli utenti</span>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    <div class="mt-3">
+                                                        <a href="{% url 'gestione_apiario_gruppo' apiario.id %}" class="btn btn-sm btn-outline-primary">
+                                                            <i class="bi bi-pencil"></i> Modifica impostazioni
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
                                     <div class="card-footer">
                                         <div class="btn-group w-100">
                                             <a href="{% url 'nuovo_controllo' arnia.id %}" class="btn btn-sm btn-outline-primary">

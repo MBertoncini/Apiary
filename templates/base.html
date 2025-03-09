@@ -98,16 +98,33 @@
                             <i class="bi bi-cash-coin"></i> Pagamenti
                         </a>
                     </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'gestione_gruppi' %}">
+                            <i class="bi bi-people"></i> Gruppi
+                        </a>
+                    </li>
                 </ul>
                 
-                <div class="navbar-nav">
-                    <span class="nav-item nav-link text-light">
-                        <i class="bi bi-person-circle"></i> {{ user.username }}
-                    </span>
-                    <a class="nav-link" href="{% url 'logout' %}">
-                        <i class="bi bi-box-arrow-right"></i> Logout
-                    </a>
-                </div>
+                    <div class="navbar-nav">
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <img src="{{ user.profilo.immagine.url }}" alt="{{ user.username }}" style="width: 24px; height: 24px; object-fit: cover; border-radius: 50%; margin-right: 5px;">
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end">
+                                <a class="dropdown-item" href="{% url 'profilo' %}">
+                                    <i class="bi bi-person-circle"></i> Il mio Profilo
+                                </a>
+                                <a class="dropdown-item" href="{% url 'modifica_profilo' %}">
+                                    <i class="bi bi-gear"></i> Impostazioni
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="{% url 'logout' %}">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 {% else %}
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
@@ -122,6 +139,14 @@
                         </li>
                     </ul>
                 {% endif %}
+            </div>
+            <div class="navbar-nav ms-auto me-2">
+                <form class="d-flex" action="{% url 'ricerca' %}" method="get">
+                    <input class="form-control me-2" type="search" name="q" placeholder="Cerca utenti o gruppi..." aria-label="Search">
+                    <button class="btn btn-outline-light" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
             </div>
         </div>
     </nav>

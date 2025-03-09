@@ -10,6 +10,7 @@ urlpatterns = [
     path('apiario/nuovo/', views.ApiarioCreateView.as_view(), name='crea_apiario'),
     path('apiario/<int:apiario_id>/', views.visualizza_apiario, name='visualizza_apiario'),
     path('apiario/<int:apiario_id>/condividi/', views.condividi_apiario, name='condividi_apiario'),
+    path('apiario/<int:apiario_id>/gruppo/', views.gestione_apiario_gruppo, name='gestione_apiario_gruppo'),
     
     # Arnie
     path('arnia/nuova/', views.ArniaCreateView.as_view(), name='crea_arnia'),
@@ -37,10 +38,11 @@ urlpatterns = [
     # Trattamenti Sanitari
     path('trattamenti/', views.gestione_trattamenti, name='gestione_trattamenti'),
     path('trattamento/nuovo/', views.nuovo_trattamento, name='nuovo_trattamento'),
-    path('trattamento/nuovo/<int:apiario_id>/', views.nuovo_trattamento, name='nuovo_trattamento_apiario'),
+    path('apiario/<int:apiario_id>/trattamento/nuovo/', views.nuovo_trattamento, name='nuovo_trattamento_apiario'),  # URL specifica per apiario
     path('trattamento/<int:pk>/modifica/', views.modifica_trattamento, name='modifica_trattamento'),
     path('trattamento/<int:pk>/elimina/', views.elimina_trattamento, name='elimina_trattamento'),
     path('trattamento/<int:pk>/stato/<str:nuovo_stato>/', views.cambio_stato_trattamento, name='cambio_stato_trattamento'),
+
 
     # Tipi di Trattamento
     path('trattamenti/tipi/', views.tipi_trattamento, name='tipi_trattamento'),
@@ -60,4 +62,14 @@ urlpatterns = [
     path('gruppi/inviti/<int:invito_id>/<str:azione>/', views.gestisci_invito, name='gestisci_invito'),
     path('gruppi/inviti/<int:invito_id>/annulla/', views.annulla_invito, name='annulla_invito'),
     path('gruppi/inviti/attiva/<uuid:token>/', views.attiva_invito, name='attiva_invito'),
+
+    # Ricerca
+    path('ricerca/', views.ricerca, name='ricerca'),
+    path('invita-utente/<int:user_id>/', views.invita_utente, name='invita_utente'),
+
+    # Profilo
+    path('profilo/modifica/', views.modifica_profilo, name='modifica_profilo'),  # Metti questo prima
+    path('profilo/', views.profilo, name='profilo'),
+    path('profilo/<str:username>/', views.profilo, name='profilo_utente'),
+    path('gruppi/<int:gruppo_id>/modifica-immagine/', views.modifica_immagine_gruppo, name='modifica_immagine_gruppo'),
 ]

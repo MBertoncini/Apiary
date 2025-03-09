@@ -97,6 +97,21 @@ class Apiario(models.Model):
     gruppo = models.ForeignKey(Gruppo, on_delete=models.SET_NULL, null=True, blank=True, related_name='apiari')
     condiviso_con_gruppo = models.BooleanField(default=False, help_text="Se abilitato, l'apiario è condiviso con tutti i membri del gruppo")    
 
+    # Aggiungere questa tupla alla classe Apiario
+    VISIBILITA_CHOICES = [
+        ('privato', 'Solo proprietario'),
+        ('gruppo', 'Membri del gruppo'),
+        ('pubblico', 'Tutti gli utenti'),
+    ]
+
+    # Aggiungere questo campo alla classe Apiario
+    visibilita_mappa = models.CharField(
+        max_length=20, 
+        choices=VISIBILITA_CHOICES, 
+        default='privato',
+        help_text="Chi può visualizzare questo apiario sulla mappa"
+    )
+
     def __str__(self):
         return self.nome
     
@@ -297,7 +312,150 @@ class TrattamentoSanitario(models.Model):
             self.data_fine_sospensione = self.data_fine + timedelta(days=self.tipo_trattamento.tempo_sospensione)
         super().save(*args, **kwargs)
     
+    # Aggiunti nuovi metodi utili per la gestione dei trattamenti
+    
+    def is_active(self, date=None):
+        """Verifica se il trattamento è attivo in una data specifica"""
+        if date is None:
+            date = timezone.now().date()
+        
+        if self.stato in ['programmato', 'in_corso']:
+            if self.data_inizio <= date:
+                if self.data_fine is None or self.data_fine >= date:
+                    return True
+        return False
+    
+    def applies_to_arnia(self, arnia):
+        """Verifica se il trattamento si applica a una specifica arnia"""
+        # Se non ci sono arnie specifiche selezionate, si applica a tutte le arnie dell'apiario
+        if not self.arnie.exists():
+            return arnia.apiario == self.apiario
+        # Altrimenti, verifica se l'arnia è tra quelle selezionate
+        return self.arnie.filter(pk=arnia.pk).exists()
+    
+    def get_duration_days(self):
+        """Restituisce la durata del trattamento in giorni"""
+        if not self.data_fine:
+            return None
+        
+        return (self.data_fine - self.data_inizio).days
+    
+    def get_remaining_suspension_days(self):
+        """Restituisce i giorni rimanenti di sospensione"""
+        if not self.data_fine_sospensione:
+            return 0
+            
+        if self.data_fine_sospensione < timezone.now().date():
+            return 0
+            
+        return (self.data_fine_sospensione - timezone.now().date()).days
+    
     class Meta:
         verbose_name = "Trattamento Sanitario"
         verbose_name_plural = "Trattamenti Sanitari"
         ordering = ['-data_inizio']
+
+# Aggiungi questo al file models.py
+
+from django.db import models
+from django.contrib.auth.models import User
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+from PIL import Image
+from io import BytesIO
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import sys
+import os
+
+class Profilo(models.Model):
+    """Modello per il profilo utente esteso"""
+    utente = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profilo')
+    immagine = models.ImageField(upload_to='profili/', default='profili/default.png')
+    data_nascita = models.DateField(null=True, blank=True)
+    bio = models.TextField(max_length=500, blank=True)
+    
+    def __str__(self):
+        return f"Profilo di {self.utente.username}"
+    
+    def save(self, *args, **kwargs):
+        # Compressione dell'immagine se è stata caricata una nuova immagine
+        if self.immagine and hasattr(self.immagine, 'name') and not self.immagine.name.endswith('default.png'):
+            img = Image.open(self.immagine)
+            
+            # Converti in RGB se l'immagine è in RGBA (per PNG trasparenti)
+            if img.mode == 'RGBA':
+                img = img.convert('RGB')
+                
+            # Ridimensiona l'immagine per mantenerla ragionevolmente piccola
+            output_size = (300, 300)
+            img.thumbnail(output_size)
+            
+            # Salva l'immagine compressa
+            output = BytesIO()
+            img.save(output, format='JPEG', quality=75)
+            output.seek(0)
+            
+            # Sostituisci l'immagine originale con quella compressa
+            self.immagine = InMemoryUploadedFile(
+                output, 'ImageField', 
+                f"{os.path.splitext(self.immagine.name)[0]}.jpg", 
+                'image/jpeg', 
+                sys.getsizeof(output), 
+                None
+            )
+        
+        super().save(*args, **kwargs)
+
+# Crea automaticamente un profilo per ogni nuovo utente
+@receiver(post_save, sender=User)
+def crea_profilo(sender, instance, created, **kwargs):
+    if created:
+        Profilo.objects.create(utente=instance)
+
+# Salva il profilo quando l'utente viene salvato
+@receiver(post_save, sender=User)
+def salva_profilo(sender, instance, **kwargs):
+    instance.profilo.save()
+
+# Aggiungiamo questa estensione al modello Gruppo esistente
+class ImmagineProfilo(models.Model):
+    """Estensione del modello Gruppo per aggiungere l'immagine del profilo"""
+    gruppo = models.OneToOneField('Gruppo', on_delete=models.CASCADE, related_name='immagine_profilo')
+    immagine = models.ImageField(upload_to='gruppi/', default='gruppi/default.png')
+    
+    def __str__(self):
+        return f"Immagine del gruppo {self.gruppo.nome}"
+    
+    def save(self, *args, **kwargs):
+        # Compressione dell'immagine
+        if self.immagine and hasattr(self.immagine, 'name') and not self.immagine.name.endswith('default.png'):
+            img = Image.open(self.immagine)
+            
+            # Converti in RGB se l'immagine è in RGBA
+            if img.mode == 'RGBA':
+                img = img.convert('RGB')
+                
+            # Ridimensiona l'immagine
+            output_size = (400, 400)
+            img.thumbnail(output_size)
+            
+            # Salva l'immagine compressa
+            output = BytesIO()
+            img.save(output, format='JPEG', quality=75)
+            output.seek(0)
+            
+            self.immagine = InMemoryUploadedFile(
+                output, 'ImageField', 
+                f"{os.path.splitext(self.immagine.name)[0]}.jpg", 
+                'image/jpeg', 
+                sys.getsizeof(output), 
+                None
+            )
+        
+        super().save(*args, **kwargs)
+
+# Crea automaticamente un'immagine di profilo per ogni nuovo gruppo
+@receiver(post_save, sender=Gruppo)
+def crea_immagine_gruppo(sender, instance, created, **kwargs):
+    if created:
+        ImmagineProfilo.objects.create(gruppo=instance)

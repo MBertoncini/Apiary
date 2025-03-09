@@ -14,3 +14,12 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),  # Usa la tua vista personalizzata invece di LogoutView
     path('register/', register_view, name='register'),  # Aggiunge la URL per la registrazione
 ]
+
+# Aggiungi queste configurazioni al file urls.py del progetto (apiario_manager/urls.py)
+
+from django.conf import settings
+from django.conf.urls.static import static
+
+# Aggiungi questa riga in fondo al file, dopo urlpatterns
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

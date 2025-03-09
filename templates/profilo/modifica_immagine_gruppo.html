@@ -1,0 +1,105 @@
+<!-- templates/gruppi/modifica_immagine_gruppo.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Modifica Immagine Gruppo - Gestione Apiario{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-image-preview {
+        width: 200px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 5px solid white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+    
+    .card {
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1><i class="bi bi-image"></i> Modifica Immagine Gruppo</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'gestione_gruppi' %}">Gruppi</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'dettaglio_gruppo' gruppo.id %}">{{ gruppo.nome }}</a></li>
+                <li class="breadcrumb-item active">Modifica Immagine</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Immagine Profilo Gruppo</h5>
+            </div>
+            <div class="card-body text-center">
+                <h3 class="mb-4">{{ gruppo.nome }}</h3>
+                
+                <div class="mb-4">
+                    {% if gruppo.immagine_profilo %}
+                        <img src="{{ gruppo.immagine_profilo.immagine.url }}" alt="{{ gruppo.nome }}" class="profile-image-preview" id="imagePreview">
+                    {% else %}
+                        <div style="width: 200px; height: 200px; border-radius: 50%; background-color: #6c757d; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                            <i class="bi bi-people-fill text-white" style="font-size: 4rem;"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {{ form|crispy }}
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-info-circle"></i> L'immagine verrà automaticamente ridimensionata e compressa per ottimizzare lo spazio di archiviazione.
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'dettaglio_gruppo' gruppo.id %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Annulla
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Salva Immagine
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Anteprima dell'immagine quando viene caricata
+        const imageInput = document.getElementById('id_immagine');
+        const imagePreview = document.getElementById('imagePreview');
+        
+        if (imageInput && imagePreview) {
+            imageInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -51,10 +51,24 @@ class MembroGruppoRoleForm(forms.ModelForm):
         fields = ['ruolo']
 
 class ApiarioGruppoForm(forms.ModelForm):
-    """Form per condividere un apiario con un gruppo"""
+    """Form per associare un apiario a un gruppo o modificare le impostazioni di condivisione"""
     class Meta:
         model = Apiario
-        fields = ['gruppo', 'condiviso_con_gruppo']
+        fields = ['gruppo', 'condiviso_con_gruppo', 'visibilita_mappa']
+        widgets = {
+            'gruppo': forms.Select(attrs={'class': 'form-control form-select'}),
+            'condiviso_con_gruppo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'visibilita_mappa': forms.RadioSelect(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'gruppo': 'Gruppo',
+            'condiviso_con_gruppo': 'Condividi con il gruppo',
+            'visibilita_mappa': 'Visibilità sulla mappa',
+        }
+        help_texts = {
+            'condiviso_con_gruppo': 'Se selezionato, tutti i membri del gruppo avranno accesso in base al loro ruolo',
+            'visibilita_mappa': 'Scegli chi può vedere questo apiario sulla mappa',
+        }
         
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
@@ -236,3 +250,54 @@ class TrattamentoSanitarioForm(forms.ModelForm):
             self.add_error('data_fine', "La data di fine deve essere successiva alla data di inizio.")
         
         return cleaned_data
+
+# Aggiungi questi form al file forms.py
+
+from django import forms
+from django.contrib.auth.models import User
+from .models import Profilo, ImmagineProfilo
+
+class UserUpdateForm(forms.ModelForm):
+    """Form per aggiornare le informazioni dell'utente"""
+    email = forms.EmailField()
+    first_name = forms.CharField(max_length=30, required=False, label="Nome")
+    last_name = forms.CharField(max_length=30, required=False, label="Cognome")
+    
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name']
+
+class ProfiloUpdateForm(forms.ModelForm):
+    """Form per aggiornare il profilo utente"""
+    immagine = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={'class': 'form-control'}),
+        label="Immagine Profilo"
+    )
+    data_nascita = forms.DateField(
+        required=False, 
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        label="Data di nascita"
+    )
+    bio = forms.CharField(
+        required=False,
+        max_length=500,
+        widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+        label="Bio"
+    )
+    
+    class Meta:
+        model = Profilo
+        fields = ['immagine', 'data_nascita', 'bio']
+
+class GruppoImmagineForm(forms.ModelForm):
+    """Form per aggiornare l'immagine del profilo del gruppo"""
+    immagine = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={'class': 'form-control'}),
+        label="Immagine del Gruppo"
+    )
+    
+    class Meta:
+        model = ImmagineProfilo
+        fields = ['immagine']

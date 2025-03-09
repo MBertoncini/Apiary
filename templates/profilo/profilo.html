@@ -1,0 +1,249 @@
+<!-- templates/profilo/profilo.html -->
+{% extends 'base.html' %}
+
+{% block title %}Profilo di {{ user_profile.username }} - Gestione Apiario{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-header {
+        position: relative;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .profile-image {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 5px solid white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .profile-details {
+        padding-left: 2rem;
+    }
+    
+    .profile-bio {
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .stat-card {
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    
+    .action-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .profile-details {
+            padding-left: 0;
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+        
+        .profile-image-container {
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1>
+            <i class="bi bi-person-circle"></i> 
+            {% if user_profile == request.user %}
+                Il tuo Profilo
+            {% else %}
+                Profilo di {{ user_profile.username }}
+            {% endif %}
+        </h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Profilo</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="profile-header">
+    {% if can_edit %}
+        <a href="{% url 'modifica_profilo' %}" class="btn btn-outline-primary action-btn">
+            <i class="bi bi-pencil"></i> Modifica Profilo
+        </a>
+    {% endif %}
+    
+    <div class="row">
+        <div class="col-md-3 profile-image-container">
+            <img src="{{ user_profile.profilo.immagine.url }}" alt="{{ user_profile.username }}" class="profile-image">
+        </div>
+        <div class="col-md-9 profile-details">
+            <h2>{{ user_profile.username }}</h2>
+            
+            {% if user_profile.first_name or user_profile.last_name %}
+                <p class="text-muted mb-2">{{ user_profile.first_name }} {{ user_profile.last_name }}</p>
+            {% endif %}
+            
+            <p class="mb-2">
+                <i class="bi bi-envelope"></i> {{ user_profile.email }}
+            </p>
+            
+            {% if user_profile.profilo.data_nascita %}
+                <p class="mb-2">
+                    <i class="bi bi-calendar"></i> {{ user_profile.profilo.data_nascita|date:"d/m/Y" }}
+                </p>
+            {% endif %}
+            
+            <div class="profile-bio">
+                {% if user_profile.profilo.bio %}
+                    <p>{{ user_profile.profilo.bio|linebreaks }}</p>
+                {% else %}
+                    <p class="text-muted">
+                        {% if can_edit %}
+                            Aggiungi una bio per descrivere la tua esperienza con l'apicoltura.
+                        {% else %}
+                            L'utente non ha ancora aggiunto una bio.
+                        {% endif %}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-grid"></i> Apiari</h5>
+            </div>
+            <div class="card-body">
+                {% if apiari %}
+                    <div class="list-group">
+                        {% for apiario in apiari %}
+                            <a href="{% url 'visualizza_apiario' apiario.id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ apiario.nome }}</h5>
+                                    <small>{{ apiario.arnie.count }} arnie</small>
+                                </div>
+                                <p class="mb-1">{{ apiario.posizione }}</p>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-center text-muted py-3">Nessun apiario trovato.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-people"></i> Gruppi</h5>
+            </div>
+            <div class="card-body">
+                {% if gruppi %}
+                    <div class="list-group">
+                        {% for gruppo in gruppi %}
+                            <a href="{% url 'dettaglio_gruppo' gruppo.id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        {% if gruppo.immagine_profilo %}
+                                            <img src="{{ gruppo.immagine_profilo.immagine.url }}" alt="{{ gruppo.nome }}" class="me-3" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                        {% else %}
+                                            <div class="me-3" style="width: 40px; height: 40px; border-radius: 50%; background-color: #6c757d; display: flex; align-items: center; justify-content: center;">
+                                                <i class="bi bi-people-fill text-white"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <h5 class="mb-1">{{ gruppo.nome }}</h5>
+                                            <small class="text-muted">{{ gruppo.membri.count }} membri</small>
+                                        </div>
+                                    </div>
+                                    
+                                    {% for membro in gruppo.membrogruppo_set.all %}
+                                        {% if membro.utente == user_profile %}
+                                            <span class="badge {% if membro.ruolo == 'admin' %}bg-danger{% elif membro.ruolo == 'editor' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                                {{ membro.get_ruolo_display }}
+                                            </span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-center text-muted py-3">Nessun gruppo trovato.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card stat-card text-center">
+            <div class="card-body">
+                <div class="stat-icon text-success">
+                    <i class="bi bi-grid"></i>
+                </div>
+                <div class="stat-value">{{ apiari.count }}</div>
+                <div class="stat-label">Apiari</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card stat-card text-center">
+            <div class="card-body">
+                <div class="stat-icon text-primary">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-value">{{ gruppi.count }}</div>
+                <div class="stat-label">Gruppi</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card stat-card text-center">
+            <div class="card-body">
+                <div class="stat-icon text-info">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="stat-value">{{ user_profile.date_joined|date:"d/m/Y" }}</div>
+                <div class="stat-label">Iscritto dal</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

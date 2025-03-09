@@ -1,7 +1,7 @@
 <!-- templates/homepage.html -->
 {% extends 'base.html' %}
 
-{% block title %}Benvenuto - Gestione Apiario{% endblock %}
+{% block title %}Benvenuto - Apiary{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -75,7 +75,7 @@
 <!-- Hero Section -->
 <div class="hero-section text-center">
     <div class="container">
-        <h1 class="display-4 mb-4">Gestione Apiario</h1>
+        <h1 class="display-4 mb-4">Apiary</h1>
         <p class="lead mb-5">La piattaforma completa per gestire il tuo apiario in modo collaborativo, efficiente e organizzato.</p>
         {% if user.is_authenticated %}
             <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">Vai alla Dashboard</a>

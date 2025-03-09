@@ -17,6 +17,9 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                {% if apiario %}
+                    <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
+                {% endif %}
                 <li class="breadcrumb-item"><a href="{% url 'gestione_trattamenti' %}">Trattamenti</a></li>
                 <li class="breadcrumb-item active">
                     {% if trattamento %}
@@ -85,9 +88,15 @@
                     </div>
                     
                     <div class="d-flex justify-content-between">
-                        <a href="{% url 'gestione_trattamenti' %}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Annulla
-                        </a>
+                        {% if apiario %}
+                            <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Torna all'apiario
+                            </a>
+                        {% else %}
+                            <a href="{% url 'gestione_trattamenti' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Annulla
+                            </a>
+                        {% endif %}
                         
                         <button type="submit" class="btn btn-success">
                             <i class="bi bi-check-circle"></i> 
@@ -126,6 +135,17 @@
                     <i class="bi bi-exclamation-triangle"></i> <strong>Attenzione:</strong>
                     Ricorda di rispettare i periodi di sospensione dopo il trattamento prima di raccogliere il miele.
                 </div>
+                
+                {% if tipo_trattamento_info %}
+                <div class="alert alert-primary mt-3">
+                    <h6>Informazioni sul tipo di trattamento selezionato:</h6>
+                    <p><strong>Principio attivo:</strong> {{ tipo_trattamento_info.principio_attivo }}</p>
+                    <p><strong>Tempo sospensione:</strong> {{ tipo_trattamento_info.tempo_sospensione }} giorni</p>
+                    {% if tipo_trattamento_info.istruzioni %}
+                        <p><strong>Istruzioni:</strong> {{ tipo_trattamento_info.istruzioni }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -166,30 +186,13 @@
         // Event listener
         selectAllCheckbox.addEventListener('change', toggleArnieSelection);
         
-        // Aggiornamento delle arnie disponibili quando cambia l'apiario
-        const apiarioSelect = document.getElementById('id_apiario');
+        // Aggiornamento del tipo di trattamento selezionato
+        const tipoTrattamentoSelect = document.getElementById('id_tipo_trattamento');
         
-        apiarioSelect.addEventListener('change', function() {
-            const apiarioId = this.value;
-            
-            if (apiarioId) {
-                // Recupera le arnie dell'apiario selezionato tramite AJAX
-                fetch(`/api/arnie-per-apiario/${apiarioId}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        // Aggiorna le opzioni delle arnie
-                        updateArnieOptions(data);
-                    })
-                    .catch(error => {
-                        console.error('Errore nel recupero delle arnie:', error);
-                    });
-            }
-        });
-        
-        function updateArnieOptions(arnie) {
-            // Questa funzione potrebbe essere implementata se hai un endpoint API
-            // Per ora è solo un segnaposto
-            console.log('Arnie da caricare:', arnie);
+        if (tipoTrattamentoSelect) {
+            tipoTrattamentoSelect.addEventListener('change', function() {
+                document.getElementById('trattamentoForm').submit();
+            });
         }
     });
 </script>

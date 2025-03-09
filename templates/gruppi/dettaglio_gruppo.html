@@ -9,6 +9,16 @@
     <div class="col-12 mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <h1><i class="bi bi-people"></i> {{ gruppo.nome }}</h1>
+                <div class="d-flex align-items-center mb-3">
+                    {% if gruppo.immagine_profilo %}
+                        <img src="{{ gruppo.immagine_profilo.immagine.url }}" alt="{{ gruppo.nome }}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-right: 15px; border: 3px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+                    {% else %}
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #6c757d; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                            <i class="bi bi-people-fill text-white" style="font-size: 1.8rem;"></i>
+                        </div>
+                    {% endif %}
+                    <h1><i class="bi bi-people"></i> {{ gruppo.nome }}</h1>
+                </div>
             <div>
                 <a href="{% url 'gestione_gruppi' %}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Torna ai Gruppi
@@ -92,6 +102,11 @@
                                                 {% endif %}
                                             </div>
                                         </td>
+                                    {% endif %}
+                                    {% if is_admin %}
+                                        <a href="{% url 'modifica_immagine_gruppo' gruppo.id %}" class="btn btn-outline-info ms-2">
+                                            <i class="bi bi-image"></i> Modifica Immagine
+                                        </a>
                                     {% endif %}
                                 </tr>
                             {% endfor %}

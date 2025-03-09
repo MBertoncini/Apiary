@@ -52,6 +52,22 @@
                             <i class="bi bi-flower1" style="color: #6c757d;"></i> Fioriture Passate
                         </label>
                     </div>
+                    
+                    <!-- Legenda -->
+                    <div class="dropdown mb-2">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="dropdownMapLegend" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-info-circle"></i> Legenda
+                        </button>
+                        <ul class="dropdown-menu p-3" aria-labelledby="dropdownMapLegend">
+                            <li class="mb-2"><span class="badge bg-success me-2">■</span> I tuoi apiari</li>
+                            <li class="mb-2"><span class="badge bg-primary me-2">■</span> Apiari condivisi con te</li>
+                            <li class="mb-2"><span class="badge me-2" style="background-color: #6f42c1;">■</span> Apiari visibili al tuo gruppo</li>
+                            <li class="mb-2"><span class="badge me-2" style="background-color: #fd7e14;">■</span> Apiari pubblici</li>
+                            <li class="mb-2"><span class="badge me-2" style="background-color: #20c997;">■</span> Fioriture attive</li>
+                            <li class="mb-2"><span class="badge me-2" style="background-color: #ffc107;">■</span> Fioriture programmate</li>
+                            <li class="mb-2"><span class="badge me-2" style="background-color: #6c757d;">■</span> Fioriture passate</li>
+                        </ul>
+                    </div>
                 </div>
                 
                 <div id="map" class="mb-3"></div>
@@ -70,19 +86,59 @@
             </div>
             <div class="card-body">
                 <div class="list-group">
-                    {% for apiario in apiari %}
-<a href="#" class="list-group-item list-group-item-action apiario-item" data-id="{{ apiario.id }}" {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
+                    <!-- Apiari propri -->
+                    {% for apiario in apiari_propri %}
+                        <a href="#" class="list-group-item list-group-item-action apiario-item apiario-proprio" data-id="{{ apiario.id }}" {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
                             <div class="d-flex w-100 justify-content-between">
                                 <h6 class="mb-1">{{ apiario.nome }}</h6>
                                 <small>{{ apiario.arnie.count }} arnie</small>
                             </div>
                             <small class="text-muted">{{ apiario.posizione }}</small>
+                            <span class="badge bg-success">Tuo</span>
                         </a>
-                    {% empty %}
+                    {% endfor %}
+                    
+                    <!-- Apiari condivisi -->
+                    {% for apiario in apiari_condivisi %}
+                        <a href="#" class="list-group-item list-group-item-action apiario-item apiario-condiviso" data-id="{{ apiario.id }}" {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ apiario.nome }}</h6>
+                                <small>{{ apiario.arnie.count }} arnie</small>
+                            </div>
+                            <small class="text-muted">{{ apiario.posizione }}</small>
+                            <span class="badge bg-primary">Condiviso</span>
+                        </a>
+                    {% endfor %}
+                    
+                    <!-- Apiari visibili al gruppo -->
+                    {% for apiario in apiari_visibili_gruppo %}
+                        <a href="#" class="list-group-item list-group-item-action apiario-item apiario-visibile-gruppo" data-id="{{ apiario.id }}" {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ apiario.nome }}</h6>
+                                <small>{{ apiario.arnie.count }} arnie</small>
+                            </div>
+                            <small class="text-muted">{{ apiario.posizione }}</small>
+                            <span class="badge" style="background-color: #6f42c1;">Gruppo</span>
+                        </a>
+                    {% endfor %}
+                    
+                    <!-- Apiari pubblici -->
+                    {% for apiario in apiari_pubblici %}
+                        <a href="#" class="list-group-item list-group-item-action apiario-item apiario-pubblico" data-id="{{ apiario.id }}" {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ apiario.nome }}</h6>
+                                <small>{{ apiario.arnie.count }} arnie</small>
+                            </div>
+                            <small class="text-muted">{{ apiario.posizione }}</small>
+                            <span class="badge" style="background-color: #fd7e14;">Pubblico</span>
+                        </a>
+                    {% endfor %}
+                    
+                    {% if not apiari %}
                         <div class="text-center py-3">
                             <p class="mb-0">Nessun apiario trovato.</p>
                         </div>
-                    {% endfor %}
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -138,24 +194,44 @@
         var bounds = L.latLngBounds();
         var hasCoordinates = false;
         
-        // Funzione per creare un marker di apiario
-        function createApiarioMarker(apiario) {
+        // Funzione per creare un marker di apiario con diversi stili in base al tipo
+        function createApiarioMarker(apiario, isProprio, isCondiviso, isVisibileGruppo, isPubblico) {
             var id = apiario.dataset.id;
             var lat = parseFloat(apiario.dataset.lat);
             var lng = parseFloat(apiario.dataset.lng);
             
-            console.log("Apiario:", apiario.querySelector('h6').textContent);
-            console.log("Coordinate originali:", lat, lng);
-            
             if (!isNaN(lat) && !isNaN(lng)) {
                 hasCoordinates = true;
-                var marker = L.marker([lat, lng], {  // Qui vengono passate le coordinate nel formato [lat, lng]
+                
+                // Definiamo colori diversi in base al tipo di accesso
+                let markerColor = '#28a745'; // Default verde per apiari propri
+                let tooltipText = '';
+                
+                if (isProprio) {
+                    markerColor = '#28a745'; // Verde
+                    tooltipText = 'Tuo apiario';
+                } else if (isCondiviso) {
+                    markerColor = '#0d6efd'; // Blu
+                    tooltipText = 'Apiario condiviso';
+                } else if (isVisibileGruppo) {
+                    markerColor = '#6f42c1'; // Viola
+                    tooltipText = 'Visibile al gruppo';
+                } else if (isPubblico) {
+                    markerColor = '#fd7e14'; // Arancione
+                    tooltipText = 'Apiario pubblico';
+                }
+                
+                var marker = L.marker([lat, lng], {
                     title: apiario.querySelector('h6').textContent,
                     icon: L.divIcon({
                         className: 'marker-apiario',
-                        iconSize: [20, 20]
+                        iconSize: [20, 20],
+                        html: `<div style="width:100%;height:100%;border-radius:50%;background-color:${markerColor};border:2px solid white;"></div>`
                     })
                 });
+                
+                // Aggiungi tooltip con informazioni sul tipo di accesso
+                marker.bindTooltip(tooltipText);
                 
                 // Aggiungi popup con informazioni
                 var popupContent = `
@@ -163,18 +239,18 @@
                     <p>${apiario.querySelector('small.text-muted').textContent}</p>
                     <p><strong>Arnie:</strong> ${apiario.querySelector('small:not(.text-muted)').textContent}</p>
                     <div class="mt-2">
-                        <a href="/apiario/${id}/" class="btn btn-sm btn-primary">Visualizza dettagli</a>
+                        <a href="/app/apiario/${id}/" class="btn btn-sm btn-primary">Visualizza dettagli</a>
                     </div>
                 `;
                 
                 marker.bindPopup(popupContent);
                 marker.addTo(apiariLayer);
-                bounds.extend([lat, lng]);  // Anche qui vengono usate nello stesso ordine
+                bounds.extend([lat, lng]);
         
                 // Aggiungi evento di click sulla lista
                 apiario.addEventListener('click', function(e) {
                     e.preventDefault();
-                    map.setView([lat, lng], 14);  // E anche qui
+                    map.setView([lat, lng], 14);
                     marker.openPopup();
                 });
             }
@@ -224,7 +300,7 @@
                     <p><strong>Apiario:</strong> ${fioritura.querySelector('small.text-muted').textContent}</p>
                     <p><strong>Area:</strong> circa ${raggio} metri</p>
                     <div class="mt-2">
-                        <a href="/fioriture/" class="btn btn-sm btn-primary">Gestisci fioriture</a>
+                        <a href="/app/fioriture/" class="btn btn-sm btn-primary">Gestisci fioriture</a>
                     </div>
                 `;
                 
@@ -244,8 +320,25 @@
             }
         }
         
-        // Carica gli apiari sulla mappa
-        document.querySelectorAll('.apiario-item').forEach(createApiarioMarker);
+        // Carica gli apiari propri sulla mappa
+        document.querySelectorAll('.apiario-proprio').forEach(function(apiario) {
+            createApiarioMarker(apiario, true, false, false, false);
+        });
+        
+        // Carica gli apiari condivisi
+        document.querySelectorAll('.apiario-condiviso').forEach(function(apiario) {
+            createApiarioMarker(apiario, false, true, false, false);
+        });
+        
+        // Carica gli apiari visibili al gruppo
+        document.querySelectorAll('.apiario-visibile-gruppo').forEach(function(apiario) {
+            createApiarioMarker(apiario, false, false, true, false);
+        });
+        
+        // Carica gli apiari pubblici
+        document.querySelectorAll('.apiario-pubblico').forEach(function(apiario) {
+            createApiarioMarker(apiario, false, false, false, true);
+        });
         
         // Carica le fioriture sulla mappa
         document.querySelectorAll('.fioritura-item[data-stato="attiva"]').forEach(function(fioritura) {

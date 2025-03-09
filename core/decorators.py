@@ -5,7 +5,7 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.http import HttpResponseForbidden
 
-from .models import MembroGruppo, Apiario, Gruppo
+from .models import MembroGruppo, Apiario, Gruppo, Arnia
 
 def richiedi_appartenenza_gruppo(view_func):
     """
@@ -55,32 +55,45 @@ def richiedi_ruolo_admin(view_func):
 def richiedi_permesso_scrittura(view_func):
     """
     Decorator che verifica che l'utente abbia i permessi di scrittura nel gruppo (admin o editor).
-    La vista deve avere un parametro gruppo_id o apiario_id da cui ricavare il gruppo.
+    La vista può avere un parametro gruppo_id, apiario_id o arnia_id da cui ricavare il gruppo.
     """
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         gruppo_id = kwargs.get('gruppo_id')
+        apiario_id = kwargs.get('apiario_id')
+        arnia_id = kwargs.get('arnia_id')
         
-        # Se non abbiamo gruppo_id ma abbiamo apiario_id, otteniamo il gruppo dall'apiario
-        if not gruppo_id and 'apiario_id' in kwargs:
+        # Se abbiamo arnia_id ma non apiario_id, otteniamo l'apiario dall'arnia
+        if not apiario_id and not gruppo_id and arnia_id:
             try:
-                apiario = Apiario.objects.get(id=kwargs['apiario_id'])
-                if apiario.gruppo:
+                arnia = Arnia.objects.get(id=arnia_id)
+                apiario_id = arnia.apiario.id
+            except Arnia.DoesNotExist:
+                messages.error(request, "Arnia non trovata.")
+                return redirect('dashboard')
+        
+        # Se abbiamo apiario_id ma non gruppo_id, otteniamo il gruppo dall'apiario
+        if not gruppo_id and apiario_id:
+            try:
+                apiario = Apiario.objects.get(id=apiario_id)
+                # Se l'utente è il proprietario dell'apiario, ha sempre accesso
+                if apiario.proprietario == request.user:
+                    return view_func(request, *args, **kwargs)
+                # Se l'apiario è condiviso con un gruppo
+                elif apiario.gruppo and apiario.condiviso_con_gruppo:
                     gruppo_id = apiario.gruppo.id
                 else:
-                    # Se l'apiario non ha un gruppo, verifichiamo che l'utente sia il proprietario
-                    if apiario.proprietario == request.user:
-                        return view_func(request, *args, **kwargs)
-                    else:
-                        messages.error(request, "Non hai i permessi necessari per modificare questo apiario.")
-                        return redirect('visualizza_apiario', apiario_id=apiario.id)
+                    # L'apiario non è in un gruppo o non è condiviso
+                    messages.error(request, "Non hai i permessi necessari per modificare questo apiario.")
+                    return redirect('visualizza_apiario', apiario_id=apiario_id)
             except Apiario.DoesNotExist:
                 messages.error(request, "Apiario non trovato.")
                 return redirect('dashboard')
         
+        # Se ancora non abbiamo un gruppo_id, l'utente non ha accesso
         if not gruppo_id:
-            messages.error(request, "Gruppo non specificato.")
-            return redirect('gestione_gruppi')
+            messages.error(request, "Non hai i permessi necessari per questa operazione.")
+            return redirect('dashboard')
         
         # Verifica che l'utente abbia i permessi di scrittura nel gruppo
         try:
@@ -90,7 +103,10 @@ def richiedi_permesso_scrittura(view_func):
                 return redirect('dettaglio_gruppo', gruppo_id=gruppo_id)
         except MembroGruppo.DoesNotExist:
             messages.error(request, "Non sei membro di questo gruppo.")
-            return redirect('gestione_gruppi')
+            if apiario_id:
+                return redirect('visualizza_apiario', apiario_id=apiario_id)
+            else:
+                return redirect('gestione_gruppi')
         
         return view_func(request, *args, **kwargs)
     return _wrapped_view

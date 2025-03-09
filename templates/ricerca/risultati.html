@@ -1,0 +1,189 @@
+<!-- templates/ricerca/risultati.html -->
+{% extends 'base.html' %}
+
+{% block title %}Risultati Ricerca - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1><i class="bi bi-search"></i> Ricerca</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-search"></i> Cerca Utenti o Gruppi</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" class="mb-3">
+                    <div class="input-group mb-3">
+                        <input type="text" name="q" class="form-control" placeholder="Nome utente, email, nome gruppo..." value="{{ query }}">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Cerca
+                        </button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Tipo di ricerca:</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo" id="tipo_tutti" value="tutti" {% if tipo == 'tutti' %}checked{% endif %}>
+                            <label class="form-check-label" for="tipo_tutti">
+                                Tutti
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo" id="tipo_utenti" value="utenti" {% if tipo == 'utenti' %}checked{% endif %}>
+                            <label class="form-check-label" for="tipo_utenti">
+                                Solo Utenti
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo" id="tipo_gruppi" value="gruppi" {% if tipo == 'gruppi' %}checked{% endif %}>
+                            <label class="form-check-label" for="tipo_gruppi">
+                                Solo Gruppi
+                            </label>
+                        </div>
+                    </div>
+                </form>
+                
+                <div class="alert alert-primary">
+                    <i class="bi bi-info-circle"></i> Puoi cercare utenti per nome utente o email e gruppi per nome o descrizione.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        {% if query %}
+            <!-- Risultati utenti -->
+            {% if tipo == 'utenti' or tipo == 'tutti' and utenti %}
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-people"></i> Utenti trovati</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% for utente in utenti %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <img src="{{ utente.profilo.immagine.url }}" alt="{{ utente.username }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                            </div>
+                                            <div>
+                                                <h5 class="mb-1">{{ utente.username }}</h5>
+                                                <p class="mb-1">{{ utente.email }}</p>
+                                                {% if utente.first_name or utente.last_name %}
+                                                    <small class="text-muted">{{ utente.first_name }} {{ utente.last_name }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <a href="{% url 'profilo_utente' utente.username %}" class="btn btn-outline-secondary btn-sm me-2">
+                                                <i class="bi bi-person"></i> Visualizza Profilo
+                                            </a>
+                                            <a href="#" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#invitaUtenteModal{{ utente.id }}">
+                                                <i class="bi bi-person-plus"></i> Invita a Gruppo
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Modal per invitare utente a gruppo -->
+                                <div class="modal fade" id="invitaUtenteModal{{ utente.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-primary text-white">
+                                                <h5 class="modal-title">Invita utente a un gruppo</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form action="{% url 'invita_utente' utente.id %}" method="post">
+                                                    {% csrf_token %}
+                                                    
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Utente:</label>
+                                                        <input type="text" class="form-control" value="{{ utente.username }} ({{ utente.email }})" disabled>
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <label for="gruppo{{ utente.id }}" class="form-label">Gruppo:</label>
+                                                        <select id="gruppo{{ utente.id }}" name="gruppo" class="form-control form-select" required>
+                                                            <option value="">Seleziona un gruppo...</option>
+                                                            {% for gruppo in request.user.gruppi_creati.all %}
+                                                                <option value="{{ gruppo.id }}">{{ gruppo.nome }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <label for="ruolo{{ utente.id }}" class="form-label">Ruolo:</label>
+                                                        <select id="ruolo{{ utente.id }}" name="ruolo" class="form-control form-select" required>
+                                                            <option value="viewer">Visualizzatore</option>
+                                                            <option value="editor">Editor</option>
+                                                            <option value="admin">Amministratore</option>
+                                                        </select>
+                                                    </div>
+                                                    
+                                                    <div class="d-flex justify-content-end">
+                                                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annulla</button>
+                                                        <button type="submit" class="btn btn-success">Invia Invito</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% elif tipo == 'utenti' or tipo == 'tutti' and query %}
+                <div class="alert alert-warning">Nessun utente trovato con "{{ query }}".</div>
+            {% endif %}
+            
+            <!-- Risultati gruppi -->
+            {% if tipo == 'gruppi' or tipo == 'tutti' and gruppi %}
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-people"></i> Gruppi trovati</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% for gruppo in gruppi %}
+                                <a href="{% url 'dettaglio_gruppo' gruppo.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">{{ gruppo.nome }}</h5>
+                                        <small>{{ gruppo.membri.count }} membri</small>
+                                    </div>
+                                    <p class="mb-1">{{ gruppo.descrizione|truncatechars:150 }}</p>
+                                    <small class="text-muted">
+                                        {% if gruppo.creatore == request.user %}
+                                            <span class="badge bg-info">Creatore</span>
+                                        {% endif %}
+                                        {% for membro in gruppo.membrogruppo_set.all %}
+                                            {% if membro.utente == request.user %}
+                                                <span class="badge bg-secondary">{{ membro.get_ruolo_display }}</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </small>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% elif tipo == 'gruppi' or tipo == 'tutti' and query %}
+                <div class="alert alert-warning">Nessun gruppo trovato con "{{ query }}".</div>
+            {% endif %}
+        {% else %}
+            <div class="card">
+                <div class="card-body">
+                    <p class="text-center py-3">Inserisci un termine di ricerca per trovare utenti e gruppi.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
