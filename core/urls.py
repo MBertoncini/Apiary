@@ -20,6 +20,22 @@ urlpatterns = [
     path('controllo/<int:controllo_id>/modifica/', views.modifica_controllo, name='modifica_controllo'),
     path('controllo/<int:pk>/elimina/', views.elimina_controllo, name='elimina_controllo'),
 
+    # Queen management URLs
+    path('arnia/<int:arnia_id>/regina/', views.visualizza_regina, name='visualizza_regina'),
+    path('arnia/<int:arnia_id>/regina/aggiungi/', views.aggiungi_regina, name='aggiungi_regina'),
+    path('regina/<int:regina_id>/modifica/', views.modifica_regina, name='modifica_regina'),
+    path('arnia/<int:arnia_id>/regina/sostituisci/', views.sostituisci_regina, name='sostituisci_regina'),
+    path('regina/<int:regina_id>/genealogia/', views.albero_genealogico, name='albero_genealogico'),
+    path('controllo/<int:controllo_id>/regina/', views.aggiorna_presenza_regina, name='aggiorna_presenza_regina'),
+
+    # Gestione Melari e Smielatura
+    path('apiario/<int:apiario_id>/melari/', views.gestione_melari, name='gestione_melari'),
+    path('arnia/<int:arnia_id>/melario/aggiungi/', views.aggiungi_melario, name='aggiungi_melario'),
+    path('melario/<int:melario_id>/rimuovi/', views.rimuovi_melario, name='rimuovi_melario'),
+    path('melario/<int:melario_id>/smielatura/', views.invia_in_smielatura, name='invia_in_smielatura'),
+    path('apiario/<int:apiario_id>/smielatura/registra/', views.registra_smielatura, name='registra_smielatura'),
+    path('smielatura/<int:smielatura_id>/', views.dettaglio_smielatura, name='dettaglio_smielatura'),
+
     # Fioriture
     path('fioriture/', views.gestione_fioriture, name='gestione_fioriture'),
     path('fioritura/<int:pk>/modifica/', views.FiorituraUpdateView.as_view(), name='modifica_fioritura'),

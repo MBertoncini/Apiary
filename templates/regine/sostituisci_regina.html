@@ -1,0 +1,238 @@
+<!-- templates/regine/sostituisci_regina.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Sostituzione Regina - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1><i class="bi bi-arrow-repeat"></i> Sostituzione Regina</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'visualizza_regina' arnia.id %}">Regina Arnia #{{ arnia.numero }}</a></li>
+                <li class="breadcrumb-item active">Sostituzione Regina</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-arrow-repeat"></i> Dati Sostituzione</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <p class="mb-0">
+                        <i class="bi bi-info-circle"></i> Stai sostituendo la regina dell'arnia <strong>#{{ arnia.numero }}</strong>.
+                        La regina attuale verrà archiviata e sarà registrata una nuova regina al suo posto.
+                    </p>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">Informazioni sulla Regina Attuale</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Razza:</strong> {{ regina_vecchia.get_razza_display }}</p>
+                                    <p><strong>Origine:</strong> {{ regina_vecchia.get_origine_display }}</p>
+                                    <p><strong>Data introduzione:</strong> {{ regina_vecchia.data_introduzione|date:"d/m/Y" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p>
+                                        <strong>Età:</strong> 
+                                        {% if regina_vecchia.get_eta_anni %}
+                                            {{ regina_vecchia.get_eta_anni }} anni
+                                        {% else %}
+                                            Sconosciuta
+                                        {% endif %}
+                                    </p>
+                                    <p>
+                                        <strong>Marcatura:</strong>
+                                        {% if regina_vecchia.marcata %}
+                                            <span class="badge" style="background-color: 
+                                            {% if regina_vecchia.colore_marcatura == 'bianco' %}white; color: black; border: 1px solid #ccc;
+                                            {% elif regina_vecchia.colore_marcatura == 'giallo' %}#ffc107; color: black;
+                                            {% elif regina_vecchia.colore_marcatura == 'rosso' %}#dc3545; color: white;
+                                            {% elif regina_vecchia.colore_marcatura == 'verde' %}#28a745; color: white;
+                                            {% elif regina_vecchia.colore_marcatura == 'blu' %}#0d6efd; color: white;
+                                            {% else %}#6c757d; color: white;{% endif %}">
+                                                {{ regina_vecchia.get_colore_marcatura_display }}
+                                            </span>
+                                        {% else %}
+                                            Non marcata
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.data_sostituzione|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.motivo|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h5 class="mb-3">Nuova Regina</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.nuova_regina_origine|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.nuova_regina_razza|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.nuova_regina_data_nascita|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.nuova_regina_marcata|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row marcatura-fields" style="display: none;">
+                        <div class="col-md-6">
+                            {{ form.nuova_regina_colore_marcatura|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.nuova_regina_codice|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        {{ form.note|as_crispy_field }}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'visualizza_regina' arnia.id %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Annulla
+                        </a>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Completa Sostituzione
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Attenzione</h5>
+            </div>
+            <div class="card-body">
+                <p>La sostituzione di una regina è un'operazione importante che influisce direttamente sulla salute e produttività della colonia.</p>
+                
+                <p><strong>Punti da considerare:</strong></p>
+                <ul>
+                    <li>La regina attuale verrà segnata come "non attiva" nel sistema</li>
+                    <li>I dati della regina sostituita vengono archiviati nella cronologia</li>
+                    <li>La scelta della razza della nuova regina è importante per le caratteristiche future della colonia</li>
+                </ul>
+                
+                <div class="alert alert-warning mt-3">
+                    <strong>Nota:</strong> La regina può richiedere alcuni giorni per essere accettata dalla colonia. Si consiglia di monitorare la situazione con controlli più frequenti nei giorni successivi.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Codici Colore Standard</h5>
+            </div>
+            <div class="card-body">
+                <p>Il colore della marcatura segue lo standard internazionale in base all'anno di nascita della regina:</p>
+                
+                <ul class="list-unstyled">
+                    <li><span class="badge" style="background-color: white; color: black; border: 1px solid #ccc;">Bianco</span> - Anni terminanti in 1, 6</li>
+                    <li><span class="badge" style="background-color: #ffc107; color: black;">Giallo</span> - Anni terminanti in 2, 7</li>
+                    <li><span class="badge" style="background-color: #dc3545; color: white;">Rosso</span> - Anni terminanti in 3, 8</li>
+                    <li><span class="badge" style="background-color: #28a745; color: white;">Verde</span> - Anni terminanti in 4, 9</li>
+                    <li><span class="badge" style="background-color: #0d6efd; color: white;">Blu</span> - Anni terminanti in 5, 0</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestione dei campi di marcatura
+        const checkboxMarcata = document.getElementById('id_nuova_regina_marcata');
+        const marcaturaFields = document.querySelector('.marcatura-fields');
+        
+        function updateMarcaturaVisibility() {
+            if (checkboxMarcata.checked) {
+                marcaturaFields.style.display = 'flex';
+            } else {
+                marcaturaFields.style.display = 'none';
+            }
+        }
+        
+        // Imposta visibilità iniziale
+        updateMarcaturaVisibility();
+        
+        // Aggiungi listener per il cambio dello stato della checkbox
+        checkboxMarcata.addEventListener('change', updateMarcaturaVisibility);
+        
+        // Gestione data di nascita e colore marcatura
+        const dataNascita = document.getElementById('id_nuova_regina_data_nascita');
+        const coloreMarcatura = document.getElementById('id_nuova_regina_colore_marcatura');
+        
+        function updateColoreBasedOnYear() {
+            if (!dataNascita.value) return;
+            
+            const year = new Date(dataNascita.value).getFullYear();
+            const lastDigit = year % 10;
+            
+            // Imposta il colore in base all'ultimo numero dell'anno
+            if (lastDigit === 1 || lastDigit === 6) {
+                coloreMarcatura.value = 'bianco';
+            } else if (lastDigit === 2 || lastDigit === 7) {
+                coloreMarcatura.value = 'giallo';
+            } else if (lastDigit === 3 || lastDigit === 8) {
+                coloreMarcatura.value = 'rosso';
+            } else if (lastDigit === 4 || lastDigit === 9) {
+                coloreMarcatura.value = 'verde';
+            } else if (lastDigit === 5 || lastDigit === 0) {
+                coloreMarcatura.value = 'blu';
+            }
+        }
+        
+        // Aggiorna il colore quando la data di nascita cambia
+        dataNascita.addEventListener('change', function() {
+            if (checkboxMarcata.checked) {
+                updateColoreBasedOnYear();
+            }
+        });
+        
+        // Imposta la data odierna per la data di sostituzione
+        const dataSostituzione = document.getElementById('id_data_sostituzione');
+        if (!dataSostituzione.value) {
+            const today = new Date();
+            dataSostituzione.value = today.toISOString().split('T')[0];
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,444 @@
+<!-- templates/regine/dettaglio_regina.html -->
+{% extends 'base.html' %}
+
+{% block title %}Dettaglio Regina - Arnia #{{ arnia.numero }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .regina-info-card {
+        border-left: 5px solid #ffc107;
+    }
+    
+    .eta-badge {
+        font-size: 1.2rem;
+        padding: 8px 12px;
+    }
+    
+    .regina-rating {
+        display: inline-block;
+        margin-right: 10px;
+    }
+    
+    .regina-rating i {
+        color: #ffc107;
+    }
+    
+    .regina-rating.inactive i {
+        color: #e9ecef;
+    }
+    
+    .genealogy-tree {
+        position: relative;
+    }
+    
+    .genealogy-node {
+        border: 2px solid #28a745;
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin: 5px 0;
+        background-color: #f8f9fa;
+    }
+    
+    .genealogy-node.current {
+        border-color: #ffc107;
+        background-color: #fff8e5;
+    }
+    
+    .genealogy-connector {
+        position: absolute;
+        border-left: 2px solid #6c757d;
+        height: 20px;
+        left: 50%;
+    }
+    
+    .marcatore-regina {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+        vertical-align: middle;
+        border: 1px solid #ced4da;
+    }
+    
+    .timeline-container {
+        position: relative;
+        padding-left: 40px;
+    }
+    
+    .timeline-line {
+        position: absolute;
+        left: 20px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background-color: #dee2e6;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    
+    .timeline-dot {
+        position: absolute;
+        left: -40px;
+        top: 0;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: #ffc107;
+        border: 3px solid white;
+        box-shadow: 0 0 0 1px #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="bi bi-crown"></i> Regina dell'Arnia #{{ arnia.numero }}</h1>
+            <div>
+                <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Torna all'apiario
+                </a>
+                
+                {% if can_edit and regina %}
+                    <div class="btn-group ms-2">
+                        <a href="{% url 'modifica_regina' regina.id %}" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Modifica
+                        </a>
+                        <a href="{% url 'sostituisci_regina' arnia.id %}" class="btn btn-outline-danger">
+                            <i class="bi bi-arrow-repeat"></i> Sostituisci
+                        </a>
+                    </div>
+                {% elif can_edit and not regina %}
+                    <a href="{% url 'aggiungi_regina' arnia.id %}" class="btn btn-success ms-2">
+                        <i class="bi bi-plus-circle"></i> Aggiungi Regina
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
+                <li class="breadcrumb-item active">Regina Arnia #{{ arnia.numero }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+{% if regina %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card regina-info-card">
+            <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-crown"></i> Regina Attuale
+                </h5>
+                
+                {% if regina.get_eta_anni %}
+                    <span class="badge bg-{% if regina.get_eta_anni < 1 %}success{% elif regina.get_eta_anni < 2 %}warning{% else %}danger{% endif %} eta-badge">
+                        {{ regina.get_eta_anni }} anni
+                    </span>
+                {% else %}
+                    <span class="badge bg-secondary eta-badge">Età sconosciuta</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p>
+                            <strong>Razza:</strong> {{ regina.get_razza_display }}
+                        </p>
+                        <p>
+                            <strong>Data nascita:</strong> 
+                            {% if regina.data_nascita %}
+                                {{ regina.data_nascita|date:"d/m/Y" }}
+                            {% else %}
+                                <span class="text-muted">Non specificata</span>
+                            {% endif %}
+                        </p>
+                        <p>
+                            <strong>Data introduzione:</strong> {{ regina.data_introduzione|date:"d/m/Y" }}
+                        </p>
+                        <p>
+                            <strong>Origine:</strong> {{ regina.get_origine_display }}
+                        </p>
+                        <p>
+                            <strong>Marcatura:</strong>
+                            {% if regina.marcata %}
+                                <span class="marcatore-regina" style="background-color: 
+                                {% if regina.colore_marcatura == 'bianco' %}white{% elif regina.colore_marcatura == 'giallo' %}#ffc107{% elif regina.colore_marcatura == 'rosso' %}#dc3545{% elif regina.colore_marcatura == 'verde' %}#198754{% elif regina.colore_marcatura == 'blu' %}#0d6efd{% else %}#f8f9fa{% endif %};"></span>
+                                {{ regina.get_colore_marcatura_display }}
+                                {% if regina.codice_marcatura %}
+                                    ({{ regina.codice_marcatura }})
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary">Non marcata</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Valutazione:</h6>
+                        <div class="mb-2">
+                            <div class="d-flex">
+                                <div style="width: 140px;"><strong>Docilità:</strong></div>
+                                <div>
+                                    {% if regina.docilita %}
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= regina.docilita %}
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            {% else %}
+                                                <i class="bi bi-star text-secondary"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">Non valutata</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <div class="d-flex">
+                                <div style="width: 140px;"><strong>Produttività:</strong></div>
+                                <div>
+                                    {% if regina.produttivita %}
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= regina.produttivita %}
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            {% else %}
+                                                <i class="bi bi-star text-secondary"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">Non valutata</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <div class="d-flex">
+                                <div style="width: 140px;"><strong>Resist. malattie:</strong></div>
+                                <div>
+                                    {% if regina.resistenza_malattie %}
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= regina.resistenza_malattie %}
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            {% else %}
+                                                <i class="bi bi-star text-secondary"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">Non valutata</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <div class="d-flex">
+                                <div style="width: 140px;"><strong>Tend. sciamatura:</strong></div>
+                                <div>
+                                    {% if regina.tendenza_sciamatura %}
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= regina.tendenza_sciamatura %}
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            {% else %}
+                                                <i class="bi bi-star text-secondary"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">Non valutata</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if regina.note %}
+                    <div class="alert alert-light mt-3">
+                        <h6 class="mb-2"><i class="bi bi-journal-text"></i> Note:</h6>
+                        <p class="mb-0">{{ regina.note|linebreaks }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-diagram-3"></i> Genealogia</h5>
+            </div>
+            <div class="card-body">
+                {% if genealogia|length > 1 %}
+                    <div class="genealogy-tree">
+                        {% for gen_regina in genealogia %}
+                            <div class="genealogy-node {% if forloop.first %}current{% endif %}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if forloop.first %}
+                                            <strong>Regina Attuale</strong>
+                                        {% elif forloop.counter == 2 %}
+                                            <strong>Madre</strong>
+                                        {% elif forloop.counter == 3 %}
+                                            <strong>Nonna</strong>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        {% if gen_regina.data_nascita %}
+                                            <small class="text-muted">{{ gen_regina.data_nascita|date:"d/m/Y" }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="badge bg-primary">{{ gen_regina.get_razza_display }}</span>
+                                    {% if gen_regina.marcata %}
+                                        <span class="marcatore-regina" style="background-color: 
+                                        {% if gen_regina.colore_marcatura == 'bianco' %}white{% elif gen_regina.colore_marcatura == 'giallo' %}#ffc107{% elif gen_regina.colore_marcatura == 'rosso' %}#dc3545{% elif gen_regina.colore_marcatura == 'verde' %}#198754{% elif gen_regina.colore_marcatura == 'blu' %}#0d6efd{% else %}#f8f9fa{% endif %};"></span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if not forloop.last %}
+                                <div class="genealogy-connector"></div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-3 text-center">
+                        <a href="{% url 'albero_genealogico' regina.id %}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-diagram-3"></i> Albero genealogico completo
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <p>Non sono disponibili informazioni sulla genealogia di questa regina.</p>
+                    </div>
+                {% endif %}
+                
+                {% if figlie %}
+                    <div class="mt-4">
+                        <h6><i class="bi bi-diagram-2"></i> Discendenza:</h6>
+                        <ul class="list-group">
+                            {% for figlia in figlie %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Arnia #{{ figlia.arnia.numero }}
+                                    <span class="badge bg-primary rounded-pill">{{ figlia.get_razza_display }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if storia_regine %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Storia Regine</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline-container">
+                    <div class="timeline-line"></div>
+                    
+                    {% for storia in storia_regine %}
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="card mb-2">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0 d-flex justify-content-between">
+                                        <span>
+                                            <i class="bi bi-crown"></i> Regina dal {{ storia.data_inizio|date:"d/m/Y" }}
+                                            {% if storia.data_fine %}
+                                                al {{ storia.data_fine|date:"d/m/Y" }}
+                                            {% endif %}
+                                        </span>
+                                        <span class="badge {% if storia.regina.id == regina.id %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {% if storia.regina.id == regina.id %}
+                                                Attuale
+                                            {% else %}
+                                                Precedente
+                                            {% endif %}
+                                        </span>
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p>
+                                                <strong>Razza:</strong> {{ storia.regina.get_razza_display }}
+                                            </p>
+                                            <p>
+                                                <strong>Origine:</strong> {{ storia.regina.get_origine_display }}
+                                            </p>
+                                            {% if storia.motivo_fine %}
+                                                <p>
+                                                    <strong>Motivo rimozione:</strong> {{ storia.motivo_fine }}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            {% if storia.regina.marcata %}
+                                                <p>
+                                                    <strong>Marcatura:</strong>
+                                                    <span class="marcatore-regina" style="background-color: 
+                                                    {% if storia.regina.colore_marcatura == 'bianco' %}white{% elif storia.regina.colore_marcatura == 'giallo' %}#ffc107{% elif storia.regina.colore_marcatura == 'rosso' %}#dc3545{% elif storia.regina.colore_marcatura == 'verde' %}#198754{% elif storia.regina.colore_marcatura == 'blu' %}#0d6efd{% else %}#f8f9fa{% endif %};"></span>
+                                                    {{ storia.regina.get_colore_marcatura_display }}
+                                                </p>
+                                            {% endif %}
+                                            
+                                            {% if storia.note %}
+                                                <p>
+                                                    <strong>Note:</strong> {{ storia.note }}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <h3 class="text-muted mb-4">
+                    <i class="bi bi-exclamation-circle"></i> 
+                    Nessuna regina registrata per questa arnia
+                </h3>
+                
+                {% if can_edit %}
+                    <p>Non ci sono dati relativi alla regina di questa arnia.</p>
+                    <a href="{% url 'aggiungi_regina' arnia.id %}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Aggiungi Regina
+                    </a>
+                {% else %}
+                    <p>Non sono disponibili informazioni sulla regina di questa arnia.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -18,12 +18,12 @@ from functools import wraps
 
 from .models import (
     Apiario, Arnia, ControlloArnia, Fioritura, Pagamento, QuotaUtente, 
-    TrattamentoSanitario, TipoTrattamento, Gruppo, MembroGruppo, InvitoGruppo
+    TrattamentoSanitario, TipoTrattamento, Gruppo, MembroGruppo, InvitoGruppo, Melario, Smielatura, Regina, StoriaRegine    
 )
 from .forms import (
     ApiarioForm, ArniaForm, ControlloArniaForm, FiorituraForm, PagamentoForm, 
     QuotaUtenteForm, TrattamentoSanitarioForm, TipoTrattamentoForm, GruppoForm,
-    InvitoGruppoForm, MembroGruppoRoleForm, ApiarioGruppoForm
+    InvitoGruppoForm, MembroGruppoRoleForm, ApiarioGruppoForm, RimozioneMelarioForm, SmielaturaForm, MelarioForm, ReginaForm,    
 )
 from .decorators import (
     richiedi_proprietario_o_gruppo, richiedi_appartenenza_gruppo, 
@@ -398,6 +398,548 @@ def elimina_controllo(request, pk):
     
     return render(request, 'arnie/conferma_elimina_controllo.html', context)
 
+# Aggiungi al file views.py
+
+@login_required
+@richiedi_permesso_scrittura
+def visualizza_regina(request, arnia_id):
+    """Vista per visualizzare i dettagli della regina di un'arnia"""
+    arnia = get_object_or_404(Arnia, pk=arnia_id)
+    apiario = arnia.apiario
+    
+    # Verifica i permessi di accesso
+    can_edit = False
+    if apiario.proprietario == request.user:
+        can_edit = True
+    elif apiario.gruppo and apiario.condiviso_con_gruppo:
+        try:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=apiario.gruppo)
+            can_edit = membro.ruolo in ['admin', 'editor']
+        except MembroGruppo.DoesNotExist:
+            pass
+    
+    # Ottieni la regina corrente o None
+    try:
+        regina = arnia.regina
+    except Regina.DoesNotExist:
+        regina = None
+    
+    # Ottieni la storia delle regine per questa arnia
+    storia_regine = StoriaRegine.objects.filter(arnia=arnia).order_by('-data_inizio')
+    
+    # Ottieni l'albero genealogico se la regina esiste
+    genealogia = []
+    if regina:
+        # Prepara la genealogia per 3 generazioni
+        current = regina
+        genealogia = [current]
+        
+        # Prima generazione (regina madre)
+        if current.regina_madre:
+            genealogia.append(current.regina_madre)
+            current = current.regina_madre
+            
+            # Seconda generazione (nonna)
+            if current.regina_madre:
+                genealogia.append(current.regina_madre)
+    
+    # Ottieni tutte le figlie della regina corrente
+    figlie = []
+    if regina:
+        figlie = Regina.objects.filter(regina_madre=regina)
+    
+    context = {
+        'arnia': arnia,
+        'apiario': apiario,
+        'regina': regina,
+        'storia_regine': storia_regine,
+        'genealogia': genealogia,
+        'figlie': figlie,
+        'can_edit': can_edit,
+    }
+    
+    return render(request, 'regine/dettaglio_regina.html', context)
+
+@login_required
+@richiedi_permesso_scrittura
+def aggiungi_regina(request, arnia_id):
+    """Vista per aggiungere una regina a un'arnia"""
+    arnia = get_object_or_404(Arnia, pk=arnia_id)
+    apiario = arnia.apiario
+    
+    # Verifica se esiste già una regina
+    regina_esistente = None
+    try:
+        regina_esistente = arnia.regina
+    except Regina.DoesNotExist:
+        pass
+    
+    if regina_esistente:
+        messages.error(request, "Questa arnia ha già una regina. Per sostituirla usa l'apposita funzione.")
+        return redirect('visualizza_regina', arnia_id=arnia.id)
+    
+    if request.method == 'POST':
+        form = ReginaForm(request.POST, arnia=arnia)
+        if form.is_valid():
+            regina = form.save(commit=False)
+            regina.arnia = arnia
+            regina.save()
+            
+            # Crea un record nella storia delle regine
+            StoriaRegine.objects.create(
+                arnia=arnia,
+                regina=regina,
+                data_inizio=form.cleaned_data['data_introduzione']
+            )
+            
+            messages.success(request, "Regina aggiunta con successo.")
+            return redirect('visualizza_regina', arnia_id=arnia.id)
+    else:
+        form = ReginaForm(arnia=arnia)
+    
+    context = {
+        'form': form,
+        'arnia': arnia,
+        'apiario': apiario,
+        'is_new': True,
+    }
+    
+    return render(request, 'regine/form_regina.html', context)
+
+@login_required
+@richiedi_permesso_scrittura
+def modifica_regina(request, regina_id):
+    """Vista per modificare i dati di una regina"""
+    regina = get_object_or_404(Regina, pk=regina_id)
+    arnia = regina.arnia
+    apiario = arnia.apiario
+    
+    if request.method == 'POST':
+        form = ReginaForm(request.POST, instance=regina)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Dati della regina aggiornati con successo.")
+            return redirect('visualizza_regina', arnia_id=arnia.id)
+    else:
+        form = ReginaForm(instance=regina)
+    
+    context = {
+        'form': form,
+        'regina': regina,
+        'arnia': arnia,
+        'apiario': apiario,
+        'is_new': False,
+    }
+    
+    return render(request, 'regine/form_regina.html', context)
+
+@login_required
+@richiedi_permesso_scrittura
+def sostituisci_regina(request, arnia_id):
+    """Vista per sostituire la regina di un'arnia"""
+    arnia = get_object_or_404(Arnia, pk=arnia_id)
+    apiario = arnia.apiario
+    
+    # Verifica se esiste una regina corrente
+    try:
+        regina_vecchia = arnia.regina
+    except Regina.DoesNotExist:
+        messages.error(request, "Non c'è una regina registrata per questa arnia. Usa 'Aggiungi Regina'.")
+        return redirect('visualizza_apiario', apiario_id=apiario.id)
+    
+    if request.method == 'POST':
+        form = SostituzioneReginaForm(request.POST)
+        if form.is_valid():
+            # Aggiorna la regina vecchia
+            regina_vecchia.attiva = False
+            regina_vecchia.save()
+            
+            # Aggiorna la storia delle regine
+            try:
+                storia_regina_vecchia = StoriaRegine.objects.filter(
+                    arnia=arnia, 
+                    regina=regina_vecchia, 
+                    data_fine__isnull=True
+                ).latest('data_inizio')
+                
+                storia_regina_vecchia.data_fine = form.cleaned_data['data_sostituzione']
+                storia_regina_vecchia.motivo_fine = form.cleaned_data['motivo']
+                storia_regina_vecchia.save()
+            except StoriaRegine.DoesNotExist:
+                # Se non esiste un record nella storia, lo creiamo
+                StoriaRegine.objects.create(
+                    arnia=arnia,
+                    regina=regina_vecchia,
+                    data_inizio=regina_vecchia.data_introduzione,
+                    data_fine=form.cleaned_data['data_sostituzione'],
+                    motivo_fine=form.cleaned_data['motivo']
+                )
+            
+            # Crea la nuova regina
+            nuova_regina = Regina(
+                arnia=arnia,
+                data_nascita=form.cleaned_data['nuova_regina_data_nascita'],
+                data_introduzione=form.cleaned_data['data_sostituzione'],
+                origine=form.cleaned_data['nuova_regina_origine'],
+                razza=form.cleaned_data['nuova_regina_razza'],
+                marcata=form.cleaned_data['nuova_regina_marcata'],
+                codice_marcatura=form.cleaned_data['nuova_regina_codice'],
+                colore_marcatura=form.cleaned_data['nuova_regina_colore_marcatura'],
+                note=form.cleaned_data['note']
+            )
+            nuova_regina.save()
+            
+            # Aggiungi alla storia delle regine
+            StoriaRegine.objects.create(
+                arnia=arnia,
+                regina=nuova_regina,
+                data_inizio=form.cleaned_data['data_sostituzione'],
+                note=form.cleaned_data['note']
+            )
+            
+            messages.success(request, "Regina sostituita con successo.")
+            return redirect('visualizza_regina', arnia_id=arnia.id)
+    else:
+        form = SostituzioneReginaForm()
+    
+    context = {
+        'form': form,
+        'arnia': arnia,
+        'apiario': apiario,
+        'regina_vecchia': regina_vecchia,
+    }
+    
+    return render(request, 'regine/sostituisci_regina.html', context)
+
+@login_required
+def albero_genealogico(request, regina_id):
+    """Vista per visualizzare l'albero genealogico completo di una regina"""
+    regina = get_object_or_404(Regina, pk=regina_id)
+    arnia = regina.arnia
+    apiario = arnia.apiario
+    
+    # Verifica accesso
+    if apiario.proprietario != request.user:
+        # Verifica se l'apiario è condiviso con un gruppo di cui l'utente fa parte
+        if apiario.gruppo and apiario.condiviso_con_gruppo:
+            if not MembroGruppo.objects.filter(utente=request.user, gruppo=apiario.gruppo).exists():
+                messages.error(request, "Non hai accesso a questa risorsa.")
+                return redirect('dashboard')
+        else:
+            messages.error(request, "Non hai accesso a questa risorsa.")
+            return redirect('dashboard')
+    
+    # Costruisci l'albero genealogico
+    # In questa versione useremo un approccio semplice, solo fino a 3 generazioni indietro
+    
+    # Prepariamo i dati per il template
+    genealogia = {
+        'regina': regina,
+        'madre': None,
+        'nonna_materna': None,
+        'bisnonna_materna': None,
+    }
+    
+    # Trova la madre
+    if regina.regina_madre:
+        genealogia['madre'] = regina.regina_madre
+        
+        # Trova la nonna
+        if regina.regina_madre.regina_madre:
+            genealogia['nonna_materna'] = regina.regina_madre.regina_madre
+            
+            # Trova la bisnonna
+            if regina.regina_madre.regina_madre.regina_madre:
+                genealogia['bisnonna_materna'] = regina.regina_madre.regina_madre.regina_madre
+    
+    # Trova tutte le figlie (sorelle)
+    figlie = Regina.objects.filter(regina_madre=regina)
+    
+    context = {
+        'regina': regina,
+        'arnia': arnia,
+        'apiario': apiario,
+        'genealogia': genealogia,
+        'figlie': figlie,
+    }
+    
+    return render(request, 'regine/albero_genealogico.html', context)
+
+# Aggiungi questa funzione alle viste esistenti per aggiornare la presenza regina durante i controlli
+@login_required
+def aggiorna_presenza_regina(request, controllo_id):
+    """Aggiorna lo stato della regina dopo un controllo"""
+    controllo = get_object_or_404(ControlloArnia, pk=controllo_id)
+    arnia = controllo.arnia
+    
+    # Verifica permessi
+    apiario = arnia.apiario
+    can_edit = False
+    if apiario.proprietario == request.user:
+        can_edit = True
+    elif apiario.gruppo and apiario.condiviso_con_gruppo:
+        try:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=apiario.gruppo)
+            can_edit = membro.ruolo in ['admin', 'editor']
+        except MembroGruppo.DoesNotExist:
+            pass
+    
+    if not can_edit:
+        messages.error(request, "Non hai i permessi necessari.")
+        return redirect('visualizza_apiario', apiario_id=apiario.id)
+    
+    try:
+        regina = arnia.regina
+    except Regina.DoesNotExist:
+        regina = None
+    
+    if request.method == 'POST':
+        # Aggiorna i campi relativi alla regina
+        regina_vista = request.POST.get('regina_vista') == 'on'
+        uova_fresche = request.POST.get('uova_fresche') == 'on'
+        celle_reali = request.POST.get('celle_reali') == 'on'
+        numero_celle_reali = int(request.POST.get('numero_celle_reali', 0) or 0)
+        regina_sostituita = request.POST.get('regina_sostituita') == 'on'
+        
+        # Aggiorna il controllo
+        controllo.regina_vista = regina_vista
+        controllo.uova_fresche = uova_fresche
+        controllo.celle_reali = celle_reali
+        controllo.numero_celle_reali = numero_celle_reali
+        controllo.regina_sostituita = regina_sostituita
+        controllo.save()
+        
+        # Se la regina è stata vista, aggiorna la presenza regina
+        if regina_vista and regina:
+            # Aggiorna l'ultimo avvistamento della regina
+            regina.ultimo_avvistamento = controllo.data
+            regina.save()
+        
+        # Se la regina è stata sostituita, reindirizza alla schermata di sostituzione
+        if regina_sostituita:
+            return redirect('sostituisci_regina', arnia_id=arnia.id)
+        
+        messages.success(request, "Informazioni sulla regina aggiornate.")
+        return redirect('visualizza_apiario', apiario_id=apiario.id)
+    
+    context = {
+        'controllo': controllo,
+        'arnia': arnia,
+        'regina': regina,
+    }
+    
+    return render(request, 'regine/aggiorna_presenza_regina.html', context)
+
+@login_required
+@richiedi_proprietario_o_gruppo
+def gestione_melari(request, apiario_id):
+    """Vista per la gestione dei melari di un apiario"""
+    apiario = get_object_or_404(Apiario, pk=apiario_id)
+    
+    # Ottieni le arnie attive dell'apiario
+    arnie = Arnia.objects.filter(apiario=apiario, attiva=True)
+    
+    # Recupera i controlli dell'arnia per ogni arnia
+    ultimi_controlli = []
+    for arnia in arnie:
+        try:
+            controllo = ControlloArnia.objects.filter(
+                arnia=arnia
+            ).order_by('-data').first()
+            
+            if controllo:
+                ultimi_controlli.append(controllo)
+        except ControlloArnia.DoesNotExist:
+            pass
+    
+    # Recupera tutte le smielature dell'apiario
+    smielature = Smielatura.objects.filter(apiario=apiario).order_by('-data')
+    
+    # Verifica se ci sono melari in stato 'in_smielatura'
+    any_melari_in_smielatura = Melario.objects.filter(
+        arnia__apiario=apiario,
+        stato='in_smielatura'
+    ).exists()
+    
+    # Prepara i melari in smielatura per ogni arnia
+    melari_in_smielatura = {}
+    for arnia in arnie:
+        melari_in_smielatura[arnia.id] = list(Melario.objects.filter(
+            arnia=arnia,
+            stato='in_smielatura'
+        ).order_by('-posizione'))
+    
+    context = {
+        'apiario': apiario,
+        'arnie': arnie,
+        'ultimi_controlli': ultimi_controlli,
+        'smielature': smielature,
+        'today': timezone.now().date(),
+        'any_melari_in_smielatura': any_melari_in_smielatura,
+        'melari_in_smielatura': melari_in_smielatura,
+    }
+    
+    return render(request, 'melari/gestione_melari.html', context)
+
+@login_required
+@richiedi_permesso_scrittura
+def aggiungi_melario(request, arnia_id):
+    """Vista per aggiungere un melario a un'arnia"""
+    arnia = get_object_or_404(Arnia, pk=arnia_id)
+    apiario = arnia.apiario
+    
+    if request.method == 'POST':
+        form = MelarioForm(request.POST, arnia=arnia)
+        if form.is_valid():
+            melario = form.save(commit=False)
+            melario.arnia = arnia
+            melario.stato = 'posizionato'
+            melario.save()
+            
+            messages.success(request, f"Melario aggiunto all'arnia {arnia.numero}.")
+            return redirect('gestione_melari', apiario_id=apiario.id)
+    else:
+        form = MelarioForm(arnia=arnia)
+    
+    context = {
+        'form': form,
+        'arnia': arnia,
+        'apiario': apiario,
+    }
+    
+    return render(request, 'melari/form_melario.html', context)
+
+@login_required
+@richiedi_permesso_scrittura
+def rimuovi_melario(request, melario_id):
+    """Vista per rimuovere un melario da un'arnia"""
+    melario = get_object_or_404(Melario, pk=melario_id)
+    arnia = melario.arnia
+    apiario = arnia.apiario
+    
+    # Verifica che il melario sia nello stato 'posizionato'
+    if melario.stato != 'posizionato':
+        messages.error(request, f"Il melario è nello stato '{melario.get_stato_display()}' e non può essere rimosso.")
+        return redirect('gestione_melari', apiario_id=apiario.id)
+    
+    if request.method == 'POST':
+        form = RimozioneMelarioForm(request.POST)
+        if form.is_valid():
+            # Aggiorna lo stato e la data di rimozione
+            melario.stato = 'rimosso'
+            melario.data_rimozione = form.cleaned_data['data_rimozione']
+            if form.cleaned_data['note']:
+                melario.note = (melario.note or "") + "\n\nRimozione: " + form.cleaned_data['note']
+            melario.save()
+            
+            messages.success(request, f"Melario rimosso dall'arnia {arnia.numero}.")
+            return redirect('gestione_melari', apiario_id=apiario.id)
+    else:
+        form = RimozioneMelarioForm()
+    
+    context = {
+        'form': form,
+        'melario': melario,
+        'arnia': arnia,
+        'apiario': apiario,
+    }
+    
+    return render(request, 'melari/rimuovi_melario.html', context)
+
+@login_required
+@richiedi_permesso_scrittura
+def invia_in_smielatura(request, melario_id):
+    """Vista per inviare un melario in smielatura"""
+    melario = get_object_or_404(Melario, pk=melario_id)
+    arnia = melario.arnia
+    apiario = arnia.apiario
+    
+    # Verifica che il melario sia nello stato 'posizionato'
+    if melario.stato != 'posizionato':
+        messages.error(request, f"Il melario è nello stato '{melario.get_stato_display()}' e non può essere mandato in smielatura.")
+        return redirect('gestione_melari', apiario_id=apiario.id)
+    
+    # Cambia lo stato del melario
+    melario.stato = 'in_smielatura'
+    melario.data_rimozione = timezone.now().date()
+    if request.POST.get('notes'):
+        melario.note = (melario.note or "") + "\n\nInvio in smielatura: " + request.POST.get('notes')
+    melario.save()
+    
+    messages.success(request, f"Melario inviato in smielatura.")
+    return redirect('gestione_melari', apiario_id=apiario.id)
+
+@login_required
+@richiedi_permesso_scrittura
+def registra_smielatura(request, apiario_id):
+    """Vista per registrare una smielatura"""
+    apiario = get_object_or_404(Apiario, pk=apiario_id)
+    
+    if request.method == 'POST':
+        form = SmielaturaForm(request.POST, apiario=apiario)
+        if form.is_valid():
+            smielatura = form.save(commit=False)
+            smielatura.apiario = apiario
+            smielatura.utente = request.user
+            smielatura.save()
+            
+            # Salva i melari associati alla smielatura
+            form.save_m2m()
+            
+            # Aggiorna lo stato dei melari
+            for melario in form.cleaned_data['melari']:
+                melario.stato = 'smielato'
+                melario.save()
+            
+            messages.success(request, f"Smielatura registrata con successo: {form.cleaned_data['quantita_miele']} kg di {form.cleaned_data['tipo_miele']}.")
+            return redirect('gestione_melari', apiario_id=apiario.id)
+    else:
+        form = SmielaturaForm(apiario=apiario)
+    
+    context = {
+        'form': form,
+        'apiario': apiario,
+    }
+    
+    return render(request, 'melari/form_smielatura.html', context)
+
+@login_required
+def dettaglio_smielatura(request, smielatura_id):
+    """Vista per visualizzare i dettagli di una smielatura"""
+    smielatura = get_object_or_404(Smielatura, pk=smielatura_id)
+    apiario = smielatura.apiario
+    
+    # Verifica permessi
+    if apiario.proprietario != request.user:
+        # Se l'apiario è condiviso con un gruppo, verifica l'appartenenza dell'utente
+        if apiario.gruppo and apiario.condiviso_con_gruppo:
+            try:
+                membro = MembroGruppo.objects.get(utente=request.user, gruppo=apiario.gruppo)
+            except MembroGruppo.DoesNotExist:
+                messages.error(request, "Non hai i permessi per visualizzare questa smielatura.")
+                return redirect('dashboard')
+        else:
+            messages.error(request, "Non hai i permessi per visualizzare questa smielatura.")
+            return redirect('dashboard')
+    
+    # Raggruppa i melari per arnia
+    melari_per_arnia = {}
+    for melario in smielatura.melari.all().select_related('arnia'):
+        arnia_id = melario.arnia.id
+        if arnia_id not in melari_per_arnia:
+            melari_per_arnia[arnia_id] = {
+                'arnia': melario.arnia,
+                'melari': []
+            }
+        melari_per_arnia[arnia_id]['melari'].append(melario)
+    
+    context = {
+        'smielatura': smielatura,
+        'apiario': apiario,
+        'melari_per_arnia': melari_per_arnia,
+    }
+    
+    return render(request, 'melari/dettaglio_smielatura.html', context)
 
 @login_required
 def gestione_apiario_gruppo(request, apiario_id):

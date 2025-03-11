@@ -3,15 +3,11 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import (
     Apiario, Arnia, ControlloArnia, Fioritura, Pagamento, QuotaUtente,
-    TipoTrattamento, TrattamentoSanitario
+    TipoTrattamento, TrattamentoSanitario, Melario, Smielatura, Gruppo, MembroGruppo, InvitoGruppo,
+    Regina
 )
 
-# core/forms.py
-# Aggiungi questi form al file esistente 
-
-from django import forms
-from django.contrib.auth.models import User
-from .models import Gruppo, MembroGruppo, InvitoGruppo, Apiario
+from django.utils  import timezone
 
 class GruppoForm(forms.ModelForm):
     """Form per la creazione e modifica di un gruppo"""
@@ -153,6 +149,188 @@ class ControlloArniaForm(forms.ModelForm):
         self.fields['data_sciamatura'].required = False
         self.fields['note_sciamatura'].required = False
         self.fields['note_problemi'].required = False
+
+# Aggiungi al file forms.py
+
+class ReginaForm(forms.ModelForm):
+    """Form per la creazione e modifica di una regina"""
+    
+    class Meta:
+        model = Regina
+        fields = [
+            'data_nascita', 'data_introduzione', 'origine', 'razza',
+            'regina_madre', 'marcata', 'codice_marcatura', 'colore_marcatura',
+            'fecondata', 'selezionata', 'docilita', 'produttivita',
+            'resistenza_malattie', 'tendenza_sciamatura', 'note'
+        ]
+        widgets = {
+            'data_nascita': DateInput(),
+            'data_introduzione': DateInput(),
+            'note': forms.Textarea(attrs={'rows': 3}),
+            'codice_marcatura': forms.TextInput(attrs={'placeholder': 'Es. 45AX78'}),
+            'docilita': forms.NumberInput(attrs={'min': 1, 'max': 5}),
+            'produttivita': forms.NumberInput(attrs={'min': 1, 'max': 5}),
+            'resistenza_malattie': forms.NumberInput(attrs={'min': 1, 'max': 5}),
+            'tendenza_sciamatura': forms.NumberInput(attrs={'min': 1, 'max': 5}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        arnia = kwargs.pop('arnia', None)
+        super().__init__(*args, **kwargs)
+        
+        # Limitiamo le regine madri alle regine esistenti
+        self.fields['regina_madre'].queryset = Regina.objects.all().order_by('-data_introduzione')
+        
+        # Imposta data di oggi per data_introduzione se è un nuovo record
+        if not self.instance.pk and not self.initial.get('data_introduzione'):
+            self.initial['data_introduzione'] = timezone.now().date()
+        
+        # Modifiche condizionali in base agli attributi
+        if self.instance.pk:
+            self.fields['docilita'].help_text = "Valutazione docilità (1=bassa, 5=alta)"
+            self.fields['produttivita'].help_text = "Valutazione produttività (1=bassa, 5=alta)"
+            self.fields['resistenza_malattie'].help_text = "Resistenza alle malattie (1=bassa, 5=alta)"
+            self.fields['tendenza_sciamatura'].help_text = "Tendenza alla sciamatura (1=bassa, 5=alta)"
+        
+        # Aggiungi arnia all'istanza se specificata
+        if arnia and not self.instance.pk:
+            self.instance.arnia = arnia
+
+
+class SostituzioneReginaForm(forms.Form):
+    """Form per la sostituzione della regina"""
+    
+    data_sostituzione = forms.DateField(
+        widget=DateInput(),
+        initial=timezone.now().date(),
+        label="Data sostituzione"
+    )
+    
+    motivo = forms.ChoiceField(
+        choices=[
+            ('età', 'Regina vecchia (età)'),
+            ('produttività', 'Scarsa produttività'),
+            ('aggressività', 'Eccessiva aggressività'),
+            ('sciamatura', 'Tendenza alla sciamatura'),
+            ('malattia', 'Problemi sanitari'),
+            ('altro', 'Altro (specificare nelle note)'),
+        ],
+        label="Motivo sostituzione"
+    )
+    
+    nuova_regina_origine = forms.ChoiceField(
+        choices=Regina.ORIGINE_CHOICES,
+        initial='acquistata',
+        label="Origine della nuova regina"
+    )
+    
+    nuova_regina_razza = forms.ChoiceField(
+        choices=Regina.RAZZA_CHOICES,
+        initial='ligustica',
+        label="Razza della nuova regina"
+    )
+    
+    nuova_regina_data_nascita = forms.DateField(
+        widget=DateInput(),
+        required=False,
+        label="Data nascita nuova regina (se conosciuta)"
+    )
+    
+    nuova_regina_marcata = forms.BooleanField(
+        required=False,
+        initial=False,
+        label="La nuova regina è marcata"
+    )
+    
+    nuova_regina_codice = forms.CharField(
+        max_length=50,
+        required=False,
+        label="Codice di marcatura (se presente)"
+    )
+    
+    nuova_regina_colore_marcatura = forms.ChoiceField(
+        choices=Regina.COLORE_MARCATURA_CHOICES,
+        initial='non_marcata',
+        required=False,
+        label="Colore di marcatura"
+    )
+    
+    note = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 3}),
+        required=False,
+        label="Note sulla sostituzione"
+    )
+
+class MelarioForm(forms.ModelForm):
+    """Form per l'aggiunta e modifica di un melario"""
+    
+    class Meta:
+        model = Melario
+        fields = ['numero_telaini', 'posizione', 'data_posizionamento', 'note']
+        widgets = {
+            'data_posizionamento': DateInput(),
+            'note': forms.Textarea(attrs={'rows': 2}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        arnia = kwargs.pop('arnia', None)
+        super().__init__(*args, **kwargs)
+        
+        # Se è specificata un'arnia, pre-compila il campo posizione
+        if arnia and not self.instance.pk:
+            # Conta i melari esistenti dell'arnia per suggerire la posizione successiva
+            melari_count = Melario.objects.filter(arnia=arnia, stato='posizionato').count()
+            self.fields['posizione'].initial = melari_count + 1
+            
+        # Aggiungi aiuto per il campo numero_telaini
+        self.fields['numero_telaini'].help_text = "Numero di telaini presenti nel melario"
+        
+        # Per l'editing, rendi la posizione non modificabile se il melario è già posizionato
+        if self.instance.pk and self.instance.stato == 'posizionato':
+            self.fields['posizione'].disabled = True
+
+class RimozioneMelarioForm(forms.Form):
+    """Form per la rimozione di un melario"""
+    data_rimozione = forms.DateField(
+        widget=DateInput(),
+        initial=timezone.now().date(),
+        label="Data rimozione"
+    )
+    note = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 2}),
+        required=False,
+        label="Note sulla rimozione"
+    )
+
+class SmielaturaForm(forms.ModelForm):
+    """Form per la registrazione di una smielatura"""
+    melari = forms.ModelMultipleChoiceField(
+        queryset=Melario.objects.none(),
+        widget=forms.CheckboxSelectMultiple,
+        required=True,
+        label="Melari da smielaturare"
+    )
+    
+    class Meta:
+        model = Smielatura
+        fields = ['data', 'quantita_miele', 'tipo_miele', 'note', 'melari']
+        widgets = {
+            'data': DateInput(),
+            'note': forms.Textarea(attrs={'rows': 3}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        apiario = kwargs.pop('apiario', None)
+        super().__init__(*args, **kwargs)
+        
+        # Filtra i melari mostrati nel form in base all'apiario
+        if apiario:
+            # Melari in stato 'in_smielatura' o 'posizionato'
+            self.fields['melari'].queryset = Melario.objects.filter(
+                arnia__apiario=apiario
+            ).filter(
+                Q(stato='in_smielatura') | Q(stato='posizionato')
+            ).select_related('arnia')
 
 # Modifica a FiorituraForm in core/forms.py
 class FiorituraForm(forms.ModelForm):

@@ -1,0 +1,207 @@
+<!-- templates/regine/aggiorna_presenza_regina.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Aggiorna Presenza Regina - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1><i class="bi bi-check-circle"></i> Aggiorna Presenza Regina</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' arnia.apiario.id %}">{{ arnia.apiario.nome }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'modifica_controllo' controllo.id %}">Controllo Arnia #{{ arnia.numero }}</a></li>
+                <li class="breadcrumb-item active">Aggiorna Presenza Regina</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-crown"></i> Dettagli Regina</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="alert alert-info mb-4">
+                        <p>
+                            <i class="bi bi-info-circle"></i> 
+                            Completa le informazioni sulla regina durante il controllo del <strong>{{ controllo.data|date:"d/m/Y" }}</strong>.
+                        </p>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="regina_vista" id="reginaVista" {% if controllo.regina_vista %}checked{% endif %}>
+                        <label class="form-check-label" for="reginaVista">
+                            <strong>Regina vista durante il controllo</strong>
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="uova_fresche" id="uovaFresche" {% if controllo.uova_fresche %}checked{% endif %}>
+                        <label class="form-check-label" for="uovaFresche">
+                            <strong>Uova fresche presenti</strong> (indica presenza regina)
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="celle_reali" id="celleReali" {% if controllo.celle_reali %}checked{% endif %}>
+                        <label class="form-check-label" for="celleReali">
+                            <strong>Celle reali presenti</strong>
+                        </label>
+                    </div>
+                    
+                    <div class="mb-3 celle-reali-details" style="display: {% if controllo.celle_reali %}block{% else %}none{% endif %};">
+                        <label for="numeroCelleReali" class="form-label">Numero di celle reali trovate:</label>
+                        <input type="number" class="form-control" id="numeroCelleReali" name="numero_celle_reali" value="{{ controllo.numero_celle_reali }}" min="0" max="50">
+                    </div>
+                    
+                    <div class="alert alert-danger mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="regina_sostituita" id="reginaSostituita" {% if controllo.regina_sostituita %}checked{% endif %}>
+                            <label class="form-check-label" for="reginaSostituita">
+                                <strong>Regina sostituita/da sostituire</strong>
+                            </label>
+                        </div>
+                        <div class="mt-2 small">
+                            <i class="bi bi-exclamation-triangle"></i> Selezionando questa opzione, verrai reindirizzato alla pagina di sostituzione regina dopo il salvataggio.
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'modifica_controllo' controllo.id %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Torna al controllo
+                        </a>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Salva
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header {% if arnia.colore == 'giallo' %}bg-warning text-dark{% elif arnia.colore == 'blu' %}bg-primary text-white{% elif arnia.colore == 'verde' %}bg-success text-white{% elif arnia.colore == 'rosso' %}bg-danger text-white{% elif arnia.colore == 'bianco' %}bg-light text-dark{% elif arnia.colore == 'nero' %}bg-dark text-white{% elif arnia.colore == 'arancione' %}bg-orange text-white{% elif arnia.colore == 'viola' %}bg-purple text-white{% else %}bg-secondary text-white{% endif %}">
+                <h5 class="mb-0">Arnia #{{ arnia.numero }}</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Apiario:</strong> {{ arnia.apiario.nome }}</p>
+                <p><strong>Data controllo:</strong> {{ controllo.data|date:"d/m/Y" }}</p>
+                
+                {% if regina %}
+                    <hr>
+                    <h6>Regina attuale:</h6>
+                    <p><strong>Razza:</strong> {{ regina.get_razza_display }}</p>
+                    <p>
+                        <strong>Età:</strong> 
+                        {% if regina.get_eta_anni %}
+                            {{ regina.get_eta_anni }} anni
+                        {% else %}
+                            Sconosciuta
+                        {% endif %}
+                    </p>
+                    
+                    <p>
+                        <strong>Marcatura:</strong>
+                        {% if regina.marcata %}
+                            <span class="badge" style="background-color: 
+                            {% if regina.colore_marcatura == 'bianco' %}white; color: black; border: 1px solid #ccc;
+                            {% elif regina.colore_marcatura == 'giallo' %}#ffc107; color: black;
+                            {% elif regina.colore_marcatura == 'rosso' %}#dc3545; color: white;
+                            {% elif regina.colore_marcatura == 'verde' %}#28a745; color: white;
+                            {% elif regina.colore_marcatura == 'blu' %}#0d6efd; color: white;
+                            {% else %}#6c757d; color: white;{% endif %}">
+                                {{ regina.get_colore_marcatura_display }}
+                            </span>
+                        {% else %}
+                            Non marcata
+                        {% endif %}
+                    </p>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <p class="mb-0">Non ci sono dati sulla regina per questa arnia.</p>
+                        <p class="mb-0 mt-2">
+                            <a href="{% url 'aggiungi_regina' arnia.id %}" class="btn btn-sm btn-warning">
+                                <i class="bi bi-plus-circle"></i> Aggiungi Regina
+                            </a>
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
+            </div>
+            <div class="card-body">
+                <p>Indica se hai visto la regina durante il controllo o se hai osservato altri segni della sua presenza.</p>
+                
+                <div class="alert alert-light">
+                    <h6>Segni della presenza della regina:</h6>
+                    <ul class="mb-0">
+                        <li>Presenza di uova fresche (deposte nelle ultime 24-48 ore)</li>
+                        <li>Covata compatta e ben distribuita nei telaini</li>
+                        <li>Comportamento tranquillo delle api</li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <h6>Segni di possibili problemi:</h6>
+                    <ul class="mb-0">
+                        <li>Assenza di uova e larve giovani</li>
+                        <li>Covata sparsa o irregolare</li>
+                        <li>Presenza di celle reali (può indicare sostituzione spontanea o sciamatura)</li>
+                        <li>Api agitate o "urlanti" (può indicare assenza di regina)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestione campi celle reali
+        const checkboxCelleReali = document.getElementById('celleReali');
+        const celleRealiDetails = document.querySelector('.celle-reali-details');
+        
+        function updateCelleRealiVisibility() {
+            if (checkboxCelleReali.checked) {
+                celleRealiDetails.style.display = 'block';
+            } else {
+                celleRealiDetails.style.display = 'none';
+                document.getElementById('numeroCelleReali').value = '0';
+            }
+        }
+        
+        // Imposta visibilità iniziale
+        updateCelleRealiVisibility();
+        
+        // Aggiungi listener per il cambio dello stato della checkbox
+        checkboxCelleReali.addEventListener('change', updateCelleRealiVisibility);
+        
+        // Aggiorna la presenza regina in base alle uova
+        const checkboxUovaFresche = document.getElementById('uovaFresche');
+        const checkboxReginaVista = document.getElementById('reginaVista');
+        
+        checkboxUovaFresche.addEventListener('change', function() {
+            if (this.checked && !checkboxReginaVista.checked) {
+                // Se ci sono uova fresche, c'è la regina (anche se non è stata vista)
+                document.getElementById('controlloForm').elements['presenza_regina'].value = 'True';
+            }
+        });
+    });
+</script>
+{% endblock %}

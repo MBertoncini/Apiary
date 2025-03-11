@@ -188,6 +188,12 @@ class ControlloArnia(models.Model):
     note_problemi = models.TextField(blank=True, null=True, help_text="Dettagli su eventuali problemi sanitari")
     note = models.TextField(blank=True, null=True)
     data_creazione = models.DateTimeField(auto_now_add=True)
+    # Nuovi campi relativi alla regina
+    regina_vista = models.BooleanField(default=False, help_text="La regina è stata vista durante il controllo")
+    uova_fresche = models.BooleanField(default=False, help_text="Sono state viste uova fresche (indica presenza regina)")
+    celle_reali = models.BooleanField(default=False, help_text="Sono presenti celle reali")
+    numero_celle_reali = models.PositiveSmallIntegerField(default=0, help_text="Numero di celle reali trovate")
+    regina_sostituita = models.BooleanField(default=False, help_text="La regina è stata sostituita durante questo controllo")
     
     def __str__(self):
         return f"Controllo {self.arnia} - {self.data}"
@@ -196,6 +202,185 @@ class ControlloArnia(models.Model):
         verbose_name = "Controllo Arnia"
         verbose_name_plural = "Controlli Arnie"
         ordering = ['-data']
+
+class Regina(models.Model):
+    """Modello per gestire le informazioni sulla regina dell'arnia"""
+    ORIGINE_CHOICES = [
+        ('acquistata', 'Acquistata'),
+        ('allevata', 'Allevata'),
+        ('sciamatura', 'Sciamatura Naturale'),
+        ('emergenza', 'Celle di Emergenza'),
+        ('sconosciuta', 'Sconosciuta'),
+    ]
+    
+    # Schema internazionale colori per marcatura regine
+    # Il colore dipende dall'anno di nascita della regina
+    COLORE_MARCATURA_CHOICES = [
+        ('bianco', 'Bianco (anni terminanti in 1,6)'),
+        ('giallo', 'Giallo (anni terminanti in 2,7)'),
+        ('rosso', 'Rosso (anni terminanti in 3,8)'),
+        ('verde', 'Verde (anni terminanti in 4,9)'),
+        ('blu', 'Blu (anni terminanti in 5,0)'),
+        ('non_marcata', 'Non Marcata'),
+    ]
+    
+    RAZZA_CHOICES = [
+        ('ligustica', 'Apis mellifera ligustica (Italiana)'),
+        ('carnica', 'Apis mellifera carnica (Carnica)'),
+        ('buckfast', 'Buckfast'),
+        ('caucasica', 'Apis mellifera caucasica'),
+        ('sicula', 'Apis mellifera sicula (Siciliana)'),
+        ('ibrida', 'Ibrida'),
+        ('altro', 'Altro'),
+    ]
+    
+    arnia = models.OneToOneField(Arnia, on_delete=models.CASCADE, related_name='regina')
+    data_nascita = models.DateField(null=True, blank=True)
+    data_introduzione = models.DateField(help_text="Data in cui la regina è stata introdotta nell'arnia")
+    origine = models.CharField(max_length=20, choices=ORIGINE_CHOICES, default='sconosciuta')
+    razza = models.CharField(max_length=20, choices=RAZZA_CHOICES, default='ligustica')
+    regina_madre = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, 
+                                   related_name='figlie',
+                                   help_text="Regina da cui proviene (se conosciuta)")
+    codice_marcatura = models.CharField(max_length=50, blank=True, null=True, 
+                                      help_text="Codice o numero di marcatura")
+    colore_marcatura = models.CharField(max_length=20, choices=COLORE_MARCATURA_CHOICES, 
+                                      default='non_marcata')
+    marcata = models.BooleanField(default=False)
+    fecondata = models.BooleanField(default=True, help_text="Indica se la regina è stata fecondata")
+    selezionata = models.BooleanField(default=False, help_text="Regina selezionata per caratteristiche genetiche")
+    note = models.TextField(blank=True, null=True)
+    
+    # Storico delle performance
+    docilita = models.PositiveSmallIntegerField(null=True, blank=True, 
+                                           help_text="Valutazione docilità (1-5)")
+    produttivita = models.PositiveSmallIntegerField(null=True, blank=True,
+                                               help_text="Valutazione produttività (1-5)")
+    resistenza_malattie = models.PositiveSmallIntegerField(null=True, blank=True,
+                                                      help_text="Resistenza alle malattie (1-5)")
+    tendenza_sciamatura = models.PositiveSmallIntegerField(null=True, blank=True,
+                                                      help_text="Tendenza alla sciamatura (1-5)")
+    
+    def __str__(self):
+        return f"Regina dell'arnia {self.arnia.numero} - {self.get_razza_display()}"
+    
+    def get_eta_giorni(self):
+        """Calcola l'età della regina in giorni"""
+        if not self.data_nascita:
+            return None
+        
+        oggi = timezone.now().date()
+        delta = oggi - self.data_nascita
+        return delta.days
+    
+    def get_eta_anni(self):
+        """Calcola l'età della regina in anni"""
+        giorni = self.get_eta_giorni()
+        if giorni is None:
+            return None
+        
+        return round(giorni / 365, 1)
+    
+    def genera_colore_marcatura_automatico(self):
+        """Imposta il colore di marcatura in base all'anno di nascita della regina"""
+        if not self.data_nascita:
+            return
+        
+        anno = self.data_nascita.year
+        # Ultima cifra dell'anno
+        ultimo_digit = anno % 10
+        
+        if ultimo_digit in [1, 6]:
+            self.colore_marcatura = 'bianco'
+        elif ultimo_digit in [2, 7]:
+            self.colore_marcatura = 'giallo'
+        elif ultimo_digit in [3, 8]:
+            self.colore_marcatura = 'rosso'
+        elif ultimo_digit in [4, 9]:
+            self.colore_marcatura = 'verde'
+        elif ultimo_digit in [5, 0]:
+            self.colore_marcatura = 'blu'
+            
+    def save(self, *args, **kwargs):
+        # Se la regina è marcata ma non ha un colore specifico, imposta il colore automaticamente
+        if self.marcata and self.colore_marcatura == 'non_marcata' and self.data_nascita:
+            self.genera_colore_marcatura_automatico()
+            
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        verbose_name = "Regina"
+        verbose_name_plural = "Regine"
+        ordering = ['-data_introduzione']
+
+class StoriaRegine(models.Model):
+    """Modello per tracciare la storia delle regine in un'arnia"""
+    arnia = models.ForeignKey(Arnia, on_delete=models.CASCADE, related_name='storia_regine')
+    regina = models.ForeignKey(Regina, on_delete=models.CASCADE, related_name='storia')
+    data_inizio = models.DateField()
+    data_fine = models.DateField(null=True, blank=True)
+    motivo_fine = models.CharField(max_length=100, blank=True, null=True, 
+                                 help_text="Motivo della rimozione/morte della regina")
+    note = models.TextField(blank=True, null=True)
+    
+    def __str__(self):
+        return f"Regina in arnia {self.arnia.numero} dal {self.data_inizio}"
+    
+    class Meta:
+        verbose_name = "Storia Regina"
+        verbose_name_plural = "Storia Regine"
+        ordering = ['-data_inizio']
+
+class Melario(models.Model):
+    """Modello per gestire i melari posizionati sulle arnie"""
+    STATO_CHOICES = [
+        ('posizionato', 'Posizionato'),
+        ('rimosso', 'Rimosso'),
+        ('in_smielatura', 'In Smielatura'),
+        ('smielato', 'Smielato')
+    ]
+    
+    arnia = models.ForeignKey(Arnia, on_delete=models.CASCADE, related_name='melari')
+    numero_telaini = models.IntegerField(default=10, help_text="Numero di telaini nel melario")
+    posizione = models.IntegerField(help_text="Posizione del melario (1 = più vicino al nido, ecc.)")
+    data_posizionamento = models.DateField()
+    data_rimozione = models.DateField(null=True, blank=True)
+    stato = models.CharField(max_length=20, choices=STATO_CHOICES, default='posizionato')
+    note = models.TextField(blank=True, null=True)
+    
+    def __str__(self):
+        return f"Melario {self.id} - Arnia {self.arnia.numero} (Pos. {self.posizione})"
+    
+    class Meta:
+        verbose_name = "Melario"
+        verbose_name_plural = "Melari"
+        ordering = ['arnia', 'posizione']
+
+class Smielatura(models.Model):
+    """Modello per gestire le operazioni di smielatura"""
+    data = models.DateField()
+    apiario = models.ForeignKey(Apiario, on_delete=models.CASCADE, related_name='smielature')
+    melari = models.ManyToManyField(Melario, related_name='smielature')
+    quantita_miele = models.DecimalField(max_digits=7, decimal_places=2, help_text="Quantità di miele in kg")
+    tipo_miele = models.CharField(max_length=100, help_text="Tipo di miele/origine botanica principale")
+    utente = models.ForeignKey(User, on_delete=models.CASCADE)
+    note = models.TextField(blank=True, null=True)
+    data_registrazione = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Smielatura {self.data} - {self.apiario.nome} ({self.quantita_miele}kg)"
+    
+    class Meta:
+        verbose_name = "Smielatura"
+        verbose_name_plural = "Smielature"
+        ordering = ['-data']
+        
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Quando si salva una smielatura, aggiorna lo stato dei melari
+        for melario in self.melari.all():
+            melario.stato = 'smielato'
+            melario.save()
 
 from django.db import models
 from django.contrib.auth.models import User

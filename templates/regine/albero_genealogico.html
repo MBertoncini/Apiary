@@ -1,0 +1,388 @@
+<!-- templates/regine/albero_genealogico.html -->
+{% extends 'base.html' %}
+
+{% block title %}Albero Genealogico Regina - Gestione Apiario{% endblock %}
+
+{% block extra_css %}
+<style>
+    .genealogy-tree {
+        position: relative;
+        padding: 20px;
+    }
+    
+    .generation {
+        margin-bottom: 40px;
+        position: relative;
+    }
+    
+    .generation::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -20px;
+        height: 1px;
+        background-color: #dee2e6;
+    }
+    
+    .generation:last-child::after {
+        display: none;
+    }
+    
+    .generation-label {
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #6c757d;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 5px;
+    }
+    
+    .regina-card {
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .regina-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .regina-active {
+        border-left: 5px solid #ffc107;
+    }
+    
+    .generation-connector {
+        position: relative;
+    }
+    
+    .generation-connector::before {
+        content: '';
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        width: 2px;
+        height: 20px;
+        background-color: #dee2e6;
+    }
+    
+    .marcatore-regina {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+        vertical-align: middle;
+        border: 1px solid #ced4da;
+    }
+    
+    .descendant-connector {
+        position: relative;
+    }
+    
+    .descendant-connector::before {
+        content: '';
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        width: 2px;
+        height: 15px;
+        background-color: #dee2e6;
+    }
+    
+    .descendant-tree {
+        position: relative;
+        padding-top: 30px;
+    }
+    
+    .descendant-tree::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 2px;
+        height: 30px;
+        background-color: #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="bi bi-diagram-3"></i> Albero Genealogico Regina</h1>
+            <div>
+                <a href="{% url 'visualizza_regina' arnia.id %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Torna alla Regina
+                </a>
+            </div>
+        </div>
+        
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'visualizza_regina' arnia.id %}">Regina Arnia #{{ arnia.numero }}</a></li>
+                <li class="breadcrumb-item active">Albero Genealogico</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Informazioni Regina</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h5>Regina Attuale</h5>
+                        <p><strong>Arnia:</strong> #{{ regina.arnia.numero }}</p>
+                        <p><strong>Razza:</strong> {{ regina.get_razza_display }}</p>
+                        <p><strong>Origine:</strong> {{ regina.get_origine_display }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Date</h5>
+                        <p>
+                            <strong>Data di nascita:</strong> 
+                            {% if regina.data_nascita %}
+                                {{ regina.data_nascita|date:"d/m/Y" }}
+                            {% else %}
+                                <span class="text-muted">Non specificata</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>Data introduzione:</strong> {{ regina.data_introduzione|date:"d/m/Y" }}</p>
+                        <p>
+                            <strong>Età:</strong> 
+                            {% if regina.get_eta_anni %}
+                                {{ regina.get_eta_anni }} anni
+                            {% else %}
+                                <span class="text-muted">Sconosciuta</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Marcatura</h5>
+                        <p>
+                            {% if regina.marcata %}
+                                <span class="marcatore-regina" style="background-color: 
+                                {% if regina.colore_marcatura == 'bianco' %}white{% elif regina.colore_marcatura == 'giallo' %}#ffc107{% elif regina.colore_marcatura == 'rosso' %}#dc3545{% elif regina.colore_marcatura == 'verde' %}#198754{% elif regina.colore_marcatura == 'blu' %}#0d6efd{% else %}#f8f9fa{% endif %};"></span>
+                                {{ regina.get_colore_marcatura_display }}
+                                {% if regina.codice_marcatura %}
+                                    ({{ regina.codice_marcatura }})
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary">Non marcata</span>
+                            {% endif %}
+                        </p>
+                        
+                        <div class="mt-3">
+                            <p>
+                                <strong>Valutazione:</strong> 
+                                {% if regina.docilita or regina.produttivita or regina.resistenza_malattie or regina.tendenza_sciamatura %}
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                    {{ regina.docilita|default:0 }} / {{ regina.produttivita|default:0 }} / 
+                                    {{ regina.resistenza_malattie|default:0 }} / {{ regina.tendenza_sciamatura|default:0 }}
+                                {% else %}
+                                    <span class="text-muted">Non valutata</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Albero Genealogico -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-diagram-3"></i> Albero Genealogico</h5>
+            </div>
+            <div class="card-body">
+                <div class="genealogy-tree">
+                    {% if genealogia.madre or genealogia.nonna_materna or genealogia.bisnonna_materna %}
+                        <!-- Prima generazione (Regina attuale) -->
+                        <div class="generation">
+                            <div class="generation-label">Regina Attuale</div>
+                            <div class="row">
+                                <div class="col-md-4 offset-md-4">
+                                    <div class="card regina-card regina-active mb-4">
+                                        <div class="card-header bg-warning text-dark">
+                                            <h6 class="mb-0">{{ regina.arnia.numero }} - {{ regina.get_razza_display }}</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-2">
+                                                <strong>Data intro:</strong> {{ regina.data_introduzione|date:"d/m/Y" }}
+                                            </p>
+                                            <p class="mb-2">
+                                                <strong>Origine:</strong> {{ regina.get_origine_display }}
+                                            </p>
+                                            <p class="mb-0">
+                                                {% if regina.marcata %}
+                                                    <span class="marcatore-regina" style="background-color: 
+                                                    {% if regina.colore_marcatura == 'bianco' %}white{% elif regina.colore_marcatura == 'giallo' %}#ffc107{% elif regina.colore_marcatura == 'rosso' %}#dc3545{% elif regina.colore_marcatura == 'verde' %}#198754{% elif regina.colore_marcatura == 'blu' %}#0d6efd{% else %}#f8f9fa{% endif %};"></span>
+                                                    {{ regina.get_colore_marcatura_display }}
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Seconda generazione (Madre) -->
+                        {% if genealogia.madre %}
+                        <div class="generation generation-connector">
+                            <div class="generation-label">Madre</div>
+                            <div class="row">
+                                <div class="col-md-4 offset-md-4">
+                                    <div class="card regina-card mb-4">
+                                        <div class="card-header bg-info text-white">
+                                            <h6 class="mb-0">{{ genealogia.madre.get_razza_display }}</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-2">
+                                                <strong>Data intro:</strong> 
+                                                {{ genealogia.madre.data_introduzione|date:"d/m/Y" }}
+                                            </p>
+                                            <p class="mb-2">
+                                                <strong>Origine:</strong> 
+                                                {{ genealogia.madre.get_origine_display }}
+                                            </p>
+                                            <p class="mb-0">
+                                                {% if genealogia.madre.marcata %}
+                                                    <span class="marcatore-regina" style="background-color: 
+                                                    {% if genealogia.madre.colore_marcatura == 'bianco' %}white{% elif genealogia.madre.colore_marcatura == 'giallo' %}#ffc107{% elif genealogia.madre.colore_marcatura == 'rosso' %}#dc3545{% elif genealogia.madre.colore_marcatura == 'verde' %}#198754{% elif genealogia.madre.colore_marcatura == 'blu' %}#0d6efd{% else %}#f8f9fa{% endif %};"></span>
+                                                    {{ genealogia.madre.get_colore_marcatura_display }}
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Terza generazione (Nonna) -->
+                        {% if genealogia.nonna_materna %}
+                        <div class="generation generation-connector">
+                            <div class="generation-label">Nonna</div>
+                            <div class="row">
+                                <div class="col-md-4 offset-md-4">
+                                    <div class="card regina-card mb-4">
+                                        <div class="card-header bg-secondary text-white">
+                                            <h6 class="mb-0">{{ genealogia.nonna_materna.get_razza_display }}</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-2">
+                                                <strong>Data intro:</strong> 
+                                                {{ genealogia.nonna_materna.data_introduzione|date:"d/m/Y" }}
+                                            </p>
+                                            <p class="mb-2">
+                                                <strong>Origine:</strong> 
+                                                {{ genealogia.nonna_materna.get_origine_display }}
+                                            </p>
+                                            <p class="mb-0">
+                                                {% if genealogia.nonna_materna.marcata %}
+                                                    <span class="marcatore-regina" style="background-color: 
+                                                    {% if genealogia.nonna_materna.colore_marcatura == 'bianco' %}white{% elif genealogia.nonna_materna.colore_marcatura == 'giallo' %}#ffc107{% elif genealogia.nonna_materna.colore_marcatura == 'rosso' %}#dc3545{% elif genealogia.nonna_materna.colore_marcatura == 'verde' %}#198754{% elif genealogia.nonna_materna.colore_marcatura == 'blu' %}#0d6efd{% else %}#f8f9fa{% endif %};"></span>
+                                                    {{ genealogia.nonna_materna.get_colore_marcatura_display }}
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Quarta generazione (Bisnonna) -->
+                        {% if genealogia.bisnonna_materna %}
+                        <div class="generation generation-connector">
+                            <div class="generation-label">Bisnonna</div>
+                            <div class="row">
+                                <div class="col-md-4 offset-md-4">
+                                    <div class="card regina-card mb-4">
+                                        <div class="card-header bg-dark text-white">
+                                            <h6 class="mb-0">{{ genealogia.bisnonna_materna.get_razza_display }}</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-2">
+                                                <strong>Data intro:</strong> 
+                                                {{ genealogia.bisnonna_materna.data_introduzione|date:"d/m/Y" }}
+                                            </p>
+                                            <p class="mb-2">
+                                                <strong>Origine:</strong> 
+                                                {{ genealogia.bisnonna_materna.get_origine_display }}
+                                            </p>
+                                            <p class="mb-0">
+                                                {% if genealogia.bisnonna_materna.marcata %}
+                                                    <span class="marcatore-regina" style="background-color: 
+                                                    {% if genealogia.bisnonna_materna.colore_marcatura == 'bianco' %}white{% elif genealogia.bisnonna_materna.colore_marcatura == 'giallo' %}#ffc107{% elif genealogia.bisnonna_materna.colore_marcatura == 'rosso' %}#dc3545{% elif genealogia.bisnonna_materna.colore_marcatura == 'verde' %}#198754{% elif genealogia.bisnonna_materna.colore_marcatura == 'blu' %}#0d6efd{% else %}#f8f9fa{% endif %};"></span>
+                                                    {{ genealogia.bisnonna_materna.get_colore_marcatura_display }}
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <p class="mb-0">Non sono disponibili informazioni sulla genealogia di questa regina.</p>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Discendenza (Figlie) -->
+                    {% if figlie %}
+                        <div class="descendant-tree mt-5">
+                            <div class="generation-label">Figlie</div>
+                            <div class="row">
+                                {% for figlia in figlie %}
+                                    <div class="col-md-3 descendant-connector">
+                                        <div class="card regina-card">
+                                            <div class="card-header {% if figlia.arnia.colore_hex %}bg-custom{% else %}bg-success{% endif %} text-white"
+                                                 {% if figlia.arnia.colore_hex %}style="background-color: {{ figlia.arnia.colore_hex }} !important;"{% endif %}>
+                                                <h6 class="mb-0">Arnia #{{ figlia.arnia.numero }}</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="mb-2">
+                                                    <strong>Razza:</strong> {{ figlia.get_razza_display }}
+                                                </p>
+                                                <p class="mb-2">
+                                                    <strong>Data intro:</strong> {{ figlia.data_introduzione|date:"d/m/Y" }}
+                                                </p>
+                                                <p class="mb-0">
+                                                    {% if figlia.marcata %}
+                                                        <span class="marcatore-regina" style="background-color: 
+                                                        {% if figlia.colore_marcatura == 'bianco' %}white{% elif figlia.colore_marcatura == 'giallo' %}#ffc107{% elif figlia.colore_marcatura == 'rosso' %}#dc3545{% elif figlia.colore_marcatura == 'verde' %}#198754{% elif figlia.colore_marcatura == 'blu' %}#0d6efd{% else %}#f8f9fa{% endif %};"></span>
+                                                        {{ figlia.get_colore_marcatura_display }}
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            <div class="card-footer">
+                                                <a href="{% url 'visualizza_regina' figlia.arnia.id %}" class="btn btn-sm btn-outline-primary w-100">
+                                                    <i class="bi bi-eye"></i> Visualizza
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 <!-- templates/arnie/visualizza_apiario.html -->
 {% extends 'base.html' %}
-
+{% load static %}
 {% block title %}{{ apiario.nome }} - Gestione Apiario{% endblock %}
 
 {% block content %}
@@ -19,6 +19,9 @@
                 {% endif %}
                 <a href="{% url 'crea_arnia' %}?apiario_id={{ apiario.id }}" class="btn btn-success ms-2">
                     <i class="bi bi-plus-circle"></i> Nuova Arnia
+                </a>
+                <a href="{% url 'gestione_melari' apiario.id %}" class="btn btn-info ms-2">
+                    <i class="bi bi-archive"></i> Gestione Melari
                 </a>
                 <a href="{% url 'nuovo_trattamento_apiario' apiario.id %}" class="btn btn-warning ms-2">
                     <i class="bi bi-capsule"></i> Nuovo Trattamento
@@ -222,11 +225,20 @@
                                                 <!-- Fine Visualizzazione Grafica dell'Arnia -->
                                                 
                                                 <div class="mb-2">
-                                                    {% if controllo.presenza_regina %}
-                                                        <span class="badge bg-success">Regina presente</span>
-                                                    {% else %}
-                                                        <span class="badge bg-danger">Regina assente</span>
-                                                    {% endif %}
+                                                    <a href="{% url 'visualizza_regina' controllo.arnia.id %}" class="text-decoration-none">
+                                                        {% if controllo.presenza_regina %}
+                                                            <span class="badge bg-success">
+                                                                {% if controllo.arnia.regina.marcata %}
+                                                                    <img src="{% static 'media/regina.png' %}" alt="Regina" style="height: 16px; margin-right: 4px;" onerror="this.src=''; this.onerror=null; this.style.display='none';">
+                                                                {% endif %}
+                                                                <i class="bi bi-crown me-1"></i> Regina presente
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">
+                                                                <i class="bi bi-crown me-1"></i> Regina assente
+                                                            </span>
+                                                        {% endif %}
+                                                    </a>
                                                     
                                                     {% if controllo.sciamatura %}
                                                         <span class="badge bg-warning text-dark">Sciamatura</span>
@@ -258,9 +270,6 @@
                                         {% if is_proprietario %}
                                         <div class="mb-3">
                                             <div class="card">
-                                                <div class="card-header bg-info text-white">
-                                                    <h5 class="mb-0"><i class="bi bi-gear"></i> Impostazioni di Condivisione</h5>
-                                                </div>
                                                 <div class="card-body">
                                                     <div class="row">
                                                         <div class="col-md-6">

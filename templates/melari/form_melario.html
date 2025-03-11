@@ -1,0 +1,103 @@
+<!-- templates/melari/form_melario.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}Modifica{% else %}Nuovo{% endif %} Melario - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1>
+            {% if form.instance.pk %}
+                <i class="bi bi-pencil-square"></i> Modifica Melario
+            {% else %}
+                <i class="bi bi-plus-circle"></i> Nuovo Melario
+            {% endif %}
+        </h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'gestione_melari' apiario.id %}">Gestione Melari</a></li>
+                <li class="breadcrumb-item active">
+                    {% if form.instance.pk %}
+                        Modifica Melario
+                    {% else %}
+                        Nuovo Melario - Arnia #{{ arnia.numero }}
+                    {% endif %}
+                </li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Informazioni Melario</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.numero_telaini|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.posizione|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.data_posizionamento|as_crispy_field }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.note|as_crispy_field }}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'gestione_melari' apiario.id %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Annulla
+                        </a>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> 
+                            {% if form.instance.pk %}
+                                Aggiorna Melario
+                            {% else %}
+                                Aggiungi Melario
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    I melari sono strutture che vengono poste sopra il nido dell'arnia per la raccolta del miele.
+                </p>
+                <ul>
+                    <li><strong>Numero telaini:</strong> Indica quanti telaini sono presenti nel melario (solitamente 9-10)</li>
+                    <li><strong>Posizione:</strong> Indica la posizione del melario sull'arnia, dove 1 = più vicino al nido</li>
+                    <li><strong>Data posizionamento:</strong> La data in cui il melario è stato posizionato sull'arnia</li>
+                </ul>
+                
+                <div class="alert alert-primary mt-3">
+                    <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong>
+                    Posiziona i melari quando la famiglia è forte e ci sono abbondanti fioriture nell'area. Rimuovili prima di eseguire trattamenti sanitari.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

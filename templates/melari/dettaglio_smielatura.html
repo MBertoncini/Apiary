@@ -1,0 +1,138 @@
+<!-- templates/melari/dettaglio_smielatura.html -->
+{% extends 'base.html' %}
+
+{% block title %}Dettaglio Smielatura - {{ smielatura.data|date:"d/m/Y" }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h1><i class="bi bi-droplet"></i> Dettaglio Smielatura</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'gestione_melari' apiario.id %}">Gestione Melari</a></li>
+                <li class="breadcrumb-item active">Dettaglio Smielatura</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-droplet"></i> Dati Smielatura</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Data:</strong> {{ smielatura.data|date:"d/m/Y" }}</p>
+                        <p><strong>Apiario:</strong> {{ apiario.nome }}</p>
+                        <p><strong>Operatore:</strong> {{ smielatura.utente.username }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Tipo miele:</strong> {{ smielatura.tipo_miele }}</p>
+                        <p><strong>Quantità:</strong> {{ smielatura.quantita_miele }} kg</p>
+                        <p><strong>Melari smielati:</strong> {{ smielatura.melari.count }}</p>
+                    </div>
+                </div>
+                
+                {% if smielatura.note %}
+                <div class="alert alert-light mt-3">
+                    <h6><i class="bi bi-journal-text"></i> Note:</h6>
+                    <p>{{ smielatura.note|linebreaks }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-archive"></i> Melari Smielati</h5>
+            </div>
+            <div class="card-body">
+                {% if melari_per_arnia %}
+                    {% for arnia_id, dati in melari_per_arnia.items %}
+                        <h6 class="mt-3{% if not forloop.first %} border-top pt-3{% endif %}">
+                            Arnia #{{ dati.arnia.numero }}
+                            <small class="badge {% if dati.arnia.colore == 'giallo' %}bg-warning text-dark{% elif dati.arnia.colore == 'blu' %}bg-primary{% elif dati.arnia.colore == 'verde' %}bg-success{% elif dati.arnia.colore == 'rosso' %}bg-danger{% elif dati.arnia.colore == 'bianco' %}bg-light text-dark{% elif dati.arnia.colore == 'nero' %}bg-dark{% elif dati.arnia.colore == 'arancione' %}bg-warning{% elif dati.arnia.colore == 'viola' %}bg-purple{% else %}bg-secondary{% endif %}">
+                                {{ dati.arnia.get_colore_display }}
+                            </small>
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Melario</th>
+                                        <th>Posizione</th>
+                                        <th>Telaini</th>
+                                        <th>Data posizionamento</th>
+                                        <th>Data rimozione</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for melario in dati.melari %}
+                                        <tr>
+                                            <td>Melario #{{ melario.id }}</td>
+                                            <td>{{ melario.posizione }}</td>
+                                            <td>{{ melario.numero_telaini }}</td>
+                                            <td>{{ melario.data_posizionamento|date:"d/m/Y" }}</td>
+                                            <td>{{ melario.data_rimozione|date:"d/m/Y"|default:"-" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center">Nessun dettaglio disponibile sui melari smielati.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-calculator"></i> Statistiche</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Media per melario:</strong> {{ smielatura.quantita_miele|floatformat:2 }} kg / {{ smielatura.melari.count }} = {{ smielatura.quantita_miele|floatformat:2|divisibleby:smielatura.melari.count|floatformat:2 }} kg</p>
+                
+                <p><strong>Media per telaino:</strong> 
+                {% with total_telaini=0 %}
+                    {% for melario in smielatura.melari.all %}
+                        {% with total_telaini=total_telaini|add:melario.numero_telaini %}{% endwith %}
+                    {% endfor %}
+                    {{ smielatura.quantita_miele|floatformat:2 }} kg / {{ total_telaini }} = {{ smielatura.quantita_miele|floatformat:2|divisibleby:total_telaini|floatformat:2 }} kg
+                {% endwith %}
+                </p>
+                
+                <!-- Calcolo del produttività media per arnia -->
+                {% with arnie_coinvolte=melari_per_arnia.keys|length %}
+                    <p><strong>Media per arnia:</strong> {{ smielatura.quantita_miele|floatformat:2 }} kg / {{ arnie_coinvolte }} = {{ smielatura.quantita_miele|floatformat:2|divisibleby:arnie_coinvolte|floatformat:2 }} kg</p>
+                {% endwith %}
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong> 
+                    Le statistiche possono essere utilizzate per valutare la produttività delle diverse arnie e la qualità della stagione.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'gestione_melari' apiario.id %}#smielature" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Torna alle smielature
+            </a>
+            <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-primary">
+                <i class="bi bi-grid"></i> Torna all'apiario
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

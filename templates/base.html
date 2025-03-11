@@ -75,6 +75,17 @@
                         </ul>
                     </li>
                     
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="melariDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-archive"></i> Melari
+                        </a>
+                        <ul class="dropdown-menu">
+                            {% for apiario in apiari %}
+                                <li><a class="dropdown-item" href="{% url 'gestione_melari' apiario.id %}">{{ apiario.nome }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'gestione_fioriture' %}">
                             <i class="bi bi-flower1"></i> Fioriture

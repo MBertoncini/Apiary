@@ -5,7 +5,7 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.http import HttpResponseForbidden
 
-from .models import MembroGruppo, Apiario, Gruppo, Arnia
+from .models import MembroGruppo, Apiario, Gruppo, Arnia, Melario
 
 def richiedi_appartenenza_gruppo(view_func):
     """
@@ -55,13 +55,14 @@ def richiedi_ruolo_admin(view_func):
 def richiedi_permesso_scrittura(view_func):
     """
     Decorator che verifica che l'utente abbia i permessi di scrittura nel gruppo (admin o editor).
-    La vista può avere un parametro gruppo_id, apiario_id o arnia_id da cui ricavare il gruppo.
+    La vista può avere un parametro gruppo_id, apiario_id, arnia_id o melario_id da cui ricavare il gruppo.
     """
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         gruppo_id = kwargs.get('gruppo_id')
         apiario_id = kwargs.get('apiario_id')
         arnia_id = kwargs.get('arnia_id')
+        melario_id = kwargs.get('melario_id')  # Aggiungi questa riga
         
         # Se abbiamo arnia_id ma non apiario_id, otteniamo l'apiario dall'arnia
         if not apiario_id and not gruppo_id and arnia_id:
@@ -70,6 +71,18 @@ def richiedi_permesso_scrittura(view_func):
                 apiario_id = arnia.apiario.id
             except Arnia.DoesNotExist:
                 messages.error(request, "Arnia non trovata.")
+                return redirect('dashboard')
+        
+        # Se abbiamo melario_id ma non apiario_id e non gruppo_id, otteniamo l'apiario dal melario
+        if not apiario_id and not gruppo_id and melario_id:
+            try:
+                # Assicurati che Melario sia importato all'inizio del file
+                from .models import Melario
+                melario = Melario.objects.get(id=melario_id)
+                arnia = melario.arnia
+                apiario_id = arnia.apiario.id
+            except (Melario.DoesNotExist, AttributeError):
+                messages.error(request, "Melario non trovato o struttura dati non valida.")
                 return redirect('dashboard')
         
         # Se abbiamo apiario_id ma non gruppo_id, otteniamo il gruppo dall'apiario
