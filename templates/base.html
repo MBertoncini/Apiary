@@ -62,51 +62,44 @@
                         </a>
                     </li>
                     
+                    <!-- Dropdown Apiari -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="apiariDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-grid"></i> Apiari
+                            <i class="bi bi-grid"></i> Apiario
                         </a>
                         <ul class="dropdown-menu">
-                            {% for apiario in apiari %}
-                                <li><a class="dropdown-item" href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
-                            {% endfor %}
+                            <li><a class="dropdown-item" href="{% url 'crea_apiario' %}"><i class="bi bi-plus-circle"></i> Nuovo Apiario</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'crea_apiario' %}">Nuovo Apiario</a></li>
+                            
+                            {% if apiari is defined %}
+                                {% for apiario in apiari %}
+                                    <li><a class="dropdown-item" href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
+                                {% endfor %}
+                            {% else %}
+                                <li><a class="dropdown-item" href="{% url 'dashboard' %}">Visualizza dalla Dashboard</a></li>
+                            {% endif %}
+                            
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'gestione_fioriture' %}"><i class="bi bi-flower1"></i> Fioriture</a></li>
+                            <li><a class="dropdown-item" href="{% url 'calendario_apiario' %}"><i class="bi bi-calendar-week"></i> Calendario</a></li>
                         </ul>
                     </li>
                     
+                    <!-- Dropdown Gestione -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="melariDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-archive"></i> Melari
+                        <a class="nav-link dropdown-toggle" href="#" id="gestioneDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-tools"></i> Gestione
                         </a>
                         <ul class="dropdown-menu">
-                            {% for apiario in apiari %}
-                                <li><a class="dropdown-item" href="{% url 'gestione_melari' apiario.id %}">{{ apiario.nome }}</a></li>
-                            {% endfor %}
+                            <li><a class="dropdown-item" href="{% url 'gestione_trattamenti' %}"><i class="bi bi-capsule"></i> Trattamenti</a></li>
+                            <li><a class="dropdown-item" href="{% url 'gestione_pagamenti' %}"><i class="bi bi-cash-coin"></i> Pagamenti</a></li>
+                            <li><a class="dropdown-item" href="{% url 'gestione_quote' %}"><i class="bi bi-percent"></i> Quote</a></li>
                         </ul>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'gestione_fioriture' %}">
-                            <i class="bi bi-flower1"></i> Fioriture
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'gestione_trattamenti' %}">
-                            <i class="bi bi-capsule"></i> Trattamenti
-                        </a>
                     </li>
                     
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'mappa_apiari' %}">
                             <i class="bi bi-geo-alt"></i> Mappa
-                        </a>
-                    </li>
-                    
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'gestione_pagamenti' %}">
-                            <i class="bi bi-cash-coin"></i> Pagamenti
                         </a>
                     </li>
                     
@@ -118,6 +111,13 @@
                 </ul>
                 
                     <div class="navbar-nav">
+                        <form class="d-flex me-2" action="{% url 'ricerca' %}" method="get">
+                            <input class="form-control me-2" type="search" name="q" placeholder="Cerca..." aria-label="Search">
+                            <button class="btn btn-outline-light" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </form>
+                        
                         <div class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                                 <img src="{{ user.profilo.immagine.url }}" alt="{{ user.username }}" style="width: 24px; height: 24px; object-fit: cover; border-radius: 50%; margin-right: 5px;">
@@ -150,14 +150,6 @@
                         </li>
                     </ul>
                 {% endif %}
-            </div>
-            <div class="navbar-nav ms-auto me-2">
-                <form class="d-flex" action="{% url 'ricerca' %}" method="get">
-                    <input class="form-control me-2" type="search" name="q" placeholder="Cerca utenti o gruppi..." aria-label="Search">
-                    <button class="btn btn-outline-light" type="submit">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </form>
             </div>
         </div>
     </nav>

@@ -2602,6 +2602,748 @@ def modifica_immagine_gruppo(request, gruppo_id):
     
     return render(request, 'gruppi/modifica_immagine_gruppo.html', context)
 
+# Aggiungi queste funzioni a views.py
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.db.models import Q, F, Count
+from datetime import datetime, timedelta
+from django.utils import timezone
+
+@login_required
+def calendario_apiario(request, apiario_id=None):
+    """Vista per visualizzare il calendario degli eventi di un apiario specifico o di tutti gli apiari"""
+    # Recupera l'apiario selezionato, se specificato
+    apiario = None
+    if apiario_id:
+        apiario = get_object_or_404(Apiario, pk=apiario_id)
+        
+        # Verifica che l'utente abbia accesso all'apiario
+        if apiario.proprietario != request.user:
+            # Se l'apiario è condiviso con un gruppo di cui l'utente fa parte
+            if not (apiario.gruppo and apiario.condiviso_con_gruppo and 
+                    MembroGruppo.objects.filter(utente=request.user, gruppo=apiario.gruppo).exists()):
+                messages.error(request, "Non hai accesso a questo apiario.")
+                return redirect('dashboard')
+    
+    # Recupera il gruppo selezionato, se specificato
+    gruppo_id = request.GET.get('gruppo_id')
+    gruppo = None
+    if gruppo_id:
+        gruppo = get_object_or_404(Gruppo, pk=gruppo_id)
+        # Verifica che l'utente sia membro del gruppo
+        if not MembroGruppo.objects.filter(utente=request.user, gruppo=gruppo).exists():
+            messages.error(request, "Non sei membro di questo gruppo.")
+            return redirect('calendario_apiario')
+    
+    # Recupera tutti gli apiari a cui l'utente ha accesso
+    apiari_propri = Apiario.objects.filter(proprietario=request.user)
+    
+    # Apiari condivisi tramite gruppi
+    gruppi_utente = Gruppo.objects.filter(membri=request.user)
+    apiari_condivisi = Apiario.objects.filter(
+        gruppo__in=gruppi_utente, 
+        condiviso_con_gruppo=True
+    ).exclude(proprietario=request.user)
+    
+    # Unisci gli apiari
+    apiari = (apiari_propri | apiari_condivisi).distinct()
+    
+    context = {
+        'apiario': apiario,
+        'gruppo': gruppo,
+        'apiari': apiari,
+        'gruppi': gruppi_utente,
+    }
+    
+    return render(request, 'calendario/calendario_apiario.html', context)
+
+@login_required
+def calendario_eventi_json(request):
+    """API che restituisce gli eventi del calendario in formato JSON"""
+    # Filtra per apiario se specificato
+    apiario_id = request.GET.get('apiario_id')
+    gruppo_id = request.GET.get('gruppo_id')
+    
+    # Date di inizio e fine per il periodo richiesto (se specificato dal client)
+    start_date = request.GET.get('start', (timezone.now() - timedelta(days=30)).strftime('%Y-%m-%d'))
+    end_date = request.GET.get('end', (timezone.now() + timedelta(days=60)).strftime('%Y-%m-%d'))
+    
+    # Converti le date in oggetti datetime
+    start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    
+    # Lista eventi che verrà restituita
+    events = []
+    
+    # Apiari a cui l'utente ha accesso
+    apiari_propri = Apiario.objects.filter(proprietario=request.user)
+    gruppi_utente = Gruppo.objects.filter(membri=request.user)
+    apiari_condivisi = Apiario.objects.filter(
+        gruppo__in=gruppi_utente, 
+        condiviso_con_gruppo=True
+    ).exclude(proprietario=request.user)
+    
+    # Filtra per gruppo se specificato
+    if gruppo_id:
+        apiari_propri = apiari_propri.filter(gruppo_id=gruppo_id)
+        apiari_condivisi = apiari_condivisi.filter(gruppo_id=gruppo_id)
+    
+    # Filtra per apiario se specificato
+    if apiario_id:
+        apiari_propri = apiari_propri.filter(id=apiario_id)
+        apiari_condivisi = apiari_condivisi.filter(id=apiario_id)
+    
+    # Unisci gli apiari
+    apiari = list((apiari_propri | apiari_condivisi).distinct())
+    apiari_ids = [apiario.id for apiario in apiari]
+    
+    # ------------------- Recupero Controlli -------------------
+    # Arnie degli apiari a cui l'utente ha accesso
+    arnie = Arnia.objects.filter(apiario__in=apiari_ids)
+    arnie_ids = [arnia.id for arnia in arnie]
+    
+    # Controlli per le arnie nel periodo selezionato
+    controlli = ControlloArnia.objects.filter(
+        arnia__in=arnie_ids,
+        data__gte=start_date,
+        data__lte=end_date
+    ).select_related('arnia', 'arnia__apiario', 'utente').order_by('data')
+    
+    # Dizionario per tenere traccia dell'ultimo controllo per ogni arnia
+    # per calcolare i delta dei telaini
+    ultimo_controllo_per_arnia = {}
+    
+    for controllo in controlli:
+        arnia_id = controllo.arnia.id
+        apiario = controllo.arnia.apiario
+        
+        # Calcola i delta rispetto al controllo precedente
+        delta_scorte = 0
+        delta_covata = 0
+        if arnia_id in ultimo_controllo_per_arnia:
+            prev_controllo = ultimo_controllo_per_arnia[arnia_id]
+            delta_scorte = controllo.telaini_scorte - prev_controllo.telaini_scorte
+            delta_covata = controllo.telaini_covata - prev_controllo.telaini_covata
+        
+        # Aggiorna l'ultimo controllo per questa arnia
+        ultimo_controllo_per_arnia[arnia_id] = controllo
+        
+        # Crea il titolo dell'evento
+        title = f"Controllo Arnia #{controllo.arnia.numero} - {apiario.nome}"
+        
+        # Prepara HTML per i dettagli
+        details_html = f"""
+        <div class="event-details">
+            <p><strong>Apiario:</strong> {apiario.nome}</p>
+            <p><strong>Arnia:</strong> #{controllo.arnia.numero} ({controllo.arnia.get_colore_display()})</p>
+            <p><strong>Operatore:</strong> {controllo.utente.username}</p>
+            <p><strong>Data:</strong> {controllo.data.strftime('%d/%m/%Y')}</p>
+            <h6>Stato Arnia</h6>
+            <ul>
+                <li><strong>Telaini Scorte:</strong> {controllo.telaini_scorte} 
+                    {'<span class="badge bg-success">+' + str(delta_scorte) + '</span>' if delta_scorte > 0 else ''}
+                    {'<span class="badge bg-danger">' + str(delta_scorte) + '</span>' if delta_scorte < 0 else ''}
+                </li>
+                <li><strong>Telaini Covata:</strong> {controllo.telaini_covata} 
+                    {'<span class="badge bg-success">+' + str(delta_covata) + '</span>' if delta_covata > 0 else ''}
+                    {'<span class="badge bg-danger">' + str(delta_covata) + '</span>' if delta_covata < 0 else ''}
+                </li>
+                <li><strong>Presenza Regina:</strong> {'Sì' if controllo.presenza_regina else '<span class="text-danger">No</span>'}</li>
+            </ul>
+        """
+        
+        # Aggiungi informazioni su sciamatura se necessario
+        if controllo.sciamatura:
+            details_html += f"""
+            <div class="alert alert-warning">
+                <h6>Sciamatura Rilevata</h6>
+                <p><strong>Data sciamatura:</strong> {controllo.data_sciamatura.strftime('%d/%m/%Y') if controllo.data_sciamatura else 'Non specificata'}</p>
+                {'<p><strong>Note:</strong> ' + controllo.note_sciamatura + '</p>' if controllo.note_sciamatura else ''}
+            </div>
+            """
+        
+        # Aggiungi informazioni su problemi sanitari se necessario
+        if controllo.problemi_sanitari:
+            details_html += f"""
+            <div class="alert alert-danger">
+                <h6>Problemi Sanitari Rilevati</h6>
+                {'<p><strong>Note:</strong> ' + controllo.note_problemi + '</p>' if controllo.note_problemi else ''}
+            </div>
+            """
+        
+        # Aggiungi note generali se presenti
+        if controllo.note:
+            details_html += f"""
+            <div class="mt-3">
+                <h6>Note</h6>
+                <p>{controllo.note}</p>
+            </div>
+            """
+        
+        details_html += "</div>"
+        
+        # Link ai dettagli completi
+        detail_url = f"/app/controllo/{controllo.id}/modifica/"
+        
+        # Crea evento per il calendario
+        event = {
+            'id': f'controllo_{controllo.id}',
+            'title': title,
+            'start': controllo.data.strftime('%Y-%m-%d'),
+            'allDay': True,
+            'className': 'event-controllo',
+            'eventType': 'controllo',
+            'detailsHtml': details_html,
+            'detailUrl': detail_url,
+            'extendedProps': {
+                'apiario': apiario.nome,
+                'arnia': controllo.arnia.numero,
+                'deltaScorte': delta_scorte,
+                'deltaCovata': delta_covata,
+                'eventType': 'controllo',
+                'detailsHtml': details_html,
+                'detailUrl': detail_url
+            }
+        }
+        
+        events.append(event)
+    
+    # ------------------- Recupero Eventi Regina -------------------
+    # Controllare nel modello StoriaRegine per eventi di sostituzione/morte regine
+    storia_regine = StoriaRegine.objects.filter(
+        arnia__in=arnie_ids,
+        data_inizio__gte=start_date,
+        data_inizio__lte=end_date
+    ).select_related('arnia', 'arnia__apiario', 'regina')
+    
+    for storia in storia_regine:
+        arnia = storia.arnia
+        apiario = arnia.apiario
+        
+        title = f"Nuova Regina - Arnia #{arnia.numero}"
+        
+        # Prepara HTML per i dettagli
+        details_html = f"""
+        <div class="event-details">
+            <p><strong>Apiario:</strong> {apiario.nome}</p>
+            <p><strong>Arnia:</strong> #{arnia.numero} ({arnia.get_colore_display()})</p>
+            <p><strong>Data introduzione:</strong> {storia.data_inizio.strftime('%d/%m/%Y')}</p>
+            <h6>Informazioni Regina</h6>
+            <ul>
+                <li><strong>Razza:</strong> {storia.regina.get_razza_display()}</li>
+                <li><strong>Origine:</strong> {storia.regina.get_origine_display()}</li>
+                <li><strong>Età:</strong> {storia.regina.get_eta_anni() if storia.regina.get_eta_anni() else 'Sconosciuta'}</li>
+                <li><strong>Marcata:</strong> {'Sì' if storia.regina.marcata else 'No'}</li>
+            </ul>
+        """
+        
+        # Aggiungi informazioni sulla regina precedente se è una sostituzione
+        if storia.motivo_fine:
+            details_html += f"""
+            <div class="alert alert-info">
+                <h6>Sostituzione Regina</h6>
+                <p><strong>Motivo sostituzione:</strong> {storia.motivo_fine}</p>
+            </div>
+            """
+        
+        # Aggiungi note se presenti
+        if storia.note:
+            details_html += f"""
+            <div class="mt-3">
+                <h6>Note</h6>
+                <p>{storia.note}</p>
+            </div>
+            """
+        
+        details_html += "</div>"
+        
+        # Link ai dettagli completi
+        detail_url = f"/app/arnia/{arnia.id}/regina/"
+        
+        # Crea evento per il calendario
+        event = {
+            'id': f'regina_{storia.id}',
+            'title': title,
+            'start': storia.data_inizio.strftime('%Y-%m-%d'),
+            'allDay': True,
+            'className': 'event-regina',
+            'eventType': 'regina',
+            'detailsHtml': details_html,
+            'detailUrl': detail_url,
+            'extendedProps': {
+                'apiario': apiario.nome,
+                'arnia': arnia.numero,
+                'eventType': 'regina',
+                'detailsHtml': details_html,
+                'detailUrl': detail_url
+            }
+        }
+        
+        events.append(event)
+    
+    # ------------------- Recupero Eventi Melari -------------------
+    # Melari posizionati
+    melari_posizionati = Melario.objects.filter(
+        arnia__in=arnie_ids,
+        data_posizionamento__gte=start_date,
+        data_posizionamento__lte=end_date
+    ).select_related('arnia', 'arnia__apiario')
+    
+    for melario in melari_posizionati:
+        arnia = melario.arnia
+        apiario = arnia.apiario
+        
+        title = f"Melario Aggiunto - Arnia #{arnia.numero}"
+        
+        # Prepara HTML per i dettagli
+        details_html = f"""
+        <div class="event-details">
+            <p><strong>Apiario:</strong> {apiario.nome}</p>
+            <p><strong>Arnia:</strong> #{arnia.numero} ({arnia.get_colore_display()})</p>
+            <p><strong>Data:</strong> {melario.data_posizionamento.strftime('%d/%m/%Y')}</p>
+            <h6>Dettagli Melario</h6>
+            <ul>
+                <li><strong>Posizione:</strong> {melario.posizione}</li>
+                <li><strong>Telaini:</strong> {melario.numero_telaini}</li>
+                <li><strong>Stato:</strong> {melario.get_stato_display()}</li>
+            </ul>
+        """
+        
+        # Aggiungi note se presenti
+        if melario.note:
+            details_html += f"""
+            <div class="mt-3">
+                <h6>Note</h6>
+                <p>{melario.note}</p>
+            </div>
+            """
+        
+        details_html += "</div>"
+        
+        # Link ai dettagli completi
+        detail_url = f"/app/apiario/{apiario.id}/melari/"
+        
+        # Crea evento per il calendario
+        event = {
+            'id': f'melario_add_{melario.id}',
+            'title': title,
+            'start': melario.data_posizionamento.strftime('%Y-%m-%d'),
+            'allDay': True,
+            'className': 'event-melario',
+            'eventType': 'melario',
+            'detailsHtml': details_html,
+            'detailUrl': detail_url,
+            'extendedProps': {
+                'apiario': apiario.nome,
+                'arnia': arnia.numero,
+                'eventType': 'melario',
+                'detailsHtml': details_html,
+                'detailUrl': detail_url
+            }
+        }
+        
+        events.append(event)
+    
+    # Melari rimossi
+    melari_rimossi = Melario.objects.filter(
+        arnia__in=arnie_ids,
+        data_rimozione__gte=start_date,
+        data_rimozione__lte=end_date
+    ).select_related('arnia', 'arnia__apiario')
+    
+    for melario in melari_rimossi:
+        arnia = melario.arnia
+        apiario = arnia.apiario
+        
+        title = f"Melario Rimosso - Arnia #{arnia.numero}"
+        
+        # Prepara HTML per i dettagli
+        details_html = f"""
+        <div class="event-details">
+            <p><strong>Apiario:</strong> {apiario.nome}</p>
+            <p><strong>Arnia:</strong> #{arnia.numero} ({arnia.get_colore_display()})</p>
+            <p><strong>Data:</strong> {melario.data_rimozione.strftime('%d/%m/%Y')}</p>
+            <h6>Dettagli Melario</h6>
+            <ul>
+                <li><strong>Posizione:</strong> {melario.posizione}</li>
+                <li><strong>Telaini:</strong> {melario.numero_telaini}</li>
+                <li><strong>Stato:</strong> {melario.get_stato_display()}</li>
+                <li><strong>Data posizionamento:</strong> {melario.data_posizionamento.strftime('%d/%m/%Y')}</li>
+            </ul>
+        """
+        
+        # Aggiungi note se presenti
+        if melario.note:
+            details_html += f"""
+            <div class="mt-3">
+                <h6>Note</h6>
+                <p>{melario.note}</p>
+            </div>
+            """
+        
+        details_html += "</div>"
+        
+        # Link ai dettagli completi
+        detail_url = f"/app/apiario/{apiario.id}/melari/"
+        
+        # Crea evento per il calendario
+        event = {
+            'id': f'melario_remove_{melario.id}',
+            'title': title,
+            'start': melario.data_rimozione.strftime('%Y-%m-%d'),
+            'allDay': True,
+            'className': 'event-melario',
+            'eventType': 'melario',
+            'detailsHtml': details_html,
+            'detailUrl': detail_url,
+            'extendedProps': {
+                'apiario': apiario.nome,
+                'arnia': arnia.numero,
+                'eventType': 'melario',
+                'detailsHtml': details_html,
+                'detailUrl': detail_url
+            }
+        }
+        
+        events.append(event)
+    
+    # ------------------- Recupero Eventi Trattamenti -------------------
+    # Inizio trattamenti
+    trattamenti_inizio = TrattamentoSanitario.objects.filter(
+        apiario__in=apiari_ids,
+        data_inizio__gte=start_date,
+        data_inizio__lte=end_date
+    ).select_related('apiario', 'tipo_trattamento', 'utente')
+    
+    for trattamento in trattamenti_inizio:
+        apiario = trattamento.apiario
+        
+        title = f"Inizio Trattamento - {trattamento.tipo_trattamento.nome}"
+        
+        # Conta il numero di arnie coinvolte
+        num_arnie = trattamento.arnie.count()
+        
+        # Prepara HTML per i dettagli
+        details_html = f"""
+        <div class="event-details">
+            <p><strong>Apiario:</strong> {apiario.nome}</p>
+            <p><strong>Data inizio:</strong> {trattamento.data_inizio.strftime('%d/%m/%Y')}</p>
+            <p><strong>Operatore:</strong> {trattamento.utente.username}</p>
+            <h6>Dettagli Trattamento</h6>
+            <ul>
+                <li><strong>Tipo:</strong> {trattamento.tipo_trattamento.nome}</li>
+                <li><strong>Principio attivo:</strong> {trattamento.tipo_trattamento.principio_attivo}</li>
+                <li><strong>Stato:</strong> {trattamento.get_stato_display()}</li>
+                <li><strong>Arnie trattate:</strong> {num_arnie if num_arnie > 0 else 'Tutte le arnie dell\'apiario'}</li>
+            </ul>
+        """
+        
+        # Aggiungi informazioni sul blocco di covata se presente
+        if trattamento.blocco_covata_attivo:
+            details_html += f"""
+            <div class="alert alert-warning">
+                <h6>Blocco di Covata Attivo</h6>
+                <p><strong>Data inizio blocco:</strong> {trattamento.data_inizio_blocco.strftime('%d/%m/%Y') if trattamento.data_inizio_blocco else 'Non specificata'}</p>
+                <p><strong>Data fine prevista:</strong> {trattamento.data_fine_blocco.strftime('%d/%m/%Y') if trattamento.data_fine_blocco else 'Non specificata'}</p>
+                {'<p><strong>Metodo:</strong> ' + trattamento.metodo_blocco + '</p>' if trattamento.metodo_blocco else ''}
+            </div>
+            """
+        
+        # Aggiungi note se presenti
+        if trattamento.note:
+            details_html += f"""
+            <div class="mt-3">
+                <h6>Note</h6>
+                <p>{trattamento.note}</p>
+            </div>
+            """
+        
+        details_html += "</div>"
+        
+        # Link ai dettagli completi
+        detail_url = f"/app/trattamento/{trattamento.id}/modifica/"
+        
+        # Crea evento per il calendario
+        event = {
+            'id': f'trattamento_start_{trattamento.id}',
+            'title': title,
+            'start': trattamento.data_inizio.strftime('%Y-%m-%d'),
+            'allDay': True,
+            'className': 'event-trattamento',
+            'eventType': 'trattamento',
+            'detailsHtml': details_html,
+            'detailUrl': detail_url,
+            'extendedProps': {
+                'apiario': apiario.nome,
+                'eventType': 'trattamento',
+                'detailsHtml': details_html,
+                'detailUrl': detail_url
+            }
+        }
+        
+        events.append(event)
+    
+    # Fine trattamenti
+    trattamenti_fine = TrattamentoSanitario.objects.filter(
+        apiario__in=apiari_ids,
+        data_fine__gte=start_date,
+        data_fine__lte=end_date
+    ).select_related('apiario', 'tipo_trattamento', 'utente')
+    
+    for trattamento in trattamenti_fine:
+        apiario = trattamento.apiario
+        
+        title = f"Fine Trattamento - {trattamento.tipo_trattamento.nome}"
+        
+        # Conta il numero di arnie coinvolte
+        num_arnie = trattamento.arnie.count()
+        
+        # Prepara HTML per i dettagli
+        details_html = f"""
+        <div class="event-details">
+            <p><strong>Apiario:</strong> {apiario.nome}</p>
+            <p><strong>Data fine:</strong> {trattamento.data_fine.strftime('%d/%m/%Y')}</p>
+            <p><strong>Operatore:</strong> {trattamento.utente.username}</p>
+            <h6>Dettagli Trattamento</h6>
+            <ul>
+                <li><strong>Tipo:</strong> {trattamento.tipo_trattamento.nome}</li>
+                <li><strong>Principio attivo:</strong> {trattamento.tipo_trattamento.principio_attivo}</li>
+                <li><strong>Stato:</strong> {trattamento.get_stato_display()}</li>
+                <li><strong>Arnie trattate:</strong> {num_arnie if num_arnie > 0 else 'Tutte le arnie dell\'apiario'}</li>
+                <li><strong>Data inizio:</strong> {trattamento.data_inizio.strftime('%d/%m/%Y')}</li>
+            </ul>
+        """
+        
+        # Aggiungi informazioni sulla sospensione
+        if trattamento.data_fine_sospensione and trattamento.data_fine_sospensione > trattamento.data_fine:
+            details_html += f"""
+            <div class="alert alert-danger">
+                <h6>Periodo di Sospensione</h6>
+                <p><strong>Fine sospensione:</strong> {trattamento.data_fine_sospensione.strftime('%d/%m/%Y')}</p>
+                <p><strong>Giorni rimanenti:</strong> {trattamento.get_remaining_suspension_days()}</p>
+            </div>
+            """
+        
+        # Aggiungi note se presenti
+        if trattamento.note:
+            details_html += f"""
+            <div class="mt-3">
+                <h6>Note</h6>
+                <p>{trattamento.note}</p>
+            </div>
+            """
+        
+        details_html += "</div>"
+        
+        # Link ai dettagli completi
+        detail_url = f"/app/trattamento/{trattamento.id}/modifica/"
+        
+        # Crea evento per il calendario
+        event = {
+            'id': f'trattamento_end_{trattamento.id}',
+            'title': title,
+            'start': trattamento.data_fine.strftime('%Y-%m-%d'),
+            'allDay': True,
+            'className': 'event-trattamento',
+            'eventType': 'trattamento',
+            'detailsHtml': details_html,
+            'detailUrl': detail_url,
+            'extendedProps': {
+                'apiario': apiario.nome,
+                'eventType': 'trattamento',
+                'detailsHtml': details_html,
+                'detailUrl': detail_url
+            }
+        }
+        
+        events.append(event)
+    
+    # ------------------- Recupero Fioriture -------------------
+    # Inizio fioriture
+    fioriture_inizio = Fioritura.objects.filter(
+        Q(apiario__in=apiari_ids) | Q(apiario__isnull=True),
+        data_inizio__gte=start_date,
+        data_inizio__lte=end_date
+    ).select_related('apiario')
+    
+    for fioritura in fioriture_inizio:
+        title = f"Inizio Fioritura - {fioritura.pianta}"
+        
+        # Prepara HTML per i dettagli
+        details_html = f"""
+        <div class="event-details">
+            <p><strong>Pianta:</strong> {fioritura.pianta}</p>
+            <p><strong>Data inizio:</strong> {fioritura.data_inizio.strftime('%d/%m/%Y')}</p>
+            {'<p><strong>Apiario:</strong> ' + fioritura.apiario.nome + '</p>' if fioritura.apiario else '<p><strong>Apiario:</strong> Non associato</p>'}
+            <h6>Dettagli Fioritura</h6>
+            <ul>
+                <li><strong>Coordinate:</strong> {fioritura.latitudine}, {fioritura.longitudine}</li>
+                <li><strong>Raggio:</strong> {fioritura.raggio} metri</li>
+                {'<li><strong>Data fine prevista:</strong> ' + fioritura.data_fine.strftime('%d/%m/%Y') + '</li>' if fioritura.data_fine else ''}
+            </ul>
+        """
+        
+        # Aggiungi note se presenti
+        if fioritura.note:
+            details_html += f"""
+            <div class="mt-3">
+                <h6>Note</h6>
+                <p>{fioritura.note}</p>
+            </div>
+            """
+        
+        details_html += "</div>"
+        
+        # Link ai dettagli completi
+        detail_url = f"/app/fioritura/{fioritura.id}/modifica/"
+        
+        # Crea evento per il calendario
+        event = {
+            'id': f'fioritura_start_{fioritura.id}',
+            'title': title,
+            'start': fioritura.data_inizio.strftime('%Y-%m-%d'),
+            'allDay': True,
+            'className': 'event-fioritura',
+            'eventType': 'fioritura',
+            'detailsHtml': details_html,
+            'detailUrl': detail_url,
+            'extendedProps': {
+                'apiario': fioritura.apiario.nome if fioritura.apiario else None,
+                'eventType': 'fioritura',
+                'detailsHtml': details_html,
+                'detailUrl': detail_url
+            }
+        }
+        
+        events.append(event)
+    
+    # Fine fioriture
+    fioriture_fine = Fioritura.objects.filter(
+        Q(apiario__in=apiari_ids) | Q(apiario__isnull=True),
+        data_fine__gte=start_date,
+        data_fine__lte=end_date
+    ).select_related('apiario')
+    
+    for fioritura in fioriture_fine:
+        title = f"Fine Fioritura - {fioritura.pianta}"
+        
+        # Prepara HTML per i dettagli
+        details_html = f"""
+        <div class="event-details">
+            <p><strong>Pianta:</strong> {fioritura.pianta}</p>
+            <p><strong>Data fine:</strong> {fioritura.data_fine.strftime('%d/%m/%Y')}</p>
+            {'<p><strong>Apiario:</strong> ' + fioritura.apiario.nome + '</p>' if fioritura.apiario else '<p><strong>Apiario:</strong> Non associato</p>'}
+            <h6>Dettagli Fioritura</h6>
+            <ul>
+                <li><strong>Coordinate:</strong> {fioritura.latitudine}, {fioritura.longitudine}</li>
+                <li><strong>Raggio:</strong> {fioritura.raggio} metri</li>
+                <li><strong>Data inizio:</strong> {fioritura.data_inizio.strftime('%d/%m/%Y')}</li>
+                <li><strong>Durata:</strong> {(fioritura.data_fine - fioritura.data_inizio).days} giorni</li>
+            </ul>
+        """
+        
+        # Aggiungi note se presenti
+        if fioritura.note:
+            details_html += f"""
+            <div class="mt-3">
+                <h6>Note</h6>
+                <p>{fioritura.note}</p>
+            </div>
+            """
+        
+        details_html += "</div>"
+        
+        # Link ai dettagli completi
+        detail_url = f"/app/fioritura/{fioritura.id}/modifica/"
+        
+        # Crea evento per il calendario
+        event = {
+            'id': f'fioritura_end_{fioritura.id}',
+            'title': title,
+            'start': fioritura.data_fine.strftime('%Y-%m-%d'),
+            'allDay': True,
+            'className': 'event-fioritura',
+            'eventType': 'fioritura',
+            'detailsHtml': details_html,
+            'detailUrl': detail_url,
+            'extendedProps': {
+                'apiario': fioritura.apiario.nome if fioritura.apiario else None,
+                'eventType': 'fioritura',
+                'detailsHtml': details_html,
+                'detailUrl': detail_url
+            }
+        }
+        
+        events.append(event)
+    
+    # ------------------- Recupero Smielature -------------------
+    smielature = Smielatura.objects.filter(
+        apiario__in=apiari_ids,
+        data__gte=start_date,
+        data__lte=end_date
+    ).select_related('apiario', 'utente')
+    
+    for smielatura in smielature:
+        apiario = smielatura.apiario
+        
+        title = f"Smielatura - {apiario.nome}"
+        
+        # Conta i melari smielati
+        num_melari = smielatura.melari.count()
+        
+        # Prepara HTML per i dettagli
+        details_html = f"""
+        <div class="event-details">
+            <p><strong>Apiario:</strong> {apiario.nome}</p>
+            <p><strong>Data:</strong> {smielatura.data.strftime('%d/%m/%Y')}</p>
+            <p><strong>Operatore:</strong> {smielatura.utente.username}</p>
+            <h6>Dettagli Smielatura</h6>
+            <ul>
+                <li><strong>Quantità miele:</strong> {smielatura.quantita_miele} kg</li>
+                <li><strong>Tipo miele:</strong> {smielatura.tipo_miele}</li>
+                <li><strong>Melari smielati:</strong> {num_melari}</li>
+            </ul>
+        """
+        
+        # Aggiungi note se presenti
+        if smielatura.note:
+            details_html += f"""
+            <div class="mt-3">
+                <h6>Note</h6>
+                <p>{smielatura.note}</p>
+            </div>
+            """
+        
+        details_html += "</div>"
+        
+        # Link ai dettagli completi
+        detail_url = f"/app/smielatura/{smielatura.id}/"
+        
+        # Crea evento per il calendario
+        event = {
+            'id': f'smielatura_{smielatura.id}',
+            'title': title,
+            'start': smielatura.data.strftime('%Y-%m-%d'),
+            'allDay': True,
+            'className': 'event-smielatura',
+            'eventType': 'smielatura',
+            'detailsHtml': details_html,
+            'detailUrl': detail_url,
+            'extendedProps': {
+                'apiario': apiario.nome,
+                'eventType': 'smielatura',
+                'detailsHtml': details_html,
+                'detailUrl': detail_url
+            }
+        }
+        
+        events.append(event)
+    
+    # Restituisci gli eventi in formato JSON
+    return JsonResponse(events, safe=False)
+
 # Altre viste necessarie per la gestione completa
 class ArniaCreateView(LoginRequiredMixin, CreateView):
     model = Arnia

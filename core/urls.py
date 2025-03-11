@@ -59,11 +59,15 @@ urlpatterns = [
     path('trattamento/<int:pk>/elimina/', views.elimina_trattamento, name='elimina_trattamento'),
     path('trattamento/<int:pk>/stato/<str:nuovo_stato>/', views.cambio_stato_trattamento, name='cambio_stato_trattamento'),
 
-
     # Tipi di Trattamento
     path('trattamenti/tipi/', views.tipi_trattamento, name='tipi_trattamento'),
     path('trattamenti/tipo/<int:pk>/modifica/', views.modifica_tipo_trattamento, name='modifica_tipo_trattamento'),
     path('trattamenti/tipo/<int:pk>/elimina/', views.elimina_tipo_trattamento, name='elimina_tipo_trattamento'),
+
+    # Calendario Apiario
+    path('calendario/', views.calendario_apiario, name='calendario_apiario'),
+    path('calendario/<int:apiario_id>/', views.calendario_apiario, name='calendario_apiario'),
+    path('calendario/eventi/', views.calendario_eventi_json, name='calendario_eventi_json'),
 
     # Mappe
     path('mappa/', views.mappa_apiari, name='mappa_apiari'),

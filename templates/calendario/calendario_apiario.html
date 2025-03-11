@@ -1,0 +1,477 @@
+<!-- templates/calendario/calendario_apiario.html -->
+{% extends 'base.html' %}
+
+{% block title %}Calendario Apiario - {{ apiario.nome|default:"Tutti gli apiari" }}{% endblock %}
+
+{% block extra_css %}
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.css" rel="stylesheet">
+<style>
+    #calendar {
+        margin-bottom: 20px;
+        height: 650px;
+    }
+    
+    .event-controls {
+        margin-bottom: 15px;
+    }
+    
+    .fc-event {
+        cursor: pointer;
+    }
+    
+    .fc-event-title {
+        font-weight: 500;
+    }
+    
+    /* Colori personalizzati per gli eventi */
+    .event-controllo {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    .event-regina {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    
+    .event-melario {
+        background-color: #198754;
+        border-color: #198754;
+    }
+    
+    .event-trattamento {
+        background-color: #6f42c1;
+        border-color: #6f42c1;
+    }
+    
+    .event-fioritura {
+        background-color: #fd7e14;
+        border-color: #fd7e14;
+    }
+    
+    .event-smielatura {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: #212529;
+    }
+    
+    /* Badge per i delta */
+    .delta-positive {
+        color: #198754;
+    }
+    
+    .delta-negative {
+        color: #dc3545;
+    }
+    
+    .delta-neutral {
+        color: #6c757d;
+    }
+    
+    .filter-button {
+        margin-bottom: 10px;
+        width: 100%;
+        text-align: left;
+    }
+    
+    .filter-button.active {
+        background-color: #0d6efd;
+        color: white;
+    }
+    
+    .filter-section {
+        margin-bottom: 15px;
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    .event-legend {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        margin-right: 15px;
+        margin-bottom: 5px;
+    }
+
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="bi bi-calendar-week"></i> Calendario Apiario</h1>
+            <div>
+                <!-- Dropdown per la selezione dell'apiario -->
+                <div class="dropdown d-inline-block me-2">
+                    <button class="btn btn-outline-primary dropdown-toggle" type="button" id="apiarioDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        {% if apiario %}
+                            {{ apiario.nome }}
+                        {% else %}
+                            Tutti gli apiari
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="apiarioDropdown">
+                        <li><a class="dropdown-item {% if not apiario %}active{% endif %}" href="{% url 'calendario_apiario' %}">Tutti gli apiari</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {% for ap in apiari %}
+                            <li><a class="dropdown-item {% if apiario and apiario.id == ap.id %}active{% endif %}" href="{% url 'calendario_apiario' ap.id %}">{{ ap.nome }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <!-- Dropdown per la selezione del gruppo -->
+                {% if gruppi %}
+                <div class="dropdown d-inline-block me-2">
+                    <button class="btn btn-outline-success dropdown-toggle" type="button" id="gruppoDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        {% if gruppo %}
+                            {{ gruppo.nome }}
+                        {% else %}
+                            Seleziona Gruppo
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="gruppoDropdown">
+                        <li><a class="dropdown-item {% if not gruppo %}active{% endif %}" href="{% url 'calendario_apiario' %}{% if apiario %}{{ apiario.id }}{% endif %}">Tutti i gruppi</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        {% for g in gruppi %}
+                            <li><a class="dropdown-item {% if gruppo.id == g.id %}active{% endif %}" href="{% url 'calendario_apiario' %}{% if apiario %}{{ apiario.id }}{% endif %}?gruppo_id={{ g.id }}">{{ g.nome }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Dashboard
+                </a>
+            </div>
+        </div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                {% if apiario %}
+                    <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
+                {% endif %}
+                <li class="breadcrumb-item active">Calendario</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-calendar3"></i> Calendario Eventi</h5>
+                    <div>
+                        <button id="todayButton" class="btn btn-sm btn-light me-1">Oggi</button>
+                        <div class="btn-group btn-group-sm">
+                            <button id="dayButton" class="btn btn-light">Giorno</button>
+                            <button id="weekButton" class="btn btn-light">Settimana</button>
+                            <button id="monthButton" class="btn btn-light active">Mese</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Legenda eventi -->
+                <div class="event-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #0d6efd;"></div>
+                        <span>Controlli</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #dc3545;"></div>
+                        <span>Eventi Regina</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #198754;"></div>
+                        <span>Melari</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #6f42c1;"></div>
+                        <span>Trattamenti</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #fd7e14;"></div>
+                        <span>Fioriture</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #ffc107;"></div>
+                        <span>Smielature</span>
+                    </div>
+                </div>
+                
+                <!-- Calendario FullCalendar -->
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card sticky-top" style="top: 20px;">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-funnel"></i> Filtri</h5>
+            </div>
+            <div class="card-body">
+                <div class="filter-section">
+                    <h6>Tipi di eventi</h6>
+                    <button class="btn btn-outline-primary filter-button active" data-event-type="controllo">
+                        <i class="bi bi-check-circle"></i> Controlli Apiario
+                    </button>
+                    <button class="btn btn-outline-danger filter-button active" data-event-type="regina">
+                        <i class="bi bi-crown"></i> Eventi Regina
+                    </button>
+                    <button class="btn btn-outline-success filter-button active" data-event-type="melario">
+                        <i class="bi bi-archive"></i> Melari
+                    </button>
+                    <button class="btn btn-outline-purple filter-button active" data-event-type="trattamento">
+                        <i class="bi bi-capsule"></i> Trattamenti
+                    </button>
+                    <button class="btn btn-outline-warning filter-button active" data-event-type="fioritura">
+                        <i class="bi bi-flower1"></i> Fioriture
+                    </button>
+                    <button class="btn btn-outline-warning filter-button active" data-event-type="smielatura">
+                        <i class="bi bi-droplet"></i> Smielature
+                    </button>
+                </div>
+                
+                <div class="filter-section">
+                    <h6>Opzioni visualizzazione</h6>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="filterDeltaTelaini" checked>
+                        <label class="form-check-label" for="filterDeltaTelaini">
+                            Mostra delta telaini
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="filterRaggruppaControlli" checked>
+                        <label class="form-check-label" for="filterRaggruppaControlli">
+                            Raggruppa controlli stesso giorno
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="filterMostraDettagli" checked>
+                        <label class="form-check-label" for="filterMostraDettagli">
+                            Mostra dettagli nei titoli
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h6>Azioni</h6>
+                    <button id="exportCalendar" class="btn btn-outline-secondary w-100 mb-2">
+                        <i class="bi bi-download"></i> Esporta eventi (.ics)
+                    </button>
+                    <button id="printCalendar" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-printer"></i> Stampa calendario
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal per i dettagli dell'evento -->
+<div class="modal fade" id="eventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" id="eventModalHeader">
+                <h5 class="modal-title" id="eventModalTitle">Dettagli Evento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="eventModalBody">
+                <!-- Il contenuto sarà inserito dinamicamente tramite JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <a href="#" id="eventModalLink" class="btn btn-primary" style="display: none;">
+                    <i class="bi bi-eye"></i> Dettagli completi
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/locales/it.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inizializza il calendario
+        var calendarEl = document.getElementById('calendar');
+        var eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+        
+        // Configura FullCalendar
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next',
+                center: 'title',
+                right: ''
+            },
+            locale: 'it',
+            weekNumbers: true,
+            navLinks: true,
+            editable: false,
+            dayMaxEvents: true,
+            eventTimeFormat: {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            },
+            eventClick: function(info) {
+                showEventDetails(info.event);
+            },
+            events: function(info, successCallback, failureCallback) {
+                // Carica eventi tramite Ajax
+                fetch('{% url "calendario_eventi_json" %}{% if apiario %}?apiario_id={{ apiario.id }}{% endif %}{% if gruppo %}&gruppo_id={{ gruppo.id }}{% endif %}')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Applica filtri attivi agli eventi
+                        const filteredEvents = applyFilters(data);
+                        successCallback(filteredEvents);
+                    })
+                    .catch(error => {
+                        console.error('Errore caricamento eventi:', error);
+                        failureCallback(error);
+                    });
+            }
+        });
+        
+        // Inizializza il calendario
+        calendar.render();
+        
+        // Funzione per applicare i filtri agli eventi
+        function applyFilters(events) {
+            const activeFilters = [];
+            document.querySelectorAll('.filter-button.active').forEach(btn => {
+                activeFilters.push(btn.dataset.eventType);
+            });
+            
+            // Filtra eventi in base ai tipi attivi
+            return events.filter(event => {
+                return activeFilters.includes(event.eventType);
+            });
+        }
+        
+        // Funzione per mostrare i dettagli dell'evento nel modal
+        function showEventDetails(event) {
+            const modalTitle = document.getElementById('eventModalTitle');
+            const modalBody = document.getElementById('eventModalBody');
+            const modalHeader = document.getElementById('eventModalHeader');
+            const modalLink = document.getElementById('eventModalLink');
+            
+            // Imposta il titolo e lo stile del modal in base al tipo di evento
+            modalTitle.textContent = event.title;
+            
+            // Imposta il colore dell'header del modal
+            modalHeader.className = 'modal-header';
+            if (event.extendedProps.eventType === 'controllo') {
+                modalHeader.classList.add('bg-primary', 'text-white');
+            } else if (event.extendedProps.eventType === 'regina') {
+                modalHeader.classList.add('bg-danger', 'text-white');
+            } else if (event.extendedProps.eventType === 'melario') {
+                modalHeader.classList.add('bg-success', 'text-white');
+            } else if (event.extendedProps.eventType === 'trattamento') {
+                modalHeader.classList.add('bg-purple', 'text-white');
+            } else if (event.extendedProps.eventType === 'fioritura') {
+                modalHeader.classList.add('bg-orange', 'text-white');
+            } else if (event.extendedProps.eventType === 'smielatura') {
+                modalHeader.classList.add('bg-warning', 'text-dark');
+            }
+            
+            // Popola il corpo del modal con i dettagli dell'evento
+            modalBody.innerHTML = event.extendedProps.detailsHtml || 
+                '<p>Nessun dettaglio disponibile per questo evento.</p>';
+            
+            // Imposta il link per i dettagli completi
+            if (event.extendedProps.detailUrl) {
+                modalLink.href = event.extendedProps.detailUrl;
+                modalLink.style.display = 'inline-block';
+            } else {
+                modalLink.style.display = 'none';
+            }
+            
+            // Mostra il modal
+            eventModal.show();
+        }
+        
+        // Gestione dei pulsanti per cambiare la vista
+        document.getElementById('dayButton').addEventListener('click', function() {
+            calendar.changeView('timeGridDay');
+            updateViewButtons(this);
+        });
+        
+        document.getElementById('weekButton').addEventListener('click', function() {
+            calendar.changeView('timeGridWeek');
+            updateViewButtons(this);
+        });
+        
+        document.getElementById('monthButton').addEventListener('click', function() {
+            calendar.changeView('dayGridMonth');
+            updateViewButtons(this);
+        });
+        
+        document.getElementById('todayButton').addEventListener('click', function() {
+            calendar.today();
+        });
+        
+        // Funzione per aggiornare lo stato attivo dei pulsanti di vista
+        function updateViewButtons(activeButton) {
+            document.querySelectorAll('#dayButton, #weekButton, #monthButton').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            activeButton.classList.add('active');
+        }
+        
+        // Gestione dei pulsanti di filtro
+        document.querySelectorAll('.filter-button').forEach(button => {
+            button.addEventListener('click', function() {
+                this.classList.toggle('active');
+                calendar.refetchEvents();
+            });
+        });
+        
+        // Gestione delle opzioni di visualizzazione
+        document.getElementById('filterDeltaTelaini').addEventListener('change', function() {
+            calendar.refetchEvents();
+        });
+        
+        document.getElementById('filterRaggruppaControlli').addEventListener('change', function() {
+            calendar.refetchEvents();
+        });
+        
+        document.getElementById('filterMostraDettagli').addEventListener('change', function() {
+            calendar.refetchEvents();
+        });
+        
+        // Esportazione calendario
+        document.getElementById('exportCalendar').addEventListener('click', function() {
+            // Implementare l'esportazione del calendario in formato iCalendar (.ics)
+            alert('Funzionalità di esportazione in sviluppo');
+        });
+        
+        // Stampa calendario
+        document.getElementById('printCalendar').addEventListener('click', function() {
+            window.print();
+        });
+    });
+</script>
+{% endblock %}
