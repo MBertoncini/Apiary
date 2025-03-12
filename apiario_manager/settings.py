@@ -53,6 +53,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.meteo_settings',
             ],
         },
     },
@@ -98,6 +99,7 @@ MEDIA_ROOT = '/home/Cible99/Apiary/media'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+METEO_DATA_RETENTION_DAYS = 60  # Mantieni dati meteo per 60 giorni
 OPENWEATHERMAP_API_KEY = '2868f252e943fb71e4d98533c1fb9722'
 
 # Configurazione crispy forms

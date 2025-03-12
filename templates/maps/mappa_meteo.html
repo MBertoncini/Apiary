@@ -1,0 +1,583 @@
+<!-- templates/maps/mappa_meteo.html -->
+{% extends 'maps/base_map.html' %}
+
+{% block title %}Mappa Meteo - Gestione Apiario{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .weather-popup-content {
+        min-width: 250px;
+        padding: 8px 0;
+    }
+    
+    .weather-popup-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .weather-popup-header img {
+        margin-right: 10px;
+    }
+    
+    .weather-popup-header h5 {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+    
+    .weather-popup-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+    
+    .weather-detail-item {
+        padding: 5px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+    
+    .forecast-label {
+        background-color: #17a2b8;
+        color: white;
+        border-radius: 3px;
+        padding: 2px 5px;
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+        display: inline-block;
+    }
+    
+    .weather-marker {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    
+    .weather-marker div {
+        font-weight: bold;
+        font-size: 13px;
+    }
+    
+    .weather-filters {
+        margin-bottom: 15px;
+        padding: 10px;
+        background-color: white;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .weather-type-selector {
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="bi bi-cloud"></i> Mappa Meteo</h1>
+            <div>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Torna alla Dashboard
+                </a>
+                <a href="{% url 'mappa_apiari' %}" class="btn btn-outline-success ms-2">
+                    <i class="bi bi-geo-alt"></i> Mappa Apiari
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-map"></i> Mappa Meteo degli Apiari</h5>
+            </div>
+            <div class="card-body">
+                <div class="weather-filters">
+                    <div class="weather-type-selector text-center">
+                        <div class="btn-group" role="group">
+                            <input type="radio" class="btn-check" name="weatherType" id="weatherTypeCurrent" value="current" checked>
+                            <label class="btn btn-outline-primary" for="weatherTypeCurrent">
+                                <i class="bi bi-cloud"></i> Meteo Attuale
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="weatherType" id="weatherTypeForecast" value="forecast">
+                            <label class="btn btn-outline-primary" for="weatherTypeForecast">
+                                <i class="bi bi-calendar-plus"></i> Previsioni Domani
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="showTemperature" checked>
+                                <label class="form-check-label" for="showTemperature">
+                                    <i class="bi bi-thermometer-half"></i> Temperatura
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="showHumidity" checked>
+                                <label class="form-check-label" for="showHumidity">
+                                    <i class="bi bi-droplet"></i> Umidità
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="showWind" checked>
+                                <label class="form-check-label" for="showWind">
+                                    <i class="bi bi-wind"></i> Vento
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="map" class="mb-3"></div>
+                
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Fai click su un apiario per visualizzare i dettagli meteo.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Legenda</h5>
+            </div>
+            <div class="card-body">
+                <h6>Temperatura</h6>
+                <div class="d-flex justify-content-between mb-3">
+                    <div>
+                        <span class="badge" style="background-color: #053061;">≤ 0°C</span>
+                    </div>
+                    <div>
+                        <span class="badge" style="background-color: #2166ac;">5°C</span>
+                    </div>
+                    <div>
+                        <span class="badge" style="background-color: #4393c3;">10°C</span>
+                    </div>
+                    <div>
+                        <span class="badge" style="background-color: #92c5de;">15°C</span>
+                    </div>
+                    <div>
+                        <span class="badge" style="background-color: #f7f7f7;">20°C</span>
+                    </div>
+                    <div>
+                        <span class="badge" style="background-color: #fddbc7;">25°C</span>
+                    </div>
+                    <div>
+                        <span class="badge" style="background-color: #f4a582;">30°C</span>
+                    </div>
+                    <div>
+                        <span class="badge" style="background-color: #d6604d;">35°C</span>
+                    </div>
+                    <div>
+                        <span class="badge" style="background-color: #b2182b;">≥ 40°C</span>
+                    </div>
+                </div>
+                
+                <h6>Condizioni Meteo (Icone)</h6>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="d-flex align-items-center mb-1">
+                            <img src="https://openweathermap.org/img/wn/01d.png" alt="Sereno" width="30" height="30" class="me-1">
+                            <span>Sereno</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-1">
+                            <img src="https://openweathermap.org/img/wn/02d.png" alt="Poco nuvoloso" width="30" height="30" class="me-1">
+                            <span>Poco nuvoloso</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-1">
+                            <img src="https://openweathermap.org/img/wn/03d.png" alt="Nuvoloso" width="30" height="30" class="me-1">
+                            <span>Nuvoloso</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center mb-1">
+                            <img src="https://openweathermap.org/img/wn/10d.png" alt="Pioggia" width="30" height="30" class="me-1">
+                            <span>Pioggia</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-1">
+                            <img src="https://openweathermap.org/img/wn/11d.png" alt="Temporale" width="30" height="30" class="me-1">
+                            <span>Temporale</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-1">
+                            <img src="https://openweathermap.org/img/wn/13d.png" alt="Neve" width="30" height="30" class="me-1">
+                            <span>Neve</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <h6>Apiari</h6>
+                <div class="mb-1"><span class="badge bg-success">■</span> Tuoi apiari</div>
+                <div class="mb-1"><span class="badge bg-primary">■</span> Apiari condivisi</div>
+                <div class="mb-1"><span class="badge" style="background-color: #6f42c1;">■</span> Apiari del gruppo</div>
+                <div class="mb-1"><span class="badge" style="background-color: #fd7e14;">■</span> Apiari pubblici</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-cloud"></i> Meteo Apiari</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group" id="meteoList">
+                    {% if dati_meteo %}
+                        {% for apiario_id, meteo in dati_meteo.items %}
+                            {% for a in apiari %}
+                                {% if a.id == apiario_id %}
+                                    <a href="#" class="list-group-item list-group-item-action apiario-meteo-item" data-id="{{ apiario_id }}" {% if a.has_coordinates %}data-lat="{{ a.latitudine|stringformat:'.6f' }}" data-lng="{{ a.longitudine|stringformat:'.6f' }}"{% endif %}>
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">{{ a.nome }}</h6>
+                                            <small class="text-primary">{{ meteo.temperatura|floatformat:1 }}°C</small>
+                                        </div>
+                                        <div class="d-flex align-items-center small">
+                                            <img src="https://openweathermap.org/img/wn/{{ meteo.icona }}.png" alt="{{ meteo.descrizione }}" width="30" height="30" class="me-1">
+                                            <span class="text-capitalize">{{ meteo.descrizione }}</span>
+                                        </div>
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <p class="mb-0">Nessun dato meteo disponibile.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="list-group" id="forecastList" style="display: none;">
+                    {% if previsioni_domani %}
+                        {% for apiario_id, previsione in previsioni_domani.items %}
+                            {% for a in apiari %}
+                                {% if a.id == apiario_id %}
+                                    <a href="#" class="list-group-item list-group-item-action apiario-forecast-item" data-id="{{ apiario_id }}" {% if a.has_coordinates %}data-lat="{{ a.latitudine|stringformat:'.6f' }}" data-lng="{{ a.longitudine|stringformat:'.6f' }}"{% endif %}>
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">{{ a.nome }}</h6>
+                                            <small class="text-primary">{{ previsione.temperatura|floatformat:1 }}°C</small>
+                                        </div>
+                                        <div class="d-flex align-items-center small">
+                                            <img src="https://openweathermap.org/img/wn/{{ previsione.icona }}.png" alt="{{ previsione.descrizione }}" width="30" height="30" class="me-1">
+                                            <span class="text-capitalize">{{ previsione.descrizione }}</span>
+                                        </div>
+                                        {% if previsione.probabilita_pioggia > 0 %}
+                                            <div class="small">
+                                                <i class="bi bi-cloud-rain"></i> {{ previsione.probabilita_pioggia }}% prob. pioggia
+                                            </div>
+                                        {% endif %}
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <p class="mb-0">Nessuna previsione disponibile.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inizializza la mappa
+        var map = L.map('map');
+        
+        // Aggiungi il layer di OpenStreetMap
+        L.tileLayer('https://{s}.tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid={{ OPENWEATHERMAP_API_KEY }}', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Weather data &copy; <a href="https://openweathermap.org">OpenWeatherMap</a>',
+            maxZoom: 18,
+            opacity: 0.6
+        }).addTo(map);
+        
+        // Layer base di OpenStreetMap
+        var baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 18
+        }).addTo(map);
+        
+        // Crea i layer group per le diverse categorie
+        var apiariLayer = L.layerGroup().addTo(map);
+        var tempLayer = null;
+        var humidityLayer = null;
+        var windLayer = null;
+        
+        // Dati meteo disponibili
+        var datiMeteo = {
+            {% for apiario_id, meteo in dati_meteo.items %}
+                "{{ apiario_id }}": {
+                    "temperatura": {{ meteo.temperatura|stringformat:".1f" }},
+                    "umidita": {{ meteo.umidita }},
+                    "velocita_vento": {{ meteo.velocita_vento|stringformat:".1f" }},
+                    "descrizione": "{{ meteo.descrizione }}",
+                    "icona": "{{ meteo.icona }}",
+                    "direzione_testo": "{{ meteo.direzione_testo|default:'' }}",
+                    "apiario_nome": "{% for a in apiari %}{% if a.id == apiario_id %}{{ a.nome }}{% endif %}{% endfor %}"
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        };
+        
+        // Dati previsioni per domani
+        var previsioniDomani = {
+            {% for apiario_id, previsione in previsioni_domani.items %}
+                "{{ apiario_id }}": {
+                    "temperatura": {{ previsione.temperatura|stringformat:".1f" }},
+                    "umidita": {{ previsione.umidita }},
+                    "velocita_vento": {{ previsione.velocita_vento|stringformat:".1f" }},
+                    "descrizione": "{{ previsione.descrizione }}",
+                    "icona": "{{ previsione.icona }}",
+                    "direzione_testo": "{{ previsione.direzione_testo|default:'' }}",
+                    "probabilita_pioggia": {{ previsione.probabilita_pioggia|default:0 }},
+                    "apiario_nome": "{% for a in apiari %}{% if a.id == apiario_id %}{{ a.nome }}{% endif %}{% endfor %}"
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        };
+        
+        var bounds = L.latLngBounds();
+        var hasCoordinates = false;
+        
+        // Funzione per ottenere il colore in base alla temperatura
+        function getTemperatureColor(temp) {
+            if (temp <= 0) return '#053061';
+            if (temp <= 5) return '#2166ac';
+            if (temp <= 10) return '#4393c3';
+            if (temp <= 15) return '#92c5de';
+            if (temp <= 20) return '#f7f7f7';
+            if (temp <= 25) return '#fddbc7';
+            if (temp <= 30) return '#f4a582';
+            if (temp <= 35) return '#d6604d';
+            return '#b2182b';  // > 35
+        }
+        
+        // Funzione per creare un marker di apiario con diverse stili in base al tipo
+        function createWeatherMarker(apiario, isProprio, isCondiviso, isVisibileGruppo, isPubblico, isCurrentWeather) {
+            var id = apiario.dataset.id;
+            var lat = parseFloat(apiario.dataset.lat);
+            var lng = parseFloat(apiario.dataset.lng);
+            
+            if (!isNaN(lat) && !isNaN(lng)) {
+                hasCoordinates = true;
+                
+                // Colore di base del marker in base al tipo di accesso
+                let markerColor = '#28a745'; // Default verde per apiari propri
+                let tooltipText = '';
+                
+                if (isProprio) {
+                    markerColor = '#28a745'; // Verde
+                    tooltipText = 'Tuo apiario';
+                } else if (isCondiviso) {
+                    markerColor = '#0d6efd'; // Blu
+                    tooltipText = 'Apiario condiviso';
+                } else if (isVisibileGruppo) {
+                    markerColor = '#6f42c1'; // Viola
+                    tooltipText = 'Visibile al gruppo';
+                } else if (isPubblico) {
+                    markerColor = '#fd7e14'; // Arancione
+                    tooltipText = 'Apiario pubblico';
+                }
+                
+                // Ottieni i dati meteo per l'apiario
+                var meteoData = isCurrentWeather ? datiMeteo[id] : previsioniDomani[id];
+                if (!meteoData) return; // Salta se non ci sono dati meteo
+                
+                // Crea il marker con icona meteorologica
+                var temperatureColor = getTemperatureColor(parseFloat(meteoData.temperatura));
+                
+                var weatherIcon = L.divIcon({
+                    className: 'weather-marker',
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 20],
+                    html: `<div style="width:100%;height:100%;border-radius:50%;background-color:${temperatureColor};border:2px solid ${markerColor};display:flex;justify-content:center;align-items:center;">
+                            <img src="https://openweathermap.org/img/wn/${meteoData.icona}.png" width="30" height="30" style="filter:contrast(1.2);">
+                           </div>`
+                });
+                
+                var marker = L.marker([lat, lng], {
+                    icon: weatherIcon,
+                    title: `${apiario.innerText.trim()} (${meteoData.temperatura}°C)`
+                });
+                
+                // Crea il contenuto del popup con dati meteo
+                var popupContent = `
+                    <div class="weather-popup-content">
+                        ${isCurrentWeather ? '' : '<span class="forecast-label">Previsione domani</span>'}
+                        <div class="weather-popup-header">
+                            <img src="https://openweathermap.org/img/wn/${meteoData.icona}@2x.png" alt="${meteoData.descrizione}" width="40" height="40">
+                            <div>
+                                <h5>${meteoData.apiario_nome}</h5>
+                                <div class="d-flex align-items-center">
+                                    <span class="fw-bold me-2">${meteoData.temperatura}°C</span>
+                                    <span class="text-capitalize">${meteoData.descrizione}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="weather-popup-details">
+                            <div class="weather-detail-item">
+                                <i class="bi bi-droplet"></i> Umidità: ${meteoData.umidita}%
+                            </div>
+                            <div class="weather-detail-item">
+                                <i class="bi bi-wind"></i> Vento: ${meteoData.velocita_vento} km/h ${meteoData.direzione_testo || ''}
+                            </div>
+                            ${!isCurrentWeather && meteoData.probabilita_pioggia ? `
+                            <div class="weather-detail-item">
+                                <i class="bi bi-cloud-rain"></i> Prob. pioggia: ${meteoData.probabilita_pioggia}%
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="mt-2 d-flex justify-content-between">
+                            <a href="/app/apiario/${id}/" class="btn btn-sm btn-primary">
+                                <i class="bi bi-grid"></i> Dettagli Apiario
+                            </a>
+                            <a href="/app/apiario/${id}/meteo/" class="btn btn-sm btn-info text-white">
+                                <i class="bi bi-graph-up"></i> Grafici Meteo
+                            </a>
+                        </div>
+                    </div>
+                `;
+                
+                marker.bindPopup(popupContent, {
+                    maxWidth: 300
+                });
+                
+                marker.addTo(apiariLayer);
+                bounds.extend([lat, lng]);
+        
+                // Aggiungi evento di click sulla lista
+                apiario.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    map.setView([lat, lng], 14);
+                    marker.openPopup();
+                });
+            }
+        }
+        
+        // Toggle tra meteo attuale e previsioni
+        document.querySelectorAll('input[name="weatherType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const showCurrent = this.value === 'current';
+                document.getElementById('meteoList').style.display = showCurrent ? 'block' : 'none';
+                document.getElementById('forecastList').style.display = showCurrent ? 'none' : 'block';
+                
+                // Pulisci i marker esistenti
+                apiariLayer.clearLayers();
+                
+                // Crea nuovi marker
+                if (showCurrent) {
+                    createCurrentWeatherMarkers();
+                } else {
+                    createForecastWeatherMarkers();
+                }
+            });
+        });
+        
+        // Funzione per creare marker del meteo attuale
+        function createCurrentWeatherMarkers() {
+            document.querySelectorAll('.apiario-meteo-item').forEach(function(apiario) {
+                createWeatherMarker(apiario, 
+                    apiario.classList.contains('apiario-proprio'), 
+                    apiario.classList.contains('apiario-condiviso'),
+                    apiario.classList.contains('apiario-visibile-gruppo'),
+                    apiario.classList.contains('apiario-pubblico'),
+                    true
+                );
+            });
+        }
+        
+        // Funzione per creare marker delle previsioni
+        function createForecastWeatherMarkers() {
+            document.querySelectorAll('.apiario-forecast-item').forEach(function(apiario) {
+                createWeatherMarker(apiario, 
+                    apiario.classList.contains('apiario-proprio'),
+                    apiario.classList.contains('apiario-condiviso'),
+                    apiario.classList.contains('apiario-visibile-gruppo'),
+                    apiario.classList.contains('apiario-pubblico'),
+                    false
+                );
+            });
+        }
+        
+        // Inizializza con i marker del meteo attuale
+        createCurrentWeatherMarkers();
+        
+        // Imposta la vista iniziale della mappa
+        if (hasCoordinates) {
+            map.fitBounds(bounds, { padding: [50, 50] });
+        } else {
+            // Se non ci sono coordinate, centra la mappa sull'Italia
+            map.setView([42.83, 12.83], 6);
+        }
+        
+        // Gestione dei layer meteo
+        // Puoi aggiungere layer di temperatura, precipitazioni, copertura nuvolosa, etc.
+        // da OpenWeatherMap o altre fonti
+        
+        document.getElementById('showTemperature').addEventListener('change', function() {
+            if (this.checked) {
+                if (!tempLayer) {
+                    tempLayer = L.tileLayer('https://{s}.tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid={{ OPENWEATHERMAP_API_KEY }}', {
+                        attribution: 'Weather data &copy; <a href="https://openweathermap.org">OpenWeatherMap</a>',
+                        opacity: 0.5
+                    }).addTo(map);
+                } else {
+                    map.addLayer(tempLayer);
+                }
+            } else if (tempLayer) {
+                map.removeLayer(tempLayer);
+            }
+        });
+        
+        document.getElementById('showHumidity').addEventListener('change', function() {
+            if (this.checked) {
+                if (!humidityLayer) {
+                    humidityLayer = L.tileLayer('https://tile.openweathermap.org/map/humidity_new/{z}/{x}/{y}.png?appid={{ OPENWEATHERMAP_API_KEY }}', {
+                        attribution: 'Weather data &copy; <a href="https://openweathermap.org">OpenWeatherMap</a>',
+                        opacity: 0.5
+                    }).addTo(map);
+                } else {
+                    map.addLayer(humidityLayer);
+                }
+            } else if (humidityLayer) {
+                map.removeLayer(humidityLayer);
+            }
+        });
+        
+        document.getElementById('showWind').addEventListener('change', function() {
+            if (this.checked) {
+                if (!windLayer) {
+                    windLayer = L.tileLayer('https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid={{ OPENWEATHERMAP_API_KEY }}', {
+                        attribution: 'Weather data &copy; <a href="https://openweathermap.org">OpenWeatherMap</a>',
+                        opacity: 0.5
+                    }).addTo(map);
+                } else {
+                    map.addLayer(windLayer);
+                }
+            } else if (windLayer) {
+                map.removeLayer(windLayer);
+            }
+        });
+    });
+</script>
+{% endblock %}

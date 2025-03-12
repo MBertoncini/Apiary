@@ -2684,7 +2684,7 @@ def calendario_eventi_json(request):
         gruppo__in=gruppi_utente, 
         condiviso_con_gruppo=True
     ).exclude(proprietario=request.user)
-    
+
     # Filtra per gruppo se specificato
     if gruppo_id:
         apiari_propri = apiari_propri.filter(gruppo_id=gruppo_id)
@@ -3341,6 +3341,230 @@ def calendario_eventi_json(request):
         
         events.append(event)
     
+    # ------------------- Recupero Dati Meteo -------------------
+    # Verificare se i filtri meteo sono attivi
+    show_meteo = request.GET.get('show_meteo', 'true') == 'true'
+    
+    if show_meteo and apiari_ids:
+        # Recupera i dati meteo per il periodo selezionato
+        dati_meteo = DatiMeteo.objects.filter(
+            apiario__in=apiari_ids,
+            data__date__gte=start_date,
+            data__date__lte=end_date
+        ).select_related('apiario')
+        
+        # Raggruppa i dati meteo per giorno e apiario
+        dati_meteo_per_giorno = {}
+        for dato in dati_meteo:
+            giorno = dato.data.date().strftime('%Y-%m-%d')
+            apiario_id = dato.apiario.id
+            
+            if giorno not in dati_meteo_per_giorno:
+                dati_meteo_per_giorno[giorno] = {}
+            
+            if apiario_id not in dati_meteo_per_giorno[giorno]:
+                dati_meteo_per_giorno[giorno][apiario_id] = []
+            
+            dati_meteo_per_giorno[giorno][apiario_id].append(dato)
+        
+        # Calcola la media dei dati meteo per ogni giorno e apiario
+        for giorno, apiari_data in dati_meteo_per_giorno.items():
+            for apiario_id, dati in apiari_data.items():
+                # Trova l'apiario corrispondente
+                apiario = next((a for a in apiari if a.id == apiario_id), None)
+                if not apiario:
+                    continue
+                
+                # Calcola temperatura media, umidità media, ecc.
+                temp_values = [float(d.temperatura) for d in dati if d.temperatura is not None]
+                umidita_values = [d.umidita for d in dati if d.umidita is not None]
+                vento_values = [float(d.velocita_vento) for d in dati if d.velocita_vento is not None]
+                
+                # Estrai descrizione e icona dal dato più recente della giornata
+                dato_recente = sorted(dati, key=lambda x: x.data)[-1]
+                
+                # Solo se ci sono dati meteo validi, crea un evento
+                if temp_values:
+                    temp_avg = sum(temp_values) / len(temp_values)
+                    umidita_avg = sum(umidita_values) / len(umidita_values) if umidita_values else None
+                    vento_avg = sum(vento_values) / len(vento_values) if vento_values else None
+                    
+                    descrizione = dato_recente.descrizione
+                    icona = dato_recente.icona
+                    
+                    # Direzione vento in testo
+                    direzione_testo = ""
+                    if dato_recente.direzione_vento:
+                        direzione_testo = get_wind_direction_text(dato_recente.direzione_vento)
+                    
+                    # Prepara HTML per i dettagli
+                    details_html = f"""
+                    <div class="event-details">
+                        <p><strong>Apiario:</strong> {apiario.nome}</p>
+                        <p><strong>Data:</strong> {giorno}</p>
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="https://openweathermap.org/img/wn/{icona}@2x.png" alt="{descrizione}" width="60" height="60">
+                            <div>
+                                <h3 class="mb-0">{temp_avg:.1f}°C</h3>
+                                <p class="text-capitalize mb-0">{descrizione}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <p><i class="bi bi-droplet"></i> <strong>Umidità:</strong> {umidita_avg:.0f}%</p>
+                            </div>
+                            <div class="col-6">
+                                <p><i class="bi bi-wind"></i> <strong>Vento:</strong> {vento_avg:.1f} km/h {direzione_testo}</p>
+                            </div>
+                        </div>
+                    """
+                    
+                    # Aggiungere eventuali consigli in base al meteo
+                    if temp_avg < 10:
+                        details_html += f"""
+                        <div class="alert alert-warning mt-2">
+                            <i class="bi bi-exclamation-triangle"></i> Temperatura bassa per l'attività delle api ({temp_avg:.1f}°C)
+                        </div>
+                        """
+                    elif temp_avg > 30:
+                        details_html += f"""
+                        <div class="alert alert-warning mt-2">
+                            <i class="bi bi-exclamation-triangle"></i> Temperatura elevata, verificare ventilazione arnie ({temp_avg:.1f}°C)
+                        </div>
+                        """
+                    
+                    if "pioggia" in descrizione.lower() or "temporale" in descrizione.lower():
+                        details_html += f"""
+                        <div class="alert alert-info mt-2">
+                            <i class="bi bi-cloud-rain"></i> Attività di bottinatura potenzialmente ridotta
+                        </div>
+                        """
+                    
+                    details_html += "</div>"
+                    
+                    # Link ai dettagli completi
+                    detail_url = f"/app/apiario/{apiario_id}/meteo/"
+                    
+                    # Crea evento meteo per il calendario
+                    event = {
+                        'id': f'meteo_{apiario_id}_{giorno}',
+                        'title': f"{temp_avg:.1f}°C - {apiario.nome}",
+                        'start': giorno,
+                        'allDay': True,
+                        'className': 'event-meteo',
+                        'display': 'background',  # Rende l'evento come sfondo non cliccabile
+                        'eventType': 'meteo',
+                        'detailsHtml': details_html,
+                        'detailUrl': detail_url,
+                        'extendedProps': {
+                            'apiario': apiario.nome,
+                            'temperatura': f"{temp_avg:.1f}",
+                            'descrizione': descrizione,
+                            'icona': icona,
+                            'umidita': f"{umidita_avg:.0f}" if umidita_avg else "",
+                            'vento': f"{vento_avg:.1f}" if vento_avg else "",
+                            'direzione': direzione_testo,
+                            'eventType': 'meteo',
+                            'detailsHtml': details_html,
+                            'detailUrl': detail_url
+                        }
+                    }
+                    
+                    events.append(event)
+    
+    # ------------------- Recupero Previsioni Meteo -------------------
+    show_previsioni = request.GET.get('show_previsioni', 'true') == 'true'
+    
+    if show_previsioni and apiari_ids:
+        # Recupera le previsioni future per il periodo selezionato
+        oggi = timezone.now().date()
+        previsioni = PrevisioneMeteo.objects.filter(
+            apiario__in=apiari_ids,
+            data_riferimento__date__gte=max(oggi, start_date),
+            data_riferimento__date__lte=end_date
+        ).select_related('apiario')
+        
+        # Raggruppa le previsioni per giorno e apiario (prende solo la prima previsione del giorno)
+        previsioni_per_giorno = {}
+        for previsione in previsioni:
+            giorno = previsione.data_riferimento.date().strftime('%Y-%m-%d')
+            apiario_id = previsione.apiario.id
+            
+            if giorno not in previsioni_per_giorno:
+                previsioni_per_giorno[giorno] = {}
+            
+            # Salva solo la prima previsione per quel giorno e apiario
+            if apiario_id not in previsioni_per_giorno[giorno]:
+                previsioni_per_giorno[giorno][apiario_id] = previsione
+        
+        # Crea eventi per le previsioni
+        for giorno, apiari_data in previsioni_per_giorno.items():
+            for apiario_id, previsione in apiari_data.items():
+                # Trova l'apiario corrispondente
+                apiario = next((a for a in apiari if a.id == apiario_id), None)
+                if not apiario:
+                    continue
+                
+                # Prepara HTML per i dettagli
+                details_html = f"""
+                <div class="event-details">
+                    <p><strong>Apiario:</strong> {apiario.nome}</p>
+                    <p><strong>Previsione per:</strong> {giorno}</p>
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="https://openweathermap.org/img/wn/{previsione.icona}@2x.png" alt="{previsione.descrizione}" width="60" height="60">
+                        <div>
+                            <h3 class="mb-0">{previsione.temperatura}°C</h3>
+                            <p class="text-capitalize mb-0">{previsione.descrizione}</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <p><i class="bi bi-droplet"></i> <strong>Umidità:</strong> {previsione.umidita}%</p>
+                        </div>
+                        <div class="col-6">
+                            <p><i class="bi bi-wind"></i> <strong>Vento:</strong> {previsione.velocita_vento} km/h</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <p><i class="bi bi-cloud-rain"></i> <strong>Prob. pioggia:</strong> {previsione.probabilita_pioggia}%</p>
+                        </div>
+                        <div class="col-6">
+                            <p><i class="bi bi-thermometer"></i> <strong>Min/Max:</strong> {previsione.temperatura_min}°/{previsione.temperatura_max}°C</p>
+                        </div>
+                    </div>
+                </div>
+                """
+                
+                # Link ai dettagli completi
+                detail_url = f"/app/apiario/{apiario_id}/meteo/"
+                
+                # Crea evento per la previsione
+                event = {
+                    'id': f'previsione_{apiario_id}_{giorno}',
+                    'title': f"Previsione: {previsione.temperatura}°C - {apiario.nome}",
+                    'start': giorno,
+                    'allDay': True,
+                    'className': 'event-previsione',
+                    'display': 'background',  # Rende l'evento come sfondo non cliccabile
+                    'eventType': 'previsione',
+                    'detailsHtml': details_html,
+                    'detailUrl': detail_url,
+                    'extendedProps': {
+                        'apiario': apiario.nome,
+                        'temperatura': f"{previsione.temperatura}",
+                        'descrizione': previsione.descrizione,
+                        'icona': previsione.icona,
+                        'umidita': f"{previsione.umidita}",
+                        'probabilita_pioggia': f"{previsione.probabilita_pioggia}",
+                        'eventType': 'previsione',
+                        'detailsHtml': details_html,
+                        'detailUrl': detail_url
+                    }
+                }
+                
+                events.append(event)
+    
     # Restituisci gli eventi in formato JSON
     return JsonResponse(events, safe=False)
 
@@ -3544,6 +3768,79 @@ def grafici_meteo_apiario(request, apiario_id):
     }
     
     return render(request, 'meteo/grafici_meteo.html', context)
+
+@login_required
+def mappa_meteo(request):
+    """Vista per la mappa meteo degli apiari"""
+    # Ottieni apiari a cui l'utente ha accesso diretto (propri o condivisi in gruppo)
+    apiari_propri = list(Apiario.objects.filter(proprietario=request.user))
+    
+    gruppi_utente = Gruppo.objects.filter(membri=request.user)
+    apiari_condivisi = list(Apiario.objects.filter(
+        gruppo__in=gruppi_utente, 
+        condiviso_con_gruppo=True
+    ).exclude(proprietario=request.user))
+    
+    # Ottieni apiari visibili sulla mappa in base alle impostazioni di visibilità
+    apiari_visibili_gruppo = list(Apiario.objects.filter(
+        visibilita_mappa='gruppo',
+        gruppo__in=gruppi_utente
+    ).exclude(id__in=[a.id for a in apiari_propri]).exclude(id__in=[a.id for a in apiari_condivisi]))
+    
+    apiari_pubblici = list(Apiario.objects.filter(
+        visibilita_mappa='pubblico'
+    ).exclude(id__in=[a.id for a in apiari_propri])
+     .exclude(id__in=[a.id for a in apiari_condivisi])
+     .exclude(id__in=[a.id for a in apiari_visibili_gruppo]))
+    
+    # Combina tutti gli apiari accessibili all'utente
+    apiari = apiari_propri + apiari_condivisi + apiari_visibili_gruppo + apiari_pubblici
+    
+    # Recupera solo apiari con coordinate e monitoraggio meteo abilitato
+    apiari_con_meteo = [a for a in apiari if a.has_coordinates() and a.monitoraggio_meteo]
+    
+    # Recupera i dati meteo per gli apiari
+    dati_meteo = {}
+    previsioni_domani = {}
+    
+    for apiario in apiari_con_meteo:
+        # Dati meteo attuali
+        meteo_recente = DatiMeteo.objects.filter(
+            apiario=apiario,
+            data__gte=timezone.now() - timedelta(hours=3)
+        ).order_by('-data').first()
+        
+        if meteo_recente:
+            # Aggiungi la direzione del vento in formato testuale
+            if meteo_recente.direzione_vento:
+                meteo_recente.direzione_testo = get_wind_direction_text(meteo_recente.direzione_vento)
+            dati_meteo[apiario.id] = meteo_recente
+        
+        # Previsioni per domani
+        domani = timezone.now().date() + timedelta(days=1)
+        previsione_domani = PrevisioneMeteo.objects.filter(
+            apiario=apiario,
+            data_riferimento__date=domani
+        ).order_by('data_riferimento').first()
+        
+        if previsione_domani:
+            # Aggiungi la direzione del vento in formato testuale
+            if previsione_domani.direzione_vento:
+                previsione_domani.direzione_testo = get_wind_direction_text(previsione_domani.direzione_vento)
+            previsioni_domani[apiario.id] = previsione_domani
+    
+    context = {
+        'apiari': apiari,
+        'apiari_propri': apiari_propri,
+        'apiari_condivisi': apiari_condivisi,
+        'apiari_visibili_gruppo': apiari_visibili_gruppo,
+        'apiari_pubblici': apiari_pubblici,
+        'dati_meteo': dati_meteo,
+        'previsioni_domani': previsioni_domani,
+        'is_mappa_meteo': True,  # Indica che siamo nella vista mappa meteo
+    }
+    
+    return render(request, 'maps/mappa_meteo.html', context)
 
 # Modifica della vista mappa_apiari per includere i dati meteo
 @login_required

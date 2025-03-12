@@ -69,6 +69,11 @@
         color: #6c757d;
     }
     
+    /* Ensure dropdown menus appear above other content */
+    .dropdown-menu {
+        z-index: 1100 !important; /* Assicura che i dropdown siano sopra altri elementi */
+    }
+    
     .filter-button {
         margin-bottom: 10px;
         width: 100%;
@@ -106,6 +111,43 @@
         border-radius: 50%;
         margin-right: 5px;
     }
+
+    /* Stili per eventi meteo */
+    .weather-icon {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        z-index: 5;
+    }
+    
+    .weather-icon img {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .weather-tooltip {
+        position: absolute;
+        max-width: 250px;
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        padding: 10px;
+        z-index: 1100;
+        pointer-events: none;
+        display: none;
+    }
+    
+    .weather-tooltip.active {
+        display: block;
+    }    
 </style>
 {% endblock %}
 
@@ -213,6 +255,10 @@
                         <div class="legend-color" style="background-color: #ffc107;"></div>
                         <span>Smielature</span>
                     </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #17a2b8;"></div>
+                        <span>Meteo</span>
+                    </div>
                 </div>
                 
                 <!-- Calendario FullCalendar -->
@@ -270,7 +316,21 @@
                         </label>
                     </div>
                 </div>
-                
+                <div class="filter-section">
+                    <h6>Dati meteo</h6>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="filterMeteo" checked>
+                        <label class="form-check-label" for="filterMeteo">
+                            <i class="bi bi-cloud"></i> Mostra meteo
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="filterPrevisioni" checked>
+                        <label class="form-check-label" for="filterPrevisioni">
+                            <i class="bi bi-calendar-plus"></i> Mostra previsioni
+                        </label>
+                    </div>
+                </div>                
                 <div class="filter-section">
                     <h6>Azioni</h6>
                     <button id="exportCalendar" class="btn btn-outline-secondary w-100 mb-2">
@@ -318,6 +378,11 @@
         var calendarEl = document.getElementById('calendar');
         var eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
         
+        // Elemento per tooltip meteo
+        var weatherTooltip = document.createElement('div');
+        weatherTooltip.className = 'weather-tooltip';
+        document.body.appendChild(weatherTooltip);
+        
         // Configura FullCalendar
         var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
@@ -336,16 +401,79 @@
                 minute: '2-digit',
                 hour12: false
             },
+            eventDidMount: function(info) {
+                // Se è un evento meteo o previsione, aggiungi icona meteo
+                if (info.event.extendedProps.eventType === 'meteo' || info.event.extendedProps.eventType === 'previsione') {
+                    // Ignoriamo questi eventi per il rendering standard (li renderizziamo come icone)
+                    return;
+                }
+            },
             eventClick: function(info) {
-                showEventDetails(info.event);
+                // Non mostrare il modal per eventi meteo e previsioni
+                if (info.event.extendedProps.eventType !== 'meteo' && info.event.extendedProps.eventType !== 'previsione') {
+                    showEventDetails(info.event);
+                }
+            },
+            dayCellDidMount: function(info) {
+                // Aggiungi listener per mostrare i dettagli al passaggio del mouse sui dati meteo
+                info.el.addEventListener('mouseover', function(e) {
+                    if (weatherTooltip.dataset.date === info.date.toISOString().split('T')[0]) {
+                        var rect = this.getBoundingClientRect();
+                        weatherTooltip.style.top = (rect.top + window.scrollY - weatherTooltip.offsetHeight - 10) + 'px';
+                        weatherTooltip.style.left = rect.left + window.scrollX + 'px';
+                        weatherTooltip.classList.add('active');
+                    }
+                });
+                
+                info.el.addEventListener('mouseout', function() {
+                    weatherTooltip.classList.remove('active');
+                });
             },
             events: function(info, successCallback, failureCallback) {
-                // Carica eventi tramite Ajax
-                fetch('{% url "calendario_eventi_json" %}{% if apiario %}?apiario_id={{ apiario.id }}{% endif %}{% if gruppo %}&gruppo_id={{ gruppo.id }}{% endif %}')
+                // Filtri meteo
+                const showMeteo = document.getElementById('filterMeteo').checked;
+                const showPrevisioni = document.getElementById('filterPrevisioni').checked;
+                
+                // Carica eventi tramite Ajax con filtri inclusi
+                let url = `{% url "calendario_eventi_json" %}`;
+                const queryParams = [];
+
+                {% if apiario %}
+                queryParams.push(`apiario_id={{ apiario.id }}`);
+                {% endif %}
+
+                {% if gruppo %}
+                queryParams.push(`gruppo_id={{ gruppo.id }}`);
+                {% endif %}
+
+                queryParams.push(`show_meteo=${showMeteo}`);
+                queryParams.push(`show_previsioni=${showPrevisioni}`);
+
+                // Aggiungi il punto interrogativo e unisci i parametri con '&'
+                if (queryParams.length > 0) {
+                    url += '?' + queryParams.join('&');
+                }
+
+                fetch(url)
                     .then(response => response.json())
                     .then(data => {
+                        // Estrai eventi meteo per renderizzarli come icone
+                        const standardEvents = [];
+                        const meteoEvents = [];
+                        
+                        data.forEach(event => {
+                            if (event.eventType === 'meteo' || event.eventType === 'previsione') {
+                                meteoEvents.push(event);
+                            } else {
+                                standardEvents.push(event);
+                            }
+                        });
+                        
+                        // Aggiungi icone meteo ai giorni
+                        renderWeatherIcons(meteoEvents);
+                        
                         // Applica filtri attivi agli eventi
-                        const filteredEvents = applyFilters(data);
+                        const filteredEvents = applyFilters(standardEvents);
                         successCallback(filteredEvents);
                     })
                     .catch(error => {
@@ -358,12 +486,117 @@
         // Inizializza il calendario
         calendar.render();
         
+        // Funzione per renderizzare le icone meteo nelle celle del calendario
+        function renderWeatherIcons(meteoEvents) {
+            // Rimuovi tutte le icone meteo esistenti
+            document.querySelectorAll('.weather-icon').forEach(icon => icon.remove());
+            
+            // Raggruppa eventi meteo per data
+            const eventsByDate = {};
+            meteoEvents.forEach(event => {
+                if (!eventsByDate[event.start]) {
+                    eventsByDate[event.start] = [];
+                }
+                eventsByDate[event.start].push(event);
+            });
+            
+            // Per ogni data, trova la cella del calendario e aggiungi l'icona
+            for (const [date, events] of Object.entries(eventsByDate)) {
+                // Usa il selettore che sappiamo funzionare in base ai log
+                const dateCell = document.querySelector(`.fc-day[data-date="${date}"]`);
+                
+                if (!dateCell) {
+                    console.warn(`Nessuna cella trovata per la data ${date}`);
+                    continue;
+                }
+                
+                // IMPORTANTE: Imposta position:relative sulla cella del calendario
+                // per fare in modo che position:absolute delle icone sia relativo alla cella
+                dateCell.style.position = 'relative';
+                
+                // Prendi il primo evento meteo per questa data
+                const event = events[0];
+                
+                // Crea l'icona meteo
+                const weatherIcon = document.createElement('div');
+                weatherIcon.className = 'weather-icon';
+                weatherIcon.innerHTML = `<img src="https://openweathermap.org/img/wn/${event.extendedProps.icona}.png" alt="${event.extendedProps.descrizione}">`;
+                
+                // Aggiungi attributi data per il tooltip
+                weatherIcon.dataset.date = date;
+                weatherIcon.dataset.temp = event.extendedProps.temperatura;
+                weatherIcon.dataset.desc = event.extendedProps.descrizione;
+                weatherIcon.dataset.icon = event.extendedProps.icona;
+                
+                if (event.extendedProps.umidita) {
+                    weatherIcon.dataset.umidita = event.extendedProps.umidita;
+                }
+                if (event.extendedProps.vento) {
+                    weatherIcon.dataset.vento = event.extendedProps.vento;
+                }
+                if (event.extendedProps.probabilita_pioggia) {
+                    weatherIcon.dataset.pioggia = event.extendedProps.probabilita_pioggia;
+                }
+                
+                // Aggiungi listener per mostrare tooltip
+                weatherIcon.addEventListener('mouseover', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    
+                    // Costruisci contenuto tooltip
+                    let tooltipContent = `
+                        <div class="d-flex align-items-center mb-2">
+                            <img src="https://openweathermap.org/img/wn/${this.dataset.icon}@2x.png" alt="${this.dataset.desc}" width="40" height="40">
+                            <div>
+                                <h6 class="mb-0">${this.dataset.temp}°C</h6>
+                                <p class="text-capitalize mb-0">${this.dataset.desc}</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    if (this.dataset.umidita) {
+                        tooltipContent += `<p class="mb-1 small"><i class="bi bi-droplet"></i> Umidità: ${this.dataset.umidita}%</p>`;
+                    }
+                    if (this.dataset.vento) {
+                        tooltipContent += `<p class="mb-1 small"><i class="bi bi-wind"></i> Vento: ${this.dataset.vento} km/h</p>`;
+                    }
+                    if (this.dataset.pioggia) {
+                        tooltipContent += `<p class="mb-1 small"><i class="bi bi-cloud-rain"></i> Prob. pioggia: ${this.dataset.pioggia}%</p>`;
+                    }
+                    
+                    // Controlla se è previsione o meteo attuale
+                    const isPrevisione = event.eventType === 'previsione';
+                    tooltipContent += `<div class="small text-muted">${isPrevisione ? 'Previsione' : 'Meteo'} per ${date}</div>`;
+                    
+                    // Aggiorna tooltip
+                    weatherTooltip.innerHTML = tooltipContent;
+                    weatherTooltip.dataset.date = this.dataset.date;
+                    
+                    // Posiziona tooltip
+                    weatherTooltip.style.top = (rect.top + window.scrollY - weatherTooltip.offsetHeight - 10) + 'px';
+                    weatherTooltip.style.left = rect.left + window.scrollX - (weatherTooltip.offsetWidth / 2) + (rect.width / 2) + 'px';
+                    weatherTooltip.classList.add('active');
+                });
+                
+                weatherIcon.addEventListener('mouseout', function() {
+                    weatherTooltip.classList.remove('active');
+                });
+                
+                // Aggiungi icona alla cella
+                dateCell.appendChild(weatherIcon);
+            }
+        }
+        
         // Funzione per applicare i filtri agli eventi
         function applyFilters(events) {
             const activeFilters = [];
             document.querySelectorAll('.filter-button.active').forEach(btn => {
                 activeFilters.push(btn.dataset.eventType);
             });
+            
+            // Se non ci sono filtri attivi, mostra tutti gli eventi
+            if (activeFilters.length === 0) {
+                return events;
+            }
             
             // Filtra eventi in base ai tipi attivi
             return events.filter(event => {
@@ -395,6 +628,8 @@
                 modalHeader.classList.add('bg-orange', 'text-white');
             } else if (event.extendedProps.eventType === 'smielatura') {
                 modalHeader.classList.add('bg-warning', 'text-dark');
+            } else if (event.extendedProps.eventType === 'meteo' || event.extendedProps.eventType === 'previsione') {
+                modalHeader.classList.add('bg-info', 'text-white');
             }
             
             // Popola il corpo del modal con i dettagli dell'evento
@@ -447,6 +682,15 @@
                 this.classList.toggle('active');
                 calendar.refetchEvents();
             });
+        });
+        
+        // Gestione dei checkboxes meteo
+        document.getElementById('filterMeteo').addEventListener('change', function() {
+            calendar.refetchEvents();
+        });
+        
+        document.getElementById('filterPrevisioni').addEventListener('change', function() {
+            calendar.refetchEvents();
         });
         
         // Gestione delle opzioni di visualizzazione

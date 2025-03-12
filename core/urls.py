@@ -96,4 +96,5 @@ urlpatterns = [
     # Meteo
     path('apiario/<int:apiario_id>/meteo/', views.visualizza_meteo_apiario, name='visualizza_meteo_apiario'),
     path('apiario/<int:apiario_id>/meteo/grafici/', views.grafici_meteo_apiario, name='grafici_meteo_apiario'),
+    path('mappa/meteo/', views.mappa_meteo, name='mappa_meteo'),
 ]

@@ -81,11 +81,18 @@ class DateInput(forms.DateInput):
 class ApiarioForm(forms.ModelForm):
     class Meta:
         model = Apiario
-        fields = ['nome', 'posizione', 'latitudine', 'longitudine', 'note']
+        fields = ['nome', 'posizione', 'latitudine', 'longitudine', 'note', 'monitoraggio_meteo']
         widgets = {
             'note': forms.Textarea(attrs={'rows': 3}),
             'latitudine': forms.NumberInput(attrs={'step': '0.000001', 'class': 'coordinate-input lat-input'}),
             'longitudine': forms.NumberInput(attrs={'step': '0.000001', 'class': 'coordinate-input lng-input'}),
+            'monitoraggio_meteo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'monitoraggio_meteo': 'Abilita monitoraggio meteo',
+        }
+        help_texts = {
+            'monitoraggio_meteo': 'Se abilitato, verranno raccolti e visualizzati dati meteorologici per questo apiario',
         }
 
 # Modifica alla classe ArniaForm in forms.py
