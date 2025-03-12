@@ -97,6 +97,8 @@ class Apiario(models.Model):
     gruppo = models.ForeignKey(Gruppo, on_delete=models.SET_NULL, null=True, blank=True, related_name='apiari')
     condiviso_con_gruppo = models.BooleanField(default=False, help_text="Se abilitato, l'apiario è condiviso con tutti i membri del gruppo")    
 
+    monitoraggio_meteo = models.BooleanField(default=True, help_text="Abilita il monitoraggio meteorologico per questo apiario")
+
     # Aggiungere questa tupla alla classe Apiario
     VISIBILITA_CHOICES = [
         ('privato', 'Solo proprietario'),
@@ -690,3 +692,49 @@ class ImmagineProfilo(models.Model):
 def crea_immagine_gruppo(sender, instance, created, **kwargs):
     if created:
         ImmagineProfilo.objects.create(gruppo=instance)
+
+
+class DatiMeteo(models.Model):
+    """Modello per memorizzare i dati meteorologici relativi agli apiari"""
+    apiario = models.ForeignKey(Apiario, on_delete=models.CASCADE, related_name='dati_meteo')
+    data = models.DateTimeField()
+    temperatura = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    umidita = models.IntegerField(null=True, blank=True)
+    pressione = models.IntegerField(null=True, blank=True)
+    velocita_vento = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    direzione_vento = models.IntegerField(null=True, blank=True)
+    descrizione = models.CharField(max_length=100, null=True, blank=True)
+    icona = models.CharField(max_length=20, null=True, blank=True)
+    pioggia = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    
+    class Meta:
+        verbose_name = "Dato Meteo"
+        verbose_name_plural = "Dati Meteo"
+        ordering = ['-data']
+        
+    def __str__(self):
+        return f"Meteo {self.apiario.nome} - {self.data.strftime('%d/%m/%Y %H:%M')}"
+
+class PrevisioneMeteo(models.Model):
+    """Modello per memorizzare le previsioni meteorologiche future"""
+    apiario = models.ForeignKey(Apiario, on_delete=models.CASCADE, related_name='previsioni_meteo')
+    data_previsione = models.DateTimeField()  # Data e ora della previsione
+    data_riferimento = models.DateTimeField()  # Data e ora a cui si riferisce la previsione
+    temperatura_min = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    temperatura_max = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    temperatura = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    umidita = models.IntegerField(null=True, blank=True)
+    pressione = models.IntegerField(null=True, blank=True)
+    velocita_vento = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    direzione_vento = models.IntegerField(null=True, blank=True)
+    probabilita_pioggia = models.IntegerField(null=True, blank=True)
+    descrizione = models.CharField(max_length=100, null=True, blank=True)
+    icona = models.CharField(max_length=20, null=True, blank=True)
+    
+    class Meta:
+        verbose_name = "Previsione Meteo"
+        verbose_name_plural = "Previsioni Meteo"
+        ordering = ['data_riferimento']
+        
+    def __str__(self):
+        return f"Previsione {self.apiario.nome} - {self.data_riferimento.strftime('%d/%m/%Y %H:%M')}"

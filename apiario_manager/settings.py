@@ -14,8 +14,8 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-yourkey1234567
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['Cible99.pythonanywhere.com']
-#ALLOWED_HOSTS = ['Cible99.pythonanywhere.com', 'localhost', '127.0.0.1']
+#ALLOWED_HOSTS = ['Cible99.pythonanywhere.com']
+ALLOWED_HOSTS = ['Cible99.pythonanywhere.com', 'localhost', '127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
@@ -97,6 +97,8 @@ MEDIA_ROOT = '/home/Cible99/Apiary/media'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+OPENWEATHERMAP_API_KEY = '2868f252e943fb71e4d98533c1fb9722'
 
 # Configurazione crispy forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"

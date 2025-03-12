@@ -3344,6 +3344,294 @@ def calendario_eventi_json(request):
     # Restituisci gli eventi in formato JSON
     return JsonResponse(events, safe=False)
 
+# core/views.py
+# Aggiungi queste viste al file views.py esistente
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.utils import timezone
+from datetime import datetime, timedelta
+from django.db.models import Avg
+
+from .models import Apiario, DatiMeteo, PrevisioneMeteo, ControlloArnia
+from .meteo_utils import ottieni_dati_meteo_correnti, ottieni_previsioni_meteo, get_wind_direction_text
+
+@login_required
+def visualizza_meteo_apiario(request, apiario_id):
+    """Vista per visualizzare i dati meteo di un apiario"""
+    apiario = get_object_or_404(Apiario, pk=apiario_id)
+    
+    # Verifica che l'utente abbia accesso all'apiario
+    can_view = False
+    if apiario.proprietario == request.user:
+        can_view = True
+    elif apiario.gruppo and apiario.condiviso_con_gruppo:
+        try:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=apiario.gruppo)
+            can_view = True
+        except MembroGruppo.DoesNotExist:
+            pass
+    
+    if not can_view:
+        messages.error(request, "Non hai accesso a questo apiario.")
+        return redirect('dashboard')
+    
+    # Ottieni i dati meteo attuali
+    dati_meteo = ottieni_dati_meteo_correnti(apiario)
+    
+    # Ottieni le previsioni meteo
+    previsioni = ottieni_previsioni_meteo(apiario)
+    
+    # Formatta i dati meteo attuali per una migliore visualizzazione
+    if dati_meteo and dati_meteo.direzione_vento:
+        dati_meteo.direzione_testo = get_wind_direction_text(dati_meteo.direzione_vento)
+    
+    # Raggruppa le previsioni per giorno
+    previsioni_per_giorno = {}
+    for previsione in previsioni:
+        giorno = previsione.data_riferimento.strftime('%Y-%m-%d')
+        if giorno not in previsioni_per_giorno:
+            previsioni_per_giorno[giorno] = []
+        previsioni_per_giorno[giorno].append(previsione)
+    
+    context = {
+        'apiario': apiario,
+        'dati_meteo': dati_meteo,
+        'previsioni': previsioni,
+        'previsioni_per_giorno': previsioni_per_giorno,
+    }
+    
+    return render(request, 'meteo/visualizza_meteo.html', context)
+
+@login_required
+def grafici_meteo_apiario(request, apiario_id):
+    """Vista per visualizzare grafici dei dati meteo per un apiario"""
+    apiario = get_object_or_404(Apiario, pk=apiario_id)
+    
+    # Verifica che l'utente abbia accesso all'apiario
+    can_view = False
+    if apiario.proprietario == request.user:
+        can_view = True
+    elif apiario.gruppo and apiario.condiviso_con_gruppo:
+        try:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=apiario.gruppo)
+            can_view = True
+        except MembroGruppo.DoesNotExist:
+            pass
+    
+    if not can_view:
+        messages.error(request, "Non hai accesso a questo apiario.")
+        return redirect('dashboard')
+    
+    # Recupera i dati meteo storici
+    periodo = request.GET.get('periodo', '7d')  # Default: 7 giorni
+    
+    if periodo == '7d':
+        data_inizio = timezone.now() - timedelta(days=7)
+    elif periodo == '30d':
+        data_inizio = timezone.now() - timedelta(days=30)
+    elif periodo == '90d':
+        data_inizio = timezone.now() - timedelta(days=90)
+    else:  # anno corrente
+        data_inizio = timezone.now().replace(month=1, day=1, hour=0, minute=0, second=0)
+    
+    dati_meteo = DatiMeteo.objects.filter(
+        apiario=apiario,
+        data__gte=data_inizio
+    ).order_by('data')
+    
+    # Raggruppa i dati meteo per giorno (media)
+    dati_per_giorno = {}
+    for dato in dati_meteo:
+        giorno = dato.data.strftime('%Y-%m-%d')
+        if giorno not in dati_per_giorno:
+            dati_per_giorno[giorno] = {
+                'date': giorno,
+                'temp_values': [],
+                'umid_values': [],
+                'wind_values': [],
+                'press_values': []
+            }
+        
+        if dato.temperatura:
+            dati_per_giorno[giorno]['temp_values'].append(float(dato.temperatura))
+        if dato.umidita:
+            dati_per_giorno[giorno]['umid_values'].append(dato.umidita)
+        if dato.velocita_vento:
+            dati_per_giorno[giorno]['wind_values'].append(float(dato.velocita_vento))
+        if dato.pressione:
+            dati_per_giorno[giorno]['press_values'].append(dato.pressione)
+    
+    # Calcola le medie giornaliere
+    dati_aggregati = []
+    for giorno, valori in dati_per_giorno.items():
+        aggregato = {
+            'date': giorno,
+            'temperatura': round(sum(valori['temp_values']) / len(valori['temp_values']), 1) if valori['temp_values'] else None,
+            'umidita': round(sum(valori['umid_values']) / len(valori['umid_values'])) if valori['umid_values'] else None,
+            'vento': round(sum(valori['wind_values']) / len(valori['wind_values']), 1) if valori['wind_values'] else None,
+            'pressione': round(sum(valori['press_values']) / len(valori['press_values'])) if valori['press_values'] else None
+        }
+        dati_aggregati.append(aggregato)
+    
+    # Ordina i dati per data
+    dati_aggregati.sort(key=lambda x: x['date'])
+    
+    # Recupera i controlli delle arnie nello stesso periodo
+    controlli = ControlloArnia.objects.filter(
+        arnia__apiario=apiario,
+        data__gte=data_inizio.date()
+    ).order_by('data')
+    
+    # Raggruppa i controlli per giorno (somma telaini per arnia)
+    controlli_per_giorno = {}
+    arnie_per_giorno = {}
+    
+    for controllo in controlli:
+        giorno = controllo.data.strftime('%Y-%m-%d')
+        if giorno not in controlli_per_giorno:
+            controlli_per_giorno[giorno] = {
+                'date': giorno,
+                'telaini_covata': 0,
+                'telaini_scorte': 0,
+                'arnie_controllate': set()
+            }
+        
+        controlli_per_giorno[giorno]['telaini_covata'] += controllo.telaini_covata
+        controlli_per_giorno[giorno]['telaini_scorte'] += controllo.telaini_scorte
+        controlli_per_giorno[giorno]['arnie_controllate'].add(controllo.arnia.id)
+    
+    # Calcola la media per arnia
+    dati_controlli = []
+    for giorno, valori in controlli_per_giorno.items():
+        num_arnie = len(valori['arnie_controllate'])
+        if num_arnie > 0:
+            dati_controllo = {
+                'date': giorno,
+                'telaini_covata_media': round(valori['telaini_covata'] / num_arnie, 1),
+                'telaini_scorte_media': round(valori['telaini_scorte'] / num_arnie, 1),
+                'arnie_controllate': num_arnie
+            }
+            dati_controlli.append(dati_controllo)
+    
+    # Ordina i dati per data
+    dati_controlli.sort(key=lambda x: x['date'])
+    
+    # Prepara dati per i grafici
+    date_meteo = [dato['date'] for dato in dati_aggregati]
+    temperature = [dato['temperatura'] for dato in dati_aggregati]
+    umidita = [dato['umidita'] for dato in dati_aggregati]
+    vento = [dato['vento'] for dato in dati_aggregati]
+    
+    # Dati delle arnie per confronto
+    date_controlli = [dato['date'] for dato in dati_controlli]
+    telaini_covata_media = [dato['telaini_covata_media'] for dato in dati_controlli]
+    telaini_scorte_media = [dato['telaini_scorte_media'] for dato in dati_controlli]
+    
+    context = {
+        'apiario': apiario,
+        'periodo': periodo,
+        'date_meteo': date_meteo,
+        'temperature': temperature,
+        'umidita': umidita,
+        'vento': vento,
+        'date_controlli': date_controlli,
+        'telaini_covata_media': telaini_covata_media,
+        'telaini_scorte_media': telaini_scorte_media,
+        'dati_aggregati': dati_aggregati,
+        'dati_controlli': dati_controlli,
+    }
+    
+    return render(request, 'meteo/grafici_meteo.html', context)
+
+# Modifica della vista mappa_apiari per includere i dati meteo
+@login_required
+def mappa_apiari(request):
+    """Vista per la mappa degli apiari e delle fioriture, con dati meteo"""
+    # ... Codice esistente per recuperare apiari ...
+    
+    # Ottieni apiari a cui l'utente ha accesso diretto (propri o condivisi in gruppo)
+    apiari_propri = list(Apiario.objects.filter(proprietario=request.user))
+    
+    gruppi_utente = Gruppo.objects.filter(membri=request.user)
+    apiari_condivisi = list(Apiario.objects.filter(
+        gruppo__in=gruppi_utente, 
+        condiviso_con_gruppo=True
+    ).exclude(proprietario=request.user))
+    
+    # Ottieni apiari visibili sulla mappa in base alle impostazioni di visibilità
+    apiari_visibili_gruppo = list(Apiario.objects.filter(
+        visibilita_mappa='gruppo',
+        gruppo__in=gruppi_utente
+    ).exclude(id__in=[a.id for a in apiari_propri]).exclude(id__in=[a.id for a in apiari_condivisi]))
+    
+    apiari_pubblici = list(Apiario.objects.filter(
+        visibilita_mappa='pubblico'
+    ).exclude(id__in=[a.id for a in apiari_propri])
+     .exclude(id__in=[a.id for a in apiari_condivisi])
+     .exclude(id__in=[a.id for a in apiari_visibili_gruppo]))
+    
+    # Combina tutti gli apiari accessibili all'utente
+    apiari = apiari_propri + apiari_condivisi + apiari_visibili_gruppo + apiari_pubblici
+    
+    # ... Codice esistente per recuperare fioriture ...
+    
+    # Ottieni la data corrente
+    oggi = timezone.now().date()
+    
+    # Recupera le fioriture attive per gli apiari accessibili
+    fioriture_attive = Fioritura.objects.filter(
+        apiario__in=apiari,
+        data_inizio__lte=oggi
+    ).filter(
+        Q(data_fine__isnull=True) | Q(data_fine__gte=oggi)
+    )
+    
+    # Recupera le fioriture programmate (future)
+    fioriture_programmate = Fioritura.objects.filter(
+        apiario__in=apiari,
+        data_inizio__gt=oggi
+    )
+    
+    # Recupera le fioriture passate (ultimi 6 mesi)
+    sei_mesi_fa = oggi - timedelta(days=180)
+    fioriture_passate = Fioritura.objects.filter(
+        apiario__in=apiari,
+        data_fine__lt=oggi,
+        data_fine__gte=sei_mesi_fa
+    )
+    
+    # Recupera i dati meteo per gli apiari
+    dati_meteo = {}
+    for apiario in apiari:
+        if apiario.has_coordinates() and apiario.monitoraggio_meteo:
+            # Cerca dati meteo recenti (ultimi 60 minuti)
+            meteo_recente = DatiMeteo.objects.filter(
+                apiario=apiario,
+                data__gte=timezone.now() - timedelta(minutes=60)
+            ).order_by('-data').first()
+            
+            if meteo_recente:
+                # Aggiungi la direzione del vento in formato testuale
+                if meteo_recente.direzione_vento:
+                    meteo_recente.direzione_testo = get_wind_direction_text(meteo_recente.direzione_vento)
+                dati_meteo[apiario.id] = meteo_recente
+    
+    context = {
+        'apiari': apiari,
+        'apiari_propri': apiari_propri,
+        'apiari_condivisi': apiari_condivisi,
+        'apiari_visibili_gruppo': apiari_visibili_gruppo,
+        'apiari_pubblici': apiari_pubblici,
+        'fioriture_attive': fioriture_attive,
+        'fioriture_programmate': fioriture_programmate,
+        'fioriture_passate': fioriture_passate,
+        'dati_meteo': dati_meteo,
+    }
+    
+    return render(request, 'maps/mappa_apiari.html', context)
+
 # Altre viste necessarie per la gestione completa
 class ArniaCreateView(LoginRequiredMixin, CreateView):
     model = Arnia

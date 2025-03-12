@@ -1,0 +1,473 @@
+<!-- templates/meteo/grafici_meteo.html -->
+{% extends 'base.html' %}
+
+{% block title %}Grafici Meteo - {{ apiario.nome }} - Gestione Apiario{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chart-container {
+        position: relative;
+        margin: auto;
+        height: 350px;
+        margin-bottom: 30px;
+    }
+    
+    .period-selector {
+        margin-bottom: 20px;
+    }
+    
+    .period-selector .btn-check:checked + .btn-outline-primary {
+        background-color: #0d6efd;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="bi bi-graph-up"></i> Grafici Meteo - {{ apiario.nome }}</h1>
+            <div>
+                <a href="{% url 'visualizza_meteo_apiario' apiario.id %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Torna al Meteo
+                </a>
+                <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-outline-primary ms-2">
+                    <i class="bi bi-grid"></i> Vai all'Apiario
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <!-- Selettore periodo -->
+        <div class="period-selector d-flex justify-content-center mb-4">
+            <div class="btn-group" role="group">
+                <input type="radio" class="btn-check" name="periodo" id="periodo7d" value="7d" {% if periodo == '7d' %}checked{% endif %}>
+                <label class="btn btn-outline-primary" for="periodo7d">7 giorni</label>
+                
+                <input type="radio" class="btn-check" name="periodo" id="periodo30d" value="30d" {% if periodo == '30d' %}checked{% endif %}>
+                <label class="btn btn-outline-primary" for="periodo30d">30 giorni</label>
+                
+                <input type="radio" class="btn-check" name="periodo" id="periodo90d" value="90d" {% if periodo == '90d' %}checked{% endif %}>
+                <label class="btn btn-outline-primary" for="periodo90d">90 giorni</label>
+                
+                <input type="radio" class="btn-check" name="periodo" id="periodoYear" value="year" {% if periodo == 'year' %}checked{% endif %}>
+                <label class="btn btn-outline-primary" for="periodoYear">Anno corrente</label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-thermometer-half"></i> Temperatura</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="temperaturaChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-droplet"></i> Umidità</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="umiditaChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-wind"></i> Velocità del Vento</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="ventoChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Controlli Arnie</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="telainiChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Confronto Temperatura e Attività Arnie</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="confrontoChart"></canvas>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle"></i> Questo grafico mostra la relazione tra temperatura ambientale e sviluppo della covata/raccolta di scorte.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-table"></i> Tabella Dati</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Temperatura</th>
+                                <th>Umidità</th>
+                                <th>Vento</th>
+                                <th>Arnie Controllate</th>
+                                <th>Media Telaini Covata</th>
+                                <th>Media Telaini Scorte</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for data in dati_aggregati %}
+                                <tr>
+                                    <td>{{ data.date }}</td>
+                                    <td>{% if data.temperatura %}{{ data.temperatura }}°C{% else %}-{% endif %}</td>
+                                    <td>{% if data.umidita %}{{ data.umidita }}%{% else %}-{% endif %}</td>
+                                    <td>{% if data.vento %}{{ data.vento }} km/h{% else %}-{% endif %}</td>
+                                    <td>
+                                        {% for controllo in dati_controlli %}
+                                            {% if controllo.date == data.date %}
+                                                {{ controllo.arnie_controllate }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% for controllo in dati_controlli %}
+                                            {% if controllo.date == data.date %}
+                                                {{ controllo.telaini_covata_media }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% for controllo in dati_controlli %}
+                                            {% if controllo.date == data.date %}
+                                                {{ controllo.telaini_scorte_media }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Cambia periodo quando si seleziona un'opzione
+        document.querySelectorAll('input[name="periodo"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                window.location.href = `?periodo=${this.value}`;
+            });
+        });
+        
+        // Dati per i grafici
+        const dateMeteo = {{ date_meteo|safe }};
+        const temperature = {{ temperature|safe }};
+        const umidita = {{ umidita|safe }};
+        const vento = {{ vento|safe }};
+        
+        const dateControlli = {{ date_controlli|safe }};
+        const telainiCovataMedia = {{ telaini_covata_media|safe }};
+        const telainiScorteMedia = {{ telaini_scorte_media|safe }};
+        
+        // Grafico temperatura
+        const ctxTemp = document.getElementById('temperaturaChart').getContext('2d');
+        new Chart(ctxTemp, {
+            type: 'line',
+            data: {
+                labels: dateMeteo,
+                datasets: [{
+                    label: 'Temperatura (°C)',
+                    data: temperature,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Temperatura (°C)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Data'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Grafico umidità
+        const ctxUmidita = document.getElementById('umiditaChart').getContext('2d');
+        new Chart(ctxUmidita, {
+            type: 'line',
+            data: {
+                labels: dateMeteo,
+                datasets: [{
+                    label: 'Umidità (%)',
+                    data: umidita,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Umidità (%)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Data'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Grafico vento
+        const ctxVento = document.getElementById('ventoChart').getContext('2d');
+        new Chart(ctxVento, {
+            type: 'line',
+            data: {
+                labels: dateMeteo,
+                datasets: [{
+                    label: 'Velocità vento (km/h)',
+                    data: vento,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Velocità (km/h)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Data'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Grafico telaini
+        const ctxTelaini = document.getElementById('telainiChart').getContext('2d');
+        new Chart(ctxTelaini, {
+            type: 'bar',
+            data: {
+                labels: dateControlli,
+                datasets: [
+                    {
+                        label: 'Media Telaini Covata',
+                        data: telainiCovataMedia,
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Media Telaini Scorte',
+                        data: telainiScorteMedia,
+                        backgroundColor: 'rgba(255, 159, 64, 0.7)',
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Media Telaini per Arnia'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Data'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Grafico confronto temperatura e telaini
+        const ctxConfronto = document.getElementById('confrontoChart').getContext('2d');
+        
+        // Trova le date comuni tra temperatura e controlli
+        const dateComuni = dateMeteo.filter(date => dateControlli.includes(date));
+        
+        // Filtra i dati per le date comuni
+        const temperatureFiltered = [];
+        const telainiCovataFiltered = [];
+        const telainiScorteFiltered = [];
+        
+        dateComuni.forEach(date => {
+            const tempIndex = dateMeteo.indexOf(date);
+            const controlliIndex = dateControlli.indexOf(date);
+            
+            if (tempIndex !== -1 && controlliIndex !== -1) {
+                temperatureFiltered.push(temperature[tempIndex]);
+                telainiCovataFiltered.push(telainiCovataMedia[controlliIndex]);
+                telainiScorteFiltered.push(telainiScorteMedia[controlliIndex]);
+            }
+        });
+        
+        new Chart(ctxConfronto, {
+            type: 'line',
+            data: {
+                labels: dateComuni,
+                datasets: [
+                    {
+                        label: 'Temperatura (°C)',
+                        data: temperatureFiltered,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: false,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Media Telaini Covata',
+                        data: telainiCovataFiltered,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: false,
+                        yAxisID: 'y1'
+                    },
+                    {
+                        label: 'Media Telaini Scorte',
+                        data: telainiScorteFiltered,
+                        borderColor: 'rgba(255, 159, 64, a)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: false,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Temperatura (°C)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Media Telaini per Arnia'
+                        },
+                        grid: {
+                            drawOnChartArea: false, // only want the grid lines for y1 axis
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Data'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

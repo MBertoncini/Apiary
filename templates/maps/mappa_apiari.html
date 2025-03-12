@@ -194,7 +194,7 @@
         var bounds = L.latLngBounds();
         var hasCoordinates = false;
         
-        // Funzione per creare un marker di apiario con diversi stili in base al tipo
+        // Funzione per creare un marker di apiario con diverse stili in base al tipo
         function createApiarioMarker(apiario, isProprio, isCondiviso, isVisibileGruppo, isPubblico) {
             var id = apiario.dataset.id;
             var lat = parseFloat(apiario.dataset.lat);
@@ -233,17 +233,52 @@
                 // Aggiungi tooltip con informazioni sul tipo di accesso
                 marker.bindTooltip(tooltipText);
                 
+                // Crea il contenuto del popup con dati meteo se disponibili
+                var meteoHtml = '';
+                if (typeof datiMeteo !== 'undefined' && datiMeteo[id]) {
+                    var meteo = datiMeteo[id];
+                    meteoHtml = `
+                        <div class="meteo-info mt-3 p-2 bg-light rounded">
+                            <h6 class="mb-2"><i class="bi bi-cloud"></i> Meteo</h6>
+                            <div class="d-flex align-items-center">
+                                <img src="https://openweathermap.org/img/wn/${meteo.icona}.png" alt="${meteo.descrizione}" class="me-2">
+                                <div>
+                                    <div class="fw-bold">${meteo.temperatura}°C</div>
+                                    <div class="text-capitalize">${meteo.descrizione}</div>
+                                </div>
+                            </div>
+                            <div class="row mt-2 small">
+                                <div class="col-6">
+                                    <i class="bi bi-droplet"></i> ${meteo.umidita}%
+                                </div>
+                                <div class="col-6">
+                                    <i class="bi bi-wind"></i> ${meteo.velocita_vento} km/h ${meteo.direzione_testo || ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
                 // Aggiungi popup con informazioni
                 var popupContent = `
                     <h6>${apiario.querySelector('h6').textContent}</h6>
                     <p>${apiario.querySelector('small.text-muted').textContent}</p>
                     <p><strong>Arnie:</strong> ${apiario.querySelector('small:not(.text-muted)').textContent}</p>
-                    <div class="mt-2">
-                        <a href="/app/apiario/${id}/" class="btn btn-sm btn-primary">Visualizza dettagli</a>
+                    ${meteoHtml}
+                    <div class="mt-3 d-flex justify-content-between">
+                        <a href="/app/apiario/${id}/" class="btn btn-sm btn-primary">
+                            <i class="bi bi-grid"></i> Dettagli
+                        </a>
+                        <a href="/app/apiario/${id}/meteo/" class="btn btn-sm btn-info text-white">
+                            <i class="bi bi-cloud"></i> Meteo
+                        </a>
                     </div>
                 `;
                 
-                marker.bindPopup(popupContent);
+                marker.bindPopup(popupContent, {
+                    maxWidth: 300
+                });
+                
                 marker.addTo(apiariLayer);
                 bounds.extend([lat, lng]);
         

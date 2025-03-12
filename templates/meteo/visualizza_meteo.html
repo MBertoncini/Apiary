@@ -1,0 +1,231 @@
+<!-- templates/meteo/visualizza_meteo.html -->
+{% extends 'base.html' %}
+
+{% block title %}Meteo - {{ apiario.nome }} - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="bi bi-cloud"></i> Meteo - {{ apiario.nome }}</h1>
+            <div>
+                <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Torna all'Apiario
+                </a>
+                <a href="{% url 'grafici_meteo_apiario' apiario.id %}" class="btn btn-outline-primary ms-2">
+                    <i class="bi bi-graph-up"></i> Grafici Meteo
+                </a>
+                <a href="{% url 'mappa_apiari' %}?focus={{ apiario.id }}" class="btn btn-outline-success ms-2">
+                    <i class="bi bi-geo-alt"></i> Visualizza sulla Mappa
+                </a>
+            </div>
+        </div>
+        <p class="text-muted">
+            <i class="bi bi-geo-alt"></i> {{ apiario.posizione }} ({{ apiario.latitudine }}, {{ apiario.longitudine }})
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-cloud"></i> Meteo Attuale</h5>
+            </div>
+            <div class="card-body">
+                {% if dati_meteo %}
+                    <div class="text-center mb-4">
+                        <div class="d-inline-block p-3 bg-light rounded-circle mb-2">
+                            <img src="https://openweathermap.org/img/wn/{{ dati_meteo.icona }}@2x.png" alt="{{ dati_meteo.descrizione }}" width="80" height="80">
+                        </div>
+                        <h2 class="mb-0">{{ dati_meteo.temperatura|floatformat:1 }}°C</h2>
+                        <p class="text-capitalize">{{ dati_meteo.descrizione }}</p>
+                        <p class="text-muted small">Aggiornato: {{ dati_meteo.data|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="p-2 bg-light rounded">
+                                <i class="bi bi-droplet text-primary"></i>
+                                <h6>Umidità</h6>
+                                <p class="mb-0">{{ dati_meteo.umidita }}%</p>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="p-2 bg-light rounded">
+                                <i class="bi bi-wind text-primary"></i>
+                                <h6>Vento</h6>
+                                <p class="mb-0">{{ dati_meteo.velocita_vento|floatformat:1 }} km/h</p>
+                                <p class="small mb-0">{{ dati_meteo.direzione_testo }}</p>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="p-2 bg-light rounded">
+                                <i class="bi bi-speedometer text-primary"></i>
+                                <h6>Pressione</h6>
+                                <p class="mb-0">{{ dati_meteo.pressione }} hPa</p>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="p-2 bg-light rounded">
+                                <i class="bi bi-cloud-rain text-primary"></i>
+                                <h6>Pioggia</h6>
+                                <p class="mb-0">{{ dati_meteo.pioggia|default:"0"|floatformat:1 }} mm</p>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-cloud-slash text-muted" style="font-size: 3rem;"></i>
+                        <p class="mt-3 mb-0">Nessun dato meteo disponibile al momento.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8 col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-calendar3"></i> Previsioni Meteo</h5>
+            </div>
+            <div class="card-body">
+                {% if previsioni_per_giorno %}
+                    <div class="row">
+                        {% for giorno, previsioni_giorno in previsioni_per_giorno.items %}
+                            <div class="col-md-4 col-sm-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0 text-center">{{ previsioni_giorno.0.data_riferimento|date:"l d/m" }}</h6>
+                                    </div>
+                                    <div class="card-body p-2">
+                                        <div class="d-flex flex-column h-100">
+                                            {% with previsione_giorno=previsioni_giorno.0 %}
+                                                <div class="text-center mb-2">
+                                                    <img src="https://openweathermap.org/img/wn/{{ previsione_giorno.icona }}@2x.png" alt="{{ previsione_giorno.descrizione }}" width="60" height="60">
+                                                    <p class="text-capitalize mb-0">{{ previsione_giorno.descrizione }}</p>
+                                                </div>
+                                                
+                                                <div class="row text-center mb-2">
+                                                    <div class="col-6">
+                                                        <p class="mb-0"><i class="bi bi-thermometer-high text-danger"></i> Max</p>
+                                                        <h5>{{ previsione_giorno.temperatura_max|floatformat:1 }}°C</h5>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <p class="mb-0"><i class="bi bi-thermometer-low text-primary"></i> Min</p>
+                                                        <h5>{{ previsione_giorno.temperatura_min|floatformat:1 }}°C</h5>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mt-auto">
+                                                    <div class="row text-center small">
+                                                        <div class="col-6">
+                                                            <p class="mb-0"><i class="bi bi-droplet"></i> Umidità</p>
+                                                            <p class="mb-0">{{ previsione_giorno.umidita }}%</p>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <p class="mb-0"><i class="bi bi-cloud-rain"></i> Prob. pioggia</p>
+                                                            <p class="mb-0">{{ previsione_giorno.probabilita_pioggia }}%</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endwith %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+                        <p class="mt-3 mb-0">Nessuna previsione meteo disponibile al momento.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Consigli per l'Apiario in base al Meteo</h5>
+            </div>
+            <div class="card-body">
+                {% if dati_meteo %}
+                    <div class="alert alert-info mb-3">
+                        <h6><i class="bi bi-lightbulb"></i> Suggerimenti basati sul meteo attuale:</h6>
+                        <ul>
+                            {% if dati_meteo.temperatura < 10 %}
+                                <li>Temperature basse ({{ dati_meteo.temperatura|floatformat:1 }}°C): Le api sono in cluster invernale, evitare ispezioni non necessarie.</li>
+                            {% elif dati_meteo.temperatura > 30 %}
+                                <li>Temperature elevate ({{ dati_meteo.temperatura|floatformat:1 }}°C): Assicurarsi che le api abbiano accesso all'acqua e che ci sia adeguata ventilazione.</li>
+                            {% else %}
+                                <li>Temperatura favorevole ({{ dati_meteo.temperatura|floatformat:1 }}°C): Condizioni buone per ispezioni e lavori all'apiario.</li>
+                            {% endif %}
+                            
+                            {% if dati_meteo.velocita_vento > 20 %}
+                                <li>Vento forte ({{ dati_meteo.velocita_vento|floatformat:1 }} km/h): Controllare la stabilità delle arnie e posizionare eventuali ripari.</li>
+                            {% endif %}
+                            
+                            {% if dati_meteo.umidita > 80 %}
+                                <li>Umidità elevata ({{ dati_meteo.umidita }}%): Attenzione a possibili problemi di condensa nelle arnie.</li>
+                            {% endif %}
+                            
+                            {% if dati_meteo.pioggia and dati_meteo.pioggia > 0 %}
+                                <li>Pioggia rilevata ({{ dati_meteo.pioggia|floatformat:1 }} mm): Verificare che l'acqua non entri nelle arnie e che il terreno circostante non sia troppo fangoso.</li>
+                            {% endif %}
+                            
+                            {% if 'temporale' in dati_meteo.descrizione or 'pioggia' in dati_meteo.descrizione %}
+                                <li>{{ dati_meteo.descrizione|capfirst }}: Le api rimangono nell'arnia, attività di bottinatura ridotta.</li>
+                            {% elif 'sereno' in dati_meteo.descrizione or 'sole' in dati_meteo.descrizione %}
+                                <li>{{ dati_meteo.descrizione|capfirst }}: Condizioni ottimali per l'attività delle api, aspettarsi un'intensa bottinatura.</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                {% endif %}
+                
+                {% if previsioni|first %}
+                    <div class="alert alert-warning mb-0">
+                        <h6><i class="bi bi-calendar-check"></i> Pianificazione in base alle previsioni:</h6>
+                        <ul>
+                            <!-- Verifica se ci sono previsioni di maltempo -->
+                            {% with previsione=previsioni|first %}
+                                {% if 'pioggia' in previsione.descrizione or 'temporale' in previsione.descrizione %}
+                                    <li>Previsto maltempo nelle prossime ore: pianificare le attività all'apiario di conseguenza.</li>
+                                {% endif %}
+                                
+                                {% if previsione.probabilita_pioggia > 70 %}
+                                    <li>Alta probabilità di pioggia ({{ previsione.probabilita_pioggia }}%): Considerare di posticipare operazioni non urgenti.</li>
+                                {% endif %}
+                            {% endwith %}
+                            
+                            <!-- Verifica se ci sono giorni consecutivi di maltempo -->
+                            {% with count_rainy=0 %}
+                                {% for previsione in previsioni %}
+                                    {% if 'pioggia' in previsione.descrizione or 'temporale' in previsione.descrizione or previsione.probabilita_pioggia > 50 %}
+                                        {% with count_rainy=count_rainy|add:1 %}{% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if count_rainy > 2 %}
+                                    <li>Previsti più giorni consecutivi di maltempo: verificare che le scorte di cibo nelle arnie siano sufficienti.</li>
+                                {% endif %}
+                            {% endwith %}
+                            
+                            <!-- Suggerimenti per il periodo invernale/estivo -->
+                            {% if dati_meteo and dati_meteo.temperatura < 5 %}
+                                <li>Temperature molto basse: Controllare l'isolamento delle arnie e considerare l'uso di diaframmi.</li>
+                            {% elif dati_meteo and dati_meteo.temperatura > 32 %}
+                                <li>Temperature molto elevate: Predisporre abbeveratoi e ombreggiamento aggiuntivo per le arnie.</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

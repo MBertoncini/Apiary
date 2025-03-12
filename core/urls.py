@@ -92,4 +92,8 @@ urlpatterns = [
     path('profilo/', views.profilo, name='profilo'),
     path('profilo/<str:username>/', views.profilo, name='profilo_utente'),
     path('gruppi/<int:gruppo_id>/modifica-immagine/', views.modifica_immagine_gruppo, name='modifica_immagine_gruppo'),
+
+    # Meteo
+    path('apiario/<int:apiario_id>/meteo/', views.visualizza_meteo_apiario, name='visualizza_meteo_apiario'),
+    path('apiario/<int:apiario_id>/meteo/grafici/', views.grafici_meteo_apiario, name='grafici_meteo_apiario'),
 ]
