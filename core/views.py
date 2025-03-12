@@ -3036,7 +3036,7 @@ def calendario_eventi_json(request):
                 <li><strong>Tipo:</strong> {trattamento.tipo_trattamento.nome}</li>
                 <li><strong>Principio attivo:</strong> {trattamento.tipo_trattamento.principio_attivo}</li>
                 <li><strong>Stato:</strong> {trattamento.get_stato_display()}</li>
-                <li><strong>Arnie trattate:</strong> {num_arnie if num_arnie > 0 else 'Tutte le arnie dell\'apiario'}</li>
+                <li><strong>Arnie trattate:</strong> {num_arnie if num_arnie > 0 else "Tutte le arnie dell'apiario"}</li>
             </ul>
         """
         
@@ -3111,7 +3111,7 @@ def calendario_eventi_json(request):
                 <li><strong>Tipo:</strong> {trattamento.tipo_trattamento.nome}</li>
                 <li><strong>Principio attivo:</strong> {trattamento.tipo_trattamento.principio_attivo}</li>
                 <li><strong>Stato:</strong> {trattamento.get_stato_display()}</li>
-                <li><strong>Arnie trattate:</strong> {num_arnie if num_arnie > 0 else 'Tutte le arnie dell\'apiario'}</li>
+                <li><strong>Arnie trattate:</strong> {num_arnie if num_arnie > 0 else "Tutte le arnie dell'apiario"}</li>
                 <li><strong>Data inizio:</strong> {trattamento.data_inizio.strftime('%d/%m/%Y')}</li>
             </ul>
         """
