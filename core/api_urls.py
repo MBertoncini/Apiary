@@ -1,0 +1,38 @@
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+from .api_views import (
+    ApiarioViewSet, ArniaViewSet, ControlloArniaViewSet, ReginaViewSet,
+    FiorituraViewSet, TrattamentoSanitarioViewSet, TipoTrattamentoViewSet,
+    MelarioViewSet, SmielaturaViewSet, GruppoViewSet,
+    sync_data
+)
+
+# Crea un router e registra i viewsets
+router = DefaultRouter()
+router.register(r'apiari', ApiarioViewSet, basename='api-apiario')
+router.register(r'arnie', ArniaViewSet, basename='api-arnia')
+router.register(r'controlli', ControlloArniaViewSet, basename='api-controllo')
+router.register(r'regine', ReginaViewSet, basename='api-regina')
+router.register(r'fioriture', FiorituraViewSet, basename='api-fioritura')
+router.register(r'trattamenti', TrattamentoSanitarioViewSet, basename='api-trattamento')
+router.register(r'tipi-trattamento', TipoTrattamentoViewSet, basename='api-tipo-trattamento')
+router.register(r'melari', MelarioViewSet, basename='api-melario')
+router.register(r'smielature', SmielaturaViewSet, basename='api-smielatura')
+router.register(r'gruppi', GruppoViewSet, basename='api-gruppo')
+
+# URLs per le API
+urlpatterns = [
+    # Include URLs router generati automaticamente
+    path('', include(router.urls)),
+    
+    # URLs per autenticazione con JWT
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
+    # Endpoint per la sincronizzazione
+    path('sync/', sync_data, name='api-sync'),
+]
