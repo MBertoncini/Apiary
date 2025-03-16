@@ -8,7 +8,7 @@ from .api_views import (
     ApiarioViewSet, ArniaViewSet, ControlloArniaViewSet, ReginaViewSet,
     FiorituraViewSet, TrattamentoSanitarioViewSet, TipoTrattamentoViewSet,
     MelarioViewSet, SmielaturaViewSet, GruppoViewSet,
-    sync_data
+    sync_data, inviti_ricevuti, accetta_invito, rifiuta_invito
 )
 
 # Crea un router e registra i viewsets
@@ -35,4 +35,8 @@ urlpatterns = [
     
     # Endpoint per la sincronizzazione
     path('sync/', sync_data, name='api-sync'),
+
+    path('inviti/ricevuti/', inviti_ricevuti, name='api-inviti-ricevuti'),
+    path('inviti/accetta/<uuid:token>/', accetta_invito, name='api-attiva-invito'),
+    path('inviti/rifiuta/<uuid:token>/', rifiuta_invito, name='api-rifiuta-invito'),
 ]
