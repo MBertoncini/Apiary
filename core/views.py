@@ -120,7 +120,7 @@ def visualizza_apiario(request, apiario_id, data=None):
     trattamenti_per_arnia = trattamenti_attivi
     
     for controllo in ultimi_controlli:
-        # Calcola la distribuzione dei telaini di scorte
+        # Calcola la distribuzione dei telaini di scorte (per retrocompatibilità)
         scorte_totali = controllo.telaini_scorte or 0
         controllo.scorte_sinistra = scorte_totali // 2  # divisione intera per la metà sinistra
         controllo.scorte_destra = scorte_totali - controllo.scorte_sinistra  # resto a destra
@@ -154,6 +154,7 @@ def visualizza_apiario(request, apiario_id, data=None):
     
     return render(request, 'arnie/visualizza_apiario.html', context)
 
+
 @login_required
 @richiedi_permesso_scrittura
 def nuovo_controllo(request, arnia_id):
@@ -186,7 +187,13 @@ def nuovo_controllo(request, arnia_id):
             controllo = form.save(commit=False)
             controllo.arnia = arnia
             controllo.utente = request.user
+            
+            # Salva la configurazione dei telaini se presente
+            if 'telaini_config' in request.POST:
+                controllo.telaini_config = request.POST['telaini_config']
+                
             controllo.save()
+            messages.success(request, "Controllo registrato con successo.")
             return redirect('visualizza_apiario', apiario_id=arnia.apiario.id)
     else:
         # Pre-compila con gli ultimi valori registrati se disponibili
@@ -208,6 +215,7 @@ def nuovo_controllo(request, arnia_id):
     }
     
     return render(request, 'arnie/nuovo_controllo.html', context)
+
 
 @login_required
 @richiedi_permesso_scrittura
@@ -242,7 +250,13 @@ def modifica_controllo(request, controllo_id):
     if request.method == 'POST':
         form = ControlloArniaForm(request.POST, instance=controllo)
         if form.is_valid():
-            form.save()
+            controllo = form.save(commit=False)
+            
+            # Salva la configurazione dei telaini se presente
+            if 'telaini_config' in request.POST:
+                controllo.telaini_config = request.POST['telaini_config']
+                
+            controllo.save()
             messages.success(request, "Controllo aggiornato con successo.")
             return redirect('visualizza_apiario', apiario_id=controllo.arnia.apiario.id)
     else:

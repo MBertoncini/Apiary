@@ -196,7 +196,8 @@ class ControlloArnia(models.Model):
     celle_reali = models.BooleanField(default=False, help_text="Sono presenti celle reali")
     numero_celle_reali = models.PositiveSmallIntegerField(default=0, help_text="Numero di celle reali trovate")
     regina_sostituita = models.BooleanField(default=False, help_text="La regina è stata sostituita durante questo controllo")
-    
+    telaini_config = models.TextField(blank=True, null=True, help_text="JSON configuration of frame types and positions")
+
     def __str__(self):
         return f"Controllo {self.arnia} - {self.data}"
     

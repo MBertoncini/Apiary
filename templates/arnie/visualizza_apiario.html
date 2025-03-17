@@ -154,7 +154,7 @@
                                                     <small class="text-muted">Ultimo controllo: {{ controllo.data|date:"d/m/Y" }}</small>
                                                 </div>
                                                 
-                                                <!-- Inizio Visualizzazione Grafica dell'Arnia -->
+                                                <!-- Sostituisci la visualizzazione dell'arnia con questo codice -->
                                                 <div class="arnia-visualization mb-3">
                                                     <div class="bg-light border rounded p-2 mb-2">
                                                         <div class="d-flex justify-content-between align-items-center mb-1">
@@ -168,56 +168,160 @@
                                                                     <div style="width: 10px; height: 10px; background-color: #ffc107; margin-right: 3px;"></div>
                                                                     <span style="font-size: 0.7rem;">Scorte</span>
                                                                 </div>
+                                                                <div class="d-flex align-items-center me-2">
+                                                                    <div style="width: 10px; height: 10px; background-color: #343a40; margin-right: 3px;"></div>
+                                                                    <span style="font-size: 0.7rem;">Diaframma</span>
+                                                                </div>
+                                                                <div class="d-flex align-items-center">
+                                                                    <div style="width: 10px; height: 10px; background-color: #E8D4B9; margin-right: 3px;"></div>
+                                                                    <span style="font-size: 0.7rem;">Nutritore</span>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         
                                                         <div style="border: 2px solid #b17c2b; border-radius: 5px; padding: 5px; background-color: #FFF8E1;">
                                                             <div class="d-flex justify-content-center" style="gap: 3px;">
-                                                                <!-- Telaini di scorte a sinistra -->
-                                                            {% for i in "x"|ljust:controllo.scorte_sinistra|default:"" %}
-                                                            <div style="width: 15px; height: 80px; background-color: #ffc107; border-radius: 2px;"
-                                                                title="Telaino con scorte (lato sinistro)"></div>
-                                                        {% endfor %}
+                                                                {% if controllo.telaini_config %}
+                                                                    <!-- Utilizzare un ID univoco per ogni controllo -->
+                                                                    <div id="telaini-container-{{ controllo.id }}" class="d-flex justify-content-center" style="gap: 3px;"></div>
+                                                                    <script>
+                                                                        (function() {
+                                                                            try {
+                                                                                // Parse JSON config
+                                                                                const config = JSON.parse('{{ controllo.telaini_config|escapejs }}');
+                                                                                const container = document.getElementById('telaini-container-{{ controllo.id }}');
+                                                                                
+                                                                                // Clear container
+                                                                                container.innerHTML = '';
+                                                                                
+                                                                                // Create telaini based on config
+                                                                                config.forEach(type => {
+                                                                                    const telaino = document.createElement('div');
+                                                                                    telaino.style.height = '80px';
+                                                                                    telaino.style.borderRadius = '2px';
+                                                                                    
+                                                                                    switch(type) {
+                                                                                        case 'covata':
+                                                                                            telaino.style.width = '15px';
+                                                                                            telaino.style.backgroundColor = '#dc3545';
+                                                                                            telaino.style.border = '1px solid #c82333';
+                                                                                            telaino.title = 'Telaino con covata';
+                                                                                            break;
+                                                                                        case 'scorte':
+                                                                                            telaino.style.width = '15px';
+                                                                                            telaino.style.backgroundColor = '#ffc107';
+                                                                                            telaino.style.border = '1px solid #e0a800';
+                                                                                            telaino.title = 'Telaino con scorte';
+                                                                                            break;
+                                                                                        case 'diaframma':
+                                                                                            telaino.style.width = '6px';
+                                                                                            telaino.style.backgroundColor = '#343a40';
+                                                                                            telaino.style.border = '1px solid #1d2124';
+                                                                                            telaino.title = 'Diaframma';
+                                                                                            break;
+                                                                                        case 'nutritore':
+                                                                                            telaino.style.width = '15px';
+                                                                                            telaino.style.backgroundColor = '#E8D4B9';
+                                                                                            telaino.style.border = '1px solid #D4B995';
+                                                                                            telaino.title = 'Nutritore';
+                                                                                            break;
+                                                                                        default: // vuoto
+                                                                                            telaino.style.width = '15px';
+                                                                                            telaino.style.backgroundColor = '#e9ecef';
+                                                                                            telaino.style.border = '1px dashed #ced4da';
+                                                                                            telaino.title = 'Spazio vuoto';
+                                                                                    }
+                                                                                    
+                                                                                    container.appendChild(telaino);
+                                                                                });
+                                                                            } catch (e) {
+                                                                                console.error("Error parsing telaini config:", e);
+                                                                                document.getElementById('telaini-container-{{ controllo.id }}').innerHTML = 
+                                                                                    '<div class="text-center text-danger">Errore visualizzazione</div>';
+                                                                            }
+                                                                        })();
+                                                                    </script>
+                                                                {% else %}
+                                                                    <!-- Fallback to old visualization method if telaini_config is not available -->
+                                                                    <!-- Telaini di scorte a sinistra -->
+                                                                    {% for i in "x"|ljust:controllo.scorte_sinistra|default:"" %}
+                                                                        <div style="width: 15px; height: 80px; background-color: #ffc107; border-radius: 2px;"
+                                                                            title="Telaino con scorte (lato sinistro)"></div>
+                                                                    {% endfor %}
 
-                                                        <!-- Telaini di covata (al centro) -->
-                                                        {% for i in "x"|ljust:controllo.telaini_covata|default:"" %}
-                                                            <div style="width: 15px; height: 80px; background-color: #dc3545; border-radius: 2px;" 
-                                                                title="Telaino con covata"></div>
-                                                        {% endfor %}
+                                                                    <!-- Telaini di covata (al centro) -->
+                                                                    {% for i in "x"|ljust:controllo.telaini_covata|default:"" %}
+                                                                        <div style="width: 15px; height: 80px; background-color: #dc3545; border-radius: 2px;" 
+                                                                            title="Telaino con covata"></div>
+                                                                    {% endfor %}
 
-                                                        <!-- Telaini di scorte a destra -->
-                                                        {% for i in "x"|ljust:controllo.scorte_destra|default:"" %}
-                                                            <div style="width: 15px; height: 80px; background-color: #ffc107; border-radius: 2px;"
-                                                                title="Telaino con scorte (lato destro)"></div>
-                                                        {% endfor %}
-                                                            
-                                                            <!-- Diaframma se necessario -->
-                                                            {% if controllo.telaini_covata|add:controllo.telaini_scorte < 9 %}
-                                                                <div style="width: 6px; height: 80px; background-color: #6c757d; border-radius: 2px;"
-                                                                    title="Diaframma"></div>
-                                                            {% endif %}
-                                                            
-                                                            <!-- Spazi vuoti -->
-                                                            {% with total=controllo.telaini_covata|add:controllo.telaini_scorte %}
-                                                                {% with vuoti=9|add:"-total"|add:"-1" %}
+                                                                    <!-- Telaini di scorte a destra -->
+                                                                    {% for i in "x"|ljust:controllo.scorte_destra|default:"" %}
+                                                                        <div style="width: 15px; height: 80px; background-color: #ffc107; border-radius: 2px;"
+                                                                            title="Telaino con scorte (lato destro)"></div>
+                                                                    {% endfor %}
+                                                                        
+                                                                    <!-- Diaframma se necessario -->
                                                                     {% if controllo.telaini_covata|add:controllo.telaini_scorte < 9 %}
-                                                                        {% for i in "x"|rjust:vuoti %}
-                                                                            {% if forloop.counter <= vuoti and vuoti > 0 %}
-                                                                                <div style="width: 15px; height: 80px; background-color: #e9ecef; border: 1px dashed #ced4da; border-radius: 2px;"
-                                                                                    title="Spazio vuoto"></div>
-                                                                            {% endif %}
-                                                                        {% endfor %}
+                                                                        <div style="width: 6px; height: 80px; background-color: #6c757d; border-radius: 2px;"
+                                                                            title="Diaframma"></div>
                                                                     {% endif %}
-                                                                {% endwith %}
-                                                            {% endwith %}
+                                                                        
+                                                                    <!-- Spazi vuoti -->
+                                                                    {% with total=controllo.telaini_covata|add:controllo.telaini_scorte %}
+                                                                        {% with vuoti=9|add:"-total"|add:"-1" %}
+                                                                            {% if controllo.telaini_covata|add:controllo.telaini_scorte < 9 %}
+                                                                                {% for i in "x"|rjust:vuoti %}
+                                                                                    {% if forloop.counter <= vuoti and vuoti > 0 %}
+                                                                                        <div style="width: 15px; height: 80px; background-color: #e9ecef; border: 1px dashed #ced4da; border-radius: 2px;"
+                                                                                            title="Spazio vuoto"></div>
+                                                                                    {% endif %}
+                                                                                {% endfor %}
+                                                                            {% endif %}
+                                                                        {% endwith %}
+                                                                    {% endwith %}
+                                                                {% endif %}
                                                             </div>
                                                         </div>
                                                         
                                                         <div class="text-center mt-1">
                                                             <small>
                                                                 <span class="fw-bold">{{ controllo.telaini_covata|add:controllo.telaini_scorte }}</span> telaini totali
-                                                                (<span class="text-danger fw-bold">{{ controllo.telaini_covata }}</span> covata,
-                                                                <span style="color: #ffc107; font-weight: bold;">{{ controllo.telaini_scorte }}</span> scorte)
+                                                                {% if controllo.telaini_config %}
+                                                                    <span id="stats-{{ controllo.id }}"></span>
+                                                                    <script>
+                                                                        (function() {
+                                                                            try {
+                                                                                const config = JSON.parse('{{ controllo.telaini_config|escapejs }}');
+                                                                                const counts = {
+                                                                                    covata: 0,
+                                                                                    scorte: 0,
+                                                                                    diaframma: 0,
+                                                                                    nutritore: 0
+                                                                                };
+                                                                                
+                                                                                // Count telaini types
+                                                                                config.forEach(type => {
+                                                                                    if (counts[type] !== undefined) {
+                                                                                        counts[type]++;
+                                                                                    }
+                                                                                });
+                                                                                
+                                                                                // Update stats display
+                                                                                document.getElementById('stats-{{ controllo.id }}').innerHTML = 
+                                                                                    `(<span class="text-danger fw-bold">${counts.covata}</span> covata, 
+                                                                                    <span style="color: #ffc107; font-weight: bold;">${counts.scorte}</span> scorte, 
+                                                                                    <span style="color: #343a40; font-weight: bold;">${counts.diaframma}</span> diaframmi, 
+                                                                                    <span style="color: #E8D4B9; font-weight: bold;">${counts.nutritore}</span> nutritori)`;
+                                                                            } catch(e) {
+                                                                                console.error("Error calculating telaini stats:", e);
+                                                                            }
+                                                                        })();
+                                                                    </script>
+                                                                {% else %}
+                                                                    (<span class="text-danger fw-bold">{{ controllo.telaini_covata }}</span> covata,
+                                                                    <span style="color: #ffc107; font-weight: bold;">{{ controllo.telaini_scorte }}</span> scorte)
+                                                                {% endif %}
                                                             </small>
                                                         </div>
                                                     </div>

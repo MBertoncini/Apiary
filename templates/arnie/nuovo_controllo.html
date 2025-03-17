@@ -49,6 +49,68 @@
                         </div>
                     </div>
                     
+                    <!-- Inizio personalizzatore arnia -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-grid-3x3"></i> Configurazione Telaini</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Tool selector buttons -->
+                            <div class="mb-3 d-flex justify-content-center" id="telaini-tools">
+                                <div class="btn-group" role="group" aria-label="Tipi di telaino">
+                                    <button type="button" class="btn btn-danger telaino-tool" data-tool-type="covata">
+                                        <i class="bi bi-circle-fill"></i> Covata
+                                    </button>
+                                    <button type="button" class="btn btn-warning telaino-tool" data-tool-type="scorte">
+                                        <i class="bi bi-circle-fill"></i> Scorte
+                                    </button>
+                                    <button type="button" class="btn btn-dark telaino-tool" data-tool-type="diaframma">
+                                        <i class="bi bi-vr"></i> Diaframma
+                                    </button>
+                                    <button type="button" class="btn btn-light telaino-tool" data-tool-type="nutritore" style="background-color: #E8D4B9; border-color: #D4B995;">
+                                        <i class="bi bi-cup-hot"></i> Nutritore
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary telaino-tool" data-tool-type="vuoto">
+                                        <i class="bi bi-x-lg"></i> Vuoto
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Hive visualization -->
+                            <div class="text-center mb-3">
+                                <small class="text-muted">Clicca su un telaino per cambiarne il tipo</small>
+                            </div>
+                            
+                            <div class="arnia-container mb-4">
+                                <div class="border border-2 border-dark rounded p-3" style="background-color: #FFF8E1;">
+                                    <div id="arnia-customizer" class="d-flex justify-content-center" style="gap: 3px; min-height: 100px;">
+                                        <!-- Generated via JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Stats display -->
+                            <div class="row text-center mb-3">
+                                <div class="col-3">
+                                    <span class="badge bg-danger">Covata: <span id="count-covata">0</span></span>
+                                </div>
+                                <div class="col-3">
+                                    <span class="badge bg-warning text-dark">Scorte: <span id="count-scorte">0</span></span>
+                                </div>
+                                <div class="col-3">
+                                    <span class="badge bg-dark">Diaframmi: <span id="count-diaframma">0</span></span>
+                                </div>
+                                <div class="col-3">
+                                    <span class="badge" style="background-color: #E8D4B9;">Nutritori: <span id="count-nutritore">0</span></span>
+                                </div>
+                            </div>
+                            
+                            <!-- Hidden input field to store configuration -->
+                            <input type="hidden" id="telaini_config" name="telaini_config" value="">
+                        </div>
+                    </div>
+                    <!-- Fine personalizzatore arnia -->
+                    
                     <div class="mb-3">
                         {{ form.presenza_regina|as_crispy_field }}
                     </div>
@@ -135,7 +197,7 @@
                 
                 <div class="alert alert-primary mt-3">
                     <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong>
-                    Registra regolarmente i controlli per monitorare la salute e lo sviluppo delle tue famiglie.
+                    Utilizza il configuratore dei telaini per rappresentare con precisione la disposizione all'interno dell'arnia.
                 </div>
             </div>
         </div>
@@ -187,6 +249,264 @@
         if (checkProblemi.checked) {
             detailsProblemi.style.display = 'block';
         }
+        
+        // ----- INIZIO CODICE PERSONALIZZATORE ARNIA -----
+        const NUM_TELAINI = 10; // Number of frames in the hive
+        const arniaCustomizer = document.getElementById('arnia-customizer');
+        const telainiConfig = document.getElementById('telaini_config');
+        const counters = {
+            'covata': document.getElementById('count-covata'),
+            'scorte': document.getElementById('count-scorte'),
+            'diaframma': document.getElementById('count-diaframma'),
+            'nutritore': document.getElementById('count-nutritore')
+        };
+        let currentTool = 'covata'; // Default selected tool
+        
+        // Initialize configuration array (each element is a frame type)
+        let config = Array(NUM_TELAINI).fill('vuoto');
+        
+        // Create the initial hive frames
+        function initializeHive() {
+            arniaCustomizer.innerHTML = '';
+            
+            for (let i = 0; i < NUM_TELAINI; i++) {
+                const telaino = document.createElement('div');
+                telaino.className = 'telaino vuoto';
+                telaino.dataset.position = i;
+                telaino.style.width = '28px';
+                telaino.style.height = '100px';
+                telaino.style.border = '1px dashed #ced4da';
+                telaino.style.borderRadius = '2px';
+                telaino.style.cursor = 'pointer';
+                telaino.style.position = 'relative';
+                telaino.title = `Telaino ${i+1} (vuoto)`;
+                
+                // Add number label at the bottom
+                const label = document.createElement('div');
+                label.textContent = i + 1;
+                label.style.position = 'absolute';
+                label.style.bottom = '-20px';
+                label.style.left = '50%';
+                label.style.transform = 'translateX(-50%)';
+                label.style.fontSize = '10px';
+                telaino.appendChild(label);
+                
+                // Add click event
+                telaino.addEventListener('click', function() {
+                    applyTool(i);
+                });
+                
+                arniaCustomizer.appendChild(telaino);
+            }
+            
+            updateTelainiConfig();
+        }
+        
+        // Select tool buttons
+        document.querySelectorAll('.telaino-tool').forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons
+                document.querySelectorAll('.telaino-tool').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Set current tool
+                currentTool = this.dataset.toolType;
+            });
+        });
+        
+        // Activate the default tool button
+        document.querySelector(`[data-tool-type="${currentTool}"]`).classList.add('active');
+        
+        // Apply the selected tool to a frame
+        function applyTool(position) {
+            // Get the telaino element
+            const telaino = arniaCustomizer.children[position];
+            
+            // Remove previous type classes
+            telaino.classList.remove('vuoto', 'covata', 'scorte', 'diaframma', 'nutritore');
+            
+            // Add new type class
+            telaino.classList.add(currentTool);
+            
+            // Update the style based on type
+            switch (currentTool) {
+                case 'covata':
+                    telaino.style.backgroundColor = '#dc3545';
+                    telaino.style.border = '1px solid #c82333';
+                    telaino.style.width = '28px';
+                    break;
+                case 'scorte':
+                    telaino.style.backgroundColor = '#ffc107';
+                    telaino.style.border = '1px solid #e0a800';
+                    telaino.style.width = '28px';
+                    break;
+                case 'diaframma':
+                    telaino.style.backgroundColor = '#343a40';
+                    telaino.style.border = '1px solid #1d2124';
+                    telaino.style.width = '10px'; // Diaframmi are thinner
+                    break;
+                case 'nutritore':
+                    telaino.style.backgroundColor = '#E8D4B9';
+                    telaino.style.border = '1px solid #D4B995';
+                    telaino.style.width = '28px';
+                    break;
+                case 'vuoto':
+                    telaino.style.backgroundColor = 'transparent';
+                    telaino.style.border = '1px dashed #ced4da';
+                    telaino.style.width = '28px';
+                    break;
+            }
+            
+            // Update title attribute
+            telaino.title = `Telaino ${position+1} (${currentTool})`;
+            
+            // Update config array
+            config[position] = currentTool;
+            
+            // Update the configuration in the hidden input
+            updateTelainiConfig();
+        }
+        
+        // Update the hidden input with the configuration
+        function updateTelainiConfig() {
+            telainiConfig.value = JSON.stringify(config);
+            updateCounters();
+        }
+        
+        // Update counters
+        function updateCounters() {
+            // Reset counters
+            for (let type in counters) {
+                counters[type].textContent = '0';
+            }
+            
+            // Count each type
+            config.forEach(type => {
+                if (type !== 'vuoto' && counters[type]) {
+                    counters[type].textContent = parseInt(counters[type].textContent) + 1;
+                }
+            });
+            
+            // Update form fields to maintain compatibility with existing code
+            if (document.getElementById('id_telaini_covata')) {
+                document.getElementById('id_telaini_covata').value = counters['covata'].textContent;
+            }
+            if (document.getElementById('id_telaini_scorte')) {
+                document.getElementById('id_telaini_scorte').value = counters['scorte'].textContent;
+            }
+        }
+        
+        // Initialize the hive
+        initializeHive();
+        
+        // If we have existing configuration, load it
+        {% if controllo.telaini_config %}
+            try {
+                const existingConfig = JSON.parse('{{ controllo.telaini_config|escapejs }}');
+                if (Array.isArray(existingConfig) && existingConfig.length === NUM_TELAINI) {
+                    config = existingConfig;
+                    
+                    // Update visual representation
+                    for (let i = 0; i < NUM_TELAINI; i++) {
+                        if (config[i] !== 'vuoto') {
+                            currentTool = config[i];
+                            applyTool(i);
+                        }
+                    }
+                    
+                    // Reset to default tool
+                    currentTool = 'covata';
+                    document.querySelector('.telaino-tool.active').classList.remove('active');
+                    document.querySelector(`[data-tool-type="${currentTool}"]`).classList.add('active');
+                }
+            } catch (e) {
+                console.error("Error parsing existing telaini config:", e);
+            }
+        {% elif is_edit or form.initial.telaini_scorte or form.initial.telaini_covata %}
+            // For existing controls without telaini_config
+            const covataCount = parseInt(document.getElementById('id_telaini_covata').value) || 0;
+            const scorteCount = parseInt(document.getElementById('id_telaini_scorte').value) || 0;
+            
+            // Simple distribution algorithm - place covata in the middle, scorte on the sides
+            if (covataCount + scorteCount > 0) {
+                // Clear the config first
+                config = Array(NUM_TELAINI).fill('vuoto');
+                
+                // Calculate middle position
+                const middle = Math.floor(NUM_TELAINI / 2);
+                const halfCovata = Math.floor(covataCount / 2);
+                
+                // Place covata in the middle
+                for (let i = 0; i < covataCount; i++) {
+                    const pos = middle - halfCovata + i;
+                    if (pos >= 0 && pos < NUM_TELAINI) {
+                        config[pos] = 'covata';
+                    }
+                }
+                
+                // Place scorte on both sides
+                let scorteLeft = Math.floor(scorteCount / 2);
+                let scorteRight = scorteCount - scorteLeft;
+                
+                // Left side
+                for (let i = 0; i < scorteLeft; i++) {
+                    const pos = middle - halfCovata - 1 - i;
+                    if (pos >= 0) {
+                        config[pos] = 'scorte';
+                    }
+                }
+                
+                // Right side
+                for (let i = 0; i < scorteRight; i++) {
+                    const pos = middle + halfCovata + i;
+                    if (pos < NUM_TELAINI) {
+                        config[pos] = 'scorte';
+                    }
+                }
+                
+                // Update visual representation
+                for (let i = 0; i < NUM_TELAINI; i++) {
+                    if (config[i] !== 'vuoto') {
+                        currentTool = config[i];
+                        applyTool(i);
+                    }
+                }
+                
+                // Reset to default tool
+                currentTool = 'covata';
+                document.querySelector('.telaino-tool.active').classList.remove('active');
+                document.querySelector(`[data-tool-type="${currentTool}"]`).classList.add('active');
+            }
+        {% endif %}
+        
+        // When the form is submitted, ensure the config is saved
+        const controlloForm = document.getElementById('controlloForm');
+        if (controlloForm) {
+            controlloForm.addEventListener('submit', function() {
+                updateTelainiConfig();
+            });
+        }
+        
+        // Add event listeners to synchronize the counters with manual input fields
+        const telainCovataInput = document.getElementById('id_telaini_covata');
+        const telainScorteInput = document.getElementById('id_telaini_scorte');
+        
+        if (telainCovataInput && telainScorteInput) {
+            telainCovataInput.addEventListener('input', function() {
+                // This will be handled by the customizer, just make sure the config is updated
+                updateTelainiConfig();
+            });
+            
+            telainScorteInput.addEventListener('input', function() {
+                // This will be handled by the customizer, just make sure the config is updated
+                updateTelainiConfig();
+            });
+        }
+        // ----- FINE CODICE PERSONALIZZATORE ARNIA -----
     });
 </script>
 {% endblock %}
