@@ -1012,3 +1012,43 @@ def rifiuta_invito(request, token):
     
     return Response({"detail": "Invito rifiutato con successo."})
 
+# In core/api_views.py, add:
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def current_user(request):
+    """Restituisce i dati dell'utente corrente."""
+    serializer = UserSerializer(request.user)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def meteo_by_location(request):
+    """Restituisce dati meteo per latitudine e longitudine."""
+    # Get parameters
+    lat = request.query_params.get('lat')
+    lon = request.query_params.get('lon')
+    
+    if not lat or not lon:
+        return Response(
+            {"detail": "Parametri lat e lon richiesti."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        # Implement your weather fetching logic here
+        # This can be similar to what you use in the apiario/<id>/meteo/ endpoint
+        
+        # For now, return a placeholder response
+        weather_data = {
+            "temperature": 22.5,
+            "humidity": 65,
+            "description": "Sereno",
+            "icon": "01d"
+        }
+        
+        return Response(weather_data)
+    except Exception as e:
+        return Response(
+            {"detail": f"Errore: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
