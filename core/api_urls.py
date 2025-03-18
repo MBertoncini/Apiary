@@ -7,7 +7,7 @@ from rest_framework_simplejwt.views import (
 from .api_views import (
     ApiarioViewSet, ArniaViewSet, ControlloArniaViewSet, ReginaViewSet,
     FiorituraViewSet, TrattamentoSanitarioViewSet, TipoTrattamentoViewSet,
-    MelarioViewSet, SmielaturaViewSet, GruppoViewSet,
+    MelarioViewSet, SmielaturaViewSet, GruppoViewSet, current_user,
     sync_data, inviti_ricevuti, accetta_invito, rifiuta_invito
 )
 
@@ -39,4 +39,5 @@ urlpatterns = [
     path('inviti/ricevuti/', inviti_ricevuti, name='api-inviti-ricevuti'),
     path('inviti/accetta/<uuid:token>/', accetta_invito, name='api-attiva-invito'),
     path('inviti/rifiuta/<uuid:token>/', rifiuta_invito, name='api-rifiuta-invito'),
+    path('users/me/', current_user, name='api-current-user'),
 ]

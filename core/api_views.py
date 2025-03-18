@@ -911,7 +911,15 @@ def sync_data(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def current_user(request):
+    """
+    Restituisce i dati dell'utente corrente.
+    """
+    serializer = UserSerializer(request.user)
+    return Response(serializer.data)
+    
 # Aggiungi queste funzioni di vista API per gestire gli inviti
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
