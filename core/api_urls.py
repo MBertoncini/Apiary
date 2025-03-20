@@ -8,7 +8,7 @@ from .api_views import (
     ApiarioViewSet, ArniaViewSet, ControlloArniaViewSet, ReginaViewSet,
     FiorituraViewSet, TrattamentoSanitarioViewSet, TipoTrattamentoViewSet,
     MelarioViewSet, SmielaturaViewSet, GruppoViewSet, current_user,
-    sync_data, inviti_ricevuti, accetta_invito, rifiuta_invito, meteo_by_location
+    sync_data, inviti_ricevuti, accetta_invito, rifiuta_invito, meteo_by_location, PagamentoViewSet, QuotaUtenteViewSet
 )
 
 # Crea un router e registra i viewsets
