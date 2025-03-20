@@ -8,7 +8,8 @@ from .api_views import (
     ApiarioViewSet, ArniaViewSet, ControlloArniaViewSet, ReginaViewSet,
     FiorituraViewSet, TrattamentoSanitarioViewSet, TipoTrattamentoViewSet,
     MelarioViewSet, SmielaturaViewSet, GruppoViewSet, current_user,
-    sync_data, inviti_ricevuti, accetta_invito, rifiuta_invito, meteo_by_location, PagamentoViewSet, QuotaUtenteViewSet
+    sync_data, inviti_ricevuti, accetta_invito, rifiuta_invito, meteo_by_location, 
+    PagamentoViewSet, QuotaUtenteViewSet, CustomTokenObtainPairView, CustomTokenRefreshView
 )
 
 # Crea un router e registra i viewsets
@@ -32,8 +33,8 @@ urlpatterns = [
     path('', include(router.urls)),
     
     # URLs per autenticazione con JWT
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     
     # Endpoint per la sincronizzazione
     path('sync/', sync_data, name='api-sync'),

@@ -897,6 +897,120 @@ class QuotaUtenteViewSet(viewsets.ModelViewSet):
         
         serializer.save()
 
+# Aggiungi questo al file api_views.py
+
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework.response import Response
+from rest_framework import status
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Custom token serializer che aggiunge informazioni dell'utente
+    """
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # Aggiungi dati personalizzati al token
+        token['username'] = user.username
+        token['email'] = user.email
+        return token
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    Custom token view per gestire meglio gli errori
+    """
+    serializer_class = CustomTokenObtainPairSerializer
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except Exception as e:
+            # Log dell'errore per il debug
+            import traceback
+            print(f"Error in token endpoint: {str(e)}")
+            print(traceback.format_exc())
+            
+            # Restituisci una risposta più utile
+            return Response(
+                {"detail": "Si è verificato un errore durante l'autenticazione. Riprova più tardi."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+# Aggiungi questo al file api_views.py
+
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework.response import Response
+from rest_framework import status
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """
+    Custom token serializer che aggiunge informazioni dell'utente
+    """
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # Aggiungi dati personalizzati al token
+        token['username'] = user.username
+        token['email'] = user.email
+        return token
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    Custom token view per gestire meglio gli errori
+    """
+    serializer_class = CustomTokenObtainPairSerializer
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except Exception as e:
+            # Log dell'errore per il debug
+            import traceback
+            print(f"Error in token endpoint: {str(e)}")
+            print(traceback.format_exc())
+            
+            # Restituisci una risposta più utile
+            return Response(
+                {"detail": "Si è verificato un errore durante l'autenticazione. Riprova più tardi."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class CustomTokenRefreshSerializer(TokenRefreshSerializer):
+    """
+    Custom token refresh serializer
+    """
+    def validate(self, attrs):
+        try:
+            return super().validate(attrs)
+        except TokenError as e:
+            # Gestisci in modo specifico gli errori di token
+            raise InvalidToken(str(e))
+
+class CustomTokenRefreshView(TokenRefreshView):
+    """
+    Custom token refresh view per gestire meglio gli errori
+    """
+    serializer_class = CustomTokenRefreshSerializer
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except Exception as e:
+            # Log dell'errore per il debug
+            import traceback
+            print(f"Error in token refresh endpoint: {str(e)}")
+            print(traceback.format_exc())
+            
+            # Restituisci una risposta più utile
+            return Response(
+                {"detail": "Si è verificato un errore durante il refresh del token. Effettua nuovamente il login."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 # Endpoint per la sincronizzazione
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
