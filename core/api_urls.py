@@ -12,7 +12,6 @@ from .api_views import (
 )
 
 # Crea un router e registra i viewsets
-router = DefaultRouter()
 router.register(r'apiari', ApiarioViewSet, basename='api-apiario')
 router.register(r'arnie', ArniaViewSet, basename='api-arnia')
 router.register(r'controlli', ControlloArniaViewSet, basename='api-controllo')
@@ -23,6 +22,8 @@ router.register(r'tipi-trattamento', TipoTrattamentoViewSet, basename='api-tipo-
 router.register(r'melari', MelarioViewSet, basename='api-melario')
 router.register(r'smielature', SmielaturaViewSet, basename='api-smielatura')
 router.register(r'gruppi', GruppoViewSet, basename='api-gruppo')
+router.register(r'pagamenti', PagamentoViewSet, basename='api-pagamento')
+router.register(r'quote', QuotaUtenteViewSet, basename='api-quota')
 
 # URLs per le API
 urlpatterns = [

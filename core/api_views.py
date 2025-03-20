@@ -2,6 +2,8 @@ from rest_framework import viewsets, permissions, filters, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.core.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied
 from django.db.models import Q
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
@@ -12,12 +14,14 @@ from .models import (
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
     Gruppo, MembroGruppo, InvitoGruppo, DatiMeteo, PrevisioneMeteo
 )
+
 from .serializers import (
     ApiarioSerializer, ArniaSerializer, ControlloArniaDetailSerializer,
     ControlloArniaListSerializer, ReginaSerializer, FiorituraSerializer,
     TrattamentoSanitarioSerializer, TipoTrattamentoSerializer,
     MelarioSerializer, SmielaturaSerializer, GruppoSerializer,
-    MembroGruppoSerializer, InvitoGruppoSerializer, UserSerializer
+    MembroGruppoSerializer, InvitoGruppoSerializer, UserSerializer,
+    PagamentoSerializer, QuotaUtenteSerializer
 )
 
 # Permessi personalizzati
@@ -812,6 +816,87 @@ class GruppoViewSet(viewsets.ModelViewSet):
         serializer = ApiarioSerializer(apiari, many=True)
         return Response(serializer.data)
 
+class PagamentoViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint per gestire i pagamenti.
+    """
+    serializer_class = PagamentoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['descrizione', 'utente__username']
+    ordering_fields = ['data', 'importo']
+    ordering = ['-data']  # Ordinamento predefinito per data decrescente
+    
+    def get_queryset(self):
+        """
+        Filtra i pagamenti in base all'utente autenticato e ai gruppi.
+        """
+        user = self.request.user
+        
+        # Pagamenti dell'utente
+        pagamenti_propri = Pagamento.objects.filter(utente=user)
+        
+        # Pagamenti dei gruppi di cui l'utente è membro
+        gruppi_utente = Gruppo.objects.filter(membri=user)
+        pagamenti_gruppo = Pagamento.objects.filter(
+            gruppo__in=gruppi_utente
+        ).exclude(utente=user)
+        
+        # Unisci i pagamenti e rimuovi i duplicati
+        return (pagamenti_propri | pagamenti_gruppo).distinct()
+    
+    def perform_create(self, serializer):
+        """Aggiungi automaticamente l'utente corrente come proprietario"""
+        serializer.save(utente=self.request.user)
+
+class QuotaUtenteViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint per gestire le quote utente.
+    """
+    serializer_class = QuotaUtenteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """
+        Filtra le quote in base all'utente autenticato e ai gruppi.
+        """
+        user = self.request.user
+        
+        # Quote dell'utente
+        quote_proprie = QuotaUtente.objects.filter(utente=user)
+        
+        # Quote dei gruppi di cui l'utente è admin
+        gruppi_admin = Gruppo.objects.filter(
+            membri=user,
+            membrogruppo__ruolo='admin'
+        )
+        quote_gruppo = QuotaUtente.objects.filter(
+            gruppo__in=gruppi_admin
+        )
+        
+        return (quote_proprie | quote_gruppo).distinct()
+    
+    def perform_create(self, serializer):
+        """Validazione aggiuntiva prima del salvataggio"""
+        # Verifica che la percentuale sia valida (0-100)
+        percentuale = serializer.validated_data.get('percentuale', 0)
+        if percentuale < 0 or percentuale > 100:
+            raise ValidationError({"percentuale": "La percentuale deve essere compresa tra 0 e 100"})
+        
+        # Se c'è un gruppo, verifica che l'utente sia admin
+        gruppo = serializer.validated_data.get('gruppo')
+        if gruppo:
+            is_admin = MembroGruppo.objects.filter(
+                utente=self.request.user,
+                gruppo=gruppo,
+                ruolo='admin'
+            ).exists()
+            
+            if not is_admin:
+                raise ValidationError({"gruppo": "Puoi gestire le quote solo per i gruppi di cui sei amministratore"})
+        
+        serializer.save()
+
 # Endpoint per la sincronizzazione
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -887,7 +972,24 @@ def sync_data(request):
         except Exception as e:
             smielature = []
             print(f"Errore durante il recupero delle smielature: {e}")
-        
+        try:
+            pagamenti = (
+                Pagamento.objects.filter(utente=user) |
+                Pagamento.objects.filter(gruppo__in=gruppi_utente)
+            ).distinct()
+        except Exception as e:
+            pagamenti = []
+            print(f"Errore durante il recupero dei pagamenti: {e}")
+
+        try:
+            quote = (
+                QuotaUtente.objects.filter(utente=user) |
+                QuotaUtente.objects.filter(gruppo__in=gruppi_utente)
+            ).distinct()
+        except Exception as e:
+            quote = []
+            print(f"Errore durante il recupero delle quote: {e}")
+
         # Serializza i dati
         data = {
             'timestamp': timezone.now().isoformat(),
@@ -898,7 +1000,9 @@ def sync_data(request):
             'fioriture': FiorituraSerializer(fioriture, many=True).data if fioriture else [],
             'trattamenti': TrattamentoSanitarioSerializer(trattamenti, many=True).data if trattamenti else [],
             'melari': MelarioSerializer(melari, many=True).data if melari else [],
-            'smielature': SmielaturaSerializer(smielature, many=True).data if smielature else []
+            'smielature': SmielaturaSerializer(smielature, many=True).data if smielature else [],
+            'pagamenti': PagamentoSerializer(pagamenti, many=True).data if pagamenti else [],
+            'quote': QuotaUtenteSerializer(quote, many=True).data if quote else [],
         }
         
         return Response(data)

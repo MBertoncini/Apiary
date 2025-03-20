@@ -233,3 +233,32 @@ class InvitoGruppoSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['invitato_da'] = self.context['request'].user
         return super().create(validated_data)
+
+class PagamentoSerializer(serializers.ModelSerializer):
+    utente_username = serializers.SerializerMethodField()
+    gruppo_nome = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Pagamento
+        fields = ['id', 'utente', 'utente_username', 'importo', 'data', 
+                 'descrizione', 'gruppo', 'gruppo_nome']
+    
+    def get_utente_username(self, obj):
+        return obj.utente.username if obj.utente else None
+    
+    def get_gruppo_nome(self, obj):
+        return obj.gruppo.nome if obj.gruppo else None
+
+class QuotaUtenteSerializer(serializers.ModelSerializer):
+    utente_username = serializers.SerializerMethodField()
+    gruppo_nome = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = QuotaUtente
+        fields = ['id', 'utente', 'utente_username', 'percentuale', 'gruppo', 'gruppo_nome']
+    
+    def get_utente_username(self, obj):
+        return obj.utente.username if obj.utente else None
+    
+    def get_gruppo_nome(self, obj):
+        return obj.gruppo.nome if obj.gruppo else None
