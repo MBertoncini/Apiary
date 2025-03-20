@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from .models import (
     Apiario, Arnia, ControlloArnia, Regina, Fioritura, 
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
-    Gruppo, MembroGruppo, InvitoGruppo
+    Gruppo, MembroGruppo, InvitoGruppo,  Pagamento, QuotaUtente
 )
 
 # Serializzatore utente
