@@ -12,6 +12,7 @@ from .api_views import (
 )
 
 # Crea un router e registra i viewsets
+router = DefaultRouter()
 router.register(r'apiari', ApiarioViewSet, basename='api-apiario')
 router.register(r'arnie', ArniaViewSet, basename='api-arnia')
 router.register(r'controlli', ControlloArniaViewSet, basename='api-controllo')
