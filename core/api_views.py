@@ -12,7 +12,8 @@ from datetime import datetime, timedelta
 from .models import (
     Apiario, Arnia, ControlloArnia, Regina, Fioritura, 
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
-    Gruppo, MembroGruppo, InvitoGruppo, DatiMeteo, PrevisioneMeteo
+    Gruppo, MembroGruppo, InvitoGruppo, DatiMeteo, PrevisioneMeteo,
+    Pagamento, QuotaUtente
 )
 
 from .serializers import (
