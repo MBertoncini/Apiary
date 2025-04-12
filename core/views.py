@@ -4036,4 +4036,3 @@ class FiorituraUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             return True
             
         return False
-

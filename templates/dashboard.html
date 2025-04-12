@@ -59,7 +59,13 @@
                             <div class="list-group-item">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">{{ fioritura.pianta }}</h5>
-                                    <small>{{ fioritura.apiario.nome }}</small>
+                                    <small>
+                                        {% if fioritura.apiario %}
+                                            {{ fioritura.apiario.nome }}
+                                        {% else %}
+                                            <span class="badge bg-info">Senza apiario</span>
+                                        {% endif %}
+                                    </small>
                                 </div>
                                 <p class="mb-1">
                                     Dal {{ fioritura.data_inizio|date:"d/m/Y" }}

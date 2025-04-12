@@ -158,7 +158,13 @@
                                 <h6 class="mb-1">{{ fioritura.pianta }}</h6>
                                 <small class="badge bg-success">Attiva</small>
                             </div>
-                            <small class="text-muted">{{ fioritura.apiario.nome }}</small>
+                            <small class="text-muted">
+                                {% if fioritura.apiario %}
+                                    {{ fioritura.apiario.nome }}
+                                {% else %}
+                                    Senza apiario
+                                {% endif %}
+                            </small>
                         </a>
                     {% empty %}
                         <div class="text-center py-3">
@@ -307,7 +313,8 @@
                     title: fioritura.querySelector('h6').textContent,
                     icon: L.divIcon({
                         className: `marker-fioritura marker-${stato}`,
-                        iconSize: [16, 16]
+                        iconSize: [16, 16],
+                        html: `<div style="width:100%;height:100%;border-radius:50%;background-color:${stato === 'attiva' ? '#20c997' : (stato === 'programmata' ? '#ffc107' : '#6c757d')};border:2px solid white;"></div>`
                     })
                 });
                 
