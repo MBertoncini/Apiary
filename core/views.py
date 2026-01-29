@@ -4129,7 +4129,34 @@ def aggiungi_attrezzatura(request):
             attrezzatura = form.save(commit=False)
             attrezzatura.proprietario = request.user
             attrezzatura.save()
-            messages.success(request, f"Attrezzatura '{attrezzatura.nome}' aggiunta con successo.")
+
+            # Se c'è un prezzo di acquisto, crea automaticamente un Pagamento
+            if attrezzatura.prezzo_acquisto and attrezzatura.prezzo_acquisto > 0:
+                # Crea la spesa attrezzatura
+                spesa = SpesaAttrezzatura.objects.create(
+                    attrezzatura=attrezzatura,
+                    gruppo=attrezzatura.gruppo if attrezzatura.condiviso_con_gruppo else None,
+                    tipo='acquisto',
+                    descrizione=f"Acquisto: {attrezzatura.nome}",
+                    importo=attrezzatura.prezzo_acquisto,
+                    data=attrezzatura.data_acquisto or timezone.now().date(),
+                    fornitore=attrezzatura.fornitore,
+                    utente=request.user
+                )
+
+                # Crea il pagamento corrispondente
+                Pagamento.objects.create(
+                    utente=request.user,
+                    importo=attrezzatura.prezzo_acquisto,
+                    data=attrezzatura.data_acquisto or timezone.now().date(),
+                    descrizione=f"Acquisto attrezzatura: {attrezzatura.nome}",
+                    gruppo=attrezzatura.gruppo if attrezzatura.condiviso_con_gruppo else None
+                )
+
+                messages.success(request, f"Attrezzatura '{attrezzatura.nome}' aggiunta e pagamento registrato automaticamente.")
+            else:
+                messages.success(request, f"Attrezzatura '{attrezzatura.nome}' aggiunta con successo.")
+
             return redirect('gestione_attrezzature')
     else:
         form = AttrezzaturaForm(user=request.user)
@@ -4279,7 +4306,32 @@ def aggiungi_manutenzione(request, attrezzatura_id):
                 attrezzatura.stato = 'manutenzione'
                 attrezzatura.save()
 
-            messages.success(request, "Manutenzione registrata con successo.")
+            # Se la manutenzione ha un costo, crea SpesaAttrezzatura e Pagamento
+            if manutenzione.costo and manutenzione.costo > 0:
+                # Crea la spesa attrezzatura
+                SpesaAttrezzatura.objects.create(
+                    attrezzatura=attrezzatura,
+                    gruppo=attrezzatura.gruppo if attrezzatura.condiviso_con_gruppo else None,
+                    tipo='manutenzione',
+                    descrizione=f"{manutenzione.get_tipo_display()}: {attrezzatura.nome}",
+                    importo=manutenzione.costo,
+                    data=manutenzione.data_esecuzione or manutenzione.data_programmata,
+                    utente=request.user
+                )
+
+                # Crea il pagamento corrispondente
+                Pagamento.objects.create(
+                    utente=request.user,
+                    importo=manutenzione.costo,
+                    data=manutenzione.data_esecuzione or manutenzione.data_programmata,
+                    descrizione=f"Manutenzione attrezzatura: {attrezzatura.nome} - {manutenzione.get_tipo_display()}",
+                    gruppo=attrezzatura.gruppo if attrezzatura.condiviso_con_gruppo else None
+                )
+
+                messages.success(request, "Manutenzione registrata e pagamento aggiunto automaticamente.")
+            else:
+                messages.success(request, "Manutenzione registrata con successo.")
+
             return redirect('dettaglio_attrezzatura', attrezzatura_id=attrezzatura.id)
     else:
         form = ManutenzioneAttrezzaturaForm(initial={
@@ -4418,10 +4470,20 @@ def aggiungi_spesa_attrezzatura(request, attrezzatura_id):
         if form.is_valid():
             spesa = form.save(commit=False)
             spesa.attrezzatura = attrezzatura
-            spesa.gruppo = attrezzatura.gruppo
+            spesa.gruppo = attrezzatura.gruppo if attrezzatura.condiviso_con_gruppo else None
             spesa.utente = request.user
             spesa.save()
-            messages.success(request, "Spesa registrata con successo.")
+
+            # Crea automaticamente un Pagamento corrispondente
+            Pagamento.objects.create(
+                utente=request.user,
+                importo=spesa.importo,
+                data=spesa.data,
+                descrizione=f"Spesa attrezzatura ({spesa.get_tipo_display()}): {attrezzatura.nome} - {spesa.descrizione}",
+                gruppo=attrezzatura.gruppo if attrezzatura.condiviso_con_gruppo else None
+            )
+
+            messages.success(request, "Spesa registrata e pagamento aggiunto automaticamente.")
             return redirect('dettaglio_attrezzatura', attrezzatura_id=attrezzatura.id)
     else:
         form = SpesaAttrezzaturaForm(initial={

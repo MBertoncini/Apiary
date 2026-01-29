@@ -138,7 +138,12 @@
                                                 {{ pagamento.utente.username }}
                                             </div>
                                         </td>
-                                        <td>{{ pagamento.descrizione }}</td>
+                                        <td>
+                                            {% if 'attrezzatura' in pagamento.descrizione|lower or 'manutenzione' in pagamento.descrizione|lower %}
+                                                <i class="bi bi-box-seam text-info" title="Spesa attrezzatura"></i>
+                                            {% endif %}
+                                            {{ pagamento.descrizione }}
+                                        </td>
                                         <td>{{ pagamento.importo|floatformat:2 }}€</td>
                                         {% if can_edit %}
                                         <td>
@@ -213,6 +218,27 @@
             </div>
         </div>
         
+        <!-- Link rapidi -->
+        <div class="card mt-3">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-link-45deg"></i> Link Rapidi</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'gestione_attrezzature' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-box-seam"></i> Gestione Attrezzature
+                    </a>
+                    <a href="{% url 'inventario_attrezzature' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-clipboard-data"></i> Inventario
+                    </a>
+                </div>
+                <hr>
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i> Le spese per attrezzature vengono registrate automaticamente nei pagamenti.
+                </small>
+            </div>
+        </div>
+
         {% if gruppo_selezionato %}
         <div class="card mt-3">
             <div class="card-header bg-info text-white">
@@ -223,7 +249,7 @@
                 <p><strong>Gruppo:</strong> {{ gruppo_selezionato.nome }}</p>
                 <p><strong>Membri:</strong> {{ gruppo_selezionato.membri.count }}</p>
                 {% if member %}
-                <p><strong>Il tuo ruolo:</strong> 
+                <p><strong>Il tuo ruolo:</strong>
                     <span class="badge {% if member.ruolo == 'admin' %}bg-danger{% elif member.ruolo == 'editor' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
                         {{ member.get_ruolo_display }}
                     </span>
