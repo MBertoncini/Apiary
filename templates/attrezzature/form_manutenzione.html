@@ -1,0 +1,98 @@
+<!-- templates/attrezzature/form_manutenzione.html -->
+{% extends 'base.html' %}
+
+{% block title %}Registra Manutenzione - {{ attrezzatura.nome }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-6 mx-auto">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0"><i class="bi bi-wrench"></i> Registra Manutenzione</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Attrezzatura:</strong> {{ attrezzatura.nome }}
+                    {% if attrezzatura.marca %} - {{ attrezzatura.marca }} {{ attrezzatura.modello|default:"" }}{% endif %}
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_tipo" class="form-label">Tipo Manutenzione *</label>
+                                {{ form.tipo }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_stato" class="form-label">Stato *</label>
+                                {{ form.stato }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_data_programmata" class="form-label">Data Programmata *</label>
+                                {{ form.data_programmata }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_data_esecuzione" class="form-label">Data Esecuzione</label>
+                                {{ form.data_esecuzione }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_descrizione" class="form-label">Descrizione *</label>
+                        {{ form.descrizione }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_costo" class="form-label">Costo (&euro;)</label>
+                                {{ form.costo }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_eseguito_da" class="form-label">Eseguito Da</label>
+                                {{ form.eseguito_da }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_prossima_manutenzione" class="form-label">Prossima Manutenzione</label>
+                        {{ form.prossima_manutenzione }}
+                        <div class="form-text">Data suggerita per la prossima manutenzione</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_note" class="form-label">Note</label>
+                        {{ form.note }}
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'dettaglio_attrezzatura' attrezzatura.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Annulla
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-check-lg"></i> Salva Manutenzione
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

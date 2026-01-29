@@ -1,0 +1,65 @@
+<!-- templates/regine/_nodo_ascendente.html -->
+{% load static %}
+
+<div class="tree-level">
+    <span class="level-label">
+        {% if regina.livello == 0 %}Regina{% elif regina.livello == 1 %}Madre{% elif regina.livello == 2 %}Nonna{% elif regina.livello == 3 %}Bisnonna{% elif regina.livello == 4 %}Trisavola{% else %}Gen. {{ regina.livello }}{% endif %}
+    </span>
+
+    <div class="queen-node {% if regina.livello == 0 %}current{% endif %}">
+        <div class="queen-icon">
+            {% if regina.regina.marcata %}
+                <span class="marcatore" style="background-color:
+                    {% if regina.regina.colore_marcatura == 'bianco' %}white
+                    {% elif regina.regina.colore_marcatura == 'giallo' %}#ffc107
+                    {% elif regina.regina.colore_marcatura == 'rosso' %}#dc3545
+                    {% elif regina.regina.colore_marcatura == 'verde' %}#198754
+                    {% elif regina.regina.colore_marcatura == 'blu' %}#0d6efd
+                    {% else %}#f8f9fa{% endif %};
+                    width: 24px; height: 24px;"></span>
+            {% endif %}
+            <i class="bi bi-gem text-warning"></i>
+        </div>
+
+        <div class="queen-name">
+            {% if regina.livello == 0 %}
+                Arnia #{{ regina.regina.arnia.numero }}
+            {% else %}
+                <a href="{% url 'visualizza_regina' regina.regina.arnia.id %}">
+                    Arnia #{{ regina.regina.arnia.numero }}
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="queen-info">
+            <strong>{{ regina.regina.get_razza_display }}</strong><br>
+            {{ regina.regina.get_origine_display }}<br>
+
+            {% if regina.regina.data_nascita %}
+                <small>Nata: {{ regina.regina.data_nascita|date:"d/m/Y" }}</small><br>
+            {% endif %}
+
+            {% if regina.regina.docilita %}
+                <small>
+                    Doc: {{ regina.regina.docilita }}/5 |
+                    Prod: {{ regina.regina.produttivita|default:"-" }}/5
+                </small>
+            {% endif %}
+        </div>
+
+        {% if regina.livello != 0 %}
+        <div class="mt-2">
+            <a href="{% url 'albero_genealogico_completo' regina.regina.id %}"
+               class="btn btn-sm btn-outline-success">
+                <i class="bi bi-diagram-3"></i>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if regina.madre %}
+    {% with regina=regina.madre %}
+        {% include "regine/_nodo_ascendente.html" %}
+    {% endwith %}
+{% endif %}

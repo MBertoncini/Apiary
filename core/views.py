@@ -17,13 +17,16 @@ import uuid
 from functools import wraps
 
 from .models import (
-    Apiario, Arnia, ControlloArnia, Fioritura, Pagamento, QuotaUtente, 
-    TrattamentoSanitario, TipoTrattamento, Gruppo, MembroGruppo, InvitoGruppo, Melario, Smielatura, Regina, StoriaRegine    
+    Apiario, Arnia, ControlloArnia, Fioritura, Pagamento, QuotaUtente,
+    TrattamentoSanitario, TipoTrattamento, Gruppo, MembroGruppo, InvitoGruppo, Melario, Smielatura, Regina, StoriaRegine,
+    CategoriaAttrezzatura, Attrezzatura, ManutenzioneAttrezzatura, PrestitoAttrezzatura, SpesaAttrezzatura, InventarioAttrezzature
 )
 from .forms import (
-    ApiarioForm, ArniaForm, ControlloArniaForm, FiorituraForm, PagamentoForm, 
+    ApiarioForm, ArniaForm, ControlloArniaForm, FiorituraForm, PagamentoForm,
     QuotaUtenteForm, TrattamentoSanitarioForm, TipoTrattamentoForm, GruppoForm,
-    InvitoGruppoForm, MembroGruppoRoleForm, ApiarioGruppoForm, RimozioneMelarioForm, SmielaturaForm, MelarioForm, ReginaForm,    
+    InvitoGruppoForm, MembroGruppoRoleForm, ApiarioGruppoForm, RimozioneMelarioForm, SmielaturaForm, MelarioForm, ReginaForm,
+    SostituzioneReginaForm, CategoriaAttrezzaturaForm, AttrezzaturaForm, AttrezzaturaFiltroForm, ManutenzioneAttrezzaturaForm,
+    PrestitoAttrezzaturaForm, RestituzioneAttrezzaturaForm, SpesaAttrezzaturaForm, RicercaReginaForm,
 )
 from .decorators import (
     richiedi_proprietario_o_gruppo, richiedi_appartenenza_gruppo, 
@@ -4034,5 +4037,723 @@ class FiorituraUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         # Creatore della fioritura ha accesso
         if hasattr(fioritura, 'creatore') and fioritura.creatore == self.request.user:
             return True
-            
+
         return False
+
+
+# ============================================
+# GESTIONE ATTREZZATURE E STRUMENTI
+# ============================================
+
+@login_required
+def gestione_attrezzature(request):
+    """Vista principale per la gestione delle attrezzature"""
+    # Attrezzature proprie
+    attrezzature_proprie = Attrezzatura.objects.filter(proprietario=request.user)
+
+    # Attrezzature condivise tramite gruppi
+    gruppi_utente = Gruppo.objects.filter(membri=request.user)
+    attrezzature_gruppo = Attrezzatura.objects.filter(
+        gruppo__in=gruppi_utente,
+        condiviso_con_gruppo=True
+    ).exclude(proprietario=request.user)
+
+    # Applicare filtri
+    filtro_form = AttrezzaturaFiltroForm(request.GET)
+    tutte_attrezzature = attrezzature_proprie | attrezzature_gruppo
+
+    if filtro_form.is_valid():
+        if filtro_form.cleaned_data.get('categoria'):
+            tutte_attrezzature = tutte_attrezzature.filter(
+                categoria=filtro_form.cleaned_data['categoria'])
+        if filtro_form.cleaned_data.get('stato'):
+            tutte_attrezzature = tutte_attrezzature.filter(
+                stato=filtro_form.cleaned_data['stato'])
+        if filtro_form.cleaned_data.get('condizione'):
+            tutte_attrezzature = tutte_attrezzature.filter(
+                condizione=filtro_form.cleaned_data['condizione'])
+        if filtro_form.cleaned_data.get('cerca'):
+            cerca = filtro_form.cleaned_data['cerca']
+            tutte_attrezzature = tutte_attrezzature.filter(
+                Q(nome__icontains=cerca) |
+                Q(marca__icontains=cerca) |
+                Q(modello__icontains=cerca) |
+                Q(descrizione__icontains=cerca)
+            )
+
+    tutte_attrezzature = tutte_attrezzature.select_related('categoria', 'proprietario', 'gruppo', 'apiario')
+
+    # Statistiche
+    stats = {
+        'totale': tutte_attrezzature.count(),
+        'disponibili': tutte_attrezzature.filter(stato='disponibile').count(),
+        'in_manutenzione': tutte_attrezzature.filter(stato='manutenzione').count(),
+        'prestate': tutte_attrezzature.filter(stato='prestato').count(),
+        'valore_totale': sum(a.prezzo_acquisto or 0 for a in attrezzature_proprie),
+        'valore_residuo': sum(a.get_valore_residuo() or 0 for a in attrezzature_proprie),
+    }
+
+    # Manutenzioni programmate
+    manutenzioni_programmate = ManutenzioneAttrezzatura.objects.filter(
+        attrezzatura__in=tutte_attrezzature,
+        stato='programmata',
+        data_programmata__lte=timezone.now().date() + timedelta(days=30)
+    ).select_related('attrezzatura')[:5]
+
+    # Prestiti in corso
+    prestiti_in_corso = PrestitoAttrezzatura.objects.filter(
+        Q(attrezzatura__proprietario=request.user) | Q(richiedente=request.user),
+        stato='in_corso'
+    ).select_related('attrezzatura', 'richiedente')[:5]
+
+    context = {
+        'attrezzature': tutte_attrezzature,
+        'attrezzature_proprie': attrezzature_proprie,
+        'attrezzature_gruppo': attrezzature_gruppo,
+        'filtro_form': filtro_form,
+        'stats': stats,
+        'manutenzioni_programmate': manutenzioni_programmate,
+        'prestiti_in_corso': prestiti_in_corso,
+        'categorie': CategoriaAttrezzatura.objects.all(),
+    }
+
+    return render(request, 'attrezzature/gestione_attrezzature.html', context)
+
+
+@login_required
+def aggiungi_attrezzatura(request):
+    """Aggiunge una nuova attrezzatura"""
+    if request.method == 'POST':
+        form = AttrezzaturaForm(request.POST, request.FILES, user=request.user)
+        if form.is_valid():
+            attrezzatura = form.save(commit=False)
+            attrezzatura.proprietario = request.user
+            attrezzatura.save()
+            messages.success(request, f"Attrezzatura '{attrezzatura.nome}' aggiunta con successo.")
+            return redirect('gestione_attrezzature')
+    else:
+        form = AttrezzaturaForm(user=request.user)
+
+    context = {
+        'form': form,
+        'titolo': 'Aggiungi Attrezzatura',
+    }
+    return render(request, 'attrezzature/form_attrezzatura.html', context)
+
+
+@login_required
+def dettaglio_attrezzatura(request, attrezzatura_id):
+    """Visualizza il dettaglio di un'attrezzatura"""
+    attrezzatura = get_object_or_404(Attrezzatura, pk=attrezzatura_id)
+
+    # Verifica accesso
+    can_view = False
+    can_edit = False
+
+    if attrezzatura.proprietario == request.user:
+        can_view = True
+        can_edit = True
+    elif attrezzatura.condiviso_con_gruppo and attrezzatura.gruppo:
+        if MembroGruppo.objects.filter(utente=request.user, gruppo=attrezzatura.gruppo).exists():
+            can_view = True
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=attrezzatura.gruppo)
+            if membro.ruolo in ['admin', 'editor']:
+                can_edit = True
+
+    if not can_view:
+        messages.error(request, "Non hai accesso a questa attrezzatura.")
+        return redirect('gestione_attrezzature')
+
+    # Storico manutenzioni
+    manutenzioni = attrezzatura.manutenzioni.all()[:10]
+
+    # Storico prestiti
+    prestiti = attrezzatura.prestiti.all()[:10]
+
+    # Spese associate
+    spese = attrezzatura.spese.all()[:10]
+    totale_spese = attrezzatura.spese.aggregate(totale=Sum('importo'))['totale'] or 0
+
+    context = {
+        'attrezzatura': attrezzatura,
+        'can_edit': can_edit,
+        'manutenzioni': manutenzioni,
+        'prestiti': prestiti,
+        'spese': spese,
+        'totale_spese': totale_spese,
+    }
+
+    return render(request, 'attrezzature/dettaglio_attrezzatura.html', context)
+
+
+@login_required
+def modifica_attrezzatura(request, attrezzatura_id):
+    """Modifica un'attrezzatura esistente"""
+    attrezzatura = get_object_or_404(Attrezzatura, pk=attrezzatura_id)
+
+    # Verifica permessi
+    if attrezzatura.proprietario != request.user:
+        if not (attrezzatura.condiviso_con_gruppo and attrezzatura.gruppo):
+            messages.error(request, "Non hai i permessi per modificare questa attrezzatura.")
+            return redirect('gestione_attrezzature')
+
+        try:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=attrezzatura.gruppo)
+            if membro.ruolo not in ['admin', 'editor']:
+                messages.error(request, "Non hai i permessi per modificare questa attrezzatura.")
+                return redirect('gestione_attrezzature')
+        except MembroGruppo.DoesNotExist:
+            messages.error(request, "Non hai i permessi per modificare questa attrezzatura.")
+            return redirect('gestione_attrezzature')
+
+    if request.method == 'POST':
+        form = AttrezzaturaForm(request.POST, request.FILES, instance=attrezzatura, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Attrezzatura '{attrezzatura.nome}' modificata con successo.")
+            return redirect('dettaglio_attrezzatura', attrezzatura_id=attrezzatura.id)
+    else:
+        form = AttrezzaturaForm(instance=attrezzatura, user=request.user)
+
+    context = {
+        'form': form,
+        'attrezzatura': attrezzatura,
+        'titolo': f'Modifica {attrezzatura.nome}',
+    }
+    return render(request, 'attrezzature/form_attrezzatura.html', context)
+
+
+@login_required
+def elimina_attrezzatura(request, attrezzatura_id):
+    """Elimina un'attrezzatura"""
+    attrezzatura = get_object_or_404(Attrezzatura, pk=attrezzatura_id)
+
+    # Solo il proprietario può eliminare
+    if attrezzatura.proprietario != request.user:
+        messages.error(request, "Solo il proprietario può eliminare questa attrezzatura.")
+        return redirect('gestione_attrezzature')
+
+    if request.method == 'POST':
+        nome = attrezzatura.nome
+        attrezzatura.delete()
+        messages.success(request, f"Attrezzatura '{nome}' eliminata con successo.")
+        return redirect('gestione_attrezzature')
+
+    context = {
+        'attrezzatura': attrezzatura,
+    }
+    return render(request, 'attrezzature/elimina_attrezzatura.html', context)
+
+
+@login_required
+def aggiungi_manutenzione(request, attrezzatura_id):
+    """Aggiunge una manutenzione per un'attrezzatura"""
+    attrezzatura = get_object_or_404(Attrezzatura, pk=attrezzatura_id)
+
+    # Verifica permessi
+    can_edit = False
+    if attrezzatura.proprietario == request.user:
+        can_edit = True
+    elif attrezzatura.condiviso_con_gruppo and attrezzatura.gruppo:
+        try:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=attrezzatura.gruppo)
+            if membro.ruolo in ['admin', 'editor']:
+                can_edit = True
+        except MembroGruppo.DoesNotExist:
+            pass
+
+    if not can_edit:
+        messages.error(request, "Non hai i permessi per aggiungere manutenzioni.")
+        return redirect('dettaglio_attrezzatura', attrezzatura_id=attrezzatura.id)
+
+    if request.method == 'POST':
+        form = ManutenzioneAttrezzaturaForm(request.POST)
+        if form.is_valid():
+            manutenzione = form.save(commit=False)
+            manutenzione.attrezzatura = attrezzatura
+            manutenzione.utente = request.user
+            manutenzione.save()
+
+            # Se la manutenzione è in corso, aggiorna lo stato dell'attrezzatura
+            if manutenzione.stato == 'in_corso':
+                attrezzatura.stato = 'manutenzione'
+                attrezzatura.save()
+
+            messages.success(request, "Manutenzione registrata con successo.")
+            return redirect('dettaglio_attrezzatura', attrezzatura_id=attrezzatura.id)
+    else:
+        form = ManutenzioneAttrezzaturaForm(initial={
+            'data_programmata': timezone.now().date()
+        })
+
+    context = {
+        'form': form,
+        'attrezzatura': attrezzatura,
+    }
+    return render(request, 'attrezzature/form_manutenzione.html', context)
+
+
+@login_required
+def richiedi_prestito(request, attrezzatura_id):
+    """Richiede il prestito di un'attrezzatura"""
+    attrezzatura = get_object_or_404(Attrezzatura, pk=attrezzatura_id)
+
+    # Verifica che l'attrezzatura sia condivisa con il gruppo dell'utente
+    if not attrezzatura.condiviso_con_gruppo or not attrezzatura.gruppo:
+        messages.error(request, "Questa attrezzatura non è disponibile per il prestito.")
+        return redirect('gestione_attrezzature')
+
+    if not MembroGruppo.objects.filter(utente=request.user, gruppo=attrezzatura.gruppo).exists():
+        messages.error(request, "Non sei membro del gruppo che possiede questa attrezzatura.")
+        return redirect('gestione_attrezzature')
+
+    if attrezzatura.stato != 'disponibile':
+        messages.error(request, f"L'attrezzatura non è disponibile. Stato attuale: {attrezzatura.get_stato_display()}")
+        return redirect('dettaglio_attrezzatura', attrezzatura_id=attrezzatura.id)
+
+    if request.method == 'POST':
+        form = PrestitoAttrezzaturaForm(request.POST)
+        if form.is_valid():
+            prestito = form.save(commit=False)
+            prestito.attrezzatura = attrezzatura
+            prestito.richiedente = request.user
+            prestito.save()
+            messages.success(request, "Richiesta di prestito inviata. In attesa di approvazione.")
+            return redirect('dettaglio_attrezzatura', attrezzatura_id=attrezzatura.id)
+    else:
+        form = PrestitoAttrezzaturaForm(initial={
+            'data_inizio_prestito': timezone.now().date(),
+            'data_fine_prevista': timezone.now().date() + timedelta(days=7)
+        })
+
+    context = {
+        'form': form,
+        'attrezzatura': attrezzatura,
+    }
+    return render(request, 'attrezzature/form_prestito.html', context)
+
+
+@login_required
+def gestisci_prestito(request, prestito_id, azione):
+    """Approva, rifiuta o completa un prestito"""
+    prestito = get_object_or_404(PrestitoAttrezzatura, pk=prestito_id)
+    attrezzatura = prestito.attrezzatura
+
+    # Verifica che l'utente sia il proprietario dell'attrezzatura
+    if attrezzatura.proprietario != request.user:
+        # O admin del gruppo
+        if not (attrezzatura.gruppo and MembroGruppo.objects.filter(
+            utente=request.user,
+            gruppo=attrezzatura.gruppo,
+            ruolo='admin'
+        ).exists()):
+            messages.error(request, "Non hai i permessi per gestire questo prestito.")
+            return redirect('gestione_attrezzature')
+
+    if azione == 'approva' and prestito.stato == 'richiesto':
+        prestito.stato = 'in_corso'
+        prestito.approvato_da = request.user
+        prestito.data_approvazione = timezone.now()
+        prestito.save()
+        messages.success(request, "Prestito approvato.")
+
+    elif azione == 'rifiuta' and prestito.stato == 'richiesto':
+        prestito.stato = 'rifiutato'
+        prestito.save()
+        messages.info(request, "Prestito rifiutato.")
+
+    elif azione == 'restituisci' and prestito.stato == 'in_corso':
+        if request.method == 'POST':
+            form = RestituzioneAttrezzaturaForm(request.POST)
+            if form.is_valid():
+                prestito.stato = 'restituito'
+                prestito.data_restituzione = form.cleaned_data['data_restituzione']
+                prestito.note_restituzione = form.cleaned_data.get('note_restituzione', '')
+                prestito.save()
+
+                if form.cleaned_data.get('nuova_condizione'):
+                    attrezzatura.condizione = form.cleaned_data['nuova_condizione']
+                    attrezzatura.save()
+
+                messages.success(request, "Attrezzatura restituita correttamente.")
+                return redirect('dettaglio_attrezzatura', attrezzatura_id=attrezzatura.id)
+        else:
+            form = RestituzioneAttrezzaturaForm(initial={
+                'data_restituzione': timezone.now().date(),
+                'nuova_condizione': attrezzatura.condizione
+            })
+
+        return render(request, 'attrezzature/form_restituzione.html', {
+            'form': form,
+            'prestito': prestito,
+            'attrezzatura': attrezzatura,
+        })
+
+    return redirect('dettaglio_attrezzatura', attrezzatura_id=attrezzatura.id)
+
+
+@login_required
+def aggiungi_spesa_attrezzatura(request, attrezzatura_id):
+    """Aggiunge una spesa per un'attrezzatura"""
+    attrezzatura = get_object_or_404(Attrezzatura, pk=attrezzatura_id)
+
+    # Verifica permessi
+    can_edit = False
+    if attrezzatura.proprietario == request.user:
+        can_edit = True
+    elif attrezzatura.condiviso_con_gruppo and attrezzatura.gruppo:
+        try:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=attrezzatura.gruppo)
+            if membro.ruolo in ['admin', 'editor']:
+                can_edit = True
+        except MembroGruppo.DoesNotExist:
+            pass
+
+    if not can_edit:
+        messages.error(request, "Non hai i permessi per aggiungere spese.")
+        return redirect('dettaglio_attrezzatura', attrezzatura_id=attrezzatura.id)
+
+    if request.method == 'POST':
+        form = SpesaAttrezzaturaForm(request.POST)
+        if form.is_valid():
+            spesa = form.save(commit=False)
+            spesa.attrezzatura = attrezzatura
+            spesa.gruppo = attrezzatura.gruppo
+            spesa.utente = request.user
+            spesa.save()
+            messages.success(request, "Spesa registrata con successo.")
+            return redirect('dettaglio_attrezzatura', attrezzatura_id=attrezzatura.id)
+    else:
+        form = SpesaAttrezzaturaForm(initial={
+            'data': timezone.now().date()
+        })
+
+    context = {
+        'form': form,
+        'attrezzatura': attrezzatura,
+    }
+    return render(request, 'attrezzature/form_spesa.html', context)
+
+
+@login_required
+def inventario_attrezzature(request, gruppo_id=None):
+    """Visualizza e genera l'inventario delle attrezzature"""
+    gruppo = None
+    if gruppo_id:
+        gruppo = get_object_or_404(Gruppo, pk=gruppo_id)
+        if not MembroGruppo.objects.filter(utente=request.user, gruppo=gruppo).exists():
+            messages.error(request, "Non sei membro di questo gruppo.")
+            return redirect('gestione_attrezzature')
+
+    if gruppo:
+        attrezzature = Attrezzatura.objects.filter(
+            gruppo=gruppo,
+            condiviso_con_gruppo=True
+        ).exclude(stato='dismesso')
+    else:
+        attrezzature = Attrezzatura.objects.filter(
+            proprietario=request.user
+        ).exclude(stato='dismesso')
+
+    # Calcola statistiche per categoria
+    stats_categoria = {}
+    for attrezzatura in attrezzature:
+        cat_nome = attrezzatura.categoria.nome if attrezzatura.categoria else 'Senza categoria'
+        if cat_nome not in stats_categoria:
+            stats_categoria[cat_nome] = {
+                'count': 0,
+                'valore': 0,
+                'valore_residuo': 0
+            }
+        stats_categoria[cat_nome]['count'] += 1
+        stats_categoria[cat_nome]['valore'] += float(attrezzatura.prezzo_acquisto or 0)
+        stats_categoria[cat_nome]['valore_residuo'] += float(attrezzatura.get_valore_residuo() or 0)
+
+    # Totali
+    totale_valore = sum(float(a.prezzo_acquisto or 0) for a in attrezzature)
+    totale_residuo = sum(float(a.get_valore_residuo() or 0) for a in attrezzature)
+
+    # Inventari precedenti
+    if gruppo:
+        inventari_precedenti = InventarioAttrezzature.objects.filter(gruppo=gruppo)[:5]
+    else:
+        inventari_precedenti = InventarioAttrezzature.objects.filter(
+            proprietario=request.user,
+            gruppo__isnull=True
+        )[:5]
+
+    # Generazione nuovo inventario
+    if request.method == 'POST':
+        inventario = InventarioAttrezzature(
+            gruppo=gruppo,
+            proprietario=request.user,
+            data=timezone.now().date(),
+            descrizione=request.POST.get('descrizione', f'Inventario {timezone.now().strftime("%d/%m/%Y")}'),
+            note=request.POST.get('note', '')
+        )
+        inventario.save()
+        inventario.calcola_valori()
+        messages.success(request, "Inventario generato con successo.")
+        return redirect('inventario_attrezzature', gruppo_id=gruppo_id) if gruppo_id else redirect('inventario_attrezzature')
+
+    context = {
+        'attrezzature': attrezzature,
+        'gruppo': gruppo,
+        'stats_categoria': stats_categoria,
+        'totale_valore': totale_valore,
+        'totale_residuo': totale_residuo,
+        'inventari_precedenti': inventari_precedenti,
+    }
+
+    return render(request, 'attrezzature/inventario.html', context)
+
+
+@login_required
+def gestione_categorie_attrezzature(request):
+    """Gestisce le categorie di attrezzature"""
+    categorie = CategoriaAttrezzatura.objects.annotate(
+        num_attrezzature=Count('attrezzature')
+    )
+
+    if request.method == 'POST':
+        form = CategoriaAttrezzaturaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Categoria creata con successo.")
+            return redirect('gestione_categorie_attrezzature')
+    else:
+        form = CategoriaAttrezzaturaForm()
+
+    context = {
+        'categorie': categorie,
+        'form': form,
+    }
+
+    return render(request, 'attrezzature/gestione_categorie.html', context)
+
+
+# ============================================
+# RICERCA AVANZATA GENEALOGIA REGINE
+# ============================================
+
+@login_required
+def ricerca_regine(request):
+    """Ricerca avanzata delle regine con filtri genealogici"""
+    # Ottieni apiari accessibili
+    apiari_propri = Apiario.objects.filter(proprietario=request.user)
+    gruppi_utente = Gruppo.objects.filter(membri=request.user)
+    apiari_condivisi = Apiario.objects.filter(
+        gruppo__in=gruppi_utente,
+        condiviso_con_gruppo=True
+    ).exclude(proprietario=request.user)
+
+    apiari_accessibili = apiari_propri | apiari_condivisi
+
+    # Regine accessibili
+    regine = Regina.objects.filter(
+        arnia__apiario__in=apiari_accessibili
+    ).select_related('arnia', 'arnia__apiario', 'regina_madre')
+
+    # Applica filtri
+    form = RicercaReginaForm(request.GET)
+    if form.is_valid():
+        if form.cleaned_data.get('razza'):
+            regine = regine.filter(razza=form.cleaned_data['razza'])
+        if form.cleaned_data.get('origine'):
+            regine = regine.filter(origine=form.cleaned_data['origine'])
+        if form.cleaned_data.get('anno_nascita'):
+            regine = regine.filter(data_nascita__year=form.cleaned_data['anno_nascita'])
+        if form.cleaned_data.get('selezionata') == 'si':
+            regine = regine.filter(selezionata=True)
+        elif form.cleaned_data.get('selezionata') == 'no':
+            regine = regine.filter(selezionata=False)
+        if form.cleaned_data.get('con_figlie'):
+            regine = regine.filter(figlie__isnull=False).distinct()
+        if form.cleaned_data.get('valutazione_minima'):
+            val_min = form.cleaned_data['valutazione_minima']
+            # Filtra per media valutazioni
+            regine = [r for r in regine if r.docilita and r.produttivita and
+                     (r.docilita + r.produttivita + (r.resistenza_malattie or 0) +
+                      (5 - (r.tendenza_sciamatura or 5))) / 4 >= val_min]
+
+    # Statistiche
+    stats = {
+        'totale': regine.count() if hasattr(regine, 'count') else len(regine),
+        'per_razza': {},
+        'per_origine': {},
+        'con_genealogia': 0,
+    }
+
+    for regina in regine:
+        razza = regina.get_razza_display()
+        origine = regina.get_origine_display()
+        stats['per_razza'][razza] = stats['per_razza'].get(razza, 0) + 1
+        stats['per_origine'][origine] = stats['per_origine'].get(origine, 0) + 1
+        if regina.regina_madre:
+            stats['con_genealogia'] += 1
+
+    context = {
+        'regine': regine,
+        'form': form,
+        'stats': stats,
+    }
+
+    return render(request, 'regine/ricerca_regine.html', context)
+
+
+@login_required
+def albero_genealogico_completo(request, regina_id):
+    """Vista avanzata dell'albero genealogico con più generazioni"""
+    regina = get_object_or_404(Regina, pk=regina_id)
+    arnia = regina.arnia
+    apiario = arnia.apiario
+
+    # Verifica accesso
+    if apiario.proprietario != request.user:
+        if apiario.gruppo and apiario.condiviso_con_gruppo:
+            if not MembroGruppo.objects.filter(utente=request.user, gruppo=apiario.gruppo).exists():
+                messages.error(request, "Non hai accesso a questa risorsa.")
+                return redirect('dashboard')
+        else:
+            messages.error(request, "Non hai accesso a questa risorsa.")
+            return redirect('dashboard')
+
+    def get_ascendenti(regina, livello=0, max_livelli=5):
+        """Recupera ricorsivamente gli ascendenti"""
+        if not regina or livello >= max_livelli:
+            return None
+
+        return {
+            'regina': regina,
+            'livello': livello,
+            'madre': get_ascendenti(regina.regina_madre, livello + 1, max_livelli)
+        }
+
+    def get_discendenti(regina, livello=0, max_livelli=3):
+        """Recupera ricorsivamente i discendenti"""
+        if not regina or livello >= max_livelli:
+            return None
+
+        figlie = Regina.objects.filter(regina_madre=regina)
+        return {
+            'regina': regina,
+            'livello': livello,
+            'figlie': [get_discendenti(f, livello + 1, max_livelli) for f in figlie]
+        }
+
+    # Costruisci l'albero
+    ascendenti = get_ascendenti(regina)
+    discendenti = get_discendenti(regina)
+
+    # Conta le generazioni
+    def conta_generazioni_su(nodo):
+        if not nodo or not nodo.get('madre'):
+            return 0
+        return 1 + conta_generazioni_su(nodo['madre'])
+
+    def conta_generazioni_giu(nodo):
+        if not nodo or not nodo.get('figlie'):
+            return 0
+        max_figli = max((conta_generazioni_giu(f) for f in nodo['figlie']), default=0)
+        return 1 + max_figli
+
+    num_generazioni_su = conta_generazioni_su(ascendenti)
+    num_generazioni_giu = conta_generazioni_giu(discendenti)
+
+    # Trova tutte le regine della stessa linea per statistiche
+    def raccogli_tutte_regine(nodo, regine_list=None):
+        if regine_list is None:
+            regine_list = []
+        if not nodo:
+            return regine_list
+        regine_list.append(nodo['regina'])
+        if nodo.get('madre'):
+            raccogli_tutte_regine(nodo['madre'], regine_list)
+        if nodo.get('figlie'):
+            for f in nodo['figlie']:
+                raccogli_tutte_regine(f, regine_list)
+        return regine_list
+
+    tutte_regine = raccogli_tutte_regine(ascendenti)
+    tutte_regine.extend([r['regina'] for r in (discendenti.get('figlie') or []) if r])
+
+    # Statistiche linea
+    stats_linea = {
+        'num_regine': len(set(tutte_regine)),
+        'razze': list(set(r.razza for r in tutte_regine)),
+        'media_docilita': sum(r.docilita or 0 for r in tutte_regine if r.docilita) /
+                         max(1, sum(1 for r in tutte_regine if r.docilita)),
+        'media_produttivita': sum(r.produttivita or 0 for r in tutte_regine if r.produttivita) /
+                             max(1, sum(1 for r in tutte_regine if r.produttivita)),
+    }
+
+    context = {
+        'regina': regina,
+        'arnia': arnia,
+        'apiario': apiario,
+        'ascendenti': ascendenti,
+        'discendenti': discendenti,
+        'num_generazioni_su': num_generazioni_su,
+        'num_generazioni_giu': num_generazioni_giu,
+        'stats_linea': stats_linea,
+    }
+
+    return render(request, 'regine/albero_genealogico_completo.html', context)
+
+
+@login_required
+def confronta_regine(request):
+    """Confronta due o più regine"""
+    regine_ids = request.GET.getlist('regina')
+
+    if len(regine_ids) < 2:
+        messages.warning(request, "Seleziona almeno due regine da confrontare.")
+        return redirect('ricerca_regine')
+
+    # Ottieni apiari accessibili
+    apiari_propri = Apiario.objects.filter(proprietario=request.user)
+    gruppi_utente = Gruppo.objects.filter(membri=request.user)
+    apiari_condivisi = Apiario.objects.filter(
+        gruppo__in=gruppi_utente,
+        condiviso_con_gruppo=True
+    ).exclude(proprietario=request.user)
+    apiari_accessibili = apiari_propri | apiari_condivisi
+
+    # Verifica accesso e recupera regine
+    regine = Regina.objects.filter(
+        pk__in=regine_ids,
+        arnia__apiario__in=apiari_accessibili
+    ).select_related('arnia', 'arnia__apiario', 'regina_madre')
+
+    if regine.count() < 2:
+        messages.error(request, "Non hai accesso a tutte le regine selezionate.")
+        return redirect('ricerca_regine')
+
+    # Prepara dati per il confronto
+    confronto = []
+    for regina in regine:
+        # Calcola metriche
+        media_valutazione = None
+        if regina.docilita and regina.produttivita:
+            vals = [regina.docilita, regina.produttivita]
+            if regina.resistenza_malattie:
+                vals.append(regina.resistenza_malattie)
+            if regina.tendenza_sciamatura:
+                vals.append(5 - regina.tendenza_sciamatura)  # Inverti: bassa sciamatura = buono
+            media_valutazione = sum(vals) / len(vals)
+
+        # Conta discendenti
+        num_figlie = Regina.objects.filter(regina_madre=regina).count()
+
+        confronto.append({
+            'regina': regina,
+            'media_valutazione': round(media_valutazione, 1) if media_valutazione else None,
+            'num_figlie': num_figlie,
+            'eta_giorni': regina.get_eta_giorni(),
+        })
+
+    context = {
+        'confronto': confronto,
+    }
+
+    return render(request, 'regine/confronta_regine.html', context)

@@ -97,4 +97,23 @@ urlpatterns = [
     path('apiario/<int:apiario_id>/meteo/', views.visualizza_meteo_apiario, name='visualizza_meteo_apiario'),
     path('apiario/<int:apiario_id>/meteo/grafici/', views.grafici_meteo_apiario, name='grafici_meteo_apiario'),
     path('mappa/meteo/', views.mappa_meteo, name='mappa_meteo'),
+
+    # Gestione Attrezzature
+    path('attrezzature/', views.gestione_attrezzature, name='gestione_attrezzature'),
+    path('attrezzature/aggiungi/', views.aggiungi_attrezzatura, name='aggiungi_attrezzatura'),
+    path('attrezzature/<int:attrezzatura_id>/', views.dettaglio_attrezzatura, name='dettaglio_attrezzatura'),
+    path('attrezzature/<int:attrezzatura_id>/modifica/', views.modifica_attrezzatura, name='modifica_attrezzatura'),
+    path('attrezzature/<int:attrezzatura_id>/elimina/', views.elimina_attrezzatura, name='elimina_attrezzatura'),
+    path('attrezzature/<int:attrezzatura_id>/manutenzione/', views.aggiungi_manutenzione, name='aggiungi_manutenzione'),
+    path('attrezzature/<int:attrezzatura_id>/prestito/', views.richiedi_prestito, name='richiedi_prestito'),
+    path('attrezzature/<int:attrezzatura_id>/spesa/', views.aggiungi_spesa_attrezzatura, name='aggiungi_spesa_attrezzatura'),
+    path('prestito/<int:prestito_id>/<str:azione>/', views.gestisci_prestito, name='gestisci_prestito'),
+    path('attrezzature/inventario/', views.inventario_attrezzature, name='inventario_attrezzature'),
+    path('attrezzature/inventario/gruppo/<int:gruppo_id>/', views.inventario_attrezzature, name='inventario_attrezzature_gruppo'),
+    path('attrezzature/categorie/', views.gestione_categorie_attrezzature, name='gestione_categorie_attrezzature'),
+
+    # Ricerca Avanzata Regine
+    path('regine/ricerca/', views.ricerca_regine, name='ricerca_regine'),
+    path('regina/<int:regina_id>/genealogia-completa/', views.albero_genealogico_completo, name='albero_genealogico_completo'),
+    path('regine/confronta/', views.confronta_regine, name='confronta_regine'),
 ]

@@ -1,0 +1,318 @@
+<!-- templates/regine/albero_genealogico_completo.html -->
+{% extends 'base.html' %}
+
+{% block title %}Albero Genealogico Completo - {{ regina.arnia.numero }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .genealogy-container {
+        position: relative;
+        padding: 20px;
+        overflow-x: auto;
+    }
+
+    .tree-level {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 30px;
+        position: relative;
+    }
+
+    .tree-level::before {
+        content: '';
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        width: 2px;
+        height: 15px;
+        background-color: #dee2e6;
+    }
+
+    .tree-level:first-child::before {
+        display: none;
+    }
+
+    .queen-node {
+        background: white;
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 0 10px;
+        min-width: 180px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .queen-node:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .queen-node.current {
+        border-color: #ffc107;
+        border-width: 3px;
+        background: linear-gradient(to bottom, #fff9e6, #ffffff);
+    }
+
+    .queen-node .queen-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .queen-node .queen-name {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .queen-node .queen-info {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .descendants-section {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 2px solid #dee2e6;
+    }
+
+    .descendant-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 5px;
+        text-align: center;
+    }
+
+    .level-label {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        font-size: 0.75rem;
+        color: #6c757d;
+        font-weight: bold;
+    }
+
+    .marcatore {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        display: inline-block;
+        border: 1px solid #ced4da;
+        margin-right: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="bi bi-diagram-3"></i>
+                Albero Genealogico Completo
+            </h1>
+            <div>
+                <a href="{% url 'visualizza_regina' arnia.id %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Torna alla Regina
+                </a>
+                <a href="{% url 'ricerca_regine' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-search"></i> Ricerca Regine
+                </a>
+            </div>
+        </div>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'visualizza_regina' arnia.id %}">Regina #{{ arnia.numero }}</a></li>
+                <li class="breadcrumb-item active">Albero Genealogico</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-9">
+        <!-- Info Regina -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="bi bi-gem"></i> Regina Arnia #{{ regina.arnia.numero }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Razza:</strong> {{ regina.get_razza_display }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Origine:</strong> {{ regina.get_origine_display }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Eta:</strong>
+                        {% if regina.get_eta_anni %}{{ regina.get_eta_anni }} anni{% else %}-{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Marcatura:</strong>
+                        {% if regina.marcata %}
+                            <span class="marcatore" style="background-color:
+                                {% if regina.colore_marcatura == 'bianco' %}white
+                                {% elif regina.colore_marcatura == 'giallo' %}#ffc107
+                                {% elif regina.colore_marcatura == 'rosso' %}#dc3545
+                                {% elif regina.colore_marcatura == 'verde' %}#198754
+                                {% elif regina.colore_marcatura == 'blu' %}#0d6efd
+                                {% else %}#f8f9fa{% endif %};"></span>
+                            {{ regina.get_colore_marcatura_display }}
+                        {% else %}
+                            Non marcata
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Albero Ascendenti -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-arrow-up-circle"></i> Linea Ascendente
+                    <span class="badge bg-light text-dark">{{ num_generazioni_su }} generazioni</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="genealogy-container">
+                    {% if ascendenti %}
+                        {% with regina=ascendenti %}
+                            {% include "regine/_nodo_ascendente.html" %}
+                        {% endwith %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            Nessuna informazione genealogica disponibile per questa regina.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Albero Discendenti -->
+        {% if discendenti.figlie %}
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-arrow-down-circle"></i> Linea Discendente
+                    <span class="badge bg-light text-dark">{{ num_generazioni_giu }} generazioni</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for figlia_data in discendenti.figlie %}
+                        {% if figlia_data %}
+                        <div class="col-md-4 mb-3">
+                            <div class="descendant-card">
+                                <h6>
+                                    <a href="{% url 'visualizza_regina' figlia_data.regina.arnia.id %}">
+                                        Arnia #{{ figlia_data.regina.arnia.numero }}
+                                    </a>
+                                </h6>
+                                <small class="text-muted">{{ figlia_data.regina.get_razza_display }}</small>
+                                <br>
+                                <small>
+                                    {% if figlia_data.regina.data_introduzione %}
+                                        {{ figlia_data.regina.data_introduzione|date:"d/m/Y" }}
+                                    {% endif %}
+                                </small>
+                                {% if figlia_data.figlie %}
+                                    <br>
+                                    <span class="badge bg-success mt-2">
+                                        {{ figlia_data.figlie|length }} figlie
+                                    </span>
+                                {% endif %}
+                                <div class="mt-2">
+                                    <a href="{% url 'albero_genealogico_completo' figlia_data.regina.id %}"
+                                       class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-diagram-3"></i> Vedi albero
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Statistiche Linea -->
+    <div class="col-lg-3">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"><i class="bi bi-bar-chart"></i> Statistiche Linea</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <td>Regine nella linea:</td>
+                        <td class="text-end"><strong>{{ stats_linea.num_regine }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Generazioni su:</td>
+                        <td class="text-end"><strong>{{ num_generazioni_su }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Generazioni giu:</td>
+                        <td class="text-end"><strong>{{ num_generazioni_giu }}</strong></td>
+                    </tr>
+                </table>
+
+                <hr>
+
+                <h6>Razze nella linea</h6>
+                {% for razza in stats_linea.razze %}
+                    <span class="badge bg-secondary mb-1">{{ razza }}</span>
+                {% endfor %}
+
+                <hr>
+
+                <h6>Medie Valutazioni</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td>Docilita:</td>
+                        <td class="text-end">
+                            {% if stats_linea.media_docilita %}
+                                {{ stats_linea.media_docilita|floatformat:1 }}/5
+                            {% else %}-{% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Produttivita:</td>
+                        <td class="text-end">
+                            {% if stats_linea.media_produttivita %}
+                                {{ stats_linea.media_produttivita|floatformat:1 }}/5
+                            {% else %}-{% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-lightning"></i> Azioni</h6>
+            </div>
+            <div class="card-body d-grid gap-2">
+                <a href="{% url 'modifica_regina' regina.id %}" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Modifica Regina
+                </a>
+                <a href="{% url 'ricerca_regine' %}?razza={{ regina.razza }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-search"></i> Cerca stessa razza
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

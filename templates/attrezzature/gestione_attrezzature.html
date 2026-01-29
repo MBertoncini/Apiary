@@ -1,0 +1,394 @@
+<!-- templates/attrezzature/gestione_attrezzature.html -->
+{% extends 'base.html' %}
+
+{% block title %}Gestione Attrezzature - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="bi bi-box-seam"></i> Gestione Attrezzature</h1>
+            <div>
+                <a href="{% url 'aggiungi_attrezzatura' %}" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Aggiungi Attrezzatura
+                </a>
+                <a href="{% url 'gestione_categorie_attrezzature' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-tags"></i> Categorie
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiche -->
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card text-center bg-light">
+            <div class="card-body">
+                <h3 class="mb-0">{{ stats.totale }}</h3>
+                <small class="text-muted">Totale</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center bg-success text-white">
+            <div class="card-body">
+                <h3 class="mb-0">{{ stats.disponibili }}</h3>
+                <small>Disponibili</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center bg-warning">
+            <div class="card-body">
+                <h3 class="mb-0">{{ stats.in_manutenzione }}</h3>
+                <small>In Manutenzione</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center bg-info text-white">
+            <div class="card-body">
+                <h3 class="mb-0">{{ stats.prestate }}</h3>
+                <small>Prestate</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="mb-0">&euro;{{ stats.valore_totale|floatformat:0 }}</h3>
+                <small class="text-muted">Valore Acquisto</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="mb-0">&euro;{{ stats.valore_residuo|floatformat:0 }}</h3>
+                <small class="text-muted">Valore Residuo</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Colonna principale -->
+    <div class="col-lg-8">
+        <!-- Filtri -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-funnel"></i> Filtri
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        {{ filtro_form.categoria }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ filtro_form.stato }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ filtro_form.condizione }}
+                    </div>
+                    <div class="col-md-3">
+                        <div class="input-group">
+                            {{ filtro_form.cerca }}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lista Attrezzature -->
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#tutte">
+                            Tutte ({{ attrezzature|length }})
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#mie">
+                            Le mie ({{ attrezzature_proprie|length }})
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#gruppo">
+                            Del gruppo ({{ attrezzature_gruppo|length }})
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body tab-content">
+                <div class="tab-pane fade show active" id="tutte">
+                    {% if attrezzature %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Categoria</th>
+                                        <th>Stato</th>
+                                        <th>Condizione</th>
+                                        <th>Posizione</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for attrezzatura in attrezzature %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'dettaglio_attrezzatura' attrezzatura.id %}">
+                                                <strong>{{ attrezzatura.nome }}</strong>
+                                            </a>
+                                            {% if attrezzatura.marca %}
+                                                <br><small class="text-muted">{{ attrezzatura.marca }} {{ attrezzatura.modello|default:"" }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if attrezzatura.categoria %}
+                                                <i class="{{ attrezzatura.categoria.icona }}"></i>
+                                                {{ attrezzatura.categoria.nome }}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge
+                                                {% if attrezzatura.stato == 'disponibile' %}bg-success
+                                                {% elif attrezzatura.stato == 'in_uso' %}bg-primary
+                                                {% elif attrezzatura.stato == 'manutenzione' %}bg-warning text-dark
+                                                {% elif attrezzatura.stato == 'prestato' %}bg-info
+                                                {% elif attrezzatura.stato == 'dismesso' %}bg-secondary
+                                                {% endif %}">
+                                                {{ attrezzatura.get_stato_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge
+                                                {% if attrezzatura.condizione == 'nuovo' %}bg-success
+                                                {% elif attrezzatura.condizione == 'ottimo' %}bg-success
+                                                {% elif attrezzatura.condizione == 'buono' %}bg-primary
+                                                {% elif attrezzatura.condizione == 'discreto' %}bg-info
+                                                {% elif attrezzatura.condizione == 'usurato' %}bg-warning text-dark
+                                                {% elif attrezzatura.condizione == 'da_riparare' %}bg-danger
+                                                {% endif %}">
+                                                {{ attrezzatura.get_condizione_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if attrezzatura.apiario %}
+                                                <i class="bi bi-geo-alt"></i> {{ attrezzatura.apiario.nome }}
+                                            {% elif attrezzatura.posizione %}
+                                                {{ attrezzatura.posizione }}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'dettaglio_attrezzatura' attrezzatura.id %}" class="btn btn-sm btn-outline-primary" title="Dettaglio">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            {% if attrezzatura.proprietario == request.user %}
+                                                <a href="{% url 'modifica_attrezzatura' attrezzatura.id %}" class="btn btn-sm btn-outline-secondary" title="Modifica">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Nessuna attrezzatura trovata.
+                            <a href="{% url 'aggiungi_attrezzatura' %}">Aggiungi la prima attrezzatura</a>.
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="tab-pane fade" id="mie">
+                    {% if attrezzature_proprie %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Stato</th>
+                                        <th>Valore</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for attrezzatura in attrezzature_proprie %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'dettaglio_attrezzatura' attrezzatura.id %}">{{ attrezzatura.nome }}</a>
+                                            {% if attrezzatura.condiviso_con_gruppo %}
+                                                <i class="bi bi-people text-info" title="Condiviso con il gruppo"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge
+                                                {% if attrezzatura.stato == 'disponibile' %}bg-success
+                                                {% elif attrezzatura.stato == 'manutenzione' %}bg-warning text-dark
+                                                {% elif attrezzatura.stato == 'prestato' %}bg-info
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ attrezzatura.get_stato_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if attrezzatura.prezzo_acquisto %}
+                                                &euro;{{ attrezzatura.prezzo_acquisto|floatformat:2 }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'modifica_attrezzatura' attrezzatura.id %}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">Nessuna attrezzatura personale.</div>
+                    {% endif %}
+                </div>
+
+                <div class="tab-pane fade" id="gruppo">
+                    {% if attrezzature_gruppo %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Proprietario</th>
+                                        <th>Stato</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for attrezzatura in attrezzature_gruppo %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'dettaglio_attrezzatura' attrezzatura.id %}">{{ attrezzatura.nome }}</a>
+                                        </td>
+                                        <td>{{ attrezzatura.proprietario.username }}</td>
+                                        <td>
+                                            <span class="badge
+                                                {% if attrezzatura.stato == 'disponibile' %}bg-success{% else %}bg-secondary{% endif %}">
+                                                {{ attrezzatura.get_stato_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if attrezzatura.stato == 'disponibile' %}
+                                                <a href="{% url 'richiedi_prestito' attrezzatura.id %}" class="btn btn-sm btn-outline-info">
+                                                    <i class="bi bi-arrow-right-circle"></i> Richiedi
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">Nessuna attrezzatura condivisa dai gruppi.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Colonna laterale -->
+    <div class="col-lg-4">
+        <!-- Manutenzioni programmate -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <i class="bi bi-wrench"></i> Manutenzioni Programmate
+            </div>
+            <div class="card-body">
+                {% if manutenzioni_programmate %}
+                    <ul class="list-group list-group-flush">
+                        {% for man in manutenzioni_programmate %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ man.attrezzatura.nome }}</strong><br>
+                                    <small class="text-muted">{{ man.get_tipo_display }} - {{ man.data_programmata|date:"d/m/Y" }}</small>
+                                </div>
+                                <span class="badge bg-warning text-dark">
+                                    {{ man.data_programmata|timesince }} fa
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">Nessuna manutenzione programmata.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Prestiti in corso -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-arrow-left-right"></i> Prestiti in Corso
+            </div>
+            <div class="card-body">
+                {% if prestiti_in_corso %}
+                    <ul class="list-group list-group-flush">
+                        {% for prestito in prestiti_in_corso %}
+                            <li class="list-group-item">
+                                <strong>{{ prestito.attrezzatura.nome }}</strong><br>
+                                <small>
+                                    {% if prestito.richiedente == request.user %}
+                                        <i class="bi bi-arrow-down"></i> Prestato da {{ prestito.attrezzatura.proprietario.username }}
+                                    {% else %}
+                                        <i class="bi bi-arrow-up"></i> Prestato a {{ prestito.richiedente.username }}
+                                    {% endif %}
+                                </small><br>
+                                <small class="text-muted">Scade: {{ prestito.data_fine_prevista|date:"d/m/Y" }}</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">Nessun prestito in corso.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Categorie -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-tags"></i> Categorie
+            </div>
+            <div class="card-body">
+                {% if categorie %}
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for cat in categorie %}
+                            <span class="badge bg-light text-dark border">
+                                <i class="{{ cat.icona }}"></i> {{ cat.nome }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Nessuna categoria definita.</p>
+                {% endif %}
+                <hr>
+                <a href="{% url 'gestione_categorie_attrezzature' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-gear"></i> Gestisci Categorie
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

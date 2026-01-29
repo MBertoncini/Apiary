@@ -1,0 +1,126 @@
+<!-- templates/attrezzature/gestione_categorie.html -->
+{% extends 'base.html' %}
+
+{% block title %}Gestione Categorie Attrezzature{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="bi bi-tags"></i> Categorie Attrezzature</h1>
+            <a href="{% url 'gestione_attrezzature' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Torna alle Attrezzature
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Categorie Esistenti</h5>
+            </div>
+            <div class="card-body">
+                {% if categorie %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Icona</th>
+                                    <th>Nome</th>
+                                    <th>Descrizione</th>
+                                    <th class="text-center">Attrezzature</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cat in categorie %}
+                                <tr>
+                                    <td>
+                                        <i class="{{ cat.icona }} fs-4"></i>
+                                    </td>
+                                    <td><strong>{{ cat.nome }}</strong></td>
+                                    <td>{{ cat.descrizione|default:"-"|truncatechars:50 }}</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">{{ cat.num_attrezzature }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Nessuna categoria definita.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Nuova Categoria</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_nome" class="form-label">Nome *</label>
+                        {{ form.nome }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_descrizione" class="form-label">Descrizione</label>
+                        {{ form.descrizione }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_icona" class="form-label">Icona</label>
+                        {{ form.icona }}
+                        <div class="form-text">
+                            Usa classi Bootstrap Icons (es. bi-tools, bi-box-seam).
+                            <a href="https://icons.getbootstrap.com/" target="_blank">Vedi tutte</a>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-plus-circle"></i> Crea Categoria
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Suggerimenti icone -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">Icone Suggerite</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge bg-light text-dark border p-2" title="bi-tools">
+                        <i class="bi bi-tools"></i> Tools
+                    </span>
+                    <span class="badge bg-light text-dark border p-2" title="bi-box-seam">
+                        <i class="bi bi-box-seam"></i> Box
+                    </span>
+                    <span class="badge bg-light text-dark border p-2" title="bi-gear">
+                        <i class="bi bi-gear"></i> Gear
+                    </span>
+                    <span class="badge bg-light text-dark border p-2" title="bi-droplet">
+                        <i class="bi bi-droplet"></i> Droplet
+                    </span>
+                    <span class="badge bg-light text-dark border p-2" title="bi-shield">
+                        <i class="bi bi-shield"></i> Shield
+                    </span>
+                    <span class="badge bg-light text-dark border p-2" title="bi-thermometer">
+                        <i class="bi bi-thermometer"></i> Thermo
+                    </span>
+                    <span class="badge bg-light text-dark border p-2" title="bi-eyedropper">
+                        <i class="bi bi-eyedropper"></i> Eyedropper
+                    </span>
+                    <span class="badge bg-light text-dark border p-2" title="bi-moisture">
+                        <i class="bi bi-moisture"></i> Moisture
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

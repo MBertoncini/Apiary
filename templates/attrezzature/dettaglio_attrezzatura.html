@@ -1,0 +1,409 @@
+<!-- templates/attrezzature/dettaglio_attrezzatura.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ attrezzatura.nome }} - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                {% if attrezzatura.categoria %}
+                    <i class="{{ attrezzatura.categoria.icona }}"></i>
+                {% else %}
+                    <i class="bi bi-box-seam"></i>
+                {% endif %}
+                {{ attrezzatura.nome }}
+            </h1>
+            <div>
+                {% if can_edit %}
+                    <a href="{% url 'modifica_attrezzatura' attrezzatura.id %}" class="btn btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Modifica
+                    </a>
+                {% endif %}
+                <a href="{% url 'gestione_attrezzature' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Torna alla lista
+                </a>
+            </div>
+        </div>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'gestione_attrezzature' %}">Attrezzature</a></li>
+                <li class="breadcrumb-item active">{{ attrezzatura.nome }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Colonna principale -->
+    <div class="col-lg-8">
+        <!-- Card informazioni principali -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Informazioni Generali</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        {% if attrezzatura.immagine %}
+                            <img src="{{ attrezzatura.immagine.url }}" alt="{{ attrezzatura.nome }}"
+                                 class="img-fluid rounded mb-3" style="max-height: 200px;">
+                        {% endif %}
+
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Categoria:</th>
+                                <td>{{ attrezzatura.categoria.nome|default:"-" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Marca:</th>
+                                <td>{{ attrezzatura.marca|default:"-" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Modello:</th>
+                                <td>{{ attrezzatura.modello|default:"-" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Numero Serie:</th>
+                                <td>{{ attrezzatura.numero_serie|default:"-" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Quantita:</th>
+                                <td>{{ attrezzatura.quantita }} {{ attrezzatura.unita_misura }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Stato:</th>
+                                <td>
+                                    <span class="badge
+                                        {% if attrezzatura.stato == 'disponibile' %}bg-success
+                                        {% elif attrezzatura.stato == 'in_uso' %}bg-primary
+                                        {% elif attrezzatura.stato == 'manutenzione' %}bg-warning text-dark
+                                        {% elif attrezzatura.stato == 'prestato' %}bg-info
+                                        {% elif attrezzatura.stato == 'dismesso' %}bg-secondary
+                                        {% endif %}">
+                                        {{ attrezzatura.get_stato_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Condizione:</th>
+                                <td>
+                                    <span class="badge
+                                        {% if attrezzatura.condizione == 'nuovo' %}bg-success
+                                        {% elif attrezzatura.condizione == 'ottimo' %}bg-success
+                                        {% elif attrezzatura.condizione == 'buono' %}bg-primary
+                                        {% elif attrezzatura.condizione == 'discreto' %}bg-info
+                                        {% elif attrezzatura.condizione == 'usurato' %}bg-warning text-dark
+                                        {% elif attrezzatura.condizione == 'da_riparare' %}bg-danger
+                                        {% endif %}">
+                                        {{ attrezzatura.get_condizione_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Posizione:</th>
+                                <td>
+                                    {% if attrezzatura.apiario %}
+                                        <i class="bi bi-geo-alt"></i>
+                                        <a href="{% url 'visualizza_apiario' attrezzatura.apiario.id %}">
+                                            {{ attrezzatura.apiario.nome }}
+                                        </a>
+                                    {% endif %}
+                                    {% if attrezzatura.posizione %}
+                                        - {{ attrezzatura.posizione }}
+                                    {% endif %}
+                                    {% if not attrezzatura.apiario and not attrezzatura.posizione %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Proprietario:</th>
+                                <td>{{ attrezzatura.proprietario.username }}</td>
+                            </tr>
+                            {% if attrezzatura.gruppo %}
+                            <tr>
+                                <th>Gruppo:</th>
+                                <td>
+                                    {{ attrezzatura.gruppo.nome }}
+                                    {% if attrezzatura.condiviso_con_gruppo %}
+                                        <i class="bi bi-people text-success" title="Condiviso"></i>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </table>
+
+                        {% if attrezzatura.note %}
+                            <div class="alert alert-secondary mt-3">
+                                <strong>Note:</strong><br>
+                                {{ attrezzatura.note|linebreaks }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card dati economici -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-cash-coin"></i> Dati Economici</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center border-end">
+                        <h4 class="text-primary">
+                            {% if attrezzatura.prezzo_acquisto %}
+                                &euro;{{ attrezzatura.prezzo_acquisto|floatformat:2 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </h4>
+                        <small class="text-muted">Prezzo Acquisto</small>
+                    </div>
+                    <div class="col-md-3 text-center border-end">
+                        <h4 class="text-success">
+                            {% if attrezzatura.get_valore_residuo %}
+                                &euro;{{ attrezzatura.get_valore_residuo|floatformat:2 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </h4>
+                        <small class="text-muted">Valore Residuo</small>
+                    </div>
+                    <div class="col-md-3 text-center border-end">
+                        <h4>
+                            {% if attrezzatura.get_percentuale_ammortamento is not None %}
+                                {{ attrezzatura.get_percentuale_ammortamento }}%
+                            {% else %}
+                                -
+                            {% endif %}
+                        </h4>
+                        <small class="text-muted">Ammortamento</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h4 class="text-warning">
+                            &euro;{{ totale_spese|floatformat:2 }}
+                        </h4>
+                        <small class="text-muted">Spese Totali</small>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>Data Acquisto:</strong>
+                        {{ attrezzatura.data_acquisto|date:"d/m/Y"|default:"-" }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Fornitore:</strong>
+                        {{ attrezzatura.fornitore|default:"-" }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Garanzia:</strong>
+                        {% if attrezzatura.garanzia_fino_a %}
+                            {{ attrezzatura.garanzia_fino_a|date:"d/m/Y" }}
+                            {% if attrezzatura.is_in_garanzia %}
+                                <span class="badge bg-success">Attiva</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Scaduta</span>
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manutenzioni -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-wrench"></i> Storico Manutenzioni</h5>
+                {% if can_edit %}
+                    <a href="{% url 'aggiungi_manutenzione' attrezzatura.id %}" class="btn btn-sm btn-dark">
+                        <i class="bi bi-plus-circle"></i> Nuova
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if manutenzioni %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Tipo</th>
+                                    <th>Stato</th>
+                                    <th>Costo</th>
+                                    <th>Descrizione</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for man in manutenzioni %}
+                                <tr>
+                                    <td>{{ man.data_programmata|date:"d/m/Y" }}</td>
+                                    <td>{{ man.get_tipo_display }}</td>
+                                    <td>
+                                        <span class="badge
+                                            {% if man.stato == 'completata' %}bg-success
+                                            {% elif man.stato == 'in_corso' %}bg-primary
+                                            {% elif man.stato == 'programmata' %}bg-warning text-dark
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ man.get_stato_display }}
+                                        </span>
+                                    </td>
+                                    <td>{% if man.costo %}&euro;{{ man.costo|floatformat:2 }}{% else %}-{% endif %}</td>
+                                    <td>{{ man.descrizione|truncatechars:50 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Nessuna manutenzione registrata.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Spese -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-receipt"></i> Spese</h5>
+                {% if can_edit %}
+                    <a href="{% url 'aggiungi_spesa_attrezzatura' attrezzatura.id %}" class="btn btn-sm btn-light">
+                        <i class="bi bi-plus-circle"></i> Nuova
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if spese %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Tipo</th>
+                                    <th>Descrizione</th>
+                                    <th>Importo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for spesa in spese %}
+                                <tr>
+                                    <td>{{ spesa.data|date:"d/m/Y" }}</td>
+                                    <td>{{ spesa.get_tipo_display }}</td>
+                                    <td>{{ spesa.descrizione }}</td>
+                                    <td>&euro;{{ spesa.importo|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Nessuna spesa registrata.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Colonna laterale -->
+    <div class="col-lg-4">
+        <!-- Azioni rapide -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-lightning"></i> Azioni Rapide
+            </div>
+            <div class="card-body d-grid gap-2">
+                {% if can_edit %}
+                    <a href="{% url 'aggiungi_manutenzione' attrezzatura.id %}" class="btn btn-outline-warning">
+                        <i class="bi bi-wrench"></i> Registra Manutenzione
+                    </a>
+                    <a href="{% url 'aggiungi_spesa_attrezzatura' attrezzatura.id %}" class="btn btn-outline-info">
+                        <i class="bi bi-receipt"></i> Registra Spesa
+                    </a>
+                {% endif %}
+                {% if attrezzatura.condiviso_con_gruppo and attrezzatura.stato == 'disponibile' and attrezzatura.proprietario != request.user %}
+                    <a href="{% url 'richiedi_prestito' attrezzatura.id %}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-right-circle"></i> Richiedi Prestito
+                    </a>
+                {% endif %}
+                {% if attrezzatura.proprietario == request.user %}
+                    <a href="{% url 'elimina_attrezzatura' attrezzatura.id %}" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i> Elimina
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Prestiti -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-arrow-left-right"></i> Storico Prestiti
+            </div>
+            <div class="card-body">
+                {% if prestiti %}
+                    <ul class="list-group list-group-flush">
+                        {% for prestito in prestiti %}
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <strong>{{ prestito.richiedente.username }}</strong>
+                                    <span class="badge
+                                        {% if prestito.stato == 'in_corso' %}bg-primary
+                                        {% elif prestito.stato == 'restituito' %}bg-success
+                                        {% elif prestito.stato == 'richiesto' %}bg-warning text-dark
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ prestito.get_stato_display }}
+                                    </span>
+                                </div>
+                                <small class="text-muted">
+                                    {{ prestito.data_inizio_prestito|date:"d/m/Y" }} -
+                                    {{ prestito.data_restituzione|date:"d/m/Y"|default:"..." }}
+                                </small>
+                                {% if prestito.stato == 'richiesto' and attrezzatura.proprietario == request.user %}
+                                    <div class="mt-2">
+                                        <a href="{% url 'gestisci_prestito' prestito.id 'approva' %}"
+                                           class="btn btn-sm btn-success">Approva</a>
+                                        <a href="{% url 'gestisci_prestito' prestito.id 'rifiuta' %}"
+                                           class="btn btn-sm btn-danger">Rifiuta</a>
+                                    </div>
+                                {% endif %}
+                                {% if prestito.stato == 'in_corso' %}
+                                    <div class="mt-2">
+                                        <a href="{% url 'gestisci_prestito' prestito.id 'restituisci' %}"
+                                           class="btn btn-sm btn-outline-primary">Registra Restituzione</a>
+                                    </div>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">Nessun prestito registrato.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Info tecnica -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-info-circle"></i> Info
+            </div>
+            <div class="card-body">
+                <small class="text-muted">
+                    Creato: {{ attrezzatura.data_creazione|date:"d/m/Y H:i" }}<br>
+                    Modificato: {{ attrezzatura.data_modifica|date:"d/m/Y H:i" }}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+<!-- templates/attrezzature/elimina_attrezzatura.html -->
+{% extends 'base.html' %}
+
+{% block title %}Elimina Attrezzatura{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-6 mx-auto">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Conferma Eliminazione</h4>
+            </div>
+            <div class="card-body">
+                <p class="lead">Sei sicuro di voler eliminare l'attrezzatura <strong>{{ attrezzatura.nome }}</strong>?</p>
+
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-circle"></i> Questa azione eliminera anche:
+                    <ul class="mb-0">
+                        <li>Tutte le manutenzioni registrate</li>
+                        <li>Tutti i prestiti associati</li>
+                        <li>Tutte le spese registrate</li>
+                    </ul>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'dettaglio_attrezzatura' attrezzatura.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Annulla
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Elimina Definitivamente
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,194 @@
+<!-- templates/attrezzature/form_attrezzatura.html -->
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titolo }} - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="bi bi-box-seam"></i> {{ titolo }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="border-bottom pb-2 mb-3">Informazioni Base</h5>
+                            <div class="mb-3">
+                                <label for="id_nome" class="form-label">Nome *</label>
+                                {{ form.nome }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_categoria" class="form-label">Categoria</label>
+                                {{ form.categoria }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_descrizione" class="form-label">Descrizione</label>
+                                {{ form.descrizione }}
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label for="id_marca" class="form-label">Marca</label>
+                                        {{ form.marca }}
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label for="id_modello" class="form-label">Modello</label>
+                                        {{ form.modello }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_numero_serie" class="form-label">Numero Serie</label>
+                                {{ form.numero_serie }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h5 class="border-bottom pb-2 mb-3">Stato e Posizione</h5>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label for="id_stato" class="form-label">Stato</label>
+                                        {{ form.stato }}
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label for="id_condizione" class="form-label">Condizione</label>
+                                        {{ form.condizione }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_apiario" class="form-label">Apiario</label>
+                                {{ form.apiario }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_posizione" class="form-label">Posizione Specifica</label>
+                                {{ form.posizione }}
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label for="id_quantita" class="form-label">Quantita</label>
+                                        {{ form.quantita }}
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label for="id_unita_misura" class="form-label">Unita di Misura</label>
+                                        {{ form.unita_misura }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="border-bottom pb-2 mb-3">Dati Economici</h5>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label for="id_prezzo_acquisto" class="form-label">Prezzo Acquisto (&euro;)</label>
+                                        {{ form.prezzo_acquisto }}
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label for="id_data_acquisto" class="form-label">Data Acquisto</label>
+                                        {{ form.data_acquisto }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_fornitore" class="form-label">Fornitore</label>
+                                {{ form.fornitore }}
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label for="id_garanzia_fino_a" class="form-label">Garanzia Fino A</label>
+                                        {{ form.garanzia_fino_a }}
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label for="id_vita_utile_anni" class="form-label">Vita Utile (anni)</label>
+                                        {{ form.vita_utile_anni }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h5 class="border-bottom pb-2 mb-3">Condivisione</h5>
+                            <div class="mb-3">
+                                <label for="id_gruppo" class="form-label">Gruppo</label>
+                                {{ form.gruppo }}
+                            </div>
+                            <div class="mb-3 form-check">
+                                {{ form.condiviso_con_gruppo }}
+                                <label for="id_condiviso_con_gruppo" class="form-check-label">
+                                    Condividi con il gruppo
+                                </label>
+                                <div class="form-text">Se selezionato, tutti i membri del gruppo potranno vedere questa attrezzatura.</div>
+                            </div>
+
+                            <h5 class="border-bottom pb-2 mb-3 mt-4">Altro</h5>
+                            <div class="mb-3">
+                                <label for="id_note" class="form-label">Note</label>
+                                {{ form.note }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_immagine" class="form-label">Immagine</label>
+                                {{ form.immagine }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'gestione_attrezzature' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Annulla
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-lg"></i> Salva
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Mostra/nascondi campi condivisione in base al gruppo selezionato
+    document.getElementById('id_gruppo').addEventListener('change', function() {
+        const condivisoCheck = document.getElementById('id_condiviso_con_gruppo');
+        if (this.value) {
+            condivisoCheck.parentElement.style.display = 'block';
+        } else {
+            condivisoCheck.checked = false;
+            condivisoCheck.parentElement.style.display = 'none';
+        }
+    });
+
+    // Inizializza
+    if (!document.getElementById('id_gruppo').value) {
+        document.getElementById('id_condiviso_con_gruppo').parentElement.style.display = 'none';
+    }
+</script>
+{% endblock %}

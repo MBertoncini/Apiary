@@ -1,0 +1,279 @@
+<!-- templates/regine/ricerca_regine.html -->
+{% extends 'base.html' %}
+
+{% block title %}Ricerca Regine - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="bi bi-search"></i> Ricerca Regine</h1>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-9">
+        <!-- Filtri di ricerca -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-funnel"></i> Filtri di Ricerca
+            </div>
+            <div class="card-body">
+                <form method="get" id="search-form">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Razza</label>
+                            {{ form.razza }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Origine</label>
+                            {{ form.origine }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Anno Nascita</label>
+                            {{ form.anno_nascita }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Selezionata</label>
+                            {{ form.selezionata }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Valutazione Min.</label>
+                            {{ form.valutazione_minima }}
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                {{ form.con_figlie }}
+                                <label class="form-check-label" for="id_con_figlie">
+                                    Solo con discendenza registrata
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-8 text-end">
+                            <a href="{% url 'ricerca_regine' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Pulisci
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Cerca
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Pulsante confronta -->
+        <div class="mb-3">
+            <button type="button" class="btn btn-info" id="btn-confronta" disabled>
+                <i class="bi bi-arrows-expand"></i> Confronta Selezionate (<span id="count-selected">0</span>)
+            </button>
+        </div>
+
+        <!-- Risultati -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    Risultati
+                    <span class="badge bg-secondary">{{ stats.totale }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if regine %}
+                    <form id="form-confronta" method="get" action="{% url 'confronta_regine' %}">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;">
+                                            <input type="checkbox" class="form-check-input" id="select-all">
+                                        </th>
+                                        <th>Arnia</th>
+                                        <th>Razza</th>
+                                        <th>Origine</th>
+                                        <th>Eta</th>
+                                        <th>Madre</th>
+                                        <th>Figlie</th>
+                                        <th>Valutazione</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for regina in regine %}
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="form-check-input regina-checkbox"
+                                                   name="regina" value="{{ regina.id }}">
+                                        </td>
+                                        <td>
+                                            <strong>
+                                                <a href="{% url 'visualizza_regina' regina.arnia.id %}">
+                                                    #{{ regina.arnia.numero }}
+                                                </a>
+                                            </strong>
+                                            <br>
+                                            <small class="text-muted">{{ regina.arnia.apiario.nome }}</small>
+                                        </td>
+                                        <td>{{ regina.get_razza_display }}</td>
+                                        <td>{{ regina.get_origine_display }}</td>
+                                        <td>
+                                            {% if regina.get_eta_anni %}
+                                                {{ regina.get_eta_anni }} anni
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if regina.regina_madre %}
+                                                <a href="{% url 'visualizza_regina' regina.regina_madre.arnia.id %}">
+                                                    #{{ regina.regina_madre.arnia.numero }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% with num_figlie=regina.figlie.count %}
+                                                {% if num_figlie > 0 %}
+                                                    <span class="badge bg-success">{{ num_figlie }}</span>
+                                                {% else %}
+                                                    <span class="text-muted">0</span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+                                        <td>
+                                            {% if regina.docilita or regina.produttivita %}
+                                                <div class="d-flex gap-1">
+                                                    {% for i in "12345" %}
+                                                        {% if forloop.counter <= regina.docilita|default:0 %}
+                                                            <i class="bi bi-star-fill text-warning"></i>
+                                                        {% else %}
+                                                            <i class="bi bi-star text-muted"></i>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted">Non valutata</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'visualizza_regina' regina.arnia.id %}"
+                                                   class="btn btn-outline-primary" title="Dettaglio">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="{% url 'albero_genealogico_completo' regina.id %}"
+                                                   class="btn btn-outline-success" title="Genealogia">
+                                                    <i class="bi bi-diagram-3"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Nessuna regina trovata con i filtri selezionati.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiche laterali -->
+    <div class="col-lg-3">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"><i class="bi bi-bar-chart"></i> Statistiche</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Totale:</strong> {{ stats.totale }}</p>
+                <p><strong>Con genealogia:</strong> {{ stats.con_genealogia }}</p>
+
+                <hr>
+
+                <h6>Per Razza</h6>
+                {% for razza, count in stats.per_razza.items %}
+                    <div class="d-flex justify-content-between mb-1">
+                        <small>{{ razza }}</small>
+                        <span class="badge bg-secondary">{{ count }}</span>
+                    </div>
+                {% empty %}
+                    <small class="text-muted">-</small>
+                {% endfor %}
+
+                <hr>
+
+                <h6>Per Origine</h6>
+                {% for origine, count in stats.per_origine.items %}
+                    <div class="d-flex justify-content-between mb-1">
+                        <small>{{ origine }}</small>
+                        <span class="badge bg-secondary">{{ count }}</span>
+                    </div>
+                {% empty %}
+                    <small class="text-muted">-</small>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-lightbulb"></i> Suggerimenti</h6>
+            </div>
+            <div class="card-body">
+                <small class="text-muted">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i>
+                            Usa i filtri per trovare regine con caratteristiche specifiche
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i>
+                            Seleziona 2+ regine per confrontarle
+                        </li>
+                        <li>
+                            <i class="bi bi-check-circle text-success"></i>
+                            Clicca sull'icona genealogia per vedere l'albero completo
+                        </li>
+                    </ul>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Gestione selezione per confronto
+    const checkboxes = document.querySelectorAll('.regina-checkbox');
+    const btnConfronta = document.getElementById('btn-confronta');
+    const countSelected = document.getElementById('count-selected');
+    const selectAll = document.getElementById('select-all');
+
+    function updateConfronta() {
+        const selected = document.querySelectorAll('.regina-checkbox:checked').length;
+        countSelected.textContent = selected;
+        btnConfronta.disabled = selected < 2;
+    }
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateConfronta));
+
+    selectAll.addEventListener('change', function() {
+        checkboxes.forEach(cb => cb.checked = this.checked);
+        updateConfronta();
+    });
+
+    btnConfronta.addEventListener('click', function() {
+        document.getElementById('form-confronta').submit();
+    });
+</script>
+{% endblock %}

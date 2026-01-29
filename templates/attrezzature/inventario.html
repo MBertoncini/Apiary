@@ -1,0 +1,217 @@
+<!-- templates/attrezzature/inventario.html -->
+{% extends 'base.html' %}
+
+{% block title %}Inventario Attrezzature - Gestione Apiario{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="bi bi-clipboard-data"></i>
+                Inventario Attrezzature
+                {% if gruppo %} - {{ gruppo.nome }}{% endif %}
+            </h1>
+            <a href="{% url 'gestione_attrezzature' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Torna alle Attrezzature
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Riepilogo Valori -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h2>&euro;{{ totale_valore|floatformat:0 }}</h2>
+                <p class="mb-0">Valore Totale Acquisto</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h2>&euro;{{ totale_residuo|floatformat:0 }}</h2>
+                <p class="mb-0">Valore Residuo</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h2>{{ attrezzature|length }}</h2>
+                <p class="mb-0">Attrezzature Attive</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Riepilogo per Categoria -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Riepilogo per Categoria</h5>
+            </div>
+            <div class="card-body">
+                {% if stats_categoria %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Categoria</th>
+                                    <th class="text-center">Quantita</th>
+                                    <th class="text-end">Valore Acquisto</th>
+                                    <th class="text-end">Valore Residuo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cat, dati in stats_categoria.items %}
+                                <tr>
+                                    <td><strong>{{ cat }}</strong></td>
+                                    <td class="text-center">{{ dati.count }}</td>
+                                    <td class="text-end">&euro;{{ dati.valore|floatformat:2 }}</td>
+                                    <td class="text-end">&euro;{{ dati.valore_residuo|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <th>TOTALE</th>
+                                    <th class="text-center">{{ attrezzature|length }}</th>
+                                    <th class="text-end">&euro;{{ totale_valore|floatformat:2 }}</th>
+                                    <th class="text-end">&euro;{{ totale_residuo|floatformat:2 }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Nessuna attrezzatura presente.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Elenco Attrezzature -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-list-ul"></i> Elenco Completo</h5>
+            </div>
+            <div class="card-body">
+                {% if attrezzature %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Categoria</th>
+                                    <th>Condizione</th>
+                                    <th class="text-end">Acquisto</th>
+                                    <th class="text-end">Residuo</th>
+                                    <th class="text-center">%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attr in attrezzature %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'dettaglio_attrezzatura' attr.id %}">{{ attr.nome }}</a>
+                                    </td>
+                                    <td>{{ attr.categoria.nome|default:"-" }}</td>
+                                    <td>
+                                        <span class="badge
+                                            {% if attr.condizione == 'nuovo' %}bg-success
+                                            {% elif attr.condizione == 'ottimo' %}bg-success
+                                            {% elif attr.condizione == 'buono' %}bg-primary
+                                            {% elif attr.condizione == 'discreto' %}bg-info
+                                            {% elif attr.condizione == 'usurato' %}bg-warning text-dark
+                                            {% elif attr.condizione == 'da_riparare' %}bg-danger
+                                            {% endif %}">
+                                            {{ attr.get_condizione_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        {% if attr.prezzo_acquisto %}
+                                            &euro;{{ attr.prezzo_acquisto|floatformat:2 }}
+                                        {% else %}-{% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        {% if attr.get_valore_residuo %}
+                                            &euro;{{ attr.get_valore_residuo|floatformat:2 }}
+                                        {% else %}-{% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if attr.get_percentuale_ammortamento is not None %}
+                                            <small>{{ attr.get_percentuale_ammortamento }}%</small>
+                                        {% else %}-{% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Nessuna attrezzatura attiva.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Genera Nuovo Inventario -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Genera Inventario</h5>
+            </div>
+            <div class="card-body">
+                <p>Genera un nuovo inventario per registrare i valori alla data odierna.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="descrizione" class="form-label">Descrizione</label>
+                        <input type="text" class="form-control" name="descrizione"
+                               placeholder="Es. Inventario annuale 2024">
+                    </div>
+                    <div class="mb-3">
+                        <label for="note" class="form-label">Note</label>
+                        <textarea class="form-control" name="note" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-download"></i> Genera Inventario
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Inventari Precedenti -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Inventari Precedenti</h5>
+            </div>
+            <div class="card-body">
+                {% if inventari_precedenti %}
+                    <ul class="list-group list-group-flush">
+                        {% for inv in inventari_precedenti %}
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <strong>{{ inv.data|date:"d/m/Y" }}</strong>
+                                    <span class="text-muted">{{ inv.numero_attrezzature }} pz</span>
+                                </div>
+                                <small>
+                                    Valore: &euro;{{ inv.valore_totale|floatformat:0 }} |
+                                    Residuo: &euro;{{ inv.valore_residuo_totale|floatformat:0 }}
+                                </small>
+                                {% if inv.descrizione %}
+                                    <br><small class="text-muted">{{ inv.descrizione }}</small>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">Nessun inventario precedente.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

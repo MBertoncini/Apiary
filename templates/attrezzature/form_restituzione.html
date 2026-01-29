@@ -1,0 +1,54 @@
+<!-- templates/attrezzature/form_restituzione.html -->
+{% extends 'base.html' %}
+
+{% block title %}Restituzione Attrezzatura{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-6 mx-auto">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="bi bi-check-circle"></i> Registra Restituzione</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Attrezzatura:</strong> {{ attrezzatura.nome }}<br>
+                    <strong>Prestata a:</strong> {{ prestito.richiedente.username }}<br>
+                    <strong>Dal:</strong> {{ prestito.data_inizio_prestito|date:"d/m/Y" }}
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="id_data_restituzione" class="form-label">Data Restituzione *</label>
+                        {{ form.data_restituzione }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_nuova_condizione" class="form-label">Condizione Attuale</label>
+                        {{ form.nuova_condizione }}
+                        <div class="form-text">Se la condizione e cambiata rispetto al prestito</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_note_restituzione" class="form-label">Note sulla Restituzione</label>
+                        {{ form.note_restituzione }}
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'dettaglio_attrezzatura' attrezzatura.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Annulla
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-lg"></i> Conferma Restituzione
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

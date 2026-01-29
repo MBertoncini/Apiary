@@ -4,7 +4,8 @@ from django.contrib.auth.models import User
 from .models import (
     Apiario, Arnia, ControlloArnia, Fioritura, Pagamento, QuotaUtente,
     TipoTrattamento, TrattamentoSanitario, Melario, Smielatura, Gruppo, MembroGruppo, InvitoGruppo,
-    Regina
+    Regina, CategoriaAttrezzatura, Attrezzatura, ManutenzioneAttrezzatura,
+    PrestitoAttrezzatura, SpesaAttrezzatura
 )
 
 from django.utils  import timezone
@@ -561,7 +562,196 @@ class GruppoImmagineForm(forms.ModelForm):
         widget=forms.FileInput(attrs={'class': 'form-control'}),
         label="Immagine del Gruppo"
     )
-    
+
     class Meta:
         model = ImmagineProfilo
         fields = ['immagine']
+
+
+# ============================================
+# FORMS GESTIONE ATTREZZATURE
+# ============================================
+
+class CategoriaAttrezzaturaForm(forms.ModelForm):
+    """Form per la creazione e modifica di categorie attrezzature"""
+    class Meta:
+        model = CategoriaAttrezzatura
+        fields = ['nome', 'descrizione', 'icona']
+        widgets = {
+            'descrizione': forms.Textarea(attrs={'rows': 2}),
+            'icona': forms.TextInput(attrs={'placeholder': 'es. bi-tools'}),
+        }
+
+
+class AttrezzaturaForm(forms.ModelForm):
+    """Form per la creazione e modifica di attrezzature"""
+    class Meta:
+        model = Attrezzatura
+        fields = [
+            'nome', 'categoria', 'descrizione', 'marca', 'modello', 'numero_serie',
+            'gruppo', 'condiviso_con_gruppo', 'stato', 'condizione',
+            'apiario', 'posizione', 'prezzo_acquisto', 'data_acquisto',
+            'fornitore', 'garanzia_fino_a', 'vita_utile_anni',
+            'quantita', 'unita_misura', 'note', 'immagine'
+        ]
+        widgets = {
+            'descrizione': forms.Textarea(attrs={'rows': 3}),
+            'data_acquisto': DateInput(),
+            'garanzia_fino_a': DateInput(),
+            'prezzo_acquisto': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+            'vita_utile_anni': forms.NumberInput(attrs={'min': '1', 'max': '50'}),
+            'quantita': forms.NumberInput(attrs={'min': '1'}),
+            'note': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        if user:
+            # Filtra apiari e gruppi dell'utente
+            self.fields['apiario'].queryset = Apiario.objects.filter(proprietario=user)
+            self.fields['gruppo'].queryset = Gruppo.objects.filter(membri=user)
+            self.fields['gruppo'].empty_label = "Nessun gruppo (privato)"
+
+        # Aiuti per i campi
+        self.fields['vita_utile_anni'].help_text = "Anni stimati di utilizzo per calcolo ammortamento"
+        self.fields['condiviso_con_gruppo'].help_text = "Se selezionato, tutti i membri del gruppo potranno vedere questa attrezzatura"
+
+
+class AttrezzaturaFiltroForm(forms.Form):
+    """Form per filtrare la lista delle attrezzature"""
+    categoria = forms.ModelChoiceField(
+        queryset=CategoriaAttrezzatura.objects.all(),
+        required=False,
+        empty_label="Tutte le categorie"
+    )
+    stato = forms.ChoiceField(
+        choices=[('', 'Tutti gli stati')] + list(Attrezzatura.STATO_CHOICES),
+        required=False
+    )
+    condizione = forms.ChoiceField(
+        choices=[('', 'Tutte le condizioni')] + list(Attrezzatura.CONDIZIONE_CHOICES),
+        required=False
+    )
+    cerca = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'placeholder': 'Cerca per nome, marca, modello...'})
+    )
+
+
+class ManutenzioneAttrezzaturaForm(forms.ModelForm):
+    """Form per la registrazione di manutenzioni"""
+    class Meta:
+        model = ManutenzioneAttrezzatura
+        fields = [
+            'tipo', 'stato', 'data_programmata', 'data_esecuzione',
+            'descrizione', 'costo', 'eseguito_da', 'prossima_manutenzione', 'note'
+        ]
+        widgets = {
+            'data_programmata': DateInput(),
+            'data_esecuzione': DateInput(),
+            'prossima_manutenzione': DateInput(),
+            'descrizione': forms.Textarea(attrs={'rows': 3}),
+            'costo': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+            'note': forms.Textarea(attrs={'rows': 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['data_esecuzione'].required = False
+        self.fields['costo'].required = False
+        self.fields['prossima_manutenzione'].required = False
+
+
+class PrestitoAttrezzaturaForm(forms.ModelForm):
+    """Form per la richiesta di prestito attrezzatura"""
+    class Meta:
+        model = PrestitoAttrezzatura
+        fields = ['data_inizio_prestito', 'data_fine_prevista', 'motivo']
+        widgets = {
+            'data_inizio_prestito': DateInput(),
+            'data_fine_prevista': DateInput(),
+            'motivo': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        data_inizio = cleaned_data.get('data_inizio_prestito')
+        data_fine = cleaned_data.get('data_fine_prevista')
+
+        if data_inizio and data_fine and data_fine < data_inizio:
+            self.add_error('data_fine_prevista',
+                          "La data di restituzione deve essere successiva alla data di inizio.")
+
+        return cleaned_data
+
+
+class RestituzioneAttrezzaturaForm(forms.Form):
+    """Form per la restituzione di un'attrezzatura prestata"""
+    data_restituzione = forms.DateField(
+        widget=DateInput(),
+        label="Data restituzione"
+    )
+    note_restituzione = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 3}),
+        required=False,
+        label="Note sullo stato al momento della restituzione"
+    )
+    nuova_condizione = forms.ChoiceField(
+        choices=Attrezzatura.CONDIZIONE_CHOICES,
+        required=False,
+        label="Condizione attuale dell'attrezzatura"
+    )
+
+
+class SpesaAttrezzaturaForm(forms.ModelForm):
+    """Form per la registrazione di spese relative alle attrezzature"""
+    class Meta:
+        model = SpesaAttrezzatura
+        fields = ['tipo', 'descrizione', 'importo', 'data', 'fornitore', 'numero_fattura', 'note']
+        widgets = {
+            'data': DateInput(),
+            'importo': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+            'note': forms.Textarea(attrs={'rows': 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['fornitore'].required = False
+        self.fields['numero_fattura'].required = False
+
+
+# ============================================
+# FORMS RICERCA GENEALOGIA REGINE
+# ============================================
+
+class RicercaReginaForm(forms.Form):
+    """Form per la ricerca avanzata di regine"""
+    razza = forms.ChoiceField(
+        choices=[('', 'Tutte le razze')] + list(Regina.RAZZA_CHOICES),
+        required=False
+    )
+    origine = forms.ChoiceField(
+        choices=[('', 'Tutte le origini')] + list(Regina.ORIGINE_CHOICES),
+        required=False
+    )
+    anno_nascita = forms.IntegerField(
+        required=False,
+        widget=forms.NumberInput(attrs={'placeholder': 'Anno', 'min': 2000, 'max': 2100})
+    )
+    selezionata = forms.ChoiceField(
+        choices=[('', 'Tutte'), ('si', 'Solo selezionate'), ('no', 'Solo non selezionate')],
+        required=False
+    )
+    con_figlie = forms.BooleanField(
+        required=False,
+        label="Solo regine con discendenza registrata"
+    )
+    valutazione_minima = forms.IntegerField(
+        required=False,
+        min_value=1,
+        max_value=5,
+        widget=forms.NumberInput(attrs={'min': 1, 'max': 5}),
+        label="Valutazione minima (media)"
+    )

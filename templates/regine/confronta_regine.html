@@ -1,0 +1,321 @@
+<!-- templates/regine/confronta_regine.html -->
+{% extends 'base.html' %}
+
+{% block title %}Confronta Regine - Gestione Apiario{% endblock %}
+
+{% block extra_css %}
+<style>
+    .comparison-table th {
+        background-color: #f8f9fa;
+        white-space: nowrap;
+    }
+
+    .best-value {
+        background-color: #d4edda !important;
+        font-weight: bold;
+    }
+
+    .worst-value {
+        background-color: #f8d7da !important;
+    }
+
+    .rating-stars {
+        color: #ffc107;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="bi bi-arrows-expand"></i> Confronta Regine</h1>
+            <a href="{% url 'ricerca_regine' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Torna alla Ricerca
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered comparison-table">
+                <thead>
+                    <tr>
+                        <th style="width: 200px;">Caratteristica</th>
+                        {% for item in confronto %}
+                        <th class="text-center">
+                            <a href="{% url 'visualizza_regina' item.regina.arnia.id %}">
+                                Arnia #{{ item.regina.arnia.numero }}
+                            </a>
+                            <br>
+                            <small class="text-muted">{{ item.regina.arnia.apiario.nome }}</small>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Razza -->
+                    <tr>
+                        <th>Razza</th>
+                        {% for item in confronto %}
+                        <td class="text-center">{{ item.regina.get_razza_display }}</td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Origine -->
+                    <tr>
+                        <th>Origine</th>
+                        {% for item in confronto %}
+                        <td class="text-center">{{ item.regina.get_origine_display }}</td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Eta -->
+                    <tr>
+                        <th>Eta (giorni)</th>
+                        {% for item in confronto %}
+                        <td class="text-center">
+                            {% if item.eta_giorni %}
+                                {{ item.eta_giorni }}
+                                <br><small class="text-muted">({{ item.regina.get_eta_anni }} anni)</small>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Data introduzione -->
+                    <tr>
+                        <th>Data Introduzione</th>
+                        {% for item in confronto %}
+                        <td class="text-center">{{ item.regina.data_introduzione|date:"d/m/Y" }}</td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Marcatura -->
+                    <tr>
+                        <th>Marcatura</th>
+                        {% for item in confronto %}
+                        <td class="text-center">
+                            {% if item.regina.marcata %}
+                                <span class="marcatore" style="background-color:
+                                    {% if item.regina.colore_marcatura == 'bianco' %}white
+                                    {% elif item.regina.colore_marcatura == 'giallo' %}#ffc107
+                                    {% elif item.regina.colore_marcatura == 'rosso' %}#dc3545
+                                    {% elif item.regina.colore_marcatura == 'verde' %}#198754
+                                    {% elif item.regina.colore_marcatura == 'blu' %}#0d6efd
+                                    {% else %}#f8f9fa{% endif %};
+                                    width: 16px; height: 16px; border-radius: 50%; display: inline-block; border: 1px solid #ced4da;"></span>
+                                {{ item.regina.get_colore_marcatura_display }}
+                            {% else %}
+                                <span class="text-muted">Non marcata</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Fecondata -->
+                    <tr>
+                        <th>Fecondata</th>
+                        {% for item in confronto %}
+                        <td class="text-center">
+                            {% if item.regina.fecondata %}
+                                <i class="bi bi-check-circle text-success"></i> Si
+                            {% else %}
+                                <i class="bi bi-x-circle text-danger"></i> No
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Selezionata -->
+                    <tr>
+                        <th>Selezionata</th>
+                        {% for item in confronto %}
+                        <td class="text-center">
+                            {% if item.regina.selezionata %}
+                                <i class="bi bi-star-fill text-warning"></i> Si
+                            {% else %}
+                                <i class="bi bi-star text-muted"></i> No
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <tr>
+                        <th colspan="{{ confronto|length|add:1 }}" class="table-secondary">
+                            <strong>Valutazioni</strong>
+                        </th>
+                    </tr>
+
+                    <!-- Docilita -->
+                    <tr>
+                        <th>Docilita</th>
+                        {% for item in confronto %}
+                        <td class="text-center">
+                            {% if item.regina.docilita %}
+                                <div class="rating-stars">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= item.regina.docilita %}
+                                            <i class="bi bi-star-fill"></i>
+                                        {% else %}
+                                            <i class="bi bi-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <small>{{ item.regina.docilita }}/5</small>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Produttivita -->
+                    <tr>
+                        <th>Produttivita</th>
+                        {% for item in confronto %}
+                        <td class="text-center">
+                            {% if item.regina.produttivita %}
+                                <div class="rating-stars">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= item.regina.produttivita %}
+                                            <i class="bi bi-star-fill"></i>
+                                        {% else %}
+                                            <i class="bi bi-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <small>{{ item.regina.produttivita }}/5</small>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Resistenza malattie -->
+                    <tr>
+                        <th>Resistenza Malattie</th>
+                        {% for item in confronto %}
+                        <td class="text-center">
+                            {% if item.regina.resistenza_malattie %}
+                                <div class="rating-stars">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= item.regina.resistenza_malattie %}
+                                            <i class="bi bi-star-fill"></i>
+                                        {% else %}
+                                            <i class="bi bi-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <small>{{ item.regina.resistenza_malattie }}/5</small>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Tendenza sciamatura -->
+                    <tr>
+                        <th>Tendenza Sciamatura</th>
+                        {% for item in confronto %}
+                        <td class="text-center">
+                            {% if item.regina.tendenza_sciamatura %}
+                                <div class="rating-stars">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= item.regina.tendenza_sciamatura %}
+                                            <i class="bi bi-star-fill"></i>
+                                        {% else %}
+                                            <i class="bi bi-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <small>{{ item.regina.tendenza_sciamatura }}/5</small>
+                                <br>
+                                <small class="text-muted">(piu basso = meglio)</small>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Media valutazione -->
+                    <tr>
+                        <th>Media Valutazione</th>
+                        {% for item in confronto %}
+                        <td class="text-center">
+                            {% if item.media_valutazione %}
+                                <strong class="text-primary">{{ item.media_valutazione }}/5</strong>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <tr>
+                        <th colspan="{{ confronto|length|add:1 }}" class="table-secondary">
+                            <strong>Genealogia</strong>
+                        </th>
+                    </tr>
+
+                    <!-- Regina madre -->
+                    <tr>
+                        <th>Regina Madre</th>
+                        {% for item in confronto %}
+                        <td class="text-center">
+                            {% if item.regina.regina_madre %}
+                                <a href="{% url 'visualizza_regina' item.regina.regina_madre.arnia.id %}">
+                                    Arnia #{{ item.regina.regina_madre.arnia.numero }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">Sconosciuta</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Numero figlie -->
+                    <tr>
+                        <th>Numero Figlie</th>
+                        {% for item in confronto %}
+                        <td class="text-center">
+                            {% if item.num_figlie > 0 %}
+                                <span class="badge bg-success">{{ item.num_figlie }}</span>
+                            {% else %}
+                                <span class="text-muted">0</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <!-- Azioni -->
+                    <tr>
+                        <th>Azioni</th>
+                        {% for item in confronto %}
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'visualizza_regina' item.regina.arnia.id %}"
+                                   class="btn btn-outline-primary" title="Dettaglio">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'albero_genealogico_completo' item.regina.id %}"
+                                   class="btn btn-outline-success" title="Genealogia">
+                                    <i class="bi bi-diagram-3"></i>
+                                </a>
+                            </div>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -731,11 +731,343 @@ class PrevisioneMeteo(models.Model):
     probabilita_pioggia = models.IntegerField(null=True, blank=True)
     descrizione = models.CharField(max_length=100, null=True, blank=True)
     icona = models.CharField(max_length=20, null=True, blank=True)
-    
+
     class Meta:
         verbose_name = "Previsione Meteo"
         verbose_name_plural = "Previsioni Meteo"
         ordering = ['data_riferimento']
-        
+
     def __str__(self):
         return f"Previsione {self.apiario.nome} - {self.data_riferimento.strftime('%d/%m/%Y %H:%M')}"
+
+
+# ============================================
+# GESTIONE ATTREZZATURE E STRUMENTI
+# ============================================
+
+class CategoriaAttrezzatura(models.Model):
+    """Modello per le categorie di attrezzature"""
+    nome = models.CharField(max_length=100)
+    descrizione = models.TextField(blank=True, null=True)
+    icona = models.CharField(max_length=50, default='bi-tools',
+                            help_text="Classe icona Bootstrap (es. bi-tools, bi-box)")
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Categoria Attrezzatura"
+        verbose_name_plural = "Categorie Attrezzature"
+        ordering = ['nome']
+
+
+class Attrezzatura(models.Model):
+    """Modello per gestire attrezzature e strumenti dell'apicoltura"""
+    STATO_CHOICES = [
+        ('disponibile', 'Disponibile'),
+        ('in_uso', 'In Uso'),
+        ('manutenzione', 'In Manutenzione'),
+        ('dismesso', 'Dismesso'),
+        ('prestato', 'Prestato'),
+    ]
+
+    CONDIZIONE_CHOICES = [
+        ('nuovo', 'Nuovo'),
+        ('ottimo', 'Ottimo'),
+        ('buono', 'Buono'),
+        ('discreto', 'Discreto'),
+        ('usurato', 'Usurato'),
+        ('da_riparare', 'Da Riparare'),
+    ]
+
+    nome = models.CharField(max_length=100)
+    categoria = models.ForeignKey(CategoriaAttrezzatura, on_delete=models.SET_NULL,
+                                  null=True, blank=True, related_name='attrezzature')
+    descrizione = models.TextField(blank=True, null=True)
+    marca = models.CharField(max_length=100, blank=True, null=True)
+    modello = models.CharField(max_length=100, blank=True, null=True)
+    numero_serie = models.CharField(max_length=100, blank=True, null=True,
+                                   help_text="Numero di serie o identificativo")
+
+    # Proprietà e condivisione
+    proprietario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='attrezzature')
+    gruppo = models.ForeignKey(Gruppo, on_delete=models.SET_NULL, null=True, blank=True,
+                              related_name='attrezzature',
+                              help_text="Gruppo con cui l'attrezzatura è condivisa")
+    condiviso_con_gruppo = models.BooleanField(default=False,
+                                               help_text="Se abilitato, l'attrezzatura è visibile a tutto il gruppo")
+
+    # Stato e condizione
+    stato = models.CharField(max_length=20, choices=STATO_CHOICES, default='disponibile')
+    condizione = models.CharField(max_length=20, choices=CONDIZIONE_CHOICES, default='buono')
+
+    # Localizzazione
+    apiario = models.ForeignKey(Apiario, on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name='attrezzature',
+                               help_text="Apiario dove si trova l'attrezzatura")
+    posizione = models.CharField(max_length=200, blank=True, null=True,
+                                help_text="Posizione specifica (es. magazzino, laboratorio)")
+
+    # Dati economici
+    prezzo_acquisto = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,
+                                          help_text="Prezzo di acquisto in euro")
+    data_acquisto = models.DateField(null=True, blank=True)
+    fornitore = models.CharField(max_length=200, blank=True, null=True)
+    garanzia_fino_a = models.DateField(null=True, blank=True,
+                                       help_text="Data di scadenza della garanzia")
+    vita_utile_anni = models.PositiveIntegerField(default=5,
+                                                  help_text="Vita utile stimata in anni per ammortamento")
+
+    # Quantità (per attrezzature contabili come telaini, guanti, ecc.)
+    quantita = models.PositiveIntegerField(default=1, help_text="Quantità disponibile")
+    unita_misura = models.CharField(max_length=20, default='pz',
+                                   help_text="Unità di misura (pz, kg, lt, ecc.)")
+
+    # Metadata
+    note = models.TextField(blank=True, null=True)
+    immagine = models.ImageField(upload_to='attrezzature/', blank=True, null=True)
+    data_creazione = models.DateTimeField(auto_now_add=True)
+    data_modifica = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.nome} ({self.get_stato_display()})"
+
+    def get_valore_residuo(self):
+        """Calcola il valore residuo dell'attrezzatura (ammortamento lineare)"""
+        if not self.prezzo_acquisto or not self.data_acquisto or not self.vita_utile_anni:
+            return None
+
+        oggi = timezone.now().date()
+        anni_passati = (oggi - self.data_acquisto).days / 365
+
+        if anni_passati >= self.vita_utile_anni:
+            return 0
+
+        ammortamento_annuo = float(self.prezzo_acquisto) / self.vita_utile_anni
+        valore_residuo = float(self.prezzo_acquisto) - (ammortamento_annuo * anni_passati)
+
+        return round(max(0, valore_residuo), 2)
+
+    def get_percentuale_ammortamento(self):
+        """Calcola la percentuale di ammortamento"""
+        if not self.prezzo_acquisto or not self.data_acquisto or not self.vita_utile_anni:
+            return None
+
+        oggi = timezone.now().date()
+        anni_passati = (oggi - self.data_acquisto).days / 365
+
+        percentuale = min(100, (anni_passati / self.vita_utile_anni) * 100)
+        return round(percentuale, 1)
+
+    def is_in_garanzia(self):
+        """Verifica se l'attrezzatura è ancora in garanzia"""
+        if not self.garanzia_fino_a:
+            return False
+        return timezone.now().date() <= self.garanzia_fino_a
+
+    class Meta:
+        verbose_name = "Attrezzatura"
+        verbose_name_plural = "Attrezzature"
+        ordering = ['categoria', 'nome']
+
+
+class ManutenzioneAttrezzatura(models.Model):
+    """Modello per tracciare le manutenzioni delle attrezzature"""
+    TIPO_CHOICES = [
+        ('ordinaria', 'Manutenzione Ordinaria'),
+        ('straordinaria', 'Manutenzione Straordinaria'),
+        ('riparazione', 'Riparazione'),
+        ('pulizia', 'Pulizia'),
+        ('revisione', 'Revisione'),
+        ('sostituzione_parti', 'Sostituzione Parti'),
+    ]
+
+    STATO_CHOICES = [
+        ('programmata', 'Programmata'),
+        ('in_corso', 'In Corso'),
+        ('completata', 'Completata'),
+        ('annullata', 'Annullata'),
+    ]
+
+    attrezzatura = models.ForeignKey(Attrezzatura, on_delete=models.CASCADE,
+                                     related_name='manutenzioni')
+    tipo = models.CharField(max_length=30, choices=TIPO_CHOICES, default='ordinaria')
+    stato = models.CharField(max_length=20, choices=STATO_CHOICES, default='programmata')
+
+    data_programmata = models.DateField(help_text="Data prevista per la manutenzione")
+    data_esecuzione = models.DateField(null=True, blank=True,
+                                       help_text="Data effettiva di esecuzione")
+
+    descrizione = models.TextField(help_text="Descrizione del lavoro da eseguire/eseguito")
+    costo = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True,
+                               help_text="Costo della manutenzione in euro")
+    eseguito_da = models.CharField(max_length=200, blank=True, null=True,
+                                  help_text="Chi ha eseguito la manutenzione")
+
+    # Prossima manutenzione programmata
+    prossima_manutenzione = models.DateField(null=True, blank=True,
+                                             help_text="Data suggerita per la prossima manutenzione")
+
+    note = models.TextField(blank=True, null=True)
+    utente = models.ForeignKey(User, on_delete=models.CASCADE,
+                               help_text="Utente che ha registrato la manutenzione")
+    data_creazione = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.attrezzatura.nome} ({self.data_programmata})"
+
+    def save(self, *args, **kwargs):
+        # Se la manutenzione viene completata, aggiorna lo stato dell'attrezzatura
+        if self.stato == 'completata' and not self.data_esecuzione:
+            self.data_esecuzione = timezone.now().date()
+
+        super().save(*args, **kwargs)
+
+        # Se la manutenzione è completata, riporta l'attrezzatura a disponibile
+        if self.stato == 'completata' and self.attrezzatura.stato == 'manutenzione':
+            self.attrezzatura.stato = 'disponibile'
+            self.attrezzatura.save()
+
+    class Meta:
+        verbose_name = "Manutenzione Attrezzatura"
+        verbose_name_plural = "Manutenzioni Attrezzature"
+        ordering = ['-data_programmata']
+
+
+class PrestitoAttrezzatura(models.Model):
+    """Modello per gestire i prestiti di attrezzature tra membri del gruppo"""
+    STATO_CHOICES = [
+        ('richiesto', 'Richiesto'),
+        ('approvato', 'Approvato'),
+        ('in_corso', 'In Corso'),
+        ('restituito', 'Restituito'),
+        ('rifiutato', 'Rifiutato'),
+    ]
+
+    attrezzatura = models.ForeignKey(Attrezzatura, on_delete=models.CASCADE,
+                                     related_name='prestiti')
+    richiedente = models.ForeignKey(User, on_delete=models.CASCADE,
+                                    related_name='prestiti_richiesti',
+                                    help_text="Utente che richiede il prestito")
+
+    data_richiesta = models.DateTimeField(auto_now_add=True)
+    data_inizio_prestito = models.DateField(help_text="Data prevista inizio prestito")
+    data_fine_prevista = models.DateField(help_text="Data prevista restituzione")
+    data_restituzione = models.DateField(null=True, blank=True,
+                                         help_text="Data effettiva di restituzione")
+
+    stato = models.CharField(max_length=20, choices=STATO_CHOICES, default='richiesto')
+    motivo = models.TextField(help_text="Motivo della richiesta di prestito")
+    note_restituzione = models.TextField(blank=True, null=True,
+                                         help_text="Note sullo stato al momento della restituzione")
+
+    approvato_da = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name='prestiti_approvati')
+    data_approvazione = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Prestito {self.attrezzatura.nome} a {self.richiedente.username}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        # Aggiorna lo stato dell'attrezzatura in base allo stato del prestito
+        if self.stato == 'in_corso':
+            self.attrezzatura.stato = 'prestato'
+            self.attrezzatura.save()
+        elif self.stato == 'restituito':
+            self.attrezzatura.stato = 'disponibile'
+            self.attrezzatura.save()
+
+    class Meta:
+        verbose_name = "Prestito Attrezzatura"
+        verbose_name_plural = "Prestiti Attrezzature"
+        ordering = ['-data_richiesta']
+
+
+class SpesaAttrezzatura(models.Model):
+    """Modello per tracciare le spese relative alle attrezzature"""
+    TIPO_SPESA_CHOICES = [
+        ('acquisto', 'Acquisto'),
+        ('manutenzione', 'Manutenzione'),
+        ('riparazione', 'Riparazione'),
+        ('accessori', 'Accessori'),
+        ('consumabili', 'Consumabili'),
+        ('altro', 'Altro'),
+    ]
+
+    attrezzatura = models.ForeignKey(Attrezzatura, on_delete=models.CASCADE,
+                                     related_name='spese', null=True, blank=True)
+    gruppo = models.ForeignKey(Gruppo, on_delete=models.CASCADE,
+                               related_name='spese_attrezzature', null=True, blank=True)
+
+    tipo = models.CharField(max_length=20, choices=TIPO_SPESA_CHOICES, default='acquisto')
+    descrizione = models.CharField(max_length=200)
+    importo = models.DecimalField(max_digits=10, decimal_places=2)
+    data = models.DateField()
+
+    fornitore = models.CharField(max_length=200, blank=True, null=True)
+    numero_fattura = models.CharField(max_length=100, blank=True, null=True)
+
+    utente = models.ForeignKey(User, on_delete=models.CASCADE,
+                               help_text="Utente che ha registrato la spesa")
+    note = models.TextField(blank=True, null=True)
+    data_creazione = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.descrizione} ({self.importo}€)"
+
+    class Meta:
+        verbose_name = "Spesa Attrezzatura"
+        verbose_name_plural = "Spese Attrezzature"
+        ordering = ['-data']
+
+
+class InventarioAttrezzature(models.Model):
+    """Modello per gestire l'inventario periodico delle attrezzature"""
+    gruppo = models.ForeignKey(Gruppo, on_delete=models.CASCADE,
+                               related_name='inventari', null=True, blank=True)
+    proprietario = models.ForeignKey(User, on_delete=models.CASCADE,
+                                     related_name='inventari')
+
+    data = models.DateField()
+    descrizione = models.CharField(max_length=200, blank=True, null=True,
+                                  help_text="Descrizione dell'inventario (es. Inventario annuale 2024)")
+
+    valore_totale = models.DecimalField(max_digits=12, decimal_places=2, default=0,
+                                        help_text="Valore totale calcolato delle attrezzature")
+    valore_residuo_totale = models.DecimalField(max_digits=12, decimal_places=2, default=0,
+                                                help_text="Valore residuo totale (dopo ammortamenti)")
+    numero_attrezzature = models.PositiveIntegerField(default=0)
+
+    note = models.TextField(blank=True, null=True)
+    data_creazione = models.DateTimeField(auto_now_add=True)
+
+    def calcola_valori(self):
+        """Calcola i valori totali dell'inventario"""
+        if self.gruppo:
+            attrezzature = Attrezzatura.objects.filter(
+                gruppo=self.gruppo,
+                condiviso_con_gruppo=True
+            ).exclude(stato='dismesso')
+        else:
+            attrezzature = Attrezzatura.objects.filter(
+                proprietario=self.proprietario
+            ).exclude(stato='dismesso')
+
+        self.numero_attrezzature = attrezzature.count()
+        self.valore_totale = sum(
+            a.prezzo_acquisto or 0 for a in attrezzature
+        )
+        self.valore_residuo_totale = sum(
+            a.get_valore_residuo() or 0 for a in attrezzature
+        )
+        self.save()
+
+    def __str__(self):
+        return f"Inventario {self.data} - {self.gruppo.nome if self.gruppo else self.proprietario.username}"
+
+    class Meta:
+        verbose_name = "Inventario Attrezzature"
+        verbose_name_plural = "Inventari Attrezzature"
+        ordering = ['-data']
