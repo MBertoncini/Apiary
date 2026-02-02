@@ -10,10 +10,11 @@ from django.shortcuts import get_object_or_404
 from datetime import datetime, timedelta
 
 from .models import (
-    Apiario, Arnia, ControlloArnia, Regina, Fioritura, 
+    Apiario, Arnia, ControlloArnia, Regina, Fioritura,
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
     Gruppo, MembroGruppo, InvitoGruppo, DatiMeteo, PrevisioneMeteo,
-    Pagamento, QuotaUtente
+    Pagamento, QuotaUtente,
+    Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura
 )
 
 from .serializers import (
@@ -22,7 +23,9 @@ from .serializers import (
     TrattamentoSanitarioSerializer, TipoTrattamentoSerializer,
     MelarioSerializer, SmielaturaSerializer, GruppoSerializer,
     MembroGruppoSerializer, InvitoGruppoSerializer, UserSerializer,
-    PagamentoSerializer, QuotaUtenteSerializer
+    PagamentoSerializer, QuotaUtenteSerializer,
+    AttrezzaturaSerializer, SpesaAttrezzaturaSerializer,
+    ManutenzioneAttrezzaturaSerializer
 )
 
 # Permessi personalizzati
@@ -897,6 +900,89 @@ class QuotaUtenteViewSet(viewsets.ModelViewSet):
                 raise ValidationError({"gruppo": "Puoi gestire le quote solo per i gruppi di cui sei amministratore"})
         
         serializer.save()
+
+
+class AttrezzaturaViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint per gestire le attrezzature.
+    """
+    serializer_class = AttrezzaturaSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['nome', 'descrizione', 'marca', 'modello']
+    ordering_fields = ['nome', 'data_acquisto', 'prezzo_acquisto', 'stato']
+    ordering = ['nome']
+
+    def get_queryset(self):
+        user = self.request.user
+        # Attrezzature proprie
+        proprie = Attrezzatura.objects.filter(proprietario=user)
+        # Attrezzature condivise con i gruppi dell'utente
+        gruppi_utente = Gruppo.objects.filter(membri=user)
+        condivise = Attrezzatura.objects.filter(
+            condiviso_con_gruppo=True,
+            gruppo__in=gruppi_utente
+        ).exclude(proprietario=user)
+        return (proprie | condivise).distinct()
+
+    def perform_create(self, serializer):
+        serializer.save(proprietario=self.request.user)
+
+
+class SpesaAttrezzaturaViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint per gestire le spese attrezzatura.
+    """
+    serializer_class = SpesaAttrezzaturaSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['descrizione', 'tipo']
+    ordering_fields = ['data', 'importo']
+    ordering = ['-data']
+
+    def get_queryset(self):
+        user = self.request.user
+        # Spese proprie
+        proprie = SpesaAttrezzatura.objects.filter(utente=user)
+        # Spese di gruppo
+        gruppi_utente = Gruppo.objects.filter(membri=user)
+        di_gruppo = SpesaAttrezzatura.objects.filter(
+            gruppo__in=gruppi_utente
+        ).exclude(utente=user)
+        return (proprie | di_gruppo).distinct()
+
+    def perform_create(self, serializer):
+        serializer.save(utente=self.request.user)
+
+
+class ManutenzioneAttrezzaturaViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint per gestire le manutenzioni attrezzatura.
+    """
+    serializer_class = ManutenzioneAttrezzaturaSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['descrizione', 'tipo', 'eseguito_da']
+    ordering_fields = ['data_programmata', 'data_esecuzione', 'costo']
+    ordering = ['-data_programmata']
+
+    def get_queryset(self):
+        user = self.request.user
+        # Manutenzioni delle proprie attrezzature
+        proprie = ManutenzioneAttrezzatura.objects.filter(
+            attrezzatura__proprietario=user
+        )
+        # Manutenzioni delle attrezzature condivise
+        gruppi_utente = Gruppo.objects.filter(membri=user)
+        condivise = ManutenzioneAttrezzatura.objects.filter(
+            attrezzatura__condiviso_con_gruppo=True,
+            attrezzatura__gruppo__in=gruppi_utente
+        ).exclude(attrezzatura__proprietario=user)
+        return (proprie | condivise).distinct()
+
+    def perform_create(self, serializer):
+        serializer.save(utente=self.request.user)
+
 
 # Aggiungi questo al file api_views.py
 

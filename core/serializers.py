@@ -1,9 +1,10 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
-    Apiario, Arnia, ControlloArnia, Regina, Fioritura, 
+    Apiario, Arnia, ControlloArnia, Regina, Fioritura,
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
-    Gruppo, MembroGruppo, InvitoGruppo,  Pagamento, QuotaUtente
+    Gruppo, MembroGruppo, InvitoGruppo, Pagamento, QuotaUtente,
+    Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura
 )
 
 # Serializzatore utente
@@ -252,13 +253,118 @@ class PagamentoSerializer(serializers.ModelSerializer):
 class QuotaUtenteSerializer(serializers.ModelSerializer):
     utente_username = serializers.SerializerMethodField()
     gruppo_nome = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = QuotaUtente
         fields = ['id', 'utente', 'utente_username', 'percentuale', 'gruppo', 'gruppo_nome']
-    
+
     def get_utente_username(self, obj):
         return obj.utente.username if obj.utente else None
-    
+
     def get_gruppo_nome(self, obj):
         return obj.gruppo.nome if obj.gruppo else None
+
+
+# Serializzatore Attrezzatura
+class AttrezzaturaSerializer(serializers.ModelSerializer):
+    proprietario_username = serializers.ReadOnlyField(source='proprietario.username')
+    categoria_nome = serializers.SerializerMethodField()
+    gruppo_nome = serializers.SerializerMethodField()
+    apiario_nome = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Attrezzatura
+        fields = [
+            'id', 'nome', 'categoria', 'categoria_nome', 'descrizione',
+            'marca', 'modello', 'numero_serie',
+            'proprietario', 'proprietario_username',
+            'gruppo', 'gruppo_nome', 'condiviso_con_gruppo',
+            'stato', 'condizione',
+            'apiario', 'apiario_nome', 'posizione',
+            'prezzo_acquisto', 'data_acquisto', 'fornitore',
+            'garanzia_fino_a', 'vita_utile_anni',
+            'quantita', 'unita_misura',
+            'note', 'immagine',
+            'data_creazione', 'data_modifica',
+        ]
+        read_only_fields = ['proprietario', 'data_creazione', 'data_modifica']
+
+    def get_categoria_nome(self, obj):
+        return obj.categoria.nome if obj.categoria else None
+
+    def get_gruppo_nome(self, obj):
+        return obj.gruppo.nome if obj.gruppo else None
+
+    def get_apiario_nome(self, obj):
+        return obj.apiario.nome if obj.apiario else None
+
+    def create(self, validated_data):
+        validated_data['proprietario'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+# Serializzatore SpesaAttrezzatura
+class SpesaAttrezzaturaSerializer(serializers.ModelSerializer):
+    attrezzatura_nome = serializers.SerializerMethodField()
+    gruppo_nome = serializers.SerializerMethodField()
+    utente_username = serializers.ReadOnlyField(source='utente.username')
+    tipo_display = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SpesaAttrezzatura
+        fields = [
+            'id', 'attrezzatura', 'attrezzatura_nome',
+            'gruppo', 'gruppo_nome',
+            'tipo', 'tipo_display', 'descrizione', 'importo', 'data',
+            'fornitore', 'numero_fattura',
+            'utente', 'utente_username',
+            'note', 'data_creazione',
+        ]
+        read_only_fields = ['utente', 'data_creazione']
+
+    def get_attrezzatura_nome(self, obj):
+        return obj.attrezzatura.nome if obj.attrezzatura else None
+
+    def get_gruppo_nome(self, obj):
+        return obj.gruppo.nome if obj.gruppo else None
+
+    def get_tipo_display(self, obj):
+        return obj.get_tipo_display()
+
+    def create(self, validated_data):
+        validated_data['utente'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+# Serializzatore ManutenzioneAttrezzatura
+class ManutenzioneAttrezzaturaSerializer(serializers.ModelSerializer):
+    attrezzatura_nome = serializers.SerializerMethodField()
+    utente_username = serializers.ReadOnlyField(source='utente.username')
+    tipo_display = serializers.SerializerMethodField()
+    stato_display = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ManutenzioneAttrezzatura
+        fields = [
+            'id', 'attrezzatura', 'attrezzatura_nome',
+            'tipo', 'tipo_display', 'stato', 'stato_display',
+            'data_programmata', 'data_esecuzione',
+            'descrizione', 'costo', 'eseguito_da',
+            'prossima_manutenzione',
+            'note', 'utente', 'utente_username',
+            'data_creazione',
+        ]
+        read_only_fields = ['utente', 'data_creazione']
+
+    def get_attrezzatura_nome(self, obj):
+        return obj.attrezzatura.nome if obj.attrezzatura else None
+
+    def get_tipo_display(self, obj):
+        return obj.get_tipo_display()
+
+    def get_stato_display(self, obj):
+        return obj.get_stato_display()
+
+    def create(self, validated_data):
+        validated_data['utente'] = self.context['request'].user
+        return super().create(validated_data)
