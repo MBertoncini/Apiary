@@ -189,21 +189,25 @@ class SmielaturaSerializer(serializers.ModelSerializer):
 class GruppoSerializer(serializers.ModelSerializer):
     creatore_username = serializers.ReadOnlyField(source='creatore.username')
     membri_count = serializers.SerializerMethodField()
-    
+    apiari_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Gruppo
         fields = [
-            'id', 'nome', 'descrizione', 'data_creazione', 
-            'creatore', 'creatore_username', 'membri_count'
+            'id', 'nome', 'descrizione', 'data_creazione',
+            'creatore', 'creatore_username', 'membri_count', 'apiari_count'
         ]
         read_only_fields = ['creatore']
-    
+
     def get_membri_count(self, obj):
         return obj.membri.count()
-    
-    def create(self, validated_data):
-        validated_data['creatore'] = self.context['request'].user
-        return super().create(validated_data)
+
+    def get_apiari_count(self, obj):
+        return obj.apiari.filter(condiviso_con_gruppo=True).count()
+
+    # FIX #2 - Il metodo create è stato rimosso dal serializer.
+    # La logica di creazione (creatore + auto-aggiunta come admin)
+    # è ora gestita interamente in GruppoViewSet.perform_create()
 
 # Serializzatore MembroGruppo
 class MembroGruppoSerializer(serializers.ModelSerializer):
@@ -221,16 +225,17 @@ class MembroGruppoSerializer(serializers.ModelSerializer):
 class InvitoGruppoSerializer(serializers.ModelSerializer):
     gruppo_nome = serializers.ReadOnlyField(source='gruppo.nome')
     invitato_da_username = serializers.ReadOnlyField(source='invitato_da.username')
-    
+
     class Meta:
         model = InvitoGruppo
         fields = [
             'id', 'gruppo', 'gruppo_nome', 'email', 'ruolo_proposto',
-            'data_invio', 'data_scadenza', 'stato', 
+            'token',  # FIX #5 - Aggiunto token per permettere accept/reject da Flutter
+            'data_invio', 'data_scadenza', 'stato',
             'invitato_da', 'invitato_da_username'
         ]
-        read_only_fields = ['invitato_da', 'data_invio', 'data_scadenza']
-    
+        read_only_fields = ['invitato_da', 'data_invio', 'data_scadenza', 'token']
+
     def create(self, validated_data):
         validated_data['invitato_da'] = self.context['request'].user
         return super().create(validated_data)

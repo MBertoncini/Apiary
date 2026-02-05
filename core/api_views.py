@@ -1,3 +1,5 @@
+import logging
+import uuid
 from rest_framework import viewsets, permissions, filters, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -8,6 +10,10 @@ from django.db.models import Q
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from datetime import datetime, timedelta
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.urls import reverse
 
 from .models import (
     Apiario, Arnia, ControlloArnia, Regina, Fioritura,
@@ -28,7 +34,32 @@ from .serializers import (
     ManutenzioneAttrezzaturaSerializer
 )
 
-# Permessi personalizzati
+logger = logging.getLogger(__name__)
+
+
+# --- Helper: queryset apiari accessibili (FIX #10 - DRY) ---
+def get_apiari_accessibili(user):
+    """
+    Restituisce il queryset degli apiari accessibili a un utente:
+    - apiari di cui è proprietario
+    - apiari condivisi con i gruppi di cui è membro
+    """
+    apiari_propri = Apiario.objects.filter(proprietario=user)
+    gruppi_utente = Gruppo.objects.filter(membri=user)
+    apiari_condivisi = Apiario.objects.filter(
+        gruppo__in=gruppi_utente,
+        condiviso_con_gruppo=True
+    ).exclude(proprietario=user)
+    return (apiari_propri | apiari_condivisi).distinct()
+
+
+def get_gruppi_utente(user):
+    """Restituisce i gruppi di cui l'utente è membro."""
+    return Gruppo.objects.filter(membri=user)
+
+
+# --- Permessi personalizzati ---
+
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
     Permesso che consente solo al proprietario di un oggetto di modificarlo.
@@ -45,7 +76,61 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             return obj.utente == request.user
         elif hasattr(obj, 'creatore'):
             return obj.creatore == request.user
-        
+
+        return False
+
+
+class IsOwnerOrGroupRole(permissions.BasePermission):
+    """
+    FIX #3 - Permesso basato sul ruolo nel gruppo.
+    - Il proprietario della risorsa può sempre modificare.
+    - I membri del gruppo con ruolo 'admin' o 'editor' possono modificare risorse condivise.
+    - I 'viewer' possono solo leggere (SAFE_METHODS).
+    - Utenti non proprietari e non in un gruppo non possono modificare.
+    """
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+
+        # Permessi di lettura sono sempre consentiti (il queryset già filtra la visibilità)
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # Il proprietario/utente/creatore può sempre modificare
+        if hasattr(obj, 'proprietario') and obj.proprietario == user:
+            return True
+        if hasattr(obj, 'utente') and obj.utente == user:
+            return True
+        if hasattr(obj, 'creatore') and obj.creatore == user:
+            return True
+
+        # Per risorse condivise, controlla il ruolo nel gruppo
+        # Risorse legate a un apiario (Arnia -> apiario, ControlloArnia -> arnia -> apiario, etc.)
+        apiario = None
+        gruppo = None
+
+        if hasattr(obj, 'apiario') and obj.apiario:
+            apiario = obj.apiario
+        elif hasattr(obj, 'arnia') and obj.arnia and hasattr(obj.arnia, 'apiario'):
+            apiario = obj.arnia.apiario
+        elif hasattr(obj, 'attrezzatura') and obj.attrezzatura:
+            # Per manutenzioni di attrezzature condivise
+            if obj.attrezzatura.condiviso_con_gruppo and obj.attrezzatura.gruppo:
+                gruppo = obj.attrezzatura.gruppo
+
+        if apiario and apiario.condiviso_con_gruppo and apiario.gruppo:
+            gruppo = apiario.gruppo
+
+        # Se l'oggetto stesso ha un campo gruppo diretto (Pagamento, SpesaAttrezzatura, etc.)
+        if gruppo is None and hasattr(obj, 'gruppo') and obj.gruppo:
+            gruppo = obj.gruppo
+
+        if gruppo:
+            try:
+                membro = MembroGruppo.objects.get(utente=user, gruppo=gruppo)
+                return membro.ruolo in ['admin', 'editor']
+            except MembroGruppo.DoesNotExist:
+                return False
+
         return False
 
 class ApiarioViewSet(viewsets.ModelViewSet):
@@ -53,30 +138,17 @@ class ApiarioViewSet(viewsets.ModelViewSet):
     API endpoint per gestire gli apiari.
     """
     serializer_class = ApiarioSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter]
     search_fields = ['nome', 'posizione']
 
     def get_queryset(self):
         """
         Filtra gli apiari in base all'utente autenticato.
-        Restituisce gli apiari di cui l'utente è proprietario o 
+        Restituisce gli apiari di cui l'utente è proprietario o
         che sono condivisi con i gruppi di cui l'utente è membro.
         """
-        user = self.request.user
-        
-        # Apiari di cui l'utente è proprietario
-        apiari_propri = Apiario.objects.filter(proprietario=user)
-        
-        # Apiari condivisi con gruppi di cui l'utente è membro
-        gruppi_utente = Gruppo.objects.filter(membri=user)
-        apiari_condivisi = Apiario.objects.filter(
-            gruppo__in=gruppi_utente, 
-            condiviso_con_gruppo=True
-        ).exclude(proprietario=user)
-        
-        # Unisci gli apiari e rimuovi i duplicati
-        return (apiari_propri | apiari_condivisi).distinct()
+        return get_apiari_accessibili(self.request.user)
     
     @action(detail=True, methods=['get'])
     def arnie(self, request, pk=None):
@@ -232,40 +304,42 @@ class ApiarioViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(apiario)
         return Response(serializer.data)
 
-    # Funzione helper per inviare email di invito (riutilizzata dal file views.py)
-    def invia_email_invito(invito):
-        """Funzione per inviare email di invito"""
-        subject = f"Invito a unirti al gruppo {invito.gruppo.nome} su Gestione Apiario"
-        
-        # Costruisci l'URL per accettare l'invito
-        accept_url = reverse('api-attiva-invito', kwargs={'token': invito.token})
-        
-        # Contesto per il template
-        context = {
-            'invito': invito,
-            'accept_url': accept_url,
-        }
-        
-        # Renderizza l'HTML dell'email
-        html_message = render_to_string('email/invito_gruppo.html', context)
-        plain_message = strip_tags(html_message)
-        
-        # Invia l'email
-        send_mail(
-            subject,
-            plain_message,
-            'noreply@gestioneapiario.it',  # Indirizzo mittente
-            [invito.email],
-            html_message=html_message,
-            fail_silently=False,
-        )
+
+# Funzione helper per inviare email di invito (a livello di modulo, non dentro una classe)
+def invia_email_invito(invito):
+    """Funzione per inviare email di invito"""
+    subject = f"Invito a unirti al gruppo {invito.gruppo.nome} su Gestione Apiario"
+
+    # Costruisci l'URL per accettare l'invito
+    accept_url = reverse('api-attiva-invito', kwargs={'token': invito.token})
+
+    # Contesto per il template
+    context = {
+        'invito': invito,
+        'accept_url': accept_url,
+    }
+
+    # Renderizza l'HTML dell'email
+    html_message = render_to_string('email/invito_gruppo.html', context)
+    plain_message = strip_tags(html_message)
+
+    # Invia l'email
+    send_mail(
+        subject,
+        plain_message,
+        'noreply@gestioneapiario.it',  # Indirizzo mittente
+        [invito.email],
+        html_message=html_message,
+        fail_silently=False,
+    )
+
 
 class ArniaViewSet(viewsets.ModelViewSet):
     """
     API endpoint per gestire le arnie.
     """
     serializer_class = ArniaSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter]
     search_fields = ['numero', 'apiario__nome']
 
@@ -273,19 +347,7 @@ class ArniaViewSet(viewsets.ModelViewSet):
         """
         Filtra le arnie in base agli apiari accessibili all'utente.
         """
-        user = self.request.user
-        
-        # Recupera gli apiari accessibili all'utente
-        apiari_propri = Apiario.objects.filter(proprietario=user)
-        gruppi_utente = Gruppo.objects.filter(membri=user)
-        apiari_condivisi = Apiario.objects.filter(
-            gruppo__in=gruppi_utente, 
-            condiviso_con_gruppo=True
-        ).exclude(proprietario=user)
-        
-        apiari_accessibili = (apiari_propri | apiari_condivisi).distinct()
-        
-        # Filtra le arnie in base agli apiari accessibili
+        apiari_accessibili = get_apiari_accessibili(self.request.user)
         return Arnia.objects.filter(apiario__in=apiari_accessibili)
     
     @action(detail=True, methods=['get'])
@@ -331,7 +393,7 @@ class ControlloArniaViewSet(viewsets.ModelViewSet):
     """
     API endpoint per gestire i controlli delle arnie.
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter]
     search_fields = ['arnia__numero', 'arnia__apiario__nome']
 
@@ -344,22 +406,8 @@ class ControlloArniaViewSet(viewsets.ModelViewSet):
         """
         Filtra i controlli in base alle arnie accessibili all'utente.
         """
-        user = self.request.user
-        
-        # Recupera gli apiari accessibili all'utente
-        apiari_propri = Apiario.objects.filter(proprietario=user)
-        gruppi_utente = Gruppo.objects.filter(membri=user)
-        apiari_condivisi = Apiario.objects.filter(
-            gruppo__in=gruppi_utente, 
-            condiviso_con_gruppo=True
-        ).exclude(proprietario=user)
-        
-        apiari_accessibili = (apiari_propri | apiari_condivisi).distinct()
-        
-        # Filtra le arnie in base agli apiari accessibili
+        apiari_accessibili = get_apiari_accessibili(self.request.user)
         arnie_accessibili = Arnia.objects.filter(apiario__in=apiari_accessibili)
-        
-        # Filtra i controlli in base alle arnie accessibili
         return ControlloArnia.objects.filter(arnia__in=arnie_accessibili)
 
 class ReginaViewSet(viewsets.ModelViewSet):
@@ -367,7 +415,7 @@ class ReginaViewSet(viewsets.ModelViewSet):
     API endpoint per gestire le regine.
     """
     serializer_class = ReginaSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter]
     search_fields = ['arnia__numero', 'arnia__apiario__nome', 'razza']
 
@@ -375,22 +423,8 @@ class ReginaViewSet(viewsets.ModelViewSet):
         """
         Filtra le regine in base alle arnie accessibili all'utente.
         """
-        user = self.request.user
-        
-        # Recupera gli apiari accessibili all'utente
-        apiari_propri = Apiario.objects.filter(proprietario=user)
-        gruppi_utente = Gruppo.objects.filter(membri=user)
-        apiari_condivisi = Apiario.objects.filter(
-            gruppo__in=gruppi_utente, 
-            condiviso_con_gruppo=True
-        ).exclude(proprietario=user)
-        
-        apiari_accessibili = (apiari_propri | apiari_condivisi).distinct()
-        
-        # Filtra le arnie in base agli apiari accessibili
+        apiari_accessibili = get_apiari_accessibili(self.request.user)
         arnie_accessibili = Arnia.objects.filter(apiario__in=apiari_accessibili)
-        
-        # Filtra le regine in base alle arnie accessibili
         return Regina.objects.filter(arnia__in=arnie_accessibili)
 
 class FiorituraViewSet(viewsets.ModelViewSet):
@@ -398,7 +432,7 @@ class FiorituraViewSet(viewsets.ModelViewSet):
     API endpoint per gestire le fioriture.
     """
     serializer_class = FiorituraSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter]
     search_fields = ['pianta', 'apiario__nome']
 
@@ -407,18 +441,8 @@ class FiorituraViewSet(viewsets.ModelViewSet):
         Filtra le fioriture in base agli apiari accessibili all'utente.
         """
         user = self.request.user
-        
-        # Recupera gli apiari accessibili all'utente
-        apiari_propri = Apiario.objects.filter(proprietario=user)
-        gruppi_utente = Gruppo.objects.filter(membri=user)
-        apiari_condivisi = Apiario.objects.filter(
-            gruppo__in=gruppi_utente, 
-            condiviso_con_gruppo=True
-        ).exclude(proprietario=user)
-        
-        apiari_accessibili = (apiari_propri | apiari_condivisi).distinct()
-        
-        # Filtra le fioriture in base agli apiari accessibili + fioriture senza apiario create dall'utente
+        apiari_accessibili = get_apiari_accessibili(user)
+        # Fioriture degli apiari accessibili + fioriture senza apiario create dall'utente
         return (
             Fioritura.objects.filter(apiario__in=apiari_accessibili) |
             Fioritura.objects.filter(apiario__isnull=True, creatore=user)
@@ -445,7 +469,7 @@ class TrattamentoSanitarioViewSet(viewsets.ModelViewSet):
     API endpoint per gestire i trattamenti sanitari.
     """
     serializer_class = TrattamentoSanitarioSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter]
     search_fields = ['apiario__nome', 'tipo_trattamento__nome', 'stato']
 
@@ -453,19 +477,7 @@ class TrattamentoSanitarioViewSet(viewsets.ModelViewSet):
         """
         Filtra i trattamenti in base agli apiari accessibili all'utente.
         """
-        user = self.request.user
-        
-        # Recupera gli apiari accessibili all'utente
-        apiari_propri = Apiario.objects.filter(proprietario=user)
-        gruppi_utente = Gruppo.objects.filter(membri=user)
-        apiari_condivisi = Apiario.objects.filter(
-            gruppo__in=gruppi_utente, 
-            condiviso_con_gruppo=True
-        ).exclude(proprietario=user)
-        
-        apiari_accessibili = (apiari_propri | apiari_condivisi).distinct()
-        
-        # Filtra i trattamenti in base agli apiari accessibili
+        apiari_accessibili = get_apiari_accessibili(self.request.user)
         return TrattamentoSanitario.objects.filter(apiario__in=apiari_accessibili)
     
     @action(detail=False, methods=['get'])
@@ -493,7 +505,7 @@ class MelarioViewSet(viewsets.ModelViewSet):
     API endpoint per gestire i melari.
     """
     serializer_class = MelarioSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter]
     search_fields = ['arnia__numero', 'arnia__apiario__nome', 'stato']
 
@@ -501,22 +513,8 @@ class MelarioViewSet(viewsets.ModelViewSet):
         """
         Filtra i melari in base alle arnie accessibili all'utente.
         """
-        user = self.request.user
-        
-        # Recupera gli apiari accessibili all'utente
-        apiari_propri = Apiario.objects.filter(proprietario=user)
-        gruppi_utente = Gruppo.objects.filter(membri=user)
-        apiari_condivisi = Apiario.objects.filter(
-            gruppo__in=gruppi_utente, 
-            condiviso_con_gruppo=True
-        ).exclude(proprietario=user)
-        
-        apiari_accessibili = (apiari_propri | apiari_condivisi).distinct()
-        
-        # Filtra le arnie in base agli apiari accessibili
+        apiari_accessibili = get_apiari_accessibili(self.request.user)
         arnie_accessibili = Arnia.objects.filter(apiario__in=apiari_accessibili)
-        
-        # Filtra i melari in base alle arnie accessibili
         return Melario.objects.filter(arnia__in=arnie_accessibili)
 
 class SmielaturaViewSet(viewsets.ModelViewSet):
@@ -524,7 +522,7 @@ class SmielaturaViewSet(viewsets.ModelViewSet):
     API endpoint per gestire le smielature.
     """
     serializer_class = SmielaturaSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['apiario__nome', 'tipo_miele']
     ordering_fields = ['data', 'quantita_miele']
@@ -534,19 +532,7 @@ class SmielaturaViewSet(viewsets.ModelViewSet):
         """
         Filtra le smielature in base agli apiari accessibili all'utente.
         """
-        user = self.request.user
-        
-        # Recupera gli apiari accessibili all'utente
-        apiari_propri = Apiario.objects.filter(proprietario=user)
-        gruppi_utente = Gruppo.objects.filter(membri=user)
-        apiari_condivisi = Apiario.objects.filter(
-            gruppo__in=gruppi_utente, 
-            condiviso_con_gruppo=True
-        ).exclude(proprietario=user)
-        
-        apiari_accessibili = (apiari_propri | apiari_condivisi).distinct()
-        
-        # Filtra le smielature in base agli apiari accessibili
+        apiari_accessibili = get_apiari_accessibili(self.request.user)
         return Smielatura.objects.filter(apiario__in=apiari_accessibili)
 
 # Modifica il GruppoViewSet esistente aggiungendo le nuove azioni
@@ -565,13 +551,46 @@ class GruppoViewSet(viewsets.ModelViewSet):
         """
         user = self.request.user
         return Gruppo.objects.filter(membri=user)
-    
+
+    def perform_create(self, serializer):
+        """
+        FIX #2 - Auto-aggiunge il creatore come membro admin del gruppo.
+        Allinea il comportamento API con le web views (views.py gestione_gruppi).
+        """
+        gruppo = serializer.save(creatore=self.request.user)
+        MembroGruppo.objects.create(
+            utente=self.request.user,
+            gruppo=gruppo,
+            ruolo='admin'
+        )
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        FIX #8 - Solo il creatore del gruppo può eliminarlo via API.
+        Allinea il comportamento API con il Flutter UI (che mostra il
+        bottone delete solo al creatore) e le web views.
+        """
+        gruppo = self.get_object()
+        if gruppo.creatore != request.user:
+            return Response(
+                {"detail": "Solo il creatore del gruppo può eliminarlo."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().destroy(request, *args, **kwargs)
+
     @action(detail=True, methods=['get'])
     def membri(self, request, pk=None):
         """
         Restituisce i membri di un gruppo.
+        FIX #6 - Verifica che l'utente sia membro del gruppo.
         """
         gruppo = self.get_object()
+        # Il queryset già filtra per membri, ma verifica esplicitamente
+        if not MembroGruppo.objects.filter(utente=request.user, gruppo=gruppo).exists():
+            return Response(
+                {"detail": "Non sei membro di questo gruppo."},
+                status=status.HTTP_403_FORBIDDEN
+            )
         membri = MembroGruppo.objects.filter(gruppo=gruppo)
         serializer = MembroGruppoSerializer(membri, many=True)
         return Response(serializer.data)
@@ -658,16 +677,16 @@ class GruppoViewSet(viewsets.ModelViewSet):
             ruolo_proposto=ruolo_proposto,
             invitato_da=request.user,
             token=uuid.uuid4(),
-            data_scadenza=timezone.now() + timezone.timedelta(days=7)
+            data_scadenza=timezone.now() + timedelta(days=7)
         )
         invito.save()
         
-        # Invia email di invito
+        # FIX #12 - Invia email di invito con logging errori
         try:
             invia_email_invito(invito)
-        except:
-            # Non fallire se l'email non può essere inviata
-            pass
+        except Exception as e:
+            # Non fallire se l'email non può essere inviata, ma logga l'errore
+            logger.error(f"Errore invio email invito a {email} per gruppo {gruppo.nome}: {e}")
         
         serializer = InvitoGruppoSerializer(invito)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -745,23 +764,45 @@ class GruppoViewSet(viewsets.ModelViewSet):
         
         # Gestione PUT (aggiornamento ruolo)
         if request.method == 'PUT':
+            # FIX #1 - Solo gli admin possono modificare i ruoli.
+            # Le self-operation sono permesse solo per auto-demotarsi (non auto-promuoversi).
             if not is_admin and not is_self_operation:
                 return Response(
                     {"detail": "Solo gli amministratori possono modificare i ruoli altrui."},
                     status=status.HTTP_403_FORBIDDEN
                 )
-            
+
             ruolo = request.data.get('ruolo')
             if not ruolo:
                 return Response(
                     {"detail": "Ruolo non specificato."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
+            # Valida che il ruolo sia tra quelli consentiti
+            ruoli_validi = [r[0] for r in MembroGruppo.RUOLO_CHOICES]
+            if ruolo not in ruoli_validi:
+                return Response(
+                    {"detail": f"Ruolo non valido. Ruoli consentiti: {', '.join(ruoli_validi)}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # FIX #1 - Prevenzione privilege escalation:
+            # Un non-admin non può auto-promuoversi
+            if is_self_operation and not is_admin:
+                ruoli_ordine = {'viewer': 0, 'editor': 1, 'admin': 2}
+                ruolo_attuale = ruoli_ordine.get(membro.ruolo, 0)
+                ruolo_nuovo = ruoli_ordine.get(ruolo, 0)
+                if ruolo_nuovo > ruolo_attuale:
+                    return Response(
+                        {"detail": "Non puoi auto-promuoverti a un ruolo superiore."},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+
             # Aggiorna il ruolo del membro
             membro.ruolo = ruolo
             membro.save()
-            
+
             serializer = MembroGruppoSerializer(membro)
             return Response(serializer.data)
         
@@ -825,28 +866,22 @@ class PagamentoViewSet(viewsets.ModelViewSet):
     API endpoint per gestire i pagamenti.
     """
     serializer_class = PagamentoSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['descrizione', 'utente__username']
     ordering_fields = ['data', 'importo']
     ordering = ['-data']  # Ordinamento predefinito per data decrescente
-    
+
     def get_queryset(self):
         """
         Filtra i pagamenti in base all'utente autenticato e ai gruppi.
         """
         user = self.request.user
-        
-        # Pagamenti dell'utente
         pagamenti_propri = Pagamento.objects.filter(utente=user)
-        
-        # Pagamenti dei gruppi di cui l'utente è membro
-        gruppi_utente = Gruppo.objects.filter(membri=user)
+        gruppi_utente = get_gruppi_utente(user)
         pagamenti_gruppo = Pagamento.objects.filter(
             gruppo__in=gruppi_utente
         ).exclude(utente=user)
-        
-        # Unisci i pagamenti e rimuovi i duplicati
         return (pagamenti_propri | pagamenti_gruppo).distinct()
     
     def perform_create(self, serializer):
@@ -858,7 +893,7 @@ class QuotaUtenteViewSet(viewsets.ModelViewSet):
     API endpoint per gestire le quote utente.
     """
     serializer_class = QuotaUtenteSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     
     def get_queryset(self):
         """
@@ -907,7 +942,7 @@ class AttrezzaturaViewSet(viewsets.ModelViewSet):
     API endpoint per gestire le attrezzature.
     """
     serializer_class = AttrezzaturaSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['nome', 'descrizione', 'marca', 'modello']
     ordering_fields = ['nome', 'data_acquisto', 'prezzo_acquisto', 'stato']
@@ -915,10 +950,8 @@ class AttrezzaturaViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        # Attrezzature proprie
         proprie = Attrezzatura.objects.filter(proprietario=user)
-        # Attrezzature condivise con i gruppi dell'utente
-        gruppi_utente = Gruppo.objects.filter(membri=user)
+        gruppi_utente = get_gruppi_utente(user)
         condivise = Attrezzatura.objects.filter(
             condiviso_con_gruppo=True,
             gruppo__in=gruppi_utente
@@ -934,7 +967,7 @@ class SpesaAttrezzaturaViewSet(viewsets.ModelViewSet):
     API endpoint per gestire le spese attrezzatura.
     """
     serializer_class = SpesaAttrezzaturaSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['descrizione', 'tipo']
     ordering_fields = ['data', 'importo']
@@ -942,10 +975,8 @@ class SpesaAttrezzaturaViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        # Spese proprie
         proprie = SpesaAttrezzatura.objects.filter(utente=user)
-        # Spese di gruppo
-        gruppi_utente = Gruppo.objects.filter(membri=user)
+        gruppi_utente = get_gruppi_utente(user)
         di_gruppo = SpesaAttrezzatura.objects.filter(
             gruppo__in=gruppi_utente
         ).exclude(utente=user)
@@ -960,7 +991,7 @@ class ManutenzioneAttrezzaturaViewSet(viewsets.ModelViewSet):
     API endpoint per gestire le manutenzioni attrezzatura.
     """
     serializer_class = ManutenzioneAttrezzaturaSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['descrizione', 'tipo', 'eseguito_da']
     ordering_fields = ['data_programmata', 'data_esecuzione', 'costo']
@@ -968,12 +999,10 @@ class ManutenzioneAttrezzaturaViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        # Manutenzioni delle proprie attrezzature
         proprie = ManutenzioneAttrezzatura.objects.filter(
             attrezzatura__proprietario=user
         )
-        # Manutenzioni delle attrezzature condivise
-        gruppi_utente = Gruppo.objects.filter(membri=user)
+        gruppi_utente = get_gruppi_utente(user)
         condivise = ManutenzioneAttrezzatura.objects.filter(
             attrezzatura__condiviso_con_gruppo=True,
             attrezzatura__gruppo__in=gruppi_utente
@@ -984,54 +1013,9 @@ class ManutenzioneAttrezzaturaViewSet(viewsets.ModelViewSet):
         serializer.save(utente=self.request.user)
 
 
-# Aggiungi questo al file api_views.py
-
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-from rest_framework.response import Response
-from rest_framework import status
-
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """
-    Custom token serializer che aggiunge informazioni dell'utente
-    """
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        # Aggiungi dati personalizzati al token
-        token['username'] = user.username
-        token['email'] = user.email
-        return token
-
-class CustomTokenObtainPairView(TokenObtainPairView):
-    """
-    Custom token view per gestire meglio gli errori
-    """
-    serializer_class = CustomTokenObtainPairSerializer
-    
-    def post(self, request, *args, **kwargs):
-        try:
-            return super().post(request, *args, **kwargs)
-        except Exception as e:
-            # Log dell'errore per il debug
-            import traceback
-            print(f"Error in token endpoint: {str(e)}")
-            print(traceback.format_exc())
-            
-            # Restituisci una risposta più utile
-            return Response(
-                {"detail": "Si è verificato un errore durante l'autenticazione. Riprova più tardi."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-# Aggiungi questo al file api_views.py
-
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-from rest_framework.response import Response
-from rest_framework import status
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
@@ -1099,9 +1083,6 @@ class CustomTokenRefreshView(TokenRefreshView):
             )
 
 # Endpoint per la sincronizzazione
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def sync_data(request):
@@ -1123,17 +1104,12 @@ def sync_data(request):
         else:
             # Se non specificato, imposta una data passata (7 giorni fa)
             last_sync_date = timezone.now() - timedelta(days=7)
-        
-        # Filtro per apiari accessibili all'utente
+
+        # FIX #10 - Usa helper centralizzato per apiari accessibili
         user = request.user
-        apiari_propri = Apiario.objects.filter(proprietario=user)
-        gruppi_utente = Gruppo.objects.filter(membri=user)
-        apiari_condivisi = Apiario.objects.filter(
-            gruppo__in=gruppi_utente, 
-            condiviso_con_gruppo=True
-        ).exclude(proprietario=user)
-        apiari_accessibili = (apiari_propri | apiari_condivisi).distinct()
-        
+        apiari_accessibili = get_apiari_accessibili(user)
+        gruppi_utente = get_gruppi_utente(user)
+
         # Recupera i dati accessibili all'utente, senza filtrare per data
         # per evitare problemi con campi che potrebbero non esistere
         apiari = apiari_accessibili
@@ -1145,7 +1121,7 @@ def sync_data(request):
             regine = Regina.objects.filter(arnia__in=arnie_accessibili)
         except Exception as e:
             regine = []
-            print(f"Errore durante il recupero delle regine: {e}")
+            logger.error(f"Errore durante il recupero delle regine: {e}")
         
         try:
             fioriture = (
@@ -1154,25 +1130,25 @@ def sync_data(request):
             ).distinct()
         except Exception as e:
             fioriture = []
-            print(f"Errore durante il recupero delle fioriture: {e}")
+            logger.error(f"Errore durante il recupero delle fioriture: {e}")
         
         try:
             trattamenti = TrattamentoSanitario.objects.filter(apiario__in=apiari_accessibili)
         except Exception as e:
             trattamenti = []
-            print(f"Errore durante il recupero dei trattamenti: {e}")
+            logger.error(f"Errore durante il recupero dei trattamenti: {e}")
         
         try:
             melari = Melario.objects.filter(arnia__in=arnie_accessibili)
         except Exception as e:
             melari = []
-            print(f"Errore durante il recupero dei melari: {e}")
+            logger.error(f"Errore durante il recupero dei melari: {e}")
         
         try:
             smielature = Smielatura.objects.filter(apiario__in=apiari_accessibili)
         except Exception as e:
             smielature = []
-            print(f"Errore durante il recupero delle smielature: {e}")
+            logger.error(f"Errore durante il recupero delle smielature: {e}")
         try:
             pagamenti = (
                 Pagamento.objects.filter(utente=user) |
@@ -1180,16 +1156,21 @@ def sync_data(request):
             ).distinct()
         except Exception as e:
             pagamenti = []
-            print(f"Errore durante il recupero dei pagamenti: {e}")
+            logger.error(f"Errore durante il recupero dei pagamenti: {e}")
 
         try:
+            # FIX #4 - Allinea con QuotaUtenteViewSet: quote gruppo visibili solo agli admin
+            gruppi_admin = Gruppo.objects.filter(
+                membri=user,
+                membrogruppo__ruolo='admin'
+            )
             quote = (
                 QuotaUtente.objects.filter(utente=user) |
-                QuotaUtente.objects.filter(gruppo__in=gruppi_utente)
+                QuotaUtente.objects.filter(gruppo__in=gruppi_admin)
             ).distinct()
         except Exception as e:
             quote = []
-            print(f"Errore durante il recupero delle quote: {e}")
+            logger.error(f"Errore durante il recupero delle quote: {e}")
 
         # Serializza i dati
         data = {
@@ -1209,10 +1190,10 @@ def sync_data(request):
         return Response(data)
     
     except Exception as e:
-        # Log l'errore e restituisci una risposta generica
-        print(f"Errore durante la sincronizzazione: {str(e)}")
+        # Log l'errore e restituisci una risposta generica (senza dettagli interni)
+        logger.error(f"Errore durante la sincronizzazione per {request.user.username}: {str(e)}")
         return Response(
-            {"detail": f"Errore durante la sincronizzazione: {str(e)}"},
+            {"detail": "Errore durante la sincronizzazione. Riprova più tardi."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
@@ -1269,18 +1250,25 @@ def accetta_invito(request, token):
             {"detail": "Questo invito è destinato a un altro indirizzo email."},
             status=status.HTTP_403_FORBIDDEN
         )
-    
+
+    # FIX #7 - Verifica che l'utente non sia già membro del gruppo
+    if MembroGruppo.objects.filter(utente=request.user, gruppo=invito.gruppo).exists():
+        # Aggiorna comunque lo stato dell'invito
+        invito.stato = 'accettato'
+        invito.save()
+        return Response({"detail": "Sei già membro di questo gruppo."})
+
     # Crea relazione membro-gruppo
     MembroGruppo.objects.create(
         utente=request.user,
         gruppo=invito.gruppo,
         ruolo=invito.ruolo_proposto
     )
-    
+
     # Aggiorna stato invito
     invito.stato = 'accettato'
     invito.save()
-    
+
     return Response({"detail": "Invito accettato con successo."})
 
 @api_view(['POST'])
@@ -1316,14 +1304,6 @@ def rifiuta_invito(request, token):
     invito.save()
     
     return Response({"detail": "Invito rifiutato con successo."})
-
-# In core/api_views.py, add:
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def current_user(request):
-    """Restituisce i dati dell'utente corrente."""
-    serializer = UserSerializer(request.user)
-    return Response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
