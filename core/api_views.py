@@ -20,7 +20,8 @@ from .models import (
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
     Gruppo, MembroGruppo, InvitoGruppo, DatiMeteo, PrevisioneMeteo,
     Pagamento, QuotaUtente,
-    Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura
+    Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
+    Invasettamento, Cliente, Vendita, DettaglioVendita
 )
 
 from .serializers import (
@@ -31,7 +32,9 @@ from .serializers import (
     MembroGruppoSerializer, InvitoGruppoSerializer, UserSerializer,
     PagamentoSerializer, QuotaUtenteSerializer,
     AttrezzaturaSerializer, SpesaAttrezzaturaSerializer,
-    ManutenzioneAttrezzaturaSerializer
+    ManutenzioneAttrezzaturaSerializer,
+    InvasettamentoSerializer, ClienteSerializer, VenditaSerializer,
+    DettaglioVenditaSerializer
 )
 
 logger = logging.getLogger(__name__)
@@ -1011,6 +1014,87 @@ class ManutenzioneAttrezzaturaViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(utente=self.request.user)
+
+
+class InvasettamentoViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint per gestire gli invasettamenti.
+    """
+    serializer_class = InvasettamentoSerializer
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['tipo_miele', 'lotto']
+    ordering_fields = ['data', 'numero_vasetti']
+    ordering = ['-data']
+
+    def get_queryset(self):
+        apiari_accessibili = get_apiari_accessibili(self.request.user)
+        return Invasettamento.objects.filter(
+            smielatura__apiario__in=apiari_accessibili
+        )
+
+    def perform_create(self, serializer):
+        serializer.save(utente=self.request.user)
+
+
+class ClienteViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint per gestire i clienti.
+    """
+    serializer_class = ClienteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['nome', 'email', 'telefono']
+    ordering_fields = ['nome']
+    ordering = ['nome']
+
+    def get_queryset(self):
+        return Cliente.objects.filter(utente=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(utente=self.request.user)
+
+
+class VenditaViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint per gestire le vendite.
+    """
+    serializer_class = VenditaSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['cliente__nome', 'note']
+    ordering_fields = ['data']
+    ordering = ['-data']
+
+    def get_queryset(self):
+        return Vendita.objects.filter(utente=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(utente=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def aggiungi_dettaglio(self, request, pk=None):
+        """Aggiunge un dettaglio alla vendita."""
+        vendita = self.get_object()
+        serializer = DettaglioVenditaSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(vendita=vendita)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['delete'], url_path='dettaglio/(?P<dettaglio_id>[^/.]+)')
+    def rimuovi_dettaglio(self, request, pk=None, dettaglio_id=None):
+        """Rimuove un dettaglio dalla vendita."""
+        vendita = self.get_object()
+        try:
+            dettaglio = DettaglioVendita.objects.get(pk=dettaglio_id, vendita=vendita)
+            dettaglio.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except DettaglioVendita.DoesNotExist:
+            return Response(
+                {"detail": "Dettaglio non trovato."},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView

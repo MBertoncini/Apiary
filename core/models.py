@@ -349,8 +349,9 @@ class Melario(models.Model):
     data_posizionamento = models.DateField()
     data_rimozione = models.DateField(null=True, blank=True)
     stato = models.CharField(max_length=20, choices=STATO_CHOICES, default='posizionato')
+    peso_stimato = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, help_text="Peso stimato in kg")
     note = models.TextField(blank=True, null=True)
-    
+
     def __str__(self):
         return f"Melario {self.id} - Arnia {self.arnia.numero} (Pos. {self.posizione})"
     
@@ -384,6 +385,86 @@ class Smielatura(models.Model):
         for melario in self.melari.all():
             melario.stato = 'smielato'
             melario.save()
+
+class Invasettamento(models.Model):
+    """Modello per gestire le operazioni di invasettamento (confezionamento in vasetti)"""
+    data = models.DateField()
+    smielatura = models.ForeignKey(Smielatura, on_delete=models.CASCADE, related_name='invasettamenti')
+    tipo_miele = models.CharField(max_length=100)
+    formato_vasetto = models.IntegerField(help_text="Grammi per vasetto (250, 500, 1000)")
+    numero_vasetti = models.IntegerField()
+    lotto = models.CharField(max_length=50, blank=True, null=True)
+    utente = models.ForeignKey(User, on_delete=models.CASCADE)
+    note = models.TextField(blank=True, null=True)
+    data_registrazione = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Invasettamento {self.data} - {self.tipo_miele} ({self.numero_vasetti}x{self.formato_vasetto}g)"
+
+    @property
+    def kg_totali(self):
+        return (self.formato_vasetto * self.numero_vasetti) / 1000
+
+    class Meta:
+        verbose_name = "Invasettamento"
+        verbose_name_plural = "Invasettamenti"
+        ordering = ['-data']
+
+class Cliente(models.Model):
+    """Modello per gestire i clienti"""
+    nome = models.CharField(max_length=200)
+    telefono = models.CharField(max_length=20, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    indirizzo = models.TextField(blank=True, null=True)
+    note = models.TextField(blank=True, null=True)
+    utente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='clienti')
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Cliente"
+        verbose_name_plural = "Clienti"
+        ordering = ['nome']
+
+class Vendita(models.Model):
+    """Modello per gestire le vendite di miele"""
+    data = models.DateField()
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='vendite')
+    utente = models.ForeignKey(User, on_delete=models.CASCADE)
+    note = models.TextField(blank=True, null=True)
+    data_registrazione = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Vendita {self.data} - {self.cliente.nome}"
+
+    @property
+    def totale(self):
+        return sum(d.subtotale for d in self.dettagli.all())
+
+    class Meta:
+        verbose_name = "Vendita"
+        verbose_name_plural = "Vendite"
+        ordering = ['-data']
+
+class DettaglioVendita(models.Model):
+    """Modello per le righe di dettaglio di una vendita"""
+    vendita = models.ForeignKey(Vendita, on_delete=models.CASCADE, related_name='dettagli')
+    tipo_miele = models.CharField(max_length=100)
+    formato_vasetto = models.IntegerField()
+    quantita = models.IntegerField()
+    prezzo_unitario = models.DecimalField(max_digits=6, decimal_places=2)
+
+    @property
+    def subtotale(self):
+        return self.quantita * self.prezzo_unitario
+
+    def __str__(self):
+        return f"{self.tipo_miele} {self.formato_vasetto}g x{self.quantita}"
+
+    class Meta:
+        verbose_name = "Dettaglio Vendita"
+        verbose_name_plural = "Dettagli Vendita"
 
 from django.db import models
 from django.contrib.auth.models import User

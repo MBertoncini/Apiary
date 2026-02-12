@@ -4,7 +4,8 @@ from .models import (
     Apiario, Arnia, ControlloArnia, Regina, Fioritura,
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
     Gruppo, MembroGruppo, InvitoGruppo, Pagamento, QuotaUtente,
-    Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura
+    Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
+    Invasettamento, Cliente, Vendita, DettaglioVendita
 )
 
 # Serializzatore utente
@@ -159,8 +160,8 @@ class MelarioSerializer(serializers.ModelSerializer):
         model = Melario
         fields = [
             'id', 'arnia', 'arnia_numero', 'apiario_id', 'apiario_nome',
-            'numero_telaini', 'posizione', 'data_posizionamento', 
-            'data_rimozione', 'stato', 'note'
+            'numero_telaini', 'posizione', 'data_posizionamento',
+            'data_rimozione', 'stato', 'peso_stimato', 'note'
         ]
 
 # Serializzatore Smielatura
@@ -369,6 +370,94 @@ class ManutenzioneAttrezzaturaSerializer(serializers.ModelSerializer):
 
     def get_stato_display(self, obj):
         return obj.get_stato_display()
+
+    def create(self, validated_data):
+        validated_data['utente'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+# Serializzatore Invasettamento
+class InvasettamentoSerializer(serializers.ModelSerializer):
+    smielatura_info = serializers.SerializerMethodField()
+    utente_username = serializers.ReadOnlyField(source='utente.username')
+    kg_totali = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Invasettamento
+        fields = [
+            'id', 'data', 'smielatura', 'smielatura_info',
+            'tipo_miele', 'formato_vasetto', 'numero_vasetti',
+            'lotto', 'utente', 'utente_username', 'note',
+            'data_registrazione', 'kg_totali'
+        ]
+        read_only_fields = ['utente']
+
+    def get_smielatura_info(self, obj):
+        return f"{obj.smielatura.data} - {obj.smielatura.apiario.nome}"
+
+    def get_kg_totali(self, obj):
+        return obj.kg_totali
+
+    def create(self, validated_data):
+        validated_data['utente'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+# Serializzatore Cliente
+class ClienteSerializer(serializers.ModelSerializer):
+    utente_username = serializers.ReadOnlyField(source='utente.username')
+    vendite_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Cliente
+        fields = [
+            'id', 'nome', 'telefono', 'email', 'indirizzo',
+            'note', 'utente', 'utente_username', 'vendite_count'
+        ]
+        read_only_fields = ['utente']
+
+    def get_vendite_count(self, obj):
+        return obj.vendite.count()
+
+    def create(self, validated_data):
+        validated_data['utente'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+# Serializzatore DettaglioVendita
+class DettaglioVenditaSerializer(serializers.ModelSerializer):
+    subtotale = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DettaglioVendita
+        fields = [
+            'id', 'vendita', 'tipo_miele', 'formato_vasetto',
+            'quantita', 'prezzo_unitario', 'subtotale'
+        ]
+        read_only_fields = ['vendita']
+
+    def get_subtotale(self, obj):
+        return float(obj.subtotale)
+
+
+# Serializzatore Vendita
+class VenditaSerializer(serializers.ModelSerializer):
+    cliente_nome = serializers.ReadOnlyField(source='cliente.nome')
+    utente_username = serializers.ReadOnlyField(source='utente.username')
+    dettagli = DettaglioVenditaSerializer(many=True, read_only=True)
+    totale = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Vendita
+        fields = [
+            'id', 'data', 'cliente', 'cliente_nome',
+            'utente', 'utente_username', 'note',
+            'data_registrazione', 'dettagli', 'totale'
+        ]
+        read_only_fields = ['utente']
+
+    def get_totale(self, obj):
+        return float(obj.totale)
 
     def create(self, validated_data):
         validated_data['utente'] = self.context['request'].user

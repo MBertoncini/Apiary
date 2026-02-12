@@ -10,7 +10,8 @@ from .api_views import (
     MelarioViewSet, SmielaturaViewSet, GruppoViewSet, current_user,
     sync_data, inviti_ricevuti, accetta_invito, rifiuta_invito, meteo_by_location,
     PagamentoViewSet, QuotaUtenteViewSet, CustomTokenObtainPairView, CustomTokenRefreshView,
-    AttrezzaturaViewSet, SpesaAttrezzaturaViewSet, ManutenzioneAttrezzaturaViewSet
+    AttrezzaturaViewSet, SpesaAttrezzaturaViewSet, ManutenzioneAttrezzaturaViewSet,
+    InvasettamentoViewSet, ClienteViewSet, VenditaViewSet
 )
 
 # Crea un router e registra i viewsets
@@ -30,6 +31,9 @@ router.register(r'quote', QuotaUtenteViewSet, basename='api-quota')
 router.register(r'attrezzature', AttrezzaturaViewSet, basename='api-attrezzatura')
 router.register(r'spese-attrezzatura', SpesaAttrezzaturaViewSet, basename='api-spesa-attrezzatura')
 router.register(r'manutenzioni', ManutenzioneAttrezzaturaViewSet, basename='api-manutenzione')
+router.register(r'invasettamenti', InvasettamentoViewSet, basename='api-invasettamento')
+router.register(r'clienti', ClienteViewSet, basename='api-cliente')
+router.register(r'vendite', VenditaViewSet, basename='api-vendita')
 
 # URLs per le API
 urlpatterns = [
