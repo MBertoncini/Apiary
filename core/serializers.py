@@ -5,7 +5,8 @@ from .models import (
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
     Gruppo, MembroGruppo, InvitoGruppo, Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
-    Invasettamento, Cliente, Vendita, DettaglioVendita
+    Invasettamento, Cliente, Vendita, DettaglioVendita,
+    AnalisiTelaino
 )
 
 # Serializzatore utente
@@ -458,6 +459,26 @@ class VenditaSerializer(serializers.ModelSerializer):
 
     def get_totale(self, obj):
         return float(obj.totale)
+
+    def create(self, validated_data):
+        validated_data['utente'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+# Serializzatore AnalisiTelaino
+class AnalisiTelainoSerializer(serializers.ModelSerializer):
+    utente_username = serializers.ReadOnlyField(source='utente.username')
+    arnia_numero = serializers.ReadOnlyField(source='arnia.numero')
+
+    class Meta:
+        model = AnalisiTelaino
+        fields = [
+            'id', 'arnia', 'arnia_numero', 'numero_telaino', 'facciata',
+            'data', 'conteggio_api', 'conteggio_regine', 'conteggio_fuchi',
+            'conteggio_celle_reali', 'confidence_media', 'note', 'immagine',
+            'utente', 'utente_username', 'data_registrazione'
+        ]
+        read_only_fields = ['utente', 'data', 'data_registrazione']
 
     def create(self, validated_data):
         validated_data['utente'] = self.context['request'].user

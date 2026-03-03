@@ -11,7 +11,8 @@ from .api_views import (
     sync_data, inviti_ricevuti, accetta_invito, rifiuta_invito, meteo_by_location,
     PagamentoViewSet, QuotaUtenteViewSet, CustomTokenObtainPairView, CustomTokenRefreshView,
     AttrezzaturaViewSet, SpesaAttrezzaturaViewSet, ManutenzioneAttrezzaturaViewSet,
-    InvasettamentoViewSet, ClienteViewSet, VenditaViewSet
+    InvasettamentoViewSet, ClienteViewSet, VenditaViewSet,
+    AnalisiTelainoViewSet
 )
 
 # Crea un router e registra i viewsets
@@ -34,6 +35,7 @@ router.register(r'manutenzioni', ManutenzioneAttrezzaturaViewSet, basename='api-
 router.register(r'invasettamenti', InvasettamentoViewSet, basename='api-invasettamento')
 router.register(r'clienti', ClienteViewSet, basename='api-cliente')
 router.register(r'vendite', VenditaViewSet, basename='api-vendita')
+router.register(r'analisi-telaini', AnalisiTelainoViewSet, basename='api-analisi-telaino')
 
 # URLs per le API
 urlpatterns = [

@@ -15,13 +15,15 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.urls import reverse
 
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .models import (
     Apiario, Arnia, ControlloArnia, Regina, Fioritura,
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
     Gruppo, MembroGruppo, InvitoGruppo, DatiMeteo, PrevisioneMeteo,
     Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
-    Invasettamento, Cliente, Vendita, DettaglioVendita
+    Invasettamento, Cliente, Vendita, DettaglioVendita,
+    AnalisiTelaino
 )
 
 from .serializers import (
@@ -34,7 +36,8 @@ from .serializers import (
     AttrezzaturaSerializer, SpesaAttrezzaturaSerializer,
     ManutenzioneAttrezzaturaSerializer,
     InvasettamentoSerializer, ClienteSerializer, VenditaSerializer,
-    DettaglioVenditaSerializer
+    DettaglioVenditaSerializer,
+    AnalisiTelainoSerializer
 )
 
 logger = logging.getLogger(__name__)
@@ -1095,6 +1098,36 @@ class VenditaViewSet(viewsets.ModelViewSet):
                 {"detail": "Dettaglio non trovato."},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+
+class AnalisiTelainoViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint per gestire le analisi dei telaini.
+    """
+    serializer_class = AnalisiTelainoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['data', 'data_registrazione']
+    ordering = ['-data', '-data_registrazione']
+
+    def get_queryset(self):
+        """
+        Filtra le analisi in base alle arnie accessibili all'utente.
+        Supporta filtro per arnia con ?arnia=<id>.
+        """
+        apiari_accessibili = get_apiari_accessibili(self.request.user)
+        arnie_accessibili = Arnia.objects.filter(apiario__in=apiari_accessibili)
+        queryset = AnalisiTelaino.objects.filter(arnia__in=arnie_accessibili)
+
+        arnia_id = self.request.query_params.get('arnia')
+        if arnia_id:
+            queryset = queryset.filter(arnia_id=arnia_id)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(utente=self.request.user)
 
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView

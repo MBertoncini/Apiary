@@ -1152,3 +1152,28 @@ class InventarioAttrezzature(models.Model):
         verbose_name = "Inventario Attrezzature"
         verbose_name_plural = "Inventari Attrezzature"
         ordering = ['-data']
+
+
+class AnalisiTelaino(models.Model):
+    """Modello per memorizzare i risultati dell'analisi AI dei telaini"""
+    arnia = models.ForeignKey(Arnia, on_delete=models.CASCADE, related_name='analisi_telaini')
+    numero_telaino = models.IntegerField()
+    facciata = models.CharField(max_length=1, choices=[('A', 'Facciata A'), ('B', 'Facciata B')])
+    data = models.DateField(auto_now_add=True)
+    conteggio_api = models.IntegerField(default=0)
+    conteggio_regine = models.IntegerField(default=0)
+    conteggio_fuchi = models.IntegerField(default=0)
+    conteggio_celle_reali = models.IntegerField(default=0)
+    confidence_media = models.FloatField(default=0.0)
+    note = models.TextField(blank=True, null=True)
+    immagine = models.ImageField(upload_to='analisi_telaini/', blank=True, null=True)
+    utente = models.ForeignKey(User, on_delete=models.CASCADE)
+    data_registrazione = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Analisi Telaino {self.numero_telaino}{self.facciata} - Arnia {self.arnia.numero} ({self.data})"
+
+    class Meta:
+        verbose_name = "Analisi Telaino"
+        verbose_name_plural = "Analisi Telaini"
+        ordering = ['-data', '-data_registrazione']
