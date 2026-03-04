@@ -635,8 +635,21 @@ class TrattamentoSanitario(models.Model):
     note = models.TextField(blank=True, null=True)
     data_creazione = models.DateTimeField(auto_now_add=True)
     
+    METODO_APPLICAZIONE_CHOICES = [
+        ('strisce', 'Strisce'),
+        ('gocciolato', 'Gocciolato'),
+        ('sublimato', 'Sublimato'),
+        ('altro', 'Altro'),
+    ]
+    metodo_applicazione = models.CharField(
+        max_length=20,
+        choices=METODO_APPLICAZIONE_CHOICES,
+        blank=True, null=True,
+        help_text="Metodo di applicazione del trattamento"
+    )
+
     # Nuovi campi per il blocco di covata
-    blocco_covata_attivo = models.BooleanField(default=False, 
+    blocco_covata_attivo = models.BooleanField(default=False,
                                              help_text="Indica se il blocco di covata è attualmente attivo")
     data_inizio_blocco = models.DateField(blank=True, null=True, 
                                         help_text="Data di inizio del blocco di covata")
