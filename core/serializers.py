@@ -187,55 +187,79 @@ class TipoTrattamentoSerializer(serializers.ModelSerializer):
 
 # Serializzatore TrattamentoSanitario
 class TrattamentoSanitarioSerializer(serializers.ModelSerializer):
-    apiario_nome = serializers.ReadOnlyField(source='apiario.nome')
+    apiario_nome          = serializers.ReadOnlyField(source='apiario.nome')
+    apiario_gruppo_nome   = serializers.SerializerMethodField()
     tipo_trattamento_nome = serializers.ReadOnlyField(source='tipo_trattamento.nome')
-    utente_username = serializers.ReadOnlyField(source='utente.username')
-    
+    utente_username       = serializers.ReadOnlyField(source='utente.username')
+
     class Meta:
         model = TrattamentoSanitario
         fields = [
-            'id', 'apiario', 'apiario_nome', 'tipo_trattamento', 
-            'tipo_trattamento_nome', 'data_inizio', 'data_fine', 
-            'data_fine_sospensione', 'stato', 'utente', 'utente_username',
+            'id', 'apiario', 'apiario_nome', 'apiario_gruppo_nome',
+            'tipo_trattamento', 'tipo_trattamento_nome',
+            'data_inizio', 'data_fine', 'data_fine_sospensione',
+            'stato', 'utente', 'utente_username',
             'arnie', 'note', 'blocco_covata_attivo', 'data_inizio_blocco',
-            'data_fine_blocco', 'metodo_blocco', 'note_blocco'
+            'data_fine_blocco', 'metodo_blocco', 'note_blocco',
+            'metodo_applicazione',
         ]
         read_only_fields = ['utente', 'data_fine_sospensione']
-    
+
+    def get_apiario_gruppo_nome(self, obj):
+        try:
+            return obj.apiario.gruppo.nome if obj.apiario.gruppo_id else None
+        except Exception:
+            return None
+
     def create(self, validated_data):
         validated_data['utente'] = self.context['request'].user
         return super().create(validated_data)
 
 # Serializzatore Melario
 class MelarioSerializer(serializers.ModelSerializer):
-    arnia_numero = serializers.ReadOnlyField(source='arnia.numero')
-    apiario_id = serializers.ReadOnlyField(source='arnia.apiario.id')
-    apiario_nome = serializers.ReadOnlyField(source='arnia.apiario.nome')
-    
+    arnia_numero        = serializers.ReadOnlyField(source='arnia.numero')
+    apiario_id          = serializers.ReadOnlyField(source='arnia.apiario.id')
+    apiario_nome        = serializers.ReadOnlyField(source='arnia.apiario.nome')
+    apiario_gruppo_nome = serializers.SerializerMethodField()
+
     class Meta:
         model = Melario
         fields = [
             'id', 'arnia', 'arnia_numero', 'apiario_id', 'apiario_nome',
+            'apiario_gruppo_nome',
             'numero_telaini', 'posizione', 'data_posizionamento',
             'data_rimozione', 'stato', 'tipo_melario', 'stato_favi',
             'escludi_regina', 'peso_stimato', 'note'
         ]
 
+    def get_apiario_gruppo_nome(self, obj):
+        try:
+            return obj.arnia.apiario.gruppo.nome if obj.arnia.apiario.gruppo_id else None
+        except Exception:
+            return None
+
 # Serializzatore Smielatura
 class SmielaturaSerializer(serializers.ModelSerializer):
-    apiario_nome = serializers.ReadOnlyField(source='apiario.nome')
-    utente_username = serializers.ReadOnlyField(source='utente.username')
-    melari_count = serializers.SerializerMethodField()
-    
+    apiario_nome        = serializers.ReadOnlyField(source='apiario.nome')
+    apiario_gruppo_nome = serializers.SerializerMethodField()
+    utente_username     = serializers.ReadOnlyField(source='utente.username')
+    melari_count        = serializers.SerializerMethodField()
+
     class Meta:
         model = Smielatura
         fields = [
-            'id', 'data', 'apiario', 'apiario_nome', 'melari', 
-            'melari_count', 'quantita_miele', 'tipo_miele', 
+            'id', 'data', 'apiario', 'apiario_nome', 'apiario_gruppo_nome',
+            'melari', 'melari_count', 'quantita_miele', 'tipo_miele',
             'utente', 'utente_username', 'note', 'data_registrazione'
         ]
         read_only_fields = ['utente']
-    
+
+    def get_apiario_gruppo_nome(self, obj):
+        try:
+            return obj.apiario.gruppo.nome if obj.apiario.gruppo_id else None
+        except Exception:
+            return None
+
     def get_melari_count(self, obj):
         return obj.melari.count()
     
@@ -368,10 +392,11 @@ class AttrezzaturaSerializer(serializers.ModelSerializer):
 
 # Serializzatore SpesaAttrezzatura
 class SpesaAttrezzaturaSerializer(serializers.ModelSerializer):
-    attrezzatura_nome = serializers.SerializerMethodField()
-    gruppo_nome = serializers.SerializerMethodField()
-    utente_username = serializers.ReadOnlyField(source='utente.username')
-    tipo_display = serializers.SerializerMethodField()
+    attrezzatura_nome  = serializers.SerializerMethodField()
+    gruppo_nome        = serializers.SerializerMethodField()
+    utente_username    = serializers.ReadOnlyField(source='utente.username')
+    pagato_da_username = serializers.SerializerMethodField()
+    tipo_display       = serializers.SerializerMethodField()
 
     class Meta:
         model = SpesaAttrezzatura
@@ -381,12 +406,17 @@ class SpesaAttrezzaturaSerializer(serializers.ModelSerializer):
             'tipo', 'tipo_display', 'descrizione', 'importo', 'data',
             'fornitore', 'numero_fattura',
             'utente', 'utente_username',
+            'pagato_da', 'pagato_da_username',
             'note', 'data_creazione',
         ]
         read_only_fields = ['utente', 'data_creazione']
+        extra_kwargs = {'pagato_da': {'allow_null': True, 'required': False}}
 
     def get_attrezzatura_nome(self, obj):
         return obj.attrezzatura.nome if obj.attrezzatura else None
+
+    def get_pagato_da_username(self, obj):
+        return obj.pagato_da.username if obj.pagato_da_id else None
 
     def get_gruppo_nome(self, obj):
         return obj.gruppo.nome if obj.gruppo else None
@@ -435,14 +465,16 @@ class ManutenzioneAttrezzaturaSerializer(serializers.ModelSerializer):
 
 # Serializzatore Invasettamento
 class InvasettamentoSerializer(serializers.ModelSerializer):
-    smielatura_info = serializers.SerializerMethodField()
-    utente_username = serializers.ReadOnlyField(source='utente.username')
-    kg_totali = serializers.SerializerMethodField()
+    smielatura_info     = serializers.SerializerMethodField()
+    apiario_gruppo_nome = serializers.SerializerMethodField()
+    utente_username     = serializers.ReadOnlyField(source='utente.username')
+    kg_totali           = serializers.SerializerMethodField()
 
     class Meta:
         model = Invasettamento
         fields = [
             'id', 'data', 'smielatura', 'smielatura_info',
+            'apiario_gruppo_nome',
             'tipo_miele', 'formato_vasetto', 'numero_vasetti',
             'lotto', 'utente', 'utente_username', 'note',
             'data_registrazione', 'kg_totali'
@@ -451,6 +483,12 @@ class InvasettamentoSerializer(serializers.ModelSerializer):
 
     def get_smielatura_info(self, obj):
         return f"{obj.smielatura.data} - {obj.smielatura.apiario.nome}"
+
+    def get_apiario_gruppo_nome(self, obj):
+        try:
+            return obj.smielatura.apiario.gruppo.nome if obj.smielatura.apiario.gruppo_id else None
+        except Exception:
+            return None
 
     def get_kg_totali(self, obj):
         return obj.kg_totali
