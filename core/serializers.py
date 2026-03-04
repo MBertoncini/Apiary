@@ -463,18 +463,23 @@ class InvasettamentoSerializer(serializers.ModelSerializer):
 # Serializzatore Cliente
 class ClienteSerializer(serializers.ModelSerializer):
     utente_username = serializers.ReadOnlyField(source='utente.username')
-    vendite_count = serializers.SerializerMethodField()
+    vendite_count   = serializers.SerializerMethodField()
+    gruppo_nome     = serializers.SerializerMethodField()
 
     class Meta:
         model = Cliente
         fields = [
             'id', 'nome', 'telefono', 'email', 'indirizzo',
-            'note', 'utente', 'utente_username', 'vendite_count'
+            'note', 'utente', 'utente_username', 'vendite_count',
+            'gruppo', 'gruppo_nome'
         ]
         read_only_fields = ['utente']
 
     def get_vendite_count(self, obj):
         return obj.vendite.count()
+
+    def get_gruppo_nome(self, obj):
+        return obj.gruppo.nome if obj.gruppo_id else None
 
     def create(self, validated_data):
         validated_data['utente'] = self.context['request'].user
@@ -503,6 +508,7 @@ class VenditaSerializer(serializers.ModelSerializer):
     utente_username = serializers.ReadOnlyField(source='utente.username')
     dettagli        = DettaglioVenditaSerializer(many=True, read_only=True)
     totale          = serializers.SerializerMethodField()
+    gruppo_nome     = serializers.SerializerMethodField()
 
     class Meta:
         model = Vendita
@@ -510,11 +516,13 @@ class VenditaSerializer(serializers.ModelSerializer):
             'id', 'data', 'cliente', 'cliente_nome', 'acquirente_nome',
             'canale', 'pagamento',
             'utente', 'utente_username', 'note',
-            'data_registrazione', 'dettagli', 'totale'
+            'data_registrazione', 'dettagli', 'totale',
+            'gruppo', 'gruppo_nome'
         ]
         read_only_fields = ['utente']
         extra_kwargs = {
             'cliente': {'allow_null': True, 'required': False},
+            'gruppo':  {'allow_null': True, 'required': False},
         }
 
     def get_cliente_nome(self, obj):
@@ -524,6 +532,9 @@ class VenditaSerializer(serializers.ModelSerializer):
 
     def get_totale(self, obj):
         return float(obj.totale)
+
+    def get_gruppo_nome(self, obj):
+        return obj.gruppo.nome if obj.gruppo_id else None
 
     def create(self, validated_data):
         validated_data['utente'] = self.context['request'].user

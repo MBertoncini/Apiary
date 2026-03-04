@@ -1104,6 +1104,7 @@ class InvasettamentoViewSet(viewsets.ModelViewSet):
 class ClienteViewSet(viewsets.ModelViewSet):
     """
     API endpoint per gestire i clienti.
+    Restituisce i clienti propri + quelli condivisi con i gruppi dell'utente.
     """
     serializer_class = ClienteSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -1113,7 +1114,11 @@ class ClienteViewSet(viewsets.ModelViewSet):
     ordering = ['nome']
 
     def get_queryset(self):
-        return Cliente.objects.filter(utente=self.request.user)
+        user = self.request.user
+        gruppi = get_gruppi_utente(user)
+        propri = Cliente.objects.filter(utente=user)
+        condivisi = Cliente.objects.filter(gruppo__in=gruppi).exclude(utente=user)
+        return (propri | condivisi).distinct().select_related('utente', 'gruppo')
 
     def perform_create(self, serializer):
         serializer.save(utente=self.request.user)
@@ -1122,6 +1127,7 @@ class ClienteViewSet(viewsets.ModelViewSet):
 class VenditaViewSet(viewsets.ModelViewSet):
     """
     API endpoint per gestire le vendite.
+    Restituisce le vendite proprie + quelle condivise con i gruppi dell'utente.
     """
     serializer_class = VenditaSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -1131,7 +1137,11 @@ class VenditaViewSet(viewsets.ModelViewSet):
     ordering = ['-data']
 
     def get_queryset(self):
-        return Vendita.objects.filter(utente=self.request.user)
+        user = self.request.user
+        gruppi = get_gruppi_utente(user)
+        proprie = Vendita.objects.filter(utente=user)
+        condivise = Vendita.objects.filter(gruppo__in=gruppi).exclude(utente=user)
+        return (proprie | condivise).distinct().select_related('utente', 'gruppo', 'cliente')
 
     def perform_create(self, serializer):
         serializer.save(utente=self.request.user)

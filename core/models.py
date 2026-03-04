@@ -430,6 +430,7 @@ class Cliente(models.Model):
     indirizzo = models.TextField(blank=True, null=True)
     note = models.TextField(blank=True, null=True)
     utente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='clienti')
+    gruppo = models.ForeignKey('Gruppo', on_delete=models.SET_NULL, null=True, blank=True, related_name='clienti')
 
     def __str__(self):
         return self.nome
@@ -473,6 +474,7 @@ class Vendita(models.Model):
     canale             = models.CharField(max_length=20, choices=CANALE_CHOICES, default='privato')
     pagamento          = models.CharField(max_length=20, choices=PAGAMENTO_CHOICES, default='contanti')
     utente             = models.ForeignKey(User, on_delete=models.CASCADE)
+    gruppo             = models.ForeignKey('Gruppo', on_delete=models.SET_NULL, null=True, blank=True, related_name='vendite')
     note               = models.TextField(blank=True, null=True)
     data_registrazione = models.DateTimeField(auto_now_add=True)
 
