@@ -444,6 +444,37 @@ class ReginaViewSet(viewsets.ModelViewSet):
         serializer = ReginaGenealogySerializer(regina)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['post'])
+    def sostituisci(self, request, pk=None):
+        """
+        Chiude la StoriaRegine attiva della regina (imposta data_fine e motivo_fine)
+        e rimuove il record Regina dall'arnia, pronto per inserirne una nuova.
+        Payload: { motivo_fine: str, data_fine: str (YYYY-MM-DD, optional) }
+        """
+        from datetime import date as date_class
+        regina = self.get_object()
+        motivo_fine = request.data.get('motivo_fine', 'sostituzione')
+        data_fine_str = request.data.get('data_fine')
+        try:
+            data_fine = date_class.fromisoformat(data_fine_str) if data_fine_str else timezone.now().date()
+        except ValueError:
+            data_fine = timezone.now().date()
+
+        storia_attiva = StoriaRegine.objects.filter(
+            arnia=regina.arnia, data_fine__isnull=True
+        ).first()
+        if storia_attiva:
+            storia_attiva.data_fine = data_fine
+            storia_attiva.motivo_fine = motivo_fine
+            storia_attiva.save()
+
+        arnia_id = regina.arnia_id
+        regina.delete()
+        return Response(
+            {'detail': 'Regina sostituita con successo.', 'arnia': arnia_id},
+            status=status.HTTP_200_OK
+        )
+
 
 class StoriaRegineViewSet(viewsets.ModelViewSet):
     """
