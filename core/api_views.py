@@ -17,7 +17,7 @@ from django.urls import reverse
 
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .models import (
-    Apiario, Arnia, ControlloArnia, Regina, Fioritura,
+    Apiario, Arnia, ControlloArnia, Regina, StoriaRegine, Fioritura,
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
     Gruppo, MembroGruppo, InvitoGruppo, DatiMeteo, PrevisioneMeteo,
     Pagamento, QuotaUtente,
@@ -28,7 +28,8 @@ from .models import (
 
 from .serializers import (
     ApiarioSerializer, ArniaSerializer, ControlloArniaDetailSerializer,
-    ControlloArniaListSerializer, ReginaSerializer, FiorituraSerializer,
+    ControlloArniaListSerializer, ReginaSerializer, StoriaRegineSerializer,
+    ReginaGenealogySerializer, FiorituraSerializer,
     TrattamentoSanitarioSerializer, TipoTrattamentoSerializer,
     MelarioSerializer, SmielaturaSerializer, GruppoSerializer,
     MembroGruppoSerializer, InvitoGruppoSerializer, UserSerializer,
@@ -432,6 +433,30 @@ class ReginaViewSet(viewsets.ModelViewSet):
         apiari_accessibili = get_apiari_accessibili(self.request.user)
         arnie_accessibili = Arnia.objects.filter(apiario__in=apiari_accessibili)
         return Regina.objects.filter(arnia__in=arnie_accessibili)
+
+    @action(detail=True, methods=['get'])
+    def genealogy(self, request, pk=None):
+        """
+        Restituisce la genealogia completa di una regina:
+        madre, figlie e storia nell'arnia corrente.
+        """
+        regina = self.get_object()
+        serializer = ReginaGenealogySerializer(regina)
+        return Response(serializer.data)
+
+
+class StoriaRegineViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint per gestire la storia delle regine nelle arnie.
+    """
+    serializer_class = StoriaRegineSerializer
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
+
+    def get_queryset(self):
+        apiari_accessibili = get_apiari_accessibili(self.request.user)
+        arnie_accessibili = Arnia.objects.filter(apiario__in=apiari_accessibili)
+        return StoriaRegine.objects.filter(arnia__in=arnie_accessibili)
+
 
 class FiorituraViewSet(viewsets.ModelViewSet):
     """
