@@ -217,7 +217,8 @@ class MelarioSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'arnia', 'arnia_numero', 'apiario_id', 'apiario_nome',
             'numero_telaini', 'posizione', 'data_posizionamento',
-            'data_rimozione', 'stato', 'peso_stimato', 'note'
+            'data_rimozione', 'stato', 'tipo_melario', 'stato_favi',
+            'escludi_regina', 'peso_stimato', 'note'
         ]
 
 # Serializzatore Smielatura
