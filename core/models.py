@@ -1139,6 +1139,9 @@ class SpesaAttrezzatura(models.Model):
 
     utente = models.ForeignKey(User, on_delete=models.CASCADE,
                                help_text="Utente che ha registrato la spesa")
+    pagato_da = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                  related_name='spese_pagate',
+                                  help_text="Membro del gruppo che ha effettivamente pagato")
     note = models.TextField(blank=True, null=True)
     data_creazione = models.DateTimeField(auto_now_add=True)
 

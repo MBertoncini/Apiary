@@ -1026,7 +1026,27 @@ class AttrezzaturaViewSet(viewsets.ModelViewSet):
         return (proprie | condivise).distinct()
 
     def perform_create(self, serializer):
-        serializer.save(proprietario=self.request.user)
+        from django.contrib.auth.models import User as DjangoUser
+        attrezzatura = serializer.save(proprietario=self.request.user)
+        if attrezzatura.prezzo_acquisto and attrezzatura.prezzo_acquisto > 0:
+            pagato_da = None
+            pagato_da_id = self.request.data.get('pagato_da')
+            if pagato_da_id:
+                try:
+                    pagato_da = DjangoUser.objects.get(pk=pagato_da_id)
+                except DjangoUser.DoesNotExist:
+                    pass
+            SpesaAttrezzatura.objects.create(
+                attrezzatura=attrezzatura,
+                gruppo=attrezzatura.gruppo if attrezzatura.condiviso_con_gruppo else None,
+                tipo='acquisto',
+                descrizione=f"Acquisto: {attrezzatura.nome}",
+                importo=attrezzatura.prezzo_acquisto,
+                data=attrezzatura.data_acquisto or timezone.now().date(),
+                fornitore=attrezzatura.fornitore,
+                utente=self.request.user,
+                pagato_da=pagato_da,
+            )
 
 
 class SpesaAttrezzaturaViewSet(viewsets.ModelViewSet):
