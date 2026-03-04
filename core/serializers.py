@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
-    Apiario, Arnia, ControlloArnia, Regina, Fioritura,
+    Apiario, Arnia, ControlloArnia, Regina, StoriaRegine, Fioritura,
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
     Gruppo, MembroGruppo, InvitoGruppo, Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
@@ -60,7 +60,7 @@ class ControlloArniaDetailSerializer(serializers.ModelSerializer):
             'data_sciamatura', 'note_sciamatura', 'problemi_sanitari',
             'note_problemi', 'note', 'data_creazione',
             'regina_vista', 'uova_fresche', 'celle_reali',
-            'numero_celle_reali', 'regina_sostituita'
+            'numero_celle_reali', 'regina_sostituita', 'telaini_config'
         ]
         read_only_fields = ['utente']
     
@@ -97,6 +97,61 @@ class ReginaSerializer(serializers.ModelSerializer):
             'fecondata', 'selezionata', 'docilita', 'produttivita',
             'resistenza_malattie', 'tendenza_sciamatura', 'note'
         ]
+
+# Serializzatore StoriaRegine
+class StoriaRegineSerializer(serializers.ModelSerializer):
+    arnia_numero = serializers.ReadOnlyField(source='arnia.numero')
+    regina_razza = serializers.ReadOnlyField(source='regina.razza')
+    regina_origine = serializers.ReadOnlyField(source='regina.origine')
+
+    class Meta:
+        model = StoriaRegine
+        fields = [
+            'id', 'arnia', 'arnia_numero', 'regina', 'regina_razza', 'regina_origine',
+            'data_inizio', 'data_fine', 'motivo_fine', 'note'
+        ]
+
+# Serializzatore genealogia Regina (madre + figlie + storia nell'arnia)
+class ReginaGenealogySerializer(serializers.ModelSerializer):
+    madre = serializers.SerializerMethodField()
+    figlie = serializers.SerializerMethodField()
+    storia_arnia = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Regina
+        fields = [
+            'id', 'arnia', 'razza', 'origine', 'data_nascita', 'data_introduzione',
+            'marcata', 'colore_marcatura', 'fecondata', 'selezionata', 'note',
+            'madre', 'figlie', 'storia_arnia'
+        ]
+
+    def get_madre(self, obj):
+        if obj.regina_madre:
+            return {
+                'id': obj.regina_madre.id,
+                'razza': obj.regina_madre.razza,
+                'origine': obj.regina_madre.origine,
+                'data_introduzione': obj.regina_madre.data_introduzione,
+                'arnia': obj.regina_madre.arnia_id,
+            }
+        return None
+
+    def get_figlie(self, obj):
+        return [
+            {
+                'id': f.id,
+                'razza': f.razza,
+                'origine': f.origine,
+                'data_introduzione': f.data_introduzione,
+                'arnia': f.arnia_id,
+            }
+            for f in obj.figlie.all()
+        ]
+
+    def get_storia_arnia(self, obj):
+        storia = StoriaRegine.objects.filter(arnia=obj.arnia).order_by('-data_inizio')
+        return StoriaRegineSerializer(storia, many=True).data
+
 
 # Serializzatore Fioritura
 class FiorituraSerializer(serializers.ModelSerializer):

@@ -6,10 +6,11 @@ from rest_framework_simplejwt.views import (
 )
 from .api_views import (
     ApiarioViewSet, ArniaViewSet, ControlloArniaViewSet, ReginaViewSet,
-    FiorituraViewSet, TrattamentoSanitarioViewSet, TipoTrattamentoViewSet,
-    MelarioViewSet, SmielaturaViewSet, GruppoViewSet, current_user,
-    sync_data, inviti_ricevuti, accetta_invito, rifiuta_invito, meteo_by_location,
-    PagamentoViewSet, QuotaUtenteViewSet, CustomTokenObtainPairView, CustomTokenRefreshView,
+    StoriaRegineViewSet, FiorituraViewSet, TrattamentoSanitarioViewSet,
+    TipoTrattamentoViewSet, MelarioViewSet, SmielaturaViewSet, GruppoViewSet,
+    current_user, sync_data, inviti_ricevuti, accetta_invito, rifiuta_invito,
+    meteo_by_location, PagamentoViewSet, QuotaUtenteViewSet,
+    CustomTokenObtainPairView, CustomTokenRefreshView,
     AttrezzaturaViewSet, SpesaAttrezzaturaViewSet, ManutenzioneAttrezzaturaViewSet,
     InvasettamentoViewSet, ClienteViewSet, VenditaViewSet,
     AnalisiTelainoViewSet
@@ -21,6 +22,7 @@ router.register(r'apiari', ApiarioViewSet, basename='api-apiario')
 router.register(r'arnie', ArniaViewSet, basename='api-arnia')
 router.register(r'controlli', ControlloArniaViewSet, basename='api-controllo')
 router.register(r'regine', ReginaViewSet, basename='api-regina')
+router.register(r'storia-regine', StoriaRegineViewSet, basename='api-storia-regina')
 router.register(r'fioriture', FiorituraViewSet, basename='api-fioritura')
 router.register(r'trattamenti', TrattamentoSanitarioViewSet, basename='api-trattamento')
 router.register(r'tipi-trattamento', TipoTrattamentoViewSet, basename='api-tipo-trattamento')
