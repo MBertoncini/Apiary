@@ -342,13 +342,25 @@ class Melario(models.Model):
         ('in_smielatura', 'In Smielatura'),
         ('smielato', 'Smielato')
     ]
-    
+    TIPO_MELARIO_CHOICES = [
+        ('standard', 'Standard (Dadan)'),
+        ('tre_quarti', '3/4'),
+        ('meta', '1/2'),
+    ]
+    STATO_FAVI_CHOICES = [
+        ('costruiti', 'Già costruiti'),
+        ('fogli_cerei', 'Fogli cerei'),
+    ]
+
     arnia = models.ForeignKey(Arnia, on_delete=models.CASCADE, related_name='melari')
     numero_telaini = models.IntegerField(default=10, help_text="Numero di telaini nel melario")
     posizione = models.IntegerField(help_text="Posizione del melario (1 = più vicino al nido, ecc.)")
     data_posizionamento = models.DateField()
     data_rimozione = models.DateField(null=True, blank=True)
     stato = models.CharField(max_length=20, choices=STATO_CHOICES, default='posizionato')
+    tipo_melario = models.CharField(max_length=20, choices=TIPO_MELARIO_CHOICES, default='standard')
+    stato_favi = models.CharField(max_length=20, choices=STATO_FAVI_CHOICES, default='costruiti')
+    escludi_regina = models.BooleanField(default=True, help_text="Indica se è presente un escludiregina")
     peso_stimato = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, help_text="Peso stimato in kg")
     note = models.TextField(blank=True, null=True)
 
