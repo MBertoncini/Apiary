@@ -439,16 +439,46 @@ class Cliente(models.Model):
         verbose_name_plural = "Clienti"
         ordering = ['nome']
 
+CANALE_CHOICES = [
+    ('mercatino', 'Mercatino'),
+    ('negozio',   'Negozio'),
+    ('privato',   'Privato'),
+    ('online',    'Online'),
+    ('altro',     'Altro'),
+]
+
+PAGAMENTO_CHOICES = [
+    ('contanti', 'Contanti'),
+    ('bonifico', 'Bonifico'),
+    ('carta',    'Carta'),
+    ('altro',    'Altro'),
+]
+
+CATEGORIA_CHOICES = [
+    ('miele',       'Miele'),
+    ('propoli',     'Propoli'),
+    ('cera',        'Cera'),
+    ('polline',     'Polline'),
+    ('pappa_reale', 'Pappa reale'),
+    ('nucleo',      'Nucleo'),
+    ('regina',      'Regina'),
+    ('altro',       'Altro'),
+]
+
 class Vendita(models.Model):
-    """Modello per gestire le vendite di miele"""
-    data = models.DateField()
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='vendite')
-    utente = models.ForeignKey(User, on_delete=models.CASCADE)
-    note = models.TextField(blank=True, null=True)
+    """Modello per gestire le vendite di miele e altri prodotti dell'apiario"""
+    data               = models.DateField()
+    cliente            = models.ForeignKey(Cliente, on_delete=models.SET_NULL, related_name='vendite', null=True, blank=True)
+    acquirente_nome    = models.CharField(max_length=200, blank=True, null=True)
+    canale             = models.CharField(max_length=20, choices=CANALE_CHOICES, default='privato')
+    pagamento          = models.CharField(max_length=20, choices=PAGAMENTO_CHOICES, default='contanti')
+    utente             = models.ForeignKey(User, on_delete=models.CASCADE)
+    note               = models.TextField(blank=True, null=True)
     data_registrazione = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Vendita {self.data} - {self.cliente.nome}"
+        nome = self.cliente.nome if self.cliente_id else (self.acquirente_nome or '—')
+        return f"Vendita {self.data} - {nome}"
 
     @property
     def totale(self):
@@ -461,10 +491,11 @@ class Vendita(models.Model):
 
 class DettaglioVendita(models.Model):
     """Modello per le righe di dettaglio di una vendita"""
-    vendita = models.ForeignKey(Vendita, on_delete=models.CASCADE, related_name='dettagli')
-    tipo_miele = models.CharField(max_length=100)
-    formato_vasetto = models.IntegerField()
-    quantita = models.IntegerField()
+    vendita         = models.ForeignKey(Vendita, on_delete=models.CASCADE, related_name='dettagli')
+    categoria       = models.CharField(max_length=20, choices=CATEGORIA_CHOICES, default='miele')
+    tipo_miele      = models.CharField(max_length=100, blank=True, null=True)
+    formato_vasetto = models.IntegerField(null=True, blank=True)
+    quantita        = models.IntegerField()
     prezzo_unitario = models.DecimalField(max_digits=6, decimal_places=2)
 
     @property
@@ -472,7 +503,9 @@ class DettaglioVendita(models.Model):
         return self.quantita * self.prezzo_unitario
 
     def __str__(self):
-        return f"{self.tipo_miele} {self.formato_vasetto}g x{self.quantita}"
+        if self.categoria == 'miele':
+            return f"{self.tipo_miele or 'Miele'} {self.formato_vasetto or ''}g x{self.quantita}"
+        return f"{self.get_categoria_display()} x{self.quantita}"
 
     class Meta:
         verbose_name = "Dettaglio Vendita"

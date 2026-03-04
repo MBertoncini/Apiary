@@ -538,9 +538,14 @@ class TrattamentoSanitarioViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Filtra i trattamenti in base agli apiari accessibili all'utente.
+        Supporta il parametro opzionale ?apiario=<id> per filtrare per apiario.
         """
         apiari_accessibili = get_apiari_accessibili(self.request.user)
-        return TrattamentoSanitario.objects.filter(apiario__in=apiari_accessibili)
+        qs = TrattamentoSanitario.objects.filter(apiario__in=apiari_accessibili)
+        apiario_id = self.request.query_params.get('apiario')
+        if apiario_id:
+            qs = qs.filter(apiario__id=apiario_id)
+        return qs
     
     @action(detail=False, methods=['get'])
     def attivi(self, request):
@@ -1121,7 +1126,7 @@ class VenditaViewSet(viewsets.ModelViewSet):
     serializer_class = VenditaSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['cliente__nome', 'note']
+    search_fields = ['cliente__nome', 'acquirente_nome', 'canale', 'note']
     ordering_fields = ['data']
     ordering = ['-data']
 

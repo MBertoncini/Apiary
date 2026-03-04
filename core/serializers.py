@@ -488,7 +488,7 @@ class DettaglioVenditaSerializer(serializers.ModelSerializer):
     class Meta:
         model = DettaglioVendita
         fields = [
-            'id', 'vendita', 'tipo_miele', 'formato_vasetto',
+            'id', 'vendita', 'categoria', 'tipo_miele', 'formato_vasetto',
             'quantita', 'prezzo_unitario', 'subtotale'
         ]
         read_only_fields = ['vendita']
@@ -499,19 +499,28 @@ class DettaglioVenditaSerializer(serializers.ModelSerializer):
 
 # Serializzatore Vendita
 class VenditaSerializer(serializers.ModelSerializer):
-    cliente_nome = serializers.ReadOnlyField(source='cliente.nome')
+    cliente_nome    = serializers.SerializerMethodField()
     utente_username = serializers.ReadOnlyField(source='utente.username')
-    dettagli = DettaglioVenditaSerializer(many=True, read_only=True)
-    totale = serializers.SerializerMethodField()
+    dettagli        = DettaglioVenditaSerializer(many=True, read_only=True)
+    totale          = serializers.SerializerMethodField()
 
     class Meta:
         model = Vendita
         fields = [
-            'id', 'data', 'cliente', 'cliente_nome',
+            'id', 'data', 'cliente', 'cliente_nome', 'acquirente_nome',
+            'canale', 'pagamento',
             'utente', 'utente_username', 'note',
             'data_registrazione', 'dettagli', 'totale'
         ]
         read_only_fields = ['utente']
+        extra_kwargs = {
+            'cliente': {'allow_null': True, 'required': False},
+        }
+
+    def get_cliente_nome(self, obj):
+        if obj.cliente_id:
+            return obj.cliente.nome
+        return obj.acquirente_nome or None
 
     def get_totale(self, obj):
         return float(obj.totale)
