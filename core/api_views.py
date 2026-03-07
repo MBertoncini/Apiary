@@ -23,7 +23,7 @@ from .models import (
     Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
     Invasettamento, Cliente, Vendita, DettaglioVendita,
-    AnalisiTelaino
+    AnalisiTelaino, ApiarioMapLayout
 )
 
 from .serializers import (
@@ -38,7 +38,7 @@ from .serializers import (
     ManutenzioneAttrezzaturaSerializer,
     InvasettamentoSerializer, ClienteSerializer, VenditaSerializer,
     DettaglioVenditaSerializer,
-    AnalisiTelainoSerializer
+    AnalisiTelainoSerializer, ApiarioMapLayoutSerializer
 )
 
 logger = logging.getLogger(__name__)
@@ -309,6 +309,26 @@ class ApiarioViewSet(viewsets.ModelViewSet):
             apiario.save()
         
         serializer = self.get_serializer(apiario)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get', 'put'])
+    def map_layout(self, request, pk=None):
+        """
+        GET: Restituisce il layout della mappa dell'apiario.
+        PUT: Salva il layout della mappa (posizioni arnie + elementi decorativi).
+        """
+        apiario = self.get_object()
+        layout, _ = ApiarioMapLayout.objects.get_or_create(apiario=apiario)
+
+        if request.method == 'GET':
+            serializer = ApiarioMapLayoutSerializer(layout)
+            return Response(serializer.data)
+
+        # PUT
+        layout_json = request.data.get('layout_json', '{}')
+        layout.layout_json = layout_json
+        layout.save()
+        serializer = ApiarioMapLayoutSerializer(layout)
         return Response(serializer.data)
 
 

@@ -1217,6 +1217,23 @@ class InventarioAttrezzature(models.Model):
         ordering = ['-data']
 
 
+class ApiarioMapLayout(models.Model):
+    """Salva il layout della mappa dell'apiario (posizioni arnie + elementi decorativi)."""
+    apiario = models.OneToOneField(Apiario, on_delete=models.CASCADE, related_name='map_layout')
+    layout_json = models.TextField(
+        default='{}',
+        help_text="JSON con posizioni arnie e elementi decorativi (nuclei, alberi, vialetti)"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Layout mappa – {self.apiario.nome}"
+
+    class Meta:
+        verbose_name = "Layout Mappa Apiario"
+        verbose_name_plural = "Layout Mappe Apiari"
+
+
 class AnalisiTelaino(models.Model):
     """Modello per memorizzare i risultati dell'analisi AI dei telaini"""
     arnia = models.ForeignKey(Arnia, on_delete=models.CASCADE, related_name='analisi_telaini')
