@@ -6,7 +6,7 @@ from .models import (
     Gruppo, MembroGruppo, InvitoGruppo, Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
     Invasettamento, Cliente, Vendita, DettaglioVendita,
-    AnalisiTelaino
+    AnalisiTelaino, ApiarioMapLayout
 )
 
 # Serializzatore utente
@@ -597,3 +597,10 @@ class AnalisiTelainoSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['utente'] = self.context['request'].user
         return super().create(validated_data)
+
+
+class ApiarioMapLayoutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApiarioMapLayout
+        fields = ['id', 'apiario', 'layout_json', 'updated_at']
+        read_only_fields = ['updated_at']
