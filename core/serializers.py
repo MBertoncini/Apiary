@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
-    Apiario, Arnia, ControlloArnia, Regina, StoriaRegine, Fioritura,
+    Apiario, Arnia, Nucleo, ControlloArnia, Regina, StoriaRegine, Fioritura,
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
     Gruppo, MembroGruppo, InvitoGruppo, Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
@@ -597,6 +597,25 @@ class AnalisiTelainoSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['utente'] = self.context['request'].user
         return super().create(validated_data)
+
+
+class NucleoSerializer(serializers.ModelSerializer):
+    apiario_nome = serializers.ReadOnlyField(source='apiario.nome')
+    arnia_numero = serializers.ReadOnlyField(source='arnia.numero')
+    convertito = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Nucleo
+        fields = [
+            'id', 'apiario', 'apiario_nome', 'numero', 'colore_hex',
+            'data_installazione', 'note', 'attiva',
+            'arnia', 'arnia_numero', 'data_conversione', 'data_creazione',
+            'convertito',
+        ]
+        read_only_fields = ['data_creazione', 'arnia', 'data_conversione']
+
+    def get_convertito(self, obj):
+        return obj.arnia is not None
 
 
 class ApiarioMapLayoutSerializer(serializers.ModelSerializer):

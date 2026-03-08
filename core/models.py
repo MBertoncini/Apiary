@@ -176,6 +176,33 @@ class Arnia(models.Model):
         verbose_name_plural = "Arnie"
         unique_together = ['apiario', 'numero']  # Evita numeri duplicati nello stesso apiario
 
+
+class Nucleo(models.Model):
+    """Nucleo (mini-arnia) che può essere promosso ad Arnia completa."""
+    apiario = models.ForeignKey(Apiario, on_delete=models.CASCADE, related_name='nuclei')
+    numero = models.IntegerField()
+    colore_hex = models.CharField(max_length=7, default='#8B6914',
+                                  help_text="Colore identificativo del nucleo")
+    data_installazione = models.DateField()
+    note = models.TextField(blank=True, null=True)
+    attiva = models.BooleanField(default=True)
+    # Quando convertito → arnia viene popolato
+    arnia = models.OneToOneField(
+        Arnia, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='nucleo_originale',
+        help_text="Arnia creata dalla conversione di questo nucleo"
+    )
+    data_conversione = models.DateField(null=True, blank=True)
+    data_creazione = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Nucleo {self.numero} – {self.apiario.nome}"
+
+    class Meta:
+        verbose_name = "Nucleo"
+        verbose_name_plural = "Nuclei"
+        ordering = ['apiario', 'numero']
+
 class ControlloArnia(models.Model):
     arnia = models.ForeignKey(Arnia, on_delete=models.CASCADE, related_name='controlli')
     data = models.DateField()

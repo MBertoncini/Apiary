@@ -17,7 +17,7 @@ from django.urls import reverse
 
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .models import (
-    Apiario, Arnia, ControlloArnia, Regina, StoriaRegine, Fioritura,
+    Apiario, Arnia, Nucleo, ControlloArnia, Regina, StoriaRegine, Fioritura,
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
     Gruppo, MembroGruppo, InvitoGruppo, DatiMeteo, PrevisioneMeteo,
     Pagamento, QuotaUtente,
@@ -38,7 +38,8 @@ from .serializers import (
     ManutenzioneAttrezzaturaSerializer,
     InvasettamentoSerializer, ClienteSerializer, VenditaSerializer,
     DettaglioVenditaSerializer,
-    AnalisiTelainoSerializer, ApiarioMapLayoutSerializer
+    AnalisiTelainoSerializer, ApiarioMapLayoutSerializer,
+    NucleoSerializer
 )
 
 logger = logging.getLogger(__name__)
@@ -330,6 +331,54 @@ class ApiarioViewSet(viewsets.ModelViewSet):
         layout.save()
         serializer = ApiarioMapLayoutSerializer(layout)
         return Response(serializer.data)
+
+
+class NucleoViewSet(viewsets.ModelViewSet):
+    """API endpoint per gestire i nuclei (mini-arnie convertibili)."""
+    serializer_class = NucleoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Nucleo.objects.filter(
+            apiario__in=get_apiari_accessibili(self.request.user)
+        )
+
+    @action(detail=True, methods=['post'])
+    def converti_in_arnia(self, request, pk=None):
+        """Converte il nucleo in un'arnia completa."""
+        nucleo = self.get_object()
+        if nucleo.arnia is not None:
+            return Response(
+                {'detail': 'Questo nucleo è già stato convertito in arnia.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        data_inst = request.data.get(
+            'data_installazione',
+            timezone.now().date().isoformat(),
+        )
+        try:
+            arnia = Arnia.objects.create(
+                apiario=nucleo.apiario,
+                numero=nucleo.numero,
+                colore='altro',
+                colore_hex=nucleo.colore_hex,
+                data_installazione=data_inst,
+                note=nucleo.note or '',
+                attiva=True,
+            )
+        except Exception as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        nucleo.arnia = arnia
+        nucleo.data_conversione = timezone.now().date()
+        nucleo.attiva = False
+        nucleo.save()
+
+        return Response(
+            ArniaSerializer(arnia, context={'request': request}).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 # Funzione helper per inviare email di invito (a livello di modulo, non dentro una classe)
