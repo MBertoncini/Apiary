@@ -1,227 +1,330 @@
-<!-- templates/homepage.html -->
 {% extends 'base.html' %}
 
-{% block title %}Benvenuto - Apiary{% endblock %}
+{% block title %}Apiary Manager — Gestione Apiario Professionale{% endblock %}
 
 {% block extra_css %}
 <style>
-    .hero-section {
-        background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1587151711096-23c51f92c920?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
-        background-size: cover;
-        background-position: center;
-        color: white;
-        padding: 100px 0;
-        margin-top: -1.5rem;
-        margin-bottom: 2rem;
-        border-radius: 0 0 10px 10px;
-    }
-    
-    .feature-card {
-        transition: all 0.3s;
-        height: 100%;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    
-    .feature-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    }
-    
-    .feature-icon {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-    }
-    
-    .btn-primary {
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-    }
-    
-    .stats-card {
-        border-left: 5px solid;
-        transition: all 0.3s;
-    }
-    
-    .stats-card:hover {
-        transform: translateX(5px);
-    }
-    
-    .stat-value {
-        font-size: 2.5rem;
-        font-weight: bold;
-    }
-    
-    .stat-label {
-        font-size: 1rem;
-        color: #6c757d;
-    }
-    
-    .bg-honey {
-        background-color: #FFC107;
-    }
-    
-    .login-section {
-        background-color: #f8f9fa;
-        border-radius: 10px;
-        padding: 2rem;
-        margin-top: 2rem;
-    }
+/* Non-auth: override container to be full-width */
+.hero {
+  background: linear-gradient(135deg, #2C1810 0%, #5D2E1A 55%, #8B4513 100%);
+  color: white;
+  padding: 80px 0 70px;
+  text-align: center;
+  margin-bottom: 0;
+}
+
+.hero h1 {
+  font-family: var(--font-display, 'Caveat', cursive);
+  font-size: clamp(2.8rem, 6vw, 4.5rem);
+  font-weight: 700;
+  color: #F5A623;
+  margin-bottom: 16px;
+}
+
+.hero .lead {
+  font-size: 1.15rem;
+  opacity: 0.88;
+  max-width: 600px;
+  margin: 0 auto 32px;
+  line-height: 1.7;
+}
+
+.hero .btn-hero {
+  background: #F5A623;
+  color: white;
+  border: none;
+  padding: 14px 36px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  box-shadow: 0 8px 24px rgba(245,166,35,0.4);
+  transition: all 0.25s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.hero .btn-hero:hover {
+  background: #D4880A;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(245,166,35,0.5);
+  color: white;
+}
+
+.hero .btn-secondary-hero {
+  background: transparent;
+  color: rgba(255,255,255,0.85);
+  border: 1.5px solid rgba(255,255,255,0.4);
+  padding: 13px 28px;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 50px;
+  transition: all 0.25s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.hero .btn-secondary-hero:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.7);
+  color: white;
+}
+
+.honey-wave {
+  height: 60px;
+  background: #FFFDF5;
+  clip-path: ellipse(55% 100% at 50% 100%);
+  margin-top: -2px;
+}
+
+.features-section {
+  background: #FFFDF5;
+  padding: 70px 0 60px;
+}
+
+.feature-card {
+  text-align: center;
+  padding: 32px 24px;
+  border-radius: 16px;
+  border: 1px solid #EAD9BF;
+  background: white;
+  height: 100%;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(44,24,16,0.06);
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(44,24,16,0.12);
+  border-color: #F5A623;
+}
+
+.feature-icon {
+  font-size: 2.8rem;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.feature-card h4 {
+  font-weight: 600;
+  color: #2C1810;
+  margin-bottom: 10px;
+  font-size: 1.05rem;
+}
+
+.feature-card p {
+  color: #7A5C45;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.stats-section {
+  background: linear-gradient(135deg, #2C1810 0%, #5D2E1A 100%);
+  padding: 60px 0;
+  color: white;
+}
+
+.stat-block { text-align: center; padding: 16px; }
+.stat-block .val {
+  font-family: var(--font-display, 'Caveat', cursive);
+  font-size: 3rem;
+  font-weight: 700;
+  color: #F5A623;
+  line-height: 1;
+}
+.stat-block .lbl { font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+.cta-section {
+  background: #FFFDF5;
+  padding: 70px 0;
+  text-align: center;
+}
+
+.cta-section h2 {
+  font-family: var(--font-display, 'Caveat', cursive);
+  font-size: 2.6rem;
+  color: #2C1810;
+  margin-bottom: 14px;
+}
+
+.cta-section p { color: #7A5C45; font-size: 1rem; max-width: 500px; margin: 0 auto 28px; }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<div class="hero-section text-center">
-    <div class="container">
-        <h1 class="display-4 mb-4">Apiary</h1>
-        <p class="lead mb-5">La piattaforma completa per gestire il tuo apiario in modo collaborativo, efficiente e organizzato.</p>
-        {% if user.is_authenticated %}
-            <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">Vai alla Dashboard</a>
-        {% else %}
-            <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Accedi</a>
-        {% endif %}
-    </div>
+
+{% if user.is_authenticated %}
+<!-- ======= AUTHENTICATED: redirect-style card ======= -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Benvenuto su Apiary Manager</h1>
+    <p class="page-subtitle">La piattaforma professionale per la gestione dell'apiario</p>
+  </div>
+  <a href="{% url 'dashboard' %}" class="btn btn-primary">
+    <i class="bi bi-speedometer2 me-1"></i> Vai alla Dashboard
+  </a>
 </div>
 
-<!-- Features Section -->
-<div class="container mb-5">
-    <h2 class="text-center mb-4">Funzionalità</h2>
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card feature-card">
-                <div class="card-body text-center">
-                    <div class="feature-icon text-success">
-                        <i class="bi bi-grid"></i>
-                    </div>
-                    <h3>Gestione Arnie</h3>
-                    <p>Monitora facilmente le tue arnie con una gestione avanzata dei colori, telaini, regine e altro.</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card feature-card">
-                <div class="card-body text-center">
-                    <div class="feature-icon text-warning">
-                        <i class="bi bi-calendar-check"></i>
-                    </div>
-                    <h3>Calendario Controlli</h3>
-                    <p>Pianifica e registra i controlli periodici con un sistema calendario integrato.</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card feature-card">
-                <div class="card-body text-center">
-                    <div class="feature-icon text-info">
-                        <i class="bi bi-flower1"></i>
-                    </div>
-                    <h3>Fioriture</h3>
-                    <p>Tieni traccia delle fioriture con localizzazione geografica e monitoraggio temporale.</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card feature-card">
-                <div class="card-body text-center">
-                    <div class="feature-icon text-danger">
-                        <i class="bi bi-capsule"></i>
-                    </div>
-                    <h3>Trattamenti Sanitari</h3>
-                    <p>Gestisci e programma i trattamenti sanitari con avvisi per i periodi di sospensione.</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card feature-card">
-                <div class="card-body text-center">
-                    <div class="feature-icon text-primary">
-                        <i class="bi bi-geo-alt"></i>
-                    </div>
-                    <h3>Mappa Interattiva</h3>
-                    <p>Visualizza apiari e fioriture su una mappa interattiva con filtri personalizzabili.</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-4">
-            <div class="card feature-card">
-                <div class="card-body text-center">
-                    <div class="feature-icon text-secondary">
-                        <i class="bi bi-people"></i>
-                    </div>
-                    <h3>Gestione Collaborativa</h3>
-                    <p>Gestisci le quote e i pagamenti tra collaboratori in modo automatico e trasparente.</p>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="row g-3">
+  {% for f in features %}
+  <div class="col-md-4 col-sm-6">
+    <a href="{{ f.url }}" class="text-decoration-none">
+      <div class="card h-100 text-center p-3">
+        <div style="font-size:2rem; margin-bottom:8px;">{{ f.icon }}</div>
+        <strong>{{ f.label }}</strong>
+      </div>
+    </a>
+  </div>
+  {% empty %}
+  <div class="col-md-4">
+    <a href="{% url 'dashboard' %}" class="text-decoration-none">
+      <div class="card card-honey h-100 text-center p-4">
+        <span style="font-size:2.5rem;">🏡</span>
+        <h5 class="mt-2">I miei Apiari</h5>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{% url 'mappa_apiari' %}" class="text-decoration-none">
+      <div class="card card-info h-100 text-center p-4">
+        <span style="font-size:2.5rem;">🗺️</span>
+        <h5 class="mt-2">Mappa</h5>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{% url 'gestione_fioriture' %}" class="text-decoration-none">
+      <div class="card card-success h-100 text-center p-4">
+        <span style="font-size:2.5rem;">🌸</span>
+        <h5 class="mt-2">Fioriture</h5>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
 </div>
 
-<!-- Stats Section -->
-{% if user.is_authenticated and stats %}
-<div class="container mb-5">
-    <h2 class="text-center mb-4">Panoramica Apiario</h2>
-    <div class="row">
-        <div class="col-md-3 col-sm-6 mb-4">
-            <div class="card stats-card" style="border-left-color: #28a745;">
-                <div class="card-body">
-                    <div class="stat-value text-success">{{ stats.arnie_count }}</div>
-                    <div class="stat-label">Arnie Attive</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 col-sm-6 mb-4">
-            <div class="card stats-card" style="border-left-color: #ffc107;">
-                <div class="card-body">
-                    <div class="stat-value text-warning">{{ stats.controlli_count }}</div>
-                    <div class="stat-label">Controlli Questo Mese</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 col-sm-6 mb-4">
-            <div class="card stats-card" style="border-left-color: #17a2b8;">
-                <div class="card-body">
-                    <div class="stat-value text-info">{{ stats.fioriture_attive }}</div>
-                    <div class="stat-label">Fioriture Attive</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 col-sm-6 mb-4">
-            <div class="card stats-card" style="border-left-color: #dc3545;">
-                <div class="card-body">
-                    <div class="stat-value text-danger">{{ stats.trattamenti_attivi }}</div>
-                    <div class="stat-label">Trattamenti Attivi</div>
-                </div>
-            </div>
-        </div>
+{% else %}
+<!-- ======= NON-AUTHENTICATED: Landing Page ======= -->
+
+<!-- Override: make content full-width by breaking out of the container -->
+<style>.container { max-width: none !important; padding: 0 !important; }</style>
+
+<!-- Hero -->
+<section class="hero">
+  <div style="max-width: 700px; margin: 0 auto; padding: 0 20px;">
+    <div style="font-size: 4rem; margin-bottom: 16px;">🐝</div>
+    <h1>Apiary Manager</h1>
+    <p class="lead">La piattaforma completa per gestire il tuo apiario in modo collaborativo, efficiente e professionale.</p>
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+      <a href="{% url 'login' %}" class="btn-hero">
+        <i class="bi bi-box-arrow-in-right me-2"></i>Accedi
+      </a>
+      <a href="{% url 'register' %}" class="btn-secondary-hero">
+        <i class="bi bi-person-plus me-2"></i>Registrati
+      </a>
     </div>
-</div>
+  </div>
+</section>
+
+<div class="honey-wave"></div>
+
+<!-- Features -->
+<section class="features-section">
+  <div class="container" style="max-width: 1100px !important; padding: 0 20px !important;">
+    <div class="text-center mb-50" style="margin-bottom: 48px;">
+      <h2 style="font-family: var(--font-display,'Caveat',cursive); font-size: 2.4rem; color: #2C1810;">Tutto quello che ti serve</h2>
+      <p style="color: #7A5C45; max-width: 500px; margin: 8px auto 0;">Una suite completa di strumenti pensati per l'apicoltore moderno.</p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card">
+          <span class="feature-icon">🏡</span>
+          <h4>Gestione Apiari & Arnie</h4>
+          <p>Monitora ogni arnia con colori, telaini visuali e storico completo dei controlli.</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card">
+          <span class="feature-icon">👑</span>
+          <h4>Tracciamento Regine</h4>
+          <p>Genealogia, marcatura, razza e performance — tieni traccia di ogni regina nel dettaglio.</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card">
+          <span class="feature-icon">🍯</span>
+          <h4>Produzione Miele</h4>
+          <p>Gestisci melari, smielature e invasettamento con tracciabilità completa della produzione.</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card">
+          <span class="feature-icon">💊</span>
+          <h4>Trattamenti Sanitari</h4>
+          <p>Pianifica e monitora i trattamenti con calcolo automatico del periodo di sospensione.</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card">
+          <span class="feature-icon">🌸</span>
+          <h4>Fioriture & Pascolo</h4>
+          <p>Mappa le fioriture locali e condividile con la community degli apicoltori.</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="feature-card">
+          <span class="feature-icon">👥</span>
+          <h4>Collaborazione</h4>
+          <p>Condividi apiari, gestisci quote e pagamenti con il tuo team in modo trasparente.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats bar -->
+{% if stats %}
+<section class="stats-section">
+  <div class="container" style="max-width: 900px !important; padding: 0 20px !important;">
+    <div class="row g-0">
+      <div class="col-3">
+        <div class="stat-block">
+          <div class="val">{{ stats.arnie_count }}</div>
+          <div class="lbl">Arnie gestite</div>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="stat-block">
+          <div class="val">{{ stats.controlli_count }}</div>
+          <div class="lbl">Controlli questo mese</div>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="stat-block">
+          <div class="val">{{ stats.fioriture_attive }}</div>
+          <div class="lbl">Fioriture attive</div>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="stat-block">
+          <div class="val">{{ stats.trattamenti_attivi }}</div>
+          <div class="lbl">Trattamenti attivi</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 {% endif %}
 
-<!-- Login Section for non-authenticated users -->
-{% if not user.is_authenticated %}
-<div class="container">
-    <div class="login-section">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <h2>Accedi al tuo Account</h2>
-                <p>Gestisci il tuo apiario in modo completo e professionale. Accedi per iniziare o contatta l'amministratore per creare un account.</p>
-                <a href="{% url 'login' %}" class="btn btn-primary">Accedi</a>
-            </div>
-            <div class="col-md-6 text-center">
-                <img src="https://images.unsplash.com/photo-1575917649705-5b59aaa12e6b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Apiario" class="img-fluid rounded" style="max-height: 250px;">
-            </div>
-        </div>
-    </div>
-</div>
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Pronto a gestire il tuo apiario?</h2>
+  <p>Unisciti agli apicoltori che usano Apiary Manager per tenere tutto sotto controllo.</p>
+  <a href="{% url 'register' %}" class="btn btn-primary btn-lg">
+    <i class="bi bi-person-plus me-2"></i> Crea il tuo account gratuito
+  </a>
+</section>
+
 {% endif %}
 {% endblock %}

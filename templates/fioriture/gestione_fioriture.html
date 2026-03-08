@@ -4,20 +4,16 @@
 {% block title %}Gestione Fioriture - Gestione Apiario{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1><i class="bi bi-flower1"></i> Gestione Fioriture</h1>
-            <div>
-                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Dashboard
-                </a>
-                <a href="{% url 'mappa_apiari' %}" class="btn btn-outline-primary ms-2">
-                    <i class="bi bi-geo-alt"></i> Visualizza sulla mappa
-                </a>
-            </div>
-        </div>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🌸 Fioriture</h1>
+    <p class="page-subtitle">Monitora il pascolo e condividi le fioriture con la community</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'mappa_apiari' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-geo-alt me-1"></i>Mappa
+    </a>
+  </div>
 </div>
 
 <div class="row">

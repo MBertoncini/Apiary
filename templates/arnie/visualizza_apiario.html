@@ -4,50 +4,45 @@
 {% block title %}{{ apiario.nome }} - Gestione Apiario{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1><i class="bi bi-grid"></i> {{ apiario.nome }}</h1>
-            <div>
-                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Dashboard
-                </a>
-                {% if is_proprietario %}
-                    <a href="{% url 'gestione_apiario_gruppo' apiario.id %}" class="btn btn-outline-primary ms-2">
-                        <i class="bi bi-people"></i> Gestione Gruppi
-                    </a>
-                {% endif %}
-                <a href="{% url 'crea_arnia' %}?apiario_id={{ apiario.id }}" class="btn btn-success ms-2">
-                    <i class="bi bi-plus-circle"></i> Nuova Arnia
-                </a>
-                <a href="{% url 'gestione_melari' apiario.id %}" class="btn btn-info ms-2">
-                    <i class="bi bi-archive"></i> Gestione Melari
-                </a>
-                <a href="{% url 'nuovo_trattamento_apiario' apiario.id %}" class="btn btn-warning ms-2">
-                    <i class="bi bi-capsule"></i> Nuovo Trattamento
-                </a>
-            </div>
-        </div>
-        
-            <!-- Informazioni sulla condivisione dell'apiario -->
-            {% if apiario.gruppo and apiario.condiviso_con_gruppo %}
-                <div class="alert alert-info mt-2">
-                    <i class="bi bi-people"></i> Questo apiario è condiviso con il gruppo <strong>{{ apiario.gruppo.nome }}</strong>.
-                    {% if membro_gruppo %}
-                        Il tuo ruolo nel gruppo è: <span class="badge bg-primary">{{ membro_gruppo.get_ruolo_display }}</span>
-                    {% endif %}
-                </div>
-            {% endif %}
-        <p class="text-muted">
-            <i class="bi bi-geo-alt"></i> {{ apiario.posizione }}
-            {% if apiario.has_coordinates %}
-            <a href="{% url 'mappa_apiari' %}?focus={{ apiario.id }}" class="ms-2 text-decoration-none">
-                <i class="bi bi-map"></i> Visualizza sulla mappa
-            </a>
-            {% endif %}
-        </p>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🏡 {{ apiario.nome }}</h1>
+    <p class="page-subtitle">
+      <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione }}
+      {% if apiario.has_coordinates %}
+      · <a href="{% url 'mappa_apiari' %}?focus={{ apiario.id %}" class="text-muted">
+          <i class="bi bi-map me-1"></i>Vedi sulla mappa
+        </a>
+      {% endif %}
+    </p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    {% if is_proprietario %}
+    <a href="{% url 'gestione_apiario_gruppo' apiario.id %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-people"></i>
+    </a>
+    {% endif %}
+    <a href="{% url 'gestione_melari' apiario.id %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-archive me-1"></i>Melari
+    </a>
+    <a href="{% url 'nuovo_trattamento_apiario' apiario.id %}" class="btn btn-outline-warning btn-sm">
+      <i class="bi bi-capsule me-1"></i>Trattamento
+    </a>
+    <a href="{% url 'crea_arnia' %}?apiario_id={{ apiario.id }}" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-1"></i>Nuova Arnia
+    </a>
+  </div>
 </div>
+
+{% if apiario.gruppo and apiario.condiviso_con_gruppo %}
+<div class="alert alert-info mb-4">
+  <i class="bi bi-people me-2"></i>
+  Condiviso con il gruppo <strong>{{ apiario.gruppo.nome }}</strong>
+  {% if membro_gruppo %}
+  · <span class="badge bg-info">{{ membro_gruppo.get_ruolo_display }}</span>
+  {% endif %}
+</div>
+{% endif %}
 
 <!-- Filtro per data -->
 <div class="row mb-4">

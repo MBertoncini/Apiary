@@ -4,72 +4,68 @@
 {% block title %}Gestione Attrezzature - Gestione Apiario{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1><i class="bi bi-box-seam"></i> Gestione Attrezzature</h1>
-            <div>
-                <a href="{% url 'aggiungi_attrezzatura' %}" class="btn btn-success">
-                    <i class="bi bi-plus-circle"></i> Aggiungi Attrezzatura
-                </a>
-                <a href="{% url 'gestione_categorie_attrezzature' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-tags"></i> Categorie
-                </a>
-            </div>
-        </div>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-box-seam me-2" style="color:var(--honey);"></i>Attrezzature</h1>
+    <p class="page-subtitle">Gestisci inventario, manutenzioni e prestiti</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'gestione_categorie_attrezzature' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-tags me-1"></i>Categorie
+    </a>
+    <a href="{% url 'inventario_attrezzature' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-clipboard-data me-1"></i>Inventario
+    </a>
+    <a href="{% url 'aggiungi_attrezzatura' %}" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-1"></i>Aggiungi
+    </a>
+  </div>
 </div>
 
 <!-- Statistiche -->
-<div class="row mb-4">
-    <div class="col-md-2">
-        <div class="card text-center bg-light">
-            <div class="card-body">
-                <h3 class="mb-0">{{ stats.totale }}</h3>
-                <small class="text-muted">Totale</small>
-            </div>
-        </div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-2">
+    <div class="stat-card">
+      <span class="stat-icon">📦</span>
+      <div class="stat-value">{{ stats.totale }}</div>
+      <div class="stat-label">Totale</div>
     </div>
-    <div class="col-md-2">
-        <div class="card text-center bg-success text-white">
-            <div class="card-body">
-                <h3 class="mb-0">{{ stats.disponibili }}</h3>
-                <small>Disponibili</small>
-            </div>
-        </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card" style="border-top: 3px solid var(--success);">
+      <span class="stat-icon">✅</span>
+      <div class="stat-value" style="color:var(--success);">{{ stats.disponibili }}</div>
+      <div class="stat-label">Disponibili</div>
     </div>
-    <div class="col-md-2">
-        <div class="card text-center bg-warning">
-            <div class="card-body">
-                <h3 class="mb-0">{{ stats.in_manutenzione }}</h3>
-                <small>In Manutenzione</small>
-            </div>
-        </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card" style="border-top: 3px solid var(--warning);">
+      <span class="stat-icon">🔧</span>
+      <div class="stat-value" style="color:var(--warning);">{{ stats.in_manutenzione }}</div>
+      <div class="stat-label">Manutenzione</div>
     </div>
-    <div class="col-md-2">
-        <div class="card text-center bg-info text-white">
-            <div class="card-body">
-                <h3 class="mb-0">{{ stats.prestate }}</h3>
-                <small>Prestate</small>
-            </div>
-        </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card" style="border-top: 3px solid var(--info);">
+      <span class="stat-icon">🔄</span>
+      <div class="stat-value" style="color:var(--info);">{{ stats.prestate }}</div>
+      <div class="stat-label">Prestate</div>
     </div>
-    <div class="col-md-2">
-        <div class="card text-center">
-            <div class="card-body">
-                <h3 class="mb-0">&euro;{{ stats.valore_totale|floatformat:0 }}</h3>
-                <small class="text-muted">Valore Acquisto</small>
-            </div>
-        </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card" style="border-top: 3px solid var(--honey);">
+      <span class="stat-icon">💰</span>
+      <div class="stat-value" style="font-size:1.6rem;">€{{ stats.valore_totale|floatformat:0 }}</div>
+      <div class="stat-label">Valore acquisto</div>
     </div>
-    <div class="col-md-2">
-        <div class="card text-center">
-            <div class="card-body">
-                <h3 class="mb-0">&euro;{{ stats.valore_residuo|floatformat:0 }}</h3>
-                <small class="text-muted">Valore Residuo</small>
-            </div>
-        </div>
+  </div>
+  <div class="col-6 col-md-2">
+    <div class="stat-card" style="border-top: 3px solid var(--brown-medium);">
+      <span class="stat-icon">📊</span>
+      <div class="stat-value" style="font-size:1.6rem;">€{{ stats.valore_residuo|floatformat:0 }}</div>
+      <div class="stat-label">Valore residuo</div>
     </div>
+  </div>
 </div>
 
 <div class="row">
