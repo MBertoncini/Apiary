@@ -7,7 +7,7 @@ from .models import (
     Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
     Invasettamento, Cliente, Vendita, DettaglioVendita,
-    AnalisiTelaino, Nucleo,
+    AnalisiTelaino, Nucleo, ControlloNucleo,
 )
 
 
@@ -35,7 +35,7 @@ for model in [
     Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
     Invasettamento, Cliente, Vendita, DettaglioVendita,
-    AnalisiTelaino, Nucleo,
+    AnalisiTelaino, Nucleo, ControlloNucleo,
 ]:
     try:
         admin.site.register(model)
