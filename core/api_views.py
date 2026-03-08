@@ -17,7 +17,7 @@ from django.urls import reverse
 
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .models import (
-    Apiario, Arnia, Nucleo, ControlloArnia, Regina, StoriaRegine, Fioritura,
+    Apiario, Arnia, Nucleo, ControlloNucleo, ControlloArnia, Regina, StoriaRegine, Fioritura,
     FiorituraConferma,
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
     Gruppo, MembroGruppo, InvitoGruppo, DatiMeteo, PrevisioneMeteo,
@@ -40,7 +40,7 @@ from .serializers import (
     InvasettamentoSerializer, ClienteSerializer, VenditaSerializer,
     DettaglioVenditaSerializer,
     AnalisiTelainoSerializer, ApiarioMapLayoutSerializer,
-    NucleoSerializer
+    NucleoSerializer, ControlloNucleoSerializer
 )
 
 logger = logging.getLogger(__name__)
@@ -380,6 +380,24 @@ class NucleoViewSet(viewsets.ModelViewSet):
             ArniaSerializer(arnia, context={'request': request}).data,
             status=status.HTTP_201_CREATED,
         )
+
+    @action(detail=True, methods=['get', 'post'], url_path='controlli')
+    def controlli(self, request, pk=None):
+        """Lista e creazione controlli per un nucleo."""
+        nucleo = self.get_object()
+        if request.method == 'GET':
+            qs = ControlloNucleo.objects.filter(nucleo=nucleo).order_by('-data')
+            serializer = ControlloNucleoSerializer(qs, many=True)
+            return Response(serializer.data)
+
+        # POST – crea nuovo controllo
+        data = request.data.copy()
+        data['nucleo'] = nucleo.pk
+        serializer = ControlloNucleoSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save(utente=request.user, nucleo=nucleo)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Funzione helper per inviare email di invito (a livello di modulo, non dentro una classe)

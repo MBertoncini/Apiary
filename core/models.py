@@ -87,11 +87,11 @@ class Apiario(models.Model):
     note = models.TextField(blank=True, null=True)
     data_creazione = models.DateTimeField(auto_now_add=True)
     # Aggiungi questi campi per le coordinate geografiche
-    latitudine = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True, 
+    latitudine = models.DecimalField(max_digits=12, decimal_places=8, blank=True, null=True,
                                      help_text="Latitudine in gradi decimali (es. 45.123456)")
-    longitudine = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True,
+    longitudine = models.DecimalField(max_digits=12, decimal_places=8, blank=True, null=True,
                                       help_text="Longitudine in gradi decimali (es. 9.123456)")
-    
+
     # Aggiungi questi campi
     proprietario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='apiari_posseduti')
     gruppo = models.ForeignKey(Gruppo, on_delete=models.SET_NULL, null=True, blank=True, related_name='apiari')
@@ -202,6 +202,29 @@ class Nucleo(models.Model):
         verbose_name = "Nucleo"
         verbose_name_plural = "Nuclei"
         ordering = ['apiario', 'numero']
+
+
+class ControlloNucleo(models.Model):
+    """Ispezione/controllo di un nucleo."""
+    nucleo = models.ForeignKey(Nucleo, on_delete=models.CASCADE, related_name='controlli')
+    utente = models.ForeignKey(User, on_delete=models.CASCADE)
+    data = models.DateField()
+    n_telaini = models.PositiveSmallIntegerField(null=True, blank=True,
+                                                 help_text="Telaini occupati")
+    forza_colonia = models.PositiveSmallIntegerField(null=True, blank=True,
+                                                     help_text="Forza colonia da 1 a 5")
+    presenza_regina = models.BooleanField(null=True, blank=True)
+    note = models.TextField(blank=True, null=True)
+    data_creazione = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Controllo nucleo {self.nucleo} – {self.data}"
+
+    class Meta:
+        verbose_name = "Controllo Nucleo"
+        verbose_name_plural = "Controlli Nucleo"
+        ordering = ['-data']
+
 
 class ControlloArnia(models.Model):
     arnia = models.ForeignKey(Arnia, on_delete=models.CASCADE, related_name='controlli')
@@ -553,9 +576,9 @@ class Fioritura(models.Model):
     note = models.TextField(blank=True, null=True)
     
     # Coordinate geografiche obbligatorie
-    latitudine = models.DecimalField(max_digits=9, decimal_places=6,
+    latitudine = models.DecimalField(max_digits=12, decimal_places=8,
                                    help_text="Latitudine in gradi decimali (es. 45.123456)")
-    longitudine = models.DecimalField(max_digits=9, decimal_places=6,
+    longitudine = models.DecimalField(max_digits=12, decimal_places=8,
                                     help_text="Longitudine in gradi decimali (es. 9.123456)")
     raggio = models.IntegerField(default=500, blank=True, null=True,
                                help_text="Raggio approssimativo della fioritura in metri")
