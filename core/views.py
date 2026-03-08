@@ -71,14 +71,65 @@ def dashboard(request):
         Q(data_fine__isnull=True) | Q(data_fine__gte=data_odierna)
     )
     
+    # Conteggio arnie totali
+    num_arnie = arnie_accessibili.count()
+
+    # Dati grafici: controlli ultimi 6 mesi
+    import json
+    sei_mesi_fa = data_odierna - timedelta(days=180)
+    controlli_per_mese = []
+    mesi_labels = []
+    for i in range(5, -1, -1):
+        from dateutil.relativedelta import relativedelta
+        mese_inizio = (data_odierna.replace(day=1) - relativedelta(months=i))
+        mese_fine = (mese_inizio + relativedelta(months=1))
+        count = ControlloArnia.objects.filter(
+            arnia__in=arnie_accessibili,
+            data__gte=mese_inizio,
+            data__lt=mese_fine
+        ).count()
+        controlli_per_mese.append(count)
+        mesi_labels.append(mese_inizio.strftime('%b %Y'))
+
+    # Dati grafici: produzione miele ultimi 6 mesi
+    smielature_per_mese = []
+    for i in range(5, -1, -1):
+        from dateutil.relativedelta import relativedelta
+        mese_inizio = (data_odierna.replace(day=1) - relativedelta(months=i))
+        mese_fine = (mese_inizio + relativedelta(months=1))
+        kg = Smielatura.objects.filter(
+            apiario__in=apiari,
+            data__gte=mese_inizio,
+            data__lt=mese_fine
+        ).aggregate(tot=Sum('quantita_miele'))['tot'] or 0
+        smielature_per_mese.append(float(kg))
+
+    # Stato arnie: con/senza regina nell'ultimo controllo
+    arnie_con_problemi = 0
+    arnie_senza_regina = 0
+    for arnia in arnie_accessibili:
+        ultimo = ControlloArnia.objects.filter(arnia=arnia).order_by('-data').first()
+        if ultimo:
+            if not ultimo.presenza_regina:
+                arnie_senza_regina += 1
+            if ultimo.problemi_sanitari or ultimo.sciamatura:
+                arnie_con_problemi += 1
+
     context = {
         'apiari': apiari,
         'ultimi_controlli': ultimi_controlli,
         'fioriture_attuali': fioriture_attuali,
         'data_selezionata': data_odierna,
         'apiari_condivisi': apiari_condivisi,
+        'num_arnie': num_arnie,
+        # Chart data (as JSON for JS)
+        'chart_mesi': json.dumps(mesi_labels),
+        'chart_controlli': json.dumps(controlli_per_mese),
+        'chart_produzione': json.dumps(smielature_per_mese),
+        'arnie_senza_regina': arnie_senza_regina,
+        'arnie_con_problemi': arnie_con_problemi,
     }
-    
+
     return render(request, 'dashboard.html', context)
 
 @login_required

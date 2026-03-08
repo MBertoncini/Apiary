@@ -6,7 +6,9 @@
       "Bash(python manage.py check:*)",
       "Bash(python manage.py shell:*)",
       "Bash(python -c:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(sed:*)",
+      "Bash(pip show:*)"
     ]
   }
 }
