@@ -2,6 +2,13 @@
 
 {% block title %}Dashboard — Apiary Manager{% endblock %}
 
+{% block extra_css %}
+<style>
+.chart-card { position: relative; height: 240px; }
+.health-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <!-- Page header -->
@@ -162,6 +169,73 @@
 </div>
 
 <!-- ============================================================
+     GRAFICI ANALYTICS
+     ============================================================ -->
+<div class="row g-4 mb-4">
+
+  <!-- Grafico controlli mensili -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <i class="bi bi-bar-chart-fill me-2" style="color:var(--honey);"></i>
+        Controlli per mese
+      </div>
+      <div class="card-body chart-card">
+        <canvas id="chartControlli"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grafico produzione miele -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <i class="bi bi-droplet-fill me-2" style="color:var(--honey);"></i>
+        Produzione miele (kg)
+      </div>
+      <div class="card-body chart-card">
+        <canvas id="chartProduzione"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Salute arnie quick summary -->
+{% if num_arnie %}
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="card card-honey">
+      <div class="card-body py-3">
+        <div class="d-flex align-items-center gap-4 flex-wrap">
+          <strong style="font-size:0.9rem;">🐝 Stato arnie</strong>
+          <span>
+            <span class="health-dot me-1" style="background:var(--success);"></span>
+            <span class="text-muted" style="font-size:0.85rem;">{{ num_arnie|add:"-"|add:arnie_senza_regina|add:"-"|add:arnie_con_problemi }} in buona salute</span>
+          </span>
+          {% if arnie_senza_regina %}
+          <span>
+            <span class="health-dot me-1" style="background:var(--danger);"></span>
+            <span class="text-muted" style="font-size:0.85rem;">{{ arnie_senza_regina }} senza regina</span>
+          </span>
+          {% endif %}
+          {% if arnie_con_problemi %}
+          <span>
+            <span class="health-dot me-1" style="background:var(--warning);"></span>
+            <span class="text-muted" style="font-size:0.85rem;">{{ arnie_con_problemi }} con problemi</span>
+          </span>
+          {% endif %}
+          <span class="ms-auto">
+            <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary">Aggiorna</a>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ============================================================
      CONTROLLI RECENTI
      ============================================================ -->
 <div class="card mb-4">
@@ -306,4 +380,87 @@
   {% endif %}
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+  const mesi   = {{ chart_mesi|safe }};
+  const ctrl   = {{ chart_controlli|safe }};
+  const prod   = {{ chart_produzione|safe }};
+
+  const honey      = '#F5A623';
+  const honeyLight = 'rgba(245,166,35,0.15)';
+  const brown      = '#8B4513';
+  const brownLight = 'rgba(139,69,19,0.12)';
+
+  Chart.defaults.font.family = "'Poppins', sans-serif";
+  Chart.defaults.font.size   = 12;
+  Chart.defaults.color       = '#7A5C45';
+
+  const gridOpts = { color: 'rgba(234,217,191,0.6)', drawBorder: false };
+  const tickOpts = { color: '#A8856A' };
+
+  // ---- Controlli ----
+  new Chart(document.getElementById('chartControlli'), {
+    type: 'bar',
+    data: {
+      labels: mesi,
+      datasets: [{
+        label: 'Controlli',
+        data: ctrl,
+        backgroundColor: honeyLight,
+        borderColor: honey,
+        borderWidth: 2,
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: '#2C1810', titleColor: honey, bodyColor: 'rgba(255,255,255,0.85)', padding: 10, cornerRadius: 8 }
+      },
+      scales: {
+        x: { grid: gridOpts, ticks: tickOpts },
+        y: { grid: gridOpts, ticks: { ...tickOpts, stepSize: 1 }, beginAtZero: true }
+      }
+    }
+  });
+
+  // ---- Produzione ----
+  new Chart(document.getElementById('chartProduzione'), {
+    type: 'line',
+    data: {
+      labels: mesi,
+      datasets: [{
+        label: 'kg miele',
+        data: prod,
+        backgroundColor: brownLight,
+        borderColor: brown,
+        borderWidth: 2.5,
+        pointBackgroundColor: brown,
+        pointRadius: 4, pointHoverRadius: 6,
+        tension: 0.35, fill: true,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#2C1810', titleColor: honey, bodyColor: 'rgba(255,255,255,0.85)', padding: 10, cornerRadius: 8,
+          callbacks: { label: ctx => ' ' + ctx.parsed.y.toFixed(1) + ' kg' }
+        }
+      },
+      scales: {
+        x: { grid: gridOpts, ticks: tickOpts },
+        y: { grid: gridOpts, ticks: { ...tickOpts, callback: v => v + ' kg' }, beginAtZero: true }
+      }
+    }
+  });
+})();
+</script>
 {% endblock %}
