@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
     Apiario, Arnia, Nucleo, ControlloArnia, Regina, StoriaRegine, Fioritura,
+    FiorituraConferma,
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
     Gruppo, MembroGruppo, InvitoGruppo, Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
@@ -155,24 +156,58 @@ class ReginaGenealogySerializer(serializers.ModelSerializer):
 
 # Serializzatore Fioritura
 class FiorituraSerializer(serializers.ModelSerializer):
-    apiario_nome = serializers.ReadOnlyField(source='apiario.nome') if 'apiario' else None
+    apiario_nome = serializers.ReadOnlyField(source='apiario.nome')
     creatore_username = serializers.ReadOnlyField(source='creatore.username')
     is_active = serializers.SerializerMethodField()
-    
+    n_conferme = serializers.SerializerMethodField()
+    intensita_media = serializers.SerializerMethodField()
+    confermato_da_me = serializers.SerializerMethodField()
+
     class Meta:
         model = Fioritura
         fields = [
-            'id', 'apiario', 'apiario_nome', 'pianta', 'data_inizio', 
-            'data_fine', 'latitudine', 'longitudine', 'raggio', 
-            'note', 'creatore', 'creatore_username', 'is_active'
+            'id', 'apiario', 'apiario_nome', 'pianta', 'pianta_tipo',
+            'data_inizio', 'data_fine', 'latitudine', 'longitudine', 'raggio',
+            'note', 'creatore', 'creatore_username', 'is_active',
+            'pubblica', 'intensita',
+            'n_conferme', 'intensita_media', 'confermato_da_me',
         ]
         read_only_fields = ['creatore']
-    
+
     def get_is_active(self, obj):
         return obj.is_active()
-    
+
+    def get_n_conferme(self, obj):
+        return obj.conferme.count()
+
+    def get_intensita_media(self, obj):
+        conferme = obj.conferme.filter(intensita__isnull=False)
+        if not conferme.exists():
+            return None
+        total = sum(c.intensita for c in conferme)
+        return round(total / conferme.count(), 1)
+
+    def get_confermato_da_me(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.conferme.filter(utente=request.user).exists()
+        return False
+
     def create(self, validated_data):
         validated_data['creatore'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+class FiorituraConfermaSerializer(serializers.ModelSerializer):
+    utente_username = serializers.ReadOnlyField(source='utente.username')
+
+    class Meta:
+        model = FiorituraConferma
+        fields = ['id', 'fioritura', 'utente', 'utente_username', 'data', 'intensita', 'nota']
+        read_only_fields = ['utente', 'data']
+
+    def create(self, validated_data):
+        validated_data['utente'] = self.context['request'].user
         return super().create(validated_data)
 
 # Serializzatore TipoTrattamento

@@ -18,6 +18,7 @@ from django.urls import reverse
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .models import (
     Apiario, Arnia, Nucleo, ControlloArnia, Regina, StoriaRegine, Fioritura,
+    FiorituraConferma,
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
     Gruppo, MembroGruppo, InvitoGruppo, DatiMeteo, PrevisioneMeteo,
     Pagamento, QuotaUtente,
@@ -29,7 +30,7 @@ from .models import (
 from .serializers import (
     ApiarioSerializer, ArniaSerializer, ControlloArniaDetailSerializer,
     ControlloArniaListSerializer, ReginaSerializer, StoriaRegineSerializer,
-    ReginaGenealogySerializer, FiorituraSerializer,
+    ReginaGenealogySerializer, FiorituraSerializer, FiorituraConfermaSerializer,
     TrattamentoSanitarioSerializer, TipoTrattamentoSerializer,
     MelarioSerializer, SmielaturaSerializer, GruppoSerializer,
     MembroGruppoSerializer, InvitoGruppoSerializer, UserSerializer,
@@ -568,32 +569,119 @@ class FiorituraViewSet(viewsets.ModelViewSet):
     search_fields = ['pianta', 'apiario__nome']
 
     def get_queryset(self):
-        """
-        Filtra le fioriture in base agli apiari accessibili all'utente.
-        """
         user = self.request.user
         apiari_accessibili = get_apiari_accessibili(user)
-        # Fioriture degli apiari accessibili + fioriture senza apiario create dall'utente
-        return (
+        # Fioriture proprie/di gruppo + fioriture pubbliche della community
+        proprie = (
             Fioritura.objects.filter(apiario__in=apiari_accessibili) |
             Fioritura.objects.filter(apiario__isnull=True, creatore=user)
-        ).distinct()
-    
+        )
+        pubbliche = Fioritura.objects.filter(pubblica=True)
+        return (proprie | pubbliche).distinct()
+
     @action(detail=False, methods=['get'])
     def attive(self, request):
-        """
-        Restituisce solo le fioriture attive (in corso).
-        """
+        """Restituisce solo le fioriture attive (in corso)."""
         oggi = timezone.now().date()
-        
         fioriture = self.get_queryset().filter(
             data_inizio__lte=oggi
         ).filter(
             Q(data_fine__isnull=True) | Q(data_fine__gte=oggi)
         )
-        
         serializer = self.get_serializer(fioriture, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def community(self, request):
+        """Fioriture pubbliche di tutta la community, attive."""
+        oggi = timezone.now().date()
+        fioriture = Fioritura.objects.filter(pubblica=True).filter(
+            data_inizio__lte=oggi
+        ).filter(
+            Q(data_fine__isnull=True) | Q(data_fine__gte=oggi)
+        ).order_by('-data_creazione')
+        serializer = self.get_serializer(fioriture, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def vicine(self, request):
+        """
+        Fioriture (proprie + pubbliche) vicine a una coordinata.
+        Query params: lat, lng, raggio_km (default 20)
+        """
+        try:
+            lat = float(request.query_params.get('lat', 0))
+            lng = float(request.query_params.get('lng', 0))
+            raggio_km = float(request.query_params.get('raggio_km', 20))
+        except (ValueError, TypeError):
+            return Response({'error': 'Parametri lat, lng, raggio_km non validi'}, status=400)
+
+        import math
+
+        def haversine_approx(lat1, lon1, lat2, lon2):
+            """Distanza approssimativa in km tra due coordinate."""
+            R = 6371
+            dlat = math.radians(lat2 - lat1)
+            dlon = math.radians(lon2 - lon1)
+            a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+            return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+
+        # Filtro approssimativo con bounding box (1° lat ≈ 111 km)
+        delta_lat = raggio_km / 111.0
+        delta_lng = raggio_km / (111.0 * math.cos(math.radians(lat)))
+
+        candidati = self.get_queryset().filter(
+            latitudine__gte=lat - delta_lat,
+            latitudine__lte=lat + delta_lat,
+            longitudine__gte=lng - delta_lng,
+            longitudine__lte=lng + delta_lng,
+        )
+
+        # Filtro preciso con haversine
+        vicine = [f for f in candidati if haversine_approx(lat, lng, float(f.latitudine), float(f.longitudine)) <= raggio_km]
+        serializer = self.get_serializer(vicine, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def conferma(self, request, pk=None):
+        """Conferma/aggiorna la propria segnalazione su una fioritura."""
+        fioritura = self.get_object()
+        data = {
+            'fioritura': fioritura.id,
+            'intensita': request.data.get('intensita'),
+            'nota': request.data.get('nota', ''),
+        }
+        # Aggiorna se già esiste
+        existing = FiorituraConferma.objects.filter(fioritura=fioritura, utente=request.user).first()
+        if existing:
+            serializer = FiorituraConfermaSerializer(existing, data=data, partial=True, context={'request': request})
+        else:
+            serializer = FiorituraConfermaSerializer(data=data, context={'request': request})
+
+        if serializer.is_valid():
+            serializer.save()
+            fioritura_serializer = self.get_serializer(fioritura)
+            return Response(fioritura_serializer.data)
+        return Response(serializer.errors, status=400)
+
+    @action(detail=True, methods=['delete'])
+    def rimuovi_conferma(self, request, pk=None):
+        """Rimuove la propria conferma da una fioritura."""
+        fioritura = self.get_object()
+        deleted, _ = FiorituraConferma.objects.filter(fioritura=fioritura, utente=request.user).delete()
+        if deleted:
+            return Response({'status': 'conferma rimossa'})
+        return Response({'status': 'nessuna conferma trovata'}, status=404)
+
+
+class FiorituraConfermaViewSet(viewsets.ReadOnlyModelViewSet):
+    """Conferme fioriture - solo lettura (la scrittura avviene tramite FiorituraViewSet.conferma)"""
+    serializer_class = FiorituraConfermaSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return FiorituraConferma.objects.filter(utente=self.request.user)
+
 
 class TrattamentoSanitarioViewSet(viewsets.ModelViewSet):
     """
@@ -1614,3 +1702,47 @@ def meteo_by_location(request):
             {"detail": f"Errore: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def register_user(request):
+    """Registrazione nuovo utente via API REST (usata dall'app mobile)."""
+    from django.contrib.auth import get_user_model
+    from django.contrib.auth.password_validation import validate_password
+    from django.core.exceptions import ValidationError as DjangoValidationError
+
+    User = get_user_model()
+
+    username = request.data.get('username', '').strip()
+    email = request.data.get('email', '').strip()
+    password1 = request.data.get('password1', '')
+    password2 = request.data.get('password2', '')
+
+    errors = {}
+
+    if not username:
+        errors['username'] = ['Questo campo è obbligatorio.']
+    elif User.objects.filter(username=username).exists():
+        errors['username'] = ['Un utente con questo username esiste già.']
+
+    if not email:
+        errors['email'] = ['Questo campo è obbligatorio.']
+    elif User.objects.filter(email=email).exists():
+        errors['email'] = ['Un utente con questa email esiste già.']
+
+    if not password1:
+        errors['password1'] = ['Questo campo è obbligatorio.']
+    elif password1 != password2:
+        errors['non_field_errors'] = ['Le password non corrispondono.']
+    else:
+        try:
+            validate_password(password1)
+        except DjangoValidationError as e:
+            errors['password1'] = list(e.messages)
+
+    if errors:
+        return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+    user = User.objects.create_user(username=username, email=email, password=password1)
+    return Response({'detail': 'Utente creato con successo.'}, status=status.HTTP_201_CREATED)
