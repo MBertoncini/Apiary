@@ -1,98 +1,124 @@
-<!-- templates/auth/register.html -->
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Registrazione - Gestione Apiario{% endblock %}
+{% block title %}Registrazione — Apiary Manager{% endblock %}
 
 {% block extra_css %}
 <style>
-    .register-container {
-        max-width: 500px;
-        margin: 2rem auto;
-    }
-    
-    .register-card {
-        border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-    
-    .register-header {
-        background-color: #198754;
-        color: white;
-        border-radius: 10px 10px 0 0;
-        padding: 1.5rem;
-    }
-    
-    .register-body {
-        padding: 2rem;
-    }
-    
-    .register-icon {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-    }
-    
-    .btn-register {
-        background-color: #198754;
-        border-color: #198754;
-        padding: 0.75rem;
-        font-weight: 600;
-    }
-    
-    .btn-register:hover {
-        background-color: #157347;
-        border-color: #146c43;
-    }
-    
-    .register-footer {
-        background-color: #f8f9fa;
-        border-radius: 0 0 10px 10px;
-        padding: 1rem;
-        text-align: center;
-    }
+  body { background: linear-gradient(135deg, #2C1810 0%, #5D2E1A 50%, #8B4513 100%); min-height: 100vh; }
+
+  .auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+
+  .auth-card {
+    width: 100%;
+    max-width: 480px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+  }
+
+  .auth-header {
+    background: linear-gradient(135deg, var(--honey) 0%, #D4880A 100%);
+    padding: 32px 32px 26px;
+    text-align: center;
+    color: white;
+  }
+
+  .auth-header .logo { font-size: 3rem; margin-bottom: 8px; display: block; }
+  .auth-header h1 { font-family: var(--font-display); font-size: 2rem; font-weight: 700; margin-bottom: 4px; }
+  .auth-header p { font-size: 0.9rem; opacity: 0.85; margin: 0; }
+
+  .auth-body { padding: 28px 32px; }
+
+  .auth-body .form-control {
+    background: #FFFDF5;
+    border: 1.5px solid #EAD9BF;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.875rem;
+  }
+
+  .auth-body .form-control:focus {
+    border-color: var(--honey);
+    box-shadow: 0 0 0 3px rgba(245,166,35,0.15);
+    background: white;
+  }
+
+  .auth-body label { font-weight: 500; font-size: 0.85rem; color: #4A2515; margin-bottom: 5px; }
+
+  .btn-auth {
+    background: linear-gradient(135deg, var(--honey) 0%, #D4880A 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    width: 100%;
+    margin-top: 8px;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(245,166,35,0.35);
+  }
+
+  .btn-auth:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(245,166,35,0.45);
+    color: white;
+  }
+
+  .auth-footer {
+    text-align: center;
+    padding: 16px 32px 24px;
+    border-top: 1px solid #EAD9BF;
+    font-size: 0.85rem;
+    color: #7A5C45;
+    background: #FFFDF5;
+  }
+
+  .auth-footer a { color: var(--honey-darker); font-weight: 500; }
+  .auth-footer a:hover { color: var(--honey); }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="register-container">
-    <div class="card register-card">
-        <div class="register-header text-center">
-            <div class="register-icon">
-                <i class="bi bi-person-plus-fill"></i>
-            </div>
-            <h2 class="mb-0">Registrazione</h2>
-            <p class="mb-0">Crea un nuovo account</p>
-        </div>
-        
-        <div class="register-body">
-            <form method="post">
-                {% csrf_token %}
-                
-                {{ form|crispy }}
-                
-                {% if form.errors %}
-                    <div class="alert alert-danger mt-3">
-                        <i class="bi bi-exclamation-triangle-fill"></i> Si sono verificati degli errori nel form.
-                    </div>
-                {% endif %}
-                
-                <div class="d-grid gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary btn-register">
-                        <i class="bi bi-person-plus"></i> Registrati
-                    </button>
-                </div>
-            </form>
-        </div>
-        
-        <div class="register-footer">
-            <p class="mb-0">Hai già un account? <a href="{% url 'login' %}">Accedi</a></p>
-        </div>
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="auth-header">
+      <span class="logo">🐝</span>
+      <h1>Crea Account</h1>
+      <p>Registrati su Apiary Manager</p>
     </div>
-    
-    <div class="text-center mt-3">
-        <a href="{% url 'homepage' %}" class="text-muted">
-            <i class="bi bi-arrow-left"></i> Torna alla homepage
-        </a>
+
+    <div class="auth-body">
+      {% if form.errors %}
+      <div class="alert alert-danger mb-3">
+        <i class="bi bi-exclamation-circle-fill me-2"></i>
+        Si sono verificati degli errori nel form. Controlla i campi evidenziati.
+      </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-auth mt-2">
+          <i class="bi bi-person-plus me-2"></i> Crea Account
+        </button>
+      </form>
     </div>
+
+    <div class="auth-footer">
+      Hai già un account?
+      <a href="{% url 'login' %}">Accedi</a>
+    </div>
+
+  </div>
 </div>
 {% endblock %}
