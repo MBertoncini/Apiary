@@ -4,41 +4,42 @@
 {% block title %}Gestione Pagamenti - Gestione Apiario{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1><i class="bi bi-cash-coin"></i> Gestione Pagamenti</h1>
-            
-            <!-- Selezione gruppo -->
-            <div class="dropdown">
-                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="groupDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    {% if gruppo_selezionato %}
-                        <i class="bi bi-people"></i> {{ gruppo_selezionato.nome }}
-                    {% else %}
-                        <i class="bi bi-person"></i> Pagamenti Personali
-                    {% endif %}
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="groupDropdown">
-                    <li><a class="dropdown-item {% if not gruppo_selezionato %}active{% endif %}" href="{% url 'gestione_pagamenti' %}">
-                        <i class="bi bi-person"></i> Pagamenti Personali
-                    </a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    {% for gruppo in gruppi %}
-                        <li><a class="dropdown-item {% if gruppo_selezionato.id == gruppo.id %}active{% endif %}" 
-                               href="{% url 'gestione_pagamenti' %}?gruppo_id={{ gruppo.id }}">
-                            <i class="bi bi-people"></i> {{ gruppo.nome }}
-                        </a></li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li class="breadcrumb-item active">Pagamenti</li>
-            </ol>
-        </nav>
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-cash-coin me-2" style="color:var(--honey);"></i>Pagamenti</h1>
+    <p class="page-subtitle">Gestisci le spese e le quote del tuo apiario</p>
+  </div>
+  <div class="d-flex gap-2 align-items-center">
+    <!-- Selezione gruppo -->
+    <div class="dropdown">
+      <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        {% if gruppo_selezionato %}
+          <i class="bi bi-people me-1"></i>{{ gruppo_selezionato.nome }}
+        {% else %}
+          <i class="bi bi-person me-1"></i>Personali
+        {% endif %}
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li>
+          <a class="dropdown-item {% if not gruppo_selezionato %}active{% endif %}" href="{% url 'gestione_pagamenti' %}">
+            <i class="bi bi-person me-2"></i>Pagamenti Personali
+          </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        {% for gruppo in gruppi %}
+        <li>
+          <a class="dropdown-item {% if gruppo_selezionato.id == gruppo.id %}active{% endif %}"
+             href="{% url 'gestione_pagamenti' %}?gruppo_id={{ gruppo.id }}">
+            <i class="bi bi-people me-2"></i>{{ gruppo.nome }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
     </div>
+    <a href="{% url 'gestione_quote' %}{% if gruppo_selezionato %}?gruppo_id={{ gruppo_selezionato.id }}{% endif %}" class="btn btn-outline-secondary">
+      <i class="bi bi-percent me-1"></i>Quote
+    </a>
+  </div>
 </div>
 
 <div class="row">

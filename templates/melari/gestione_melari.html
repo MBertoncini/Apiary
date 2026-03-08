@@ -5,24 +5,20 @@
 {% block title %}Gestione Melari - {{ apiario.nome }}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1><i class="bi bi-archive"></i> Gestione Melari - {{ apiario.nome }}</h1>
-            <div>
-                <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Torna all'apiario
-                </a>
-            </div>
-        </div>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
-                <li class="breadcrumb-item active">Gestione Melari</li>
-            </ol>
-        </nav>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🍯 Melari — {{ apiario.nome }}</h1>
+    <nav aria-label="breadcrumb" class="mt-1">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
+        <li class="breadcrumb-item active">Melari</li>
+      </ol>
+    </nav>
+  </div>
+  <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Torna all'apiario
+  </a>
 </div>
 
 <!-- Tab navigation -->
