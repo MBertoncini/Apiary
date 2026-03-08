@@ -564,7 +564,27 @@ class Fioritura(models.Model):
     creatore = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='fioriture_create')
     data_creazione = models.DateTimeField(auto_now_add=True, null=True)
     data_modifica = models.DateTimeField(auto_now=True, null=True)
-    
+
+    # Campi social/community
+    INTENSITA_CHOICES = [
+        (1, 'Scarsa'),
+        (2, 'Discreta'),
+        (3, 'Buona'),
+        (4, 'Ottima'),
+        (5, 'Eccezionale'),
+    ]
+    TIPO_PIANTA_CHOICES = [
+        ('spontanea', 'Spontanea'),
+        ('coltivata', 'Coltivata'),
+        ('alberata', 'Alberata'),
+        ('arborea', 'Arborea'),
+        ('arbustiva', 'Arbustiva'),
+    ]
+
+    pubblica = models.BooleanField(default=False, help_text="Visibile a tutta la community di apicoltori")
+    intensita = models.IntegerField(choices=INTENSITA_CHOICES, null=True, blank=True, help_text="Intensità/qualità della fioritura stimata dal creatore")
+    pianta_tipo = models.CharField(max_length=50, choices=TIPO_PIANTA_CHOICES, null=True, blank=True, help_text="Tipo di pianta")
+
     def __str__(self):
         apiario_nome = self.apiario.nome if self.apiario else "Non associato"
         return f"{self.pianta} - {apiario_nome} ({self.data_inizio})"
@@ -587,6 +607,28 @@ class Fioritura(models.Model):
         verbose_name = "Fioritura"
         verbose_name_plural = "Fioriture"
         ordering = ['-data_inizio']
+
+class FiorituraConferma(models.Model):
+    """Conferma/avvistamento di una fioritura da parte di un apicoltore della community"""
+    fioritura = models.ForeignKey(Fioritura, on_delete=models.CASCADE, related_name='conferme')
+    utente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='conferme_fioriture')
+    data = models.DateTimeField(auto_now_add=True)
+    intensita = models.IntegerField(
+        choices=[(1,'Scarsa'),(2,'Discreta'),(3,'Buona'),(4,'Ottima'),(5,'Eccezionale')],
+        null=True, blank=True,
+        help_text="Intensità osservata dall'utente"
+    )
+    nota = models.TextField(blank=True, null=True, help_text="Nota/osservazione dell'apicoltore")
+
+    class Meta:
+        unique_together = ['fioritura', 'utente']
+        ordering = ['-data']
+        verbose_name = "Conferma Fioritura"
+        verbose_name_plural = "Conferme Fioriture"
+
+    def __str__(self):
+        return f"Conferma di {self.utente.username} su {self.fioritura.pianta}"
+
 
 class Pagamento(models.Model):
     utente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pagamenti')

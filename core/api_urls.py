@@ -6,14 +6,15 @@ from rest_framework_simplejwt.views import (
 )
 from .api_views import (
     ApiarioViewSet, ArniaViewSet, ControlloArniaViewSet, ReginaViewSet,
-    StoriaRegineViewSet, FiorituraViewSet, TrattamentoSanitarioViewSet,
+    StoriaRegineViewSet, FiorituraViewSet, FiorituraConfermaViewSet,
+    TrattamentoSanitarioViewSet,
     TipoTrattamentoViewSet, MelarioViewSet, SmielaturaViewSet, GruppoViewSet,
     current_user, sync_data, inviti_ricevuti, accetta_invito, rifiuta_invito,
     meteo_by_location, PagamentoViewSet, QuotaUtenteViewSet,
     CustomTokenObtainPairView, CustomTokenRefreshView,
     AttrezzaturaViewSet, SpesaAttrezzaturaViewSet, ManutenzioneAttrezzaturaViewSet,
     InvasettamentoViewSet, ClienteViewSet, VenditaViewSet,
-    AnalisiTelainoViewSet, NucleoViewSet
+    AnalisiTelainoViewSet, NucleoViewSet, register_user
 )
 
 # Crea un router e registra i viewsets
@@ -24,6 +25,7 @@ router.register(r'controlli', ControlloArniaViewSet, basename='api-controllo')
 router.register(r'regine', ReginaViewSet, basename='api-regina')
 router.register(r'storia-regine', StoriaRegineViewSet, basename='api-storia-regina')
 router.register(r'fioriture', FiorituraViewSet, basename='api-fioritura')
+router.register(r'fioriture-conferme', FiorituraConfermaViewSet, basename='api-fioritura-conferma')
 router.register(r'trattamenti', TrattamentoSanitarioViewSet, basename='api-trattamento')
 router.register(r'tipi-trattamento', TipoTrattamentoViewSet, basename='api-tipo-trattamento')
 router.register(r'melari', MelarioViewSet, basename='api-melario')
@@ -62,4 +64,7 @@ urlpatterns = [
     
     # Endpoint per il meteo
     path('meteo/', meteo_by_location, name='api-meteo'),
+
+    # Endpoint registrazione utente (app mobile)
+    path('register/', register_user, name='api-register'),
 ]
