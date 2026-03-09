@@ -2,7 +2,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from django.db.models import Sum, Count, Q
@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from datetime import datetime, timedelta
 from django.contrib import messages
 from django.contrib.auth import logout
+from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
@@ -65,13 +66,18 @@ def dashboard(request):
         arnia__in=arnie_accessibili
     ).order_by('-data')[:10]
     
-    # Fioriture attuali
+    # Fioriture attuali: legate agli apiari dell'utente + senza apiario (proprie o del gruppo)
+    utenti_gruppo = User.objects.filter(gruppi__in=gruppi_utente)
     fioriture_attuali = Fioritura.objects.filter(
-        apiario__in=apiari,
         data_inizio__lte=data_odierna
     ).filter(
         Q(data_fine__isnull=True) | Q(data_fine__gte=data_odierna)
-    )
+    ).filter(
+        Q(apiario__in=apiari) |
+        Q(apiario__isnull=True, creatore=request.user) |
+        Q(apiario__isnull=True, creatore__in=utenti_gruppo) |
+        Q(apiario__isnull=True, pubblica=True)
+    ).distinct()
     
     # Conteggio arnie totali
     num_arnie = arnie_accessibili.count()
@@ -1358,31 +1364,31 @@ def gestione_quote(request):
     gruppo_id = request.GET.get('gruppo_id')
     gruppo_selezionato = None
     
+    if not gruppo_id and not QuotaUtente.objects.filter(utente=request.user, gruppo__isnull=True).exists():
+        # Nessuna quota personale: auto-seleziona il primo gruppo con quote
+        primo_gruppo = gruppi.first()
+        if primo_gruppo:
+            return redirect(f'{reverse("gestione_quote")}?gruppo_id={primo_gruppo.id}')
+
     if gruppo_id:
         try:
             gruppo_selezionato = Gruppo.objects.get(pk=gruppo_id)
-            # Verifica che l'utente faccia parte del gruppo
             if not gruppo_selezionato.membri.filter(id=request.user.id).exists():
                 messages.error(request, "Non sei membro di questo gruppo.")
                 return redirect('gestione_quote')
         except Gruppo.DoesNotExist:
             messages.error(request, "Gruppo non trovato.")
             return redirect('gestione_quote')
-            
-        # Filtra le quote per questo gruppo
+
         quote = QuotaUtente.objects.filter(gruppo=gruppo_selezionato)
-        
-        # Verifica i permessi per aggiungere/modificare quote nel gruppo
+
         try:
             membro = MembroGruppo.objects.get(utente=request.user, gruppo=gruppo_selezionato)
             can_add = membro.ruolo in ['admin', 'editor']
         except MembroGruppo.DoesNotExist:
             can_add = False
     else:
-        # Se non è selezionato un gruppo, mostra solo le quote personali
         quote = QuotaUtente.objects.filter(utente=request.user, gruppo__isnull=True)
-        
-        # Per le quote personali, l'utente ha sempre i permessi
         can_add = True
     
     # Calcola il totale delle percentuali per verificare se arrivano a 100%
@@ -1940,28 +1946,35 @@ def mappa_apiari(request):
     
     # Ottieni la data corrente
     oggi = timezone.now().date()
-    
+
+    # Utenti degli stessi gruppi dell'utente (per fioriture senza apiario)
+    gruppi_utente_mappa = Gruppo.objects.filter(membri=request.user)
+    utenti_gruppo_mappa = User.objects.filter(gruppi__in=gruppi_utente_mappa)
+    fioriture_q_base = (
+        Q(apiario__in=apiari) |
+        Q(apiario__isnull=True, creatore=request.user) |
+        Q(apiario__isnull=True, creatore__in=utenti_gruppo_mappa) |
+        Q(apiario__isnull=True, pubblica=True)
+    )
+
     # Recupera le fioriture attive per gli apiari accessibili
     fioriture_attive = Fioritura.objects.filter(
-        apiario__in=apiari,
         data_inizio__lte=oggi
     ).filter(
         Q(data_fine__isnull=True) | Q(data_fine__gte=oggi)
-    )
+    ).filter(fioriture_q_base).distinct()
     
     # Recupera le fioriture programmate (future)
     fioriture_programmate = Fioritura.objects.filter(
-        apiario__in=apiari,
         data_inizio__gt=oggi
-    )
+    ).filter(fioriture_q_base).distinct()
     
     # Recupera le fioriture passate (ultimi 6 mesi)
     sei_mesi_fa = oggi - timedelta(days=180)
     fioriture_passate = Fioritura.objects.filter(
-        apiario__in=apiari,
         data_fine__lt=oggi,
         data_fine__gte=sei_mesi_fa
-    )
+    ).filter(fioriture_q_base).distinct()
     
     context = {
         'apiari': apiari,
@@ -3938,32 +3951,37 @@ def mappa_apiari(request):
     # Combina tutti gli apiari accessibili all'utente
     apiari = apiari_propri + apiari_condivisi + apiari_visibili_gruppo + apiari_pubblici
     
-    # ... Codice esistente per recuperare fioriture ...
-    
     # Ottieni la data corrente
     oggi = timezone.now().date()
-    
-    # Recupera le fioriture attive per gli apiari accessibili
+
+    # Utenti degli stessi gruppi dell'utente (per fioriture senza apiario)
+    gruppi_utente_mappa = Gruppo.objects.filter(membri=request.user)
+    utenti_gruppo_mappa = User.objects.filter(gruppi__in=gruppi_utente_mappa)
+    fioriture_q_base = (
+        Q(apiario__in=apiari) |
+        Q(apiario__isnull=True, creatore=request.user) |
+        Q(apiario__isnull=True, creatore__in=utenti_gruppo_mappa) |
+        Q(apiario__isnull=True, pubblica=True)
+    )
+
+    # Recupera le fioriture attive per gli apiari accessibili + senza apiario
     fioriture_attive = Fioritura.objects.filter(
-        apiario__in=apiari,
         data_inizio__lte=oggi
     ).filter(
         Q(data_fine__isnull=True) | Q(data_fine__gte=oggi)
-    )
-    
+    ).filter(fioriture_q_base).distinct()
+
     # Recupera le fioriture programmate (future)
     fioriture_programmate = Fioritura.objects.filter(
-        apiario__in=apiari,
         data_inizio__gt=oggi
-    )
-    
+    ).filter(fioriture_q_base).distinct()
+
     # Recupera le fioriture passate (ultimi 6 mesi)
     sei_mesi_fa = oggi - timedelta(days=180)
     fioriture_passate = Fioritura.objects.filter(
-        apiario__in=apiari,
         data_fine__lt=oggi,
         data_fine__gte=sei_mesi_fa
-    )
+    ).filter(fioriture_q_base).distinct()
     
     # Recupera i dati meteo per gli apiari
     dati_meteo = {}
