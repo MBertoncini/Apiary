@@ -183,6 +183,21 @@ def visualizza_apiario(request, apiario_id, data=None):
         controllo.scorte_sinistra = scorte_totali // 2  # divisione intera per la metà sinistra
         controllo.scorte_destra = scorte_totali - controllo.scorte_sinistra  # resto a destra
 
+    # Layout mappa apiario (piantina)
+    try:
+        layout_json = apiario.map_layout.layout_json
+    except Exception:
+        layout_json = '{}'
+
+    arnie_map_data = json.dumps({
+        str(a.id): {
+            'numero': a.numero,
+            'colore_hex': a.colore_hex or '#F5A623',
+            'attiva': a.attiva,
+        }
+        for a in arnie
+    })
+
     # Aggiungi informazioni sul gruppo nella context
     context = {
         'apiario': apiario,
@@ -191,6 +206,8 @@ def visualizza_apiario(request, apiario_id, data=None):
         'data_selezionata': data_selezionata,
         'trattamenti_attivi': trattamenti_attivi,
         'trattamenti_per_arnia': trattamenti_per_arnia,
+        'layout_json': layout_json,
+        'arnie_map_data': arnie_map_data,
     }
     
     # Se l'apiario è condiviso con un gruppo, aggiungi informazioni
