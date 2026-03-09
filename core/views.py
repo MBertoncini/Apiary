@@ -14,7 +14,9 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 import uuid
+import json
 from functools import wraps
+from dateutil.relativedelta import relativedelta
 
 from .models import (
     Apiario, Arnia, ControlloArnia, Fioritura, Pagamento, QuotaUtente,
@@ -75,12 +77,9 @@ def dashboard(request):
     num_arnie = arnie_accessibili.count()
 
     # Dati grafici: controlli ultimi 6 mesi
-    import json
-    sei_mesi_fa = data_odierna - timedelta(days=180)
     controlli_per_mese = []
     mesi_labels = []
     for i in range(5, -1, -1):
-        from dateutil.relativedelta import relativedelta
         mese_inizio = (data_odierna.replace(day=1) - relativedelta(months=i))
         mese_fine = (mese_inizio + relativedelta(months=1))
         count = ControlloArnia.objects.filter(
@@ -94,7 +93,6 @@ def dashboard(request):
     # Dati grafici: produzione miele ultimi 6 mesi
     smielature_per_mese = []
     for i in range(5, -1, -1):
-        from dateutil.relativedelta import relativedelta
         mese_inizio = (data_odierna.replace(day=1) - relativedelta(months=i))
         mese_fine = (mese_inizio + relativedelta(months=1))
         kg = Smielatura.objects.filter(
