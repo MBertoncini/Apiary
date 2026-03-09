@@ -23,7 +23,7 @@
         {% endfor %}
       </ul>
     </div>
-    <a href="{% url 'form_quota' %}" class="btn btn-primary"><i class="bi bi-plus me-1"></i> Nuova Quota</a>
+    <a href="{% url 'gestione_quote' %}{% if gruppo_selezionato %}?gruppo_id={{ gruppo_selezionato.id }}{% endif %}#quotaForm" class="btn btn-primary"><i class="bi bi-plus me-1"></i> Nuova Quota</a>
   </div>
 </div>
 
