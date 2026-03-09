@@ -13,7 +13,7 @@
 <div class="row">
     <div class="col-md-4 mb-4">
         <div class="card">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-search"></i> Cerca Utenti o Gruppi</h5>
             </div>
             <div class="card-body">
@@ -60,7 +60,7 @@
             <!-- Risultati utenti -->
             {% if tipo == 'utenti' or tipo == 'tutti' and utenti %}
                 <div class="card mb-4">
-                    <div class="card-header bg-success text-white">
+                    <div class="card-header">
                         <h5 class="mb-0"><i class="bi bi-people"></i> Utenti trovati</h5>
                     </div>
                     <div class="card-body">
@@ -147,7 +147,7 @@
             <!-- Risultati gruppi -->
             {% if tipo == 'gruppi' or tipo == 'tutti' and gruppi %}
                 <div class="card">
-                    <div class="card-header bg-info text-white">
+                    <div class="card-header">
                         <h5 class="mb-0"><i class="bi bi-people"></i> Gruppi trovati</h5>
                     </div>
                     <div class="card-body">

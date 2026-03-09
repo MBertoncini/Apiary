@@ -107,39 +107,22 @@
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1>
-                <i class="bi bi-diagram-3"></i>
-                Albero Genealogico Completo
-            </h1>
-            <div>
-                <a href="{% url 'visualizza_regina' arnia.id %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Torna alla Regina
-                </a>
-                <a href="{% url 'ricerca_regine' %}" class="btn btn-outline-primary">
-                    <i class="bi bi-search"></i> Ricerca Regine
-                </a>
-            </div>
-        </div>
-
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'visualizza_regina' arnia.id %}">Regina #{{ arnia.numero }}</a></li>
-                <li class="breadcrumb-item active">Albero Genealogico</li>
-            </ol>
-        </nav>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🌳 Albero Genealogico Completo</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'visualizza_regina' arnia.id %}">Regina #{{ arnia.numero }}</a> › Genealogia</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'ricerca_regine' %}" class="btn btn-outline-secondary"><i class="bi bi-search me-1"></i> Ricerca</a>
+    <a href="{% url 'visualizza_regina' arnia.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Torna alla Regina</a>
+  </div>
 </div>
 
 <div class="row">
     <div class="col-lg-9">
         <!-- Info Regina -->
         <div class="card mb-4">
-            <div class="card-header bg-warning text-dark">
+            <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-gem"></i> Regina Arnia #{{ regina.arnia.numero }}
                 </h5>
@@ -177,7 +160,7 @@
 
         <!-- Albero Ascendenti -->
         <div class="card mb-4">
-            <div class="card-header bg-success text-white">
+            <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-arrow-up-circle"></i> Linea Ascendente
                     <span class="badge bg-light text-dark">{{ num_generazioni_su }} generazioni</span>
@@ -201,7 +184,7 @@
         <!-- Albero Discendenti -->
         {% if discendenti.figlie %}
         <div class="card">
-            <div class="card-header bg-info text-white">
+            <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-arrow-down-circle"></i> Linea Discendente
                     <span class="badge bg-light text-dark">{{ num_generazioni_giu }} generazioni</span>
@@ -250,7 +233,7 @@
     <!-- Statistiche Linea -->
     <div class="col-lg-3">
         <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header">
                 <h6 class="mb-0"><i class="bi bi-bar-chart"></i> Statistiche Linea</h6>
             </div>
             <div class="card-body">

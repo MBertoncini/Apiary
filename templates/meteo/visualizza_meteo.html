@@ -29,7 +29,7 @@
 <div class="row">
     <div class="col-lg-4 col-md-6 mb-4">
         <div class="card h-100">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-cloud"></i> Meteo Attuale</h5>
             </div>
             <div class="card-body">
@@ -86,7 +86,7 @@
     
     <div class="col-lg-8 col-md-6 mb-4">
         <div class="card h-100">
-            <div class="card-header bg-info text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-calendar3"></i> Previsioni Meteo</h5>
             </div>
             <div class="card-body">
@@ -95,7 +95,7 @@
                         {% for giorno, previsioni_giorno in previsioni_per_giorno.items %}
                             <div class="col-md-4 col-sm-6 mb-4">
                                 <div class="card h-100">
-                                    <div class="card-header bg-light">
+                                    <div class="card-header">
                                         <h6 class="mb-0 text-center">{{ previsioni_giorno.0.data_riferimento|date:"l d/m" }}</h6>
                                     </div>
                                     <div class="card-body p-2">
@@ -150,7 +150,7 @@
 <div class="row">
     <div class="col-12 mb-4">
         <div class="card">
-            <div class="card-header bg-success text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-info-circle"></i> Consigli per l'Apiario in base al Meteo</h5>
             </div>
             <div class="card-body">

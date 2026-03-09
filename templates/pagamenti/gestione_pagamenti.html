@@ -45,7 +45,7 @@
 <div class="row">
     <div class="col-md-8">
         <div class="card mb-4">
-            <div class="card-header bg-info text-white">
+            <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-people"></i> Riepilogo Quote Utenti</h5>
                     <a href="{% url 'gestione_quote' %}{% if gruppo_selezionato %}?gruppo_id={{ gruppo_selezionato.id }}{% endif %}" class="btn btn-sm btn-light">
@@ -110,7 +110,7 @@
         </div>
 
         <div class="card">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-cash-coin"></i> Registro Pagamenti</h5>
             </div>
             <div class="card-body">
@@ -176,7 +176,7 @@
 
     <div class="col-md-4">
         <div class="card sticky-top" style="top: 20px;">
-            <div class="card-header bg-success text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Nuovo Pagamento</h5>
             </div>
             <div class="card-body">
@@ -221,7 +221,7 @@
         
         <!-- Link rapidi -->
         <div class="card mt-3">
-            <div class="card-header bg-secondary text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-link-45deg"></i> Link Rapidi</h5>
             </div>
             <div class="card-body">
@@ -242,7 +242,7 @@
 
         {% if gruppo_selezionato %}
         <div class="card mt-3">
-            <div class="card-header bg-info text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni Gruppo</h5>
             </div>
             <div class="card-body">

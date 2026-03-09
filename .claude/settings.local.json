@@ -8,7 +8,13 @@
       "Bash(python -c:*)",
       "Bash(findstr:*)",
       "Bash(sed:*)",
-      "Bash(pip show:*)"
+      "Bash(pip show:*)",
+      "Bash(grep:*)",
+      "Bash(for f in \"I:/Progetti Git/Apiary/templates/melari/form_melario.html\" \"I:/Progetti Git/Apiary/templates/melari/form_smielatura.html\" \"I:/Progetti Git/Apiary/templates/melari/dettaglio_smielatura.html\" \"I:/Progetti Git/Apiary/templates/pagamenti/form_quota.html\" \"I:/Progetti Git/Apiary/templates/pagamenti/gestione_quote.html\" \"I:/Progetti Git/Apiary/templates/regine/aggiorna_presenza_regina.html\" \"I:/Progetti Git/Apiary/templates/regine/albero_genealogico.html\" \"I:/Progetti Git/Apiary/templates/trattamenti/form_tipo_trattamento.html\" \"I:/Progetti Git/Apiary/templates/apiari/gestione_apiario_gruppo.html\" \"I:/Progetti Git/Apiary/templates/profilo/modifica_immagine_gruppo.html\")",
+      "Bash(do)",
+      "Bash(echo \"=== $f ===\")",
+      "Read(//i/Progetti Git/Apiary/**)",
+      "Bash(done)"
     ]
   }
 }

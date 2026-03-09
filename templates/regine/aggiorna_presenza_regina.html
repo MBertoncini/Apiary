@@ -5,24 +5,18 @@
 {% block title %}Aggiorna Presenza Regina - Gestione Apiario{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <h1><i class="bi bi-check-circle"></i> Aggiorna Presenza Regina</h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' arnia.apiario.id %}">{{ arnia.apiario.nome }}</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'modifica_controllo' controllo.id %}">Controllo Arnia #{{ arnia.numero }}</a></li>
-                <li class="breadcrumb-item active">Aggiorna Presenza Regina</li>
-            </ol>
-        </nav>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">👑 Presenza Regina</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' arnia.apiario.id %}">{{ arnia.apiario.nome }}</a> › <a href="{% url 'modifica_controllo' controllo.id %}">Controllo #{{ arnia.numero }}</a> › Regina</p>
+  </div>
+  <a href="{% url 'modifica_controllo' controllo.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Torna al Controllo</a>
 </div>
 
 <div class="row">
     <div class="col-md-8">
         <div class="card">
-            <div class="card-header bg-warning text-dark">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-crown"></i> Dettagli Regina</h5>
             </div>
             <div class="card-body">
@@ -140,7 +134,7 @@
         </div>
         
         <div class="card">
-            <div class="card-header bg-info text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
             </div>
             <div class="card-body">

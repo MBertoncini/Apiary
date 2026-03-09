@@ -5,36 +5,18 @@
 {% block title %}{% if form.instance.pk %}Modifica{% else %}Nuovo{% endif %} Melario - Gestione Apiario{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <h1>
-            {% if form.instance.pk %}
-                <i class="bi bi-pencil-square"></i> Modifica Melario
-            {% else %}
-                <i class="bi bi-plus-circle"></i> Nuovo Melario
-            {% endif %}
-        </h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'gestione_melari' apiario.id %}">Gestione Melari</a></li>
-                <li class="breadcrumb-item active">
-                    {% if form.instance.pk %}
-                        Modifica Melario
-                    {% else %}
-                        Nuovo Melario - Arnia #{{ arnia.numero }}
-                    {% endif %}
-                </li>
-            </ol>
-        </nav>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if form.instance.pk %}✏️ Modifica Melario{% else %}🍯 Nuovo Melario{% endif %}</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'gestione_melari' apiario.id %}">Melari</a> › {% if form.instance.pk %}Modifica{% else %}Nuovo{% endif %}</p>
+  </div>
+  <a href="{% url 'gestione_melari' apiario.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Annulla</a>
 </div>
 
 <div class="row">
     <div class="col-md-8">
         <div class="card">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header">
                 <h5 class="mb-0">Informazioni Melario</h5>
             </div>
             <div class="card-body">
@@ -79,7 +61,7 @@
     
     <div class="col-md-4">
         <div class="card">
-            <div class="card-header bg-info text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
             </div>
             <div class="card-body">

@@ -4,37 +4,17 @@
 {% block title %}{{ attrezzatura.nome }} - Gestione Apiario{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1>
-                {% if attrezzatura.categoria %}
-                    <i class="{{ attrezzatura.categoria.icona }}"></i>
-                {% else %}
-                    <i class="bi bi-box-seam"></i>
-                {% endif %}
-                {{ attrezzatura.nome }}
-            </h1>
-            <div>
-                {% if can_edit %}
-                    <a href="{% url 'modifica_attrezzatura' attrezzatura.id %}" class="btn btn-outline-primary">
-                        <i class="bi bi-pencil"></i> Modifica
-                    </a>
-                {% endif %}
-                <a href="{% url 'gestione_attrezzature' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Torna alla lista
-                </a>
-            </div>
-        </div>
-
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'gestione_attrezzature' %}">Attrezzature</a></li>
-                <li class="breadcrumb-item active">{{ attrezzatura.nome }}</li>
-            </ol>
-        </nav>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🔧 {{ attrezzatura.nome }}</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'gestione_attrezzature' %}">Attrezzature</a> › {{ attrezzatura.nome }}</p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if can_edit %}
+      <a href="{% url 'modifica_attrezzatura' attrezzatura.id %}" class="btn btn-outline-primary"><i class="bi bi-pencil me-1"></i> Modifica</a>
+    {% endif %}
+    <a href="{% url 'gestione_attrezzature' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
+  </div>
 </div>
 
 <div class="row">
@@ -42,7 +22,7 @@
     <div class="col-lg-8">
         <!-- Card informazioni principali -->
         <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header">
                 <h5 class="mb-0">Informazioni Generali</h5>
             </div>
             <div class="card-body">
@@ -154,7 +134,7 @@
 
         <!-- Card dati economici -->
         <div class="card mb-4">
-            <div class="card-header bg-success text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-cash-coin"></i> Dati Economici</h5>
             </div>
             <div class="card-body">
@@ -227,7 +207,7 @@
 
         <!-- Manutenzioni -->
         <div class="card mb-4">
-            <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-wrench"></i> Storico Manutenzioni</h5>
                 {% if can_edit %}
                     <a href="{% url 'aggiungi_manutenzione' attrezzatura.id %}" class="btn btn-sm btn-dark">
@@ -277,7 +257,7 @@
 
         <!-- Spese -->
         <div class="card mb-4">
-            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-receipt"></i> Spese</h5>
                 {% if can_edit %}
                     <a href="{% url 'aggiungi_spesa_attrezzatura' attrezzatura.id %}" class="btn btn-sm btn-light">
