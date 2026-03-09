@@ -44,32 +44,42 @@
 </div>
 {% endif %}
 
-<!-- Filtro per data -->
+<!-- Filtro per data + Minimap -->
 <div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card">
+    <div class="col-md-{% if apiario.has_coordinates %}4{% else %}6{% endif %}">
+        <div class="card h-100">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-calendar"></i> Data di Riferimento</h5>
+                <h5 class="mb-0"><i class="bi bi-calendar3"></i> Data di Riferimento</h5>
             </div>
-            <div class="card-body">
-                <form id="dataForm" method="get" class="d-flex align-items-center">
-                    <div class="me-2">
-                        <label for="dataSelezionata" class="form-label">Visualizza la situazione al:</label>
-                    </div>
-                    <div class="me-2 flex-grow-1">
-                        <input type="date" id="dataSelezionata" name="data" class="form-control" value="{{ data_selezionata|date:'Y-m-d' }}">
-                    </div>
-                    <div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-circle"></i> Aggiorna
-                        </button>
-                    </div>
+            <div class="card-body d-flex flex-column justify-content-center">
+                <form id="dataForm" method="get" class="d-flex align-items-center gap-2">
+                    <label for="dataSelezionata" class="form-label mb-0 text-nowrap">Al:</label>
+                    <input type="date" id="dataSelezionata" name="data" class="form-control" value="{{ data_selezionata|date:'Y-m-d' }}">
+                    <button type="submit" class="btn btn-primary text-nowrap">
+                        <i class="bi bi-check-circle"></i> Aggiorna
+                    </button>
                 </form>
             </div>
         </div>
     </div>
-    
-    <div class="col-md-6">
+
+    {% if apiario.has_coordinates %}
+    <div class="col-md-4">
+        <div class="card h-100 overflow-hidden" style="min-height:180px;">
+            <div id="apiario-minimap" style="height:180px; width:100%; border-radius:0 0 12px 12px;"></div>
+            <div class="minimap-overlay">
+                <span class="minimap-label">
+                    <i class="bi bi-geo-alt-fill me-1"></i>{{ apiario.posizione|default:apiario.nome }}
+                </span>
+                <a href="{% url 'mappa_apiari' %}?focus={{ apiario.id }}" class="minimap-btn" title="Apri sulla mappa">
+                    <i class="bi bi-fullscreen"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="col-md-{% if apiario.has_coordinates %}4{% else %}6{% endif %}">
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-capsule"></i> Trattamenti Attivi</h5>
@@ -528,5 +538,99 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+{% if apiario.has_coordinates %}
+<!-- Leaflet Minimap -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  #apiario-minimap { z-index: 0; }
+  .minimap-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: linear-gradient(transparent, rgba(44,24,16,.55));
+    border-radius: 0 0 12px 12px;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .minimap-label {
+    color: #fff;
+    font-size: .78rem;
+    font-weight: 600;
+    text-shadow: 0 1px 4px rgba(0,0,0,.6);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+  }
+  .minimap-btn {
+    pointer-events: all;
+    color: #fff;
+    background: rgba(245,166,35,.85);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: .8rem;
+    text-decoration: none;
+    transition: background .2s;
+    flex-shrink: 0;
+  }
+  .minimap-btn:hover { background: #F5A623; color: #fff; }
+  .card.overflow-hidden { position: relative; }
+  /* Custom honey marker */
+  .honey-marker-pin {
+    width: 22px; height: 22px;
+    border-radius: 50% 50% 50% 0;
+    background: #F5A623;
+    border: 3px solid #2C1810;
+    transform: rotate(-45deg);
+    box-shadow: 0 2px 8px rgba(0,0,0,.35);
+  }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const lat = {{ apiario.latitudine }};
+  const lon = {{ apiario.longitudine }};
+  const map = L.map('apiario-minimap', {
+    center: [lat, lon],
+    zoom: 14,
+    zoomControl: false,
+    attributionControl: false,
+    dragging: false,
+    scrollWheelZoom: false,
+    doubleClickZoom: false,
+    touchZoom: false,
+    keyboard: false,
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+  }).addTo(map);
+
+  // Honey-style marker
+  const icon = L.divIcon({
+    className: '',
+    html: '<div class="honey-marker-pin"></div>',
+    iconSize: [22, 22],
+    iconAnchor: [11, 22],
+  });
+  L.marker([lat, lon], { icon }).addTo(map)
+    .bindPopup('<strong>{{ apiario.nome|escapejs }}</strong>{% if apiario.posizione %}<br><small>{{ apiario.posizione|escapejs }}</small>{% endif %}');
+
+  // Raggio volo api (3km) — semicerchio dorato sottile
+  L.circle([lat, lon], {
+    radius: 3000,
+    color: '#F5A623',
+    weight: 1.5,
+    opacity: .5,
+    fillColor: '#F5A623',
+    fillOpacity: .06,
+  }).addTo(map);
+});
+</script>
+{% endif %}
 
 {% endblock %}
