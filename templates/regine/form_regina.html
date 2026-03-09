@@ -5,33 +5,19 @@
 {% block title %}{% if is_new %}Nuova Regina{% else %}Modifica Regina{% endif %} - Gestione Apiario{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <h1>
-            {% if is_new %}
-                <i class="bi bi-plus-circle"></i> Aggiungi Regina
-            {% else %}
-                <i class="bi bi-pencil"></i> Modifica Regina
-            {% endif %}
-        </h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'visualizza_regina' arnia.id %}">Regina Arnia #{{ arnia.numero }}</a></li>
-                <li class="breadcrumb-item active">
-                    {% if is_new %}Aggiungi Regina{% else %}Modifica Regina{% endif %}
-                </li>
-            </ol>
-        </nav>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if is_new %}👑 Aggiungi Regina{% else %}✏️ Modifica Regina{% endif %}</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'visualizza_regina' arnia.id %}">Regina #{{ arnia.numero }}</a> › {% if is_new %}Aggiungi{% else %}Modifica{% endif %}</p>
+  </div>
+  <a href="{% url 'visualizza_regina' arnia.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Annulla</a>
 </div>
 
 <div class="row">
     <div class="col-md-8">
         <div class="card">
-            <div class="card-header bg-warning text-dark">
-                <h5 class="mb-0"><i class="bi bi-crown"></i> Dati Regina</h5>
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-crown me-2"></i>Dati Regina</h5>
             </div>
             <div class="card-body">
                 <form method="post">
@@ -60,8 +46,8 @@
                     </div>
                     
                     <div class="card mb-4">
-                        <div class="card-header bg-light">
-                            <h6 class="mb-0">Marcatura</h6>
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-tag me-2"></i>Marcatura</h6>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -88,8 +74,8 @@
                     </div>
                     
                     <div class="card mb-4">
-                        <div class="card-header bg-light">
-                            <h6 class="mb-0">Valutazione</h6>
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-star me-2"></i>Valutazione</h6>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -115,18 +101,9 @@
                         {{ form.note|as_crispy_field }}
                     </div>
                     
-                    <div class="d-flex justify-content-between">
-                        <a href="{% url 'visualizza_regina' arnia.id %}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Annulla
-                        </a>
-                        
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check-circle"></i> 
-                            {% if is_new %}
-                                Aggiungi Regina
-                            {% else %}
-                                Salva Modifiche
-                            {% endif %}
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-1"></i>{% if is_new %}Aggiungi Regina{% else %}Salva Modifiche{% endif %}
                         </button>
                     </div>
                 </form>
@@ -136,8 +113,8 @@
     
     <div class="col-md-4">
         <div class="card mb-4">
-            <div class="card-header {% if arnia.colore == 'giallo' %}bg-warning text-dark{% elif arnia.colore == 'blu' %}bg-primary text-white{% elif arnia.colore == 'verde' %}bg-success text-white{% elif arnia.colore == 'rosso' %}bg-danger text-white{% elif arnia.colore == 'bianco' %}bg-light text-dark{% elif arnia.colore == 'nero' %}bg-dark text-white{% elif arnia.colore == 'arancione' %}bg-orange text-white{% elif arnia.colore == 'viola' %}bg-purple text-white{% else %}bg-secondary text-white{% endif %}">
-                <h5 class="mb-0">Arnia #{{ arnia.numero }}</h5>
+            <div class="card-header" {% if arnia.colore_hex %}style="background-color:{{ arnia.colore_hex }}20; border-left:4px solid {{ arnia.colore_hex }};"{% endif %}>
+                <h5 class="mb-0"><i class="bi bi-box me-2"></i>Arnia #{{ arnia.numero }}</h5>
             </div>
             <div class="card-body">
                 <p><strong>Apiario:</strong> {{ apiario.nome }}</p>
@@ -147,8 +124,8 @@
         </div>
         
         <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Guida alla Regina</h5>
             </div>
             <div class="card-body">
                 <p>Registra le informazioni sulla regina dell'arnia:</p>

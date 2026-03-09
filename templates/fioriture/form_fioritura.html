@@ -5,35 +5,18 @@
 {% block title %}{% if form.instance.pk %}Modifica{% else %}Nuova{% endif %} Fioritura - Gestione Apiario{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <h1>
-            {% if form.instance.pk %}
-                <i class="bi bi-pencil-square"></i> Modifica Fioritura
-            {% else %}
-                <i class="bi bi-plus-circle"></i> Nuova Fioritura
-            {% endif %}
-        </h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'gestione_fioriture' %}">Fioriture</a></li>
-                <li class="breadcrumb-item active">
-                    {% if form.instance.pk %}
-                        Modifica
-                    {% else %}
-                        Nuova
-                    {% endif %}
-                </li>
-            </ol>
-        </nav>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if form.instance.pk %}✏️ Modifica Fioritura{% else %}🌸 Nuova Fioritura{% endif %}</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'gestione_fioriture' %}">Fioriture</a> › {% if form.instance.pk %}Modifica{% else %}Nuova{% endif %}</p>
+  </div>
+  <a href="{% url 'gestione_fioriture' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Annulla</a>
 </div>
 
 <div class="row">
     <div class="col-md-8">
         <div class="card">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header">
                 <h5 class="mb-0">Informazioni Fioritura</h5>
             </div>
             <div class="card-body">
@@ -109,7 +92,7 @@
     
     <div class="col-md-4">
         <div class="card">
-            <div class="card-header bg-info text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
             </div>
             <div class="card-body">

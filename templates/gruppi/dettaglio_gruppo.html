@@ -5,57 +5,43 @@
 {% block title %}{{ gruppo.nome }} - Gestione Apiario{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1><i class="bi bi-people"></i> {{ gruppo.nome }}</h1>
-                <div class="d-flex align-items-center mb-3">
-                    {% if gruppo.immagine_profilo %}
-                        <img src="{{ gruppo.immagine_profilo.immagine.url }}" alt="{{ gruppo.nome }}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-right: 15px; border: 3px solid white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
-                    {% else %}
-                        <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #6c757d; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                            <i class="bi bi-people-fill text-white" style="font-size: 1.8rem;"></i>
-                        </div>
-                    {% endif %}
-                    <h1><i class="bi bi-people"></i> {{ gruppo.nome }}</h1>
-                </div>
-            <div>
-                <a href="{% url 'gestione_gruppi' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Torna ai Gruppi
-                </a>
-                {% if is_admin %}
-                    <button type="button" class="btn btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#modifyGroupModal">
-                        <i class="bi bi-pencil"></i> Modifica Gruppo
-                    </button>
-                    <button type="button" class="btn btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#deleteGroupModal">
-                        <i class="bi bi-trash"></i> Elimina Gruppo
-                    </button>
-                {% endif %}
-            </div>
-        </div>
-        <p class="text-muted">
-            <span class="badge bg-info">{{ membri.count }} membri</span>
-            {% if gruppo.creatore == user %}
-                <span class="badge bg-success">Sei il creatore di questo gruppo</span>
-            {% endif %}
-            <span class="badge bg-secondary">
-                Ruolo: 
-                {% for membro in membri %}
-                    {% if membro.utente == user %}
-                        {{ membro.get_ruolo_display }}
-                    {% endif %}
-                {% endfor %}
-            </span>
-        </p>
-        <p>{{ gruppo.descrizione }}</p>
+<div class="page-header">
+  <div class="d-flex align-items-center gap-3">
+    {% if gruppo.immagine_profilo %}
+      <img src="{{ gruppo.immagine_profilo.immagine.url }}" alt="{{ gruppo.nome }}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:3px solid var(--honey,#F5A623);">
+    {% else %}
+      <div style="width:56px;height:56px;border-radius:50%;background:var(--honey,#F5A623);display:flex;align-items:center;justify-content:center;">
+        <i class="bi bi-people-fill text-white" style="font-size:1.6rem;"></i>
+      </div>
+    {% endif %}
+    <div>
+      <h1 class="page-title mb-0">👥 {{ gruppo.nome }}</h1>
+      <p class="page-subtitle mb-0">
+        <a href="{% url 'gestione_gruppi' %}">Gruppi</a> › {{ gruppo.nome }}
+        <span class="badge bg-secondary ms-2">{{ membri.count }} membri</span>
+        {% if gruppo.creatore == user %}<span class="badge bg-warning text-dark ms-1">Creatore</span>{% endif %}
+      </p>
+      {% if gruppo.descrizione %}<p class="text-muted mb-0 small mt-1">{{ gruppo.descrizione }}</p>{% endif %}
     </div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'gestione_gruppi' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Gruppi</a>
+    {% if is_admin %}
+      <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modifyGroupModal">
+        <i class="bi bi-pencil me-1"></i> Modifica
+      </button>
+      <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteGroupModal">
+        <i class="bi bi-trash me-1"></i> Elimina
+      </button>
+    {% endif %}
+  </div>
 </div>
 
 <div class="row">
     <div class="col-md-8">
         <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="bi bi-people"></i> Membri del Gruppo</h5>
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-people me-2"></i>Membri del Gruppo</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -126,8 +112,8 @@
         
         <!-- Sezione Apiari condivisi -->
         <div class="card mb-4">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="bi bi-grid"></i> Apiari Condivisi nel Gruppo</h5>
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-grid me-2"></i>Apiari Condivisi</h5>
             </div>
             <div class="card-body">
                 {% if apiari_gruppo %}
@@ -156,8 +142,8 @@
     <div class="col-md-4">
         {% if is_admin %}
             <div class="card mb-4">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="bi bi-person-plus"></i> Invita Nuovi Membri</h5>
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-person-plus me-2"></i>Invita Nuovi Membri</h5>
                 </div>
                 <div class="card-body">
                     <form method="post">
@@ -166,8 +152,8 @@
                         
                         {{ form_invito|crispy }}
                         
-                        <button type="submit" class="btn btn-success w-100">
-                            <i class="bi bi-envelope"></i> Invia Invito
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-envelope me-1"></i> Invia Invito
                         </button>
                     </form>
                 </div>
@@ -176,8 +162,8 @@
         
         {% if inviti_attivi %}
             <div class="card mb-4">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><i class="bi bi-envelope-open"></i> Inviti in Attesa</h5>
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-envelope-open me-2"></i>Inviti in Attesa</h5>
                 </div>
                 <div class="card-body">
                     <div class="list-group">
@@ -203,8 +189,8 @@
         {% endif %}
         
         <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni sui Ruoli</h5>
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Ruoli del Gruppo</h5>
             </div>
             <div class="card-body">
                 <p>I membri del gruppo possono avere diversi livelli di accesso:</p>
@@ -247,8 +233,8 @@
 <div class="modal fade" id="deleteGroupModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">Conferma Eliminazione</h5>
+            <div class="modal-header">
+                <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Conferma Eliminazione</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

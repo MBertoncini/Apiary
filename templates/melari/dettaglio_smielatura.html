@@ -4,24 +4,18 @@
 {% block title %}Dettaglio Smielatura - {{ smielatura.data|date:"d/m/Y" }}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <h1><i class="bi bi-droplet"></i> Dettaglio Smielatura</h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'gestione_melari' apiario.id %}">Gestione Melari</a></li>
-                <li class="breadcrumb-item active">Dettaglio Smielatura</li>
-            </ol>
-        </nav>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">💧 Dettaglio Smielatura</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'gestione_melari' apiario.id %}">Melari</a> › Smielatura</p>
+  </div>
+  <a href="{% url 'gestione_melari' apiario.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Torna ai Melari</a>
 </div>
 
 <div class="row">
     <div class="col-md-8">
         <div class="card mb-4">
-            <div class="card-header bg-warning text-dark">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-droplet"></i> Dati Smielatura</h5>
             </div>
             <div class="card-body">
@@ -48,7 +42,7 @@
         </div>
         
         <div class="card">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-archive"></i> Melari Smielati</h5>
             </div>
             <div class="card-body">
@@ -94,7 +88,7 @@
     
     <div class="col-md-4">
         <div class="card">
-            <div class="card-header bg-success text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-calculator"></i> Statistiche</h5>
             </div>
             <div class="card-body">

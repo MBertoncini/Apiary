@@ -5,24 +5,18 @@
 {% block title %}Sostituzione Regina - Gestione Apiario{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <h1><i class="bi bi-arrow-repeat"></i> Sostituzione Regina</h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'visualizza_regina' arnia.id %}">Regina Arnia #{{ arnia.numero }}</a></li>
-                <li class="breadcrumb-item active">Sostituzione Regina</li>
-            </ol>
-        </nav>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🔄 Sostituzione Regina</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'visualizza_regina' arnia.id %}">Regina #{{ arnia.numero }}</a> › Sostituzione</p>
+  </div>
+  <a href="{% url 'visualizza_regina' arnia.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Annulla</a>
 </div>
 
 <div class="row">
     <div class="col-md-8">
         <div class="card">
-            <div class="card-header bg-warning text-dark">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-arrow-repeat"></i> Dati Sostituzione</h5>
             </div>
             <div class="card-body">
@@ -37,7 +31,7 @@
                     {% csrf_token %}
                     
                     <div class="card mb-4">
-                        <div class="card-header bg-light">
+                        <div class="card-header">
                             <h6 class="mb-0">Informazioni sulla Regina Attuale</h6>
                         </div>
                         <div class="card-body">
@@ -136,7 +130,7 @@
     
     <div class="col-md-4">
         <div class="card mb-4">
-            <div class="card-header bg-danger text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Attenzione</h5>
             </div>
             <div class="card-body">
@@ -156,7 +150,7 @@
         </div>
         
         <div class="card">
-            <div class="card-header bg-info text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-info-circle"></i> Codici Colore Standard</h5>
             </div>
             <div class="card-body">

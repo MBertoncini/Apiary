@@ -152,70 +152,50 @@
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1><i class="bi bi-calendar-week"></i> Calendario Apiario</h1>
-            <div>
-                <!-- Dropdown per la selezione dell'apiario -->
-                <div class="dropdown d-inline-block me-2">
-                    <button class="btn btn-outline-primary dropdown-toggle" type="button" id="apiarioDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        {% if apiario %}
-                            {{ apiario.nome }}
-                        {% else %}
-                            Tutti gli apiari
-                        {% endif %}
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="apiarioDropdown">
-                        <li><a class="dropdown-item {% if not apiario %}active{% endif %}" href="{% url 'calendario_apiario' %}">Tutti gli apiari</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        {% for ap in apiari %}
-                            <li><a class="dropdown-item {% if apiario and apiario.id == ap.id %}active{% endif %}" href="{% url 'calendario_apiario' ap.id %}">{{ ap.nome }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                
-                <!-- Dropdown per la selezione del gruppo -->
-                {% if gruppi %}
-                <div class="dropdown d-inline-block me-2">
-                    <button class="btn btn-outline-success dropdown-toggle" type="button" id="gruppoDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        {% if gruppo %}
-                            {{ gruppo.nome }}
-                        {% else %}
-                            Seleziona Gruppo
-                        {% endif %}
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="gruppoDropdown">
-                        <li><a class="dropdown-item {% if not gruppo %}active{% endif %}" href="{% url 'calendario_apiario' %}{% if apiario %}{{ apiario.id }}{% endif %}">Tutti i gruppi</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        {% for g in gruppi %}
-                            <li><a class="dropdown-item {% if gruppo.id == g.id %}active{% endif %}" href="{% url 'calendario_apiario' %}{% if apiario %}{{ apiario.id }}{% endif %}?gruppo_id={{ g.id }}">{{ g.nome }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-
-                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Dashboard
-                </a>
-            </div>
-        </div>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                {% if apiario %}
-                    <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
-                {% endif %}
-                <li class="breadcrumb-item active">Calendario</li>
-            </ol>
-        </nav>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">📅 Calendario Apiario</h1>
+    <p class="page-subtitle">
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      {% if apiario %} › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a>{% endif %}
+       › Calendario
+    </p>
+  </div>
+  <div class="d-flex gap-2 align-items-center flex-wrap">
+    <div class="dropdown">
+      <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        {% if apiario %}{{ apiario.nome }}{% else %}Tutti gli apiari{% endif %}
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><a class="dropdown-item {% if not apiario %}active{% endif %}" href="{% url 'calendario_apiario' %}">Tutti gli apiari</a></li>
+        <li><hr class="dropdown-divider"></li>
+        {% for ap in apiari %}
+          <li><a class="dropdown-item {% if apiario and apiario.id == ap.id %}active{% endif %}" href="{% url 'calendario_apiario' ap.id %}">{{ ap.nome }}</a></li>
+        {% endfor %}
+      </ul>
     </div>
+    {% if gruppi %}
+    <div class="dropdown">
+      <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        {% if gruppo %}{{ gruppo.nome }}{% else %}Tutti i gruppi{% endif %}
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li><a class="dropdown-item {% if not gruppo %}active{% endif %}" href="{% url 'calendario_apiario' %}{% if apiario %}{{ apiario.id }}{% endif %}">Tutti i gruppi</a></li>
+        <li><hr class="dropdown-divider"></li>
+        {% for g in gruppi %}
+          <li><a class="dropdown-item {% if gruppo.id == g.id %}active{% endif %}" href="{% url 'calendario_apiario' %}{% if apiario %}{{ apiario.id }}{% endif %}?gruppo_id={{ g.id }}">{{ g.nome }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Dashboard</a>
+  </div>
 </div>
 
 <div class="row">
     <div class="col-md-9">
         <div class="card">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-calendar3"></i> Calendario Eventi</h5>
                     <div>
@@ -269,7 +249,7 @@
     
     <div class="col-md-3">
         <div class="card sticky-top" style="top: 20px;">
-            <div class="card-header bg-info text-white">
+            <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-funnel"></i> Filtri</h5>
             </div>
             <div class="card-body">

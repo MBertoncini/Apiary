@@ -5,30 +5,21 @@
 {% block title %}Nuovo Controllo Arnia - Gestione Apiario{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <h1>
-            {% if is_edit %}
-                <i class="bi bi-pencil"></i> Modifica Controllo
-            {% else %}
-                <i class="bi bi-clipboard-check"></i> Nuovo Controllo
-            {% endif %}
-        </h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' arnia.apiario.id %}">{{ arnia.apiario.nome }}</a></li>
-                <li class="breadcrumb-item active">Controllo Arnia #{{ arnia.numero }}</li>
-            </ol>
-        </nav>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if is_edit %}✏️ Modifica Controllo{% else %}📋 Nuovo Controllo{% endif %}</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' arnia.apiario.id %}">{{ arnia.apiario.nome }}</a> › Arnia #{{ arnia.numero }}</p>
+  </div>
+  <a href="{% url 'visualizza_apiario' arnia.apiario.id %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Torna all'Apiario
+  </a>
 </div>
 
 <div class="row">
     <div class="col-md-8">
         <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Dati del Controllo</h5>
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Dati del Controllo</h5>
             </div>
             <div class="card-body">
                 <form method="post" id="controlloForm">
@@ -51,8 +42,8 @@
                     
                     <!-- Inizio personalizzatore arnia -->
                     <div class="card mb-4">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0"><i class="bi bi-grid-3x3"></i> Configurazione Telaini</h5>
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-grid-3x3 me-2"></i>Configurazione Telaini</h5>
                         </div>
                         <div class="card-body">
                             <!-- Tool selector buttons -->
@@ -166,8 +157,8 @@
     
     <div class="col-md-4">
         <div class="card mb-4">
-            <div class="card-header {% if arnia.colore == 'giallo' %}bg-warning text-dark{% elif arnia.colore == 'blu' %}bg-primary text-white{% elif arnia.colore == 'verde' %}bg-success text-white{% elif arnia.colore == 'rosso' %}bg-danger text-white{% elif arnia.colore == 'bianco' %}bg-light text-dark{% elif arnia.colore == 'nero' %}bg-dark text-white{% elif arnia.colore == 'arancione' %}bg-orange text-white{% elif arnia.colore == 'viola' %}bg-purple text-white{% else %}bg-secondary text-white{% endif %}">
-                <h5 class="mb-0">Arnia #{{ arnia.numero }}</h5>
+            <div class="card-header" {% if arnia.colore_hex %}style="background-color:{{ arnia.colore_hex }}20; border-left: 4px solid {{ arnia.colore_hex }};"{% endif %}>
+                <h5 class="mb-0"><i class="bi bi-box me-2"></i>Arnia #{{ arnia.numero }}</h5>
             </div>
             <div class="card-body">
                 <p><strong>Apiario:</strong> {{ arnia.apiario.nome }}</p>
@@ -180,8 +171,8 @@
         </div>
         
         <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Guida al Controllo</h5>
             </div>
             <div class="card-body">
                 <p>

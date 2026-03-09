@@ -5,34 +5,24 @@
 {% block title %}{% if form.instance.pk %}Modifica{% else %}Nuovo{% endif %} Apiario - Gestione Apiario{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <h1>
-            {% if form.instance.pk %}
-                <i class="bi bi-pencil-square"></i> Modifica Apiario
-            {% else %}
-                <i class="bi bi-plus-circle"></i> Nuovo Apiario
-            {% endif %}
-        </h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                {% if form.instance.pk %}
-                    <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' form.instance.pk %}">{{ form.instance.nome }}</a></li>
-                    <li class="breadcrumb-item active">Modifica</li>
-                {% else %}
-                    <li class="breadcrumb-item active">Nuovo Apiario</li>
-                {% endif %}
-            </ol>
-        </nav>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if form.instance.pk %}✏️ Modifica Apiario{% else %}🏡 Nuovo Apiario{% endif %}</h1>
+    <p class="page-subtitle">
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      {% if form.instance.pk %} › <a href="{% url 'visualizza_apiario' form.instance.pk %}">{{ form.instance.nome }}</a> › Modifica{% else %} › Nuovo Apiario{% endif %}
+    </p>
+  </div>
+  <a href="{% if form.instance.pk %}{% url 'visualizza_apiario' form.instance.pk %}{% else %}{% url 'dashboard' %}{% endif %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Annulla
+  </a>
 </div>
 
 <div class="row">
     <div class="col-md-8">
         <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Informazioni Apiario</h5>
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informazioni Apiario</h5>
             </div>
             <div class="card-body">
                 <form method="post">
@@ -67,12 +57,8 @@
                         {{ form.note|as_crispy_field }}
                     </div>
                     
-                    <div class="d-flex justify-content-between">
-                        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Annulla
-                        </a>
-                        
-                        <button type="submit" class="btn btn-success">
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle"></i> 
                             {% if form.instance.pk %}
                                 Aggiorna Apiario
@@ -88,8 +74,8 @@
     
     <div class="col-md-4">
         <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Suggerimenti</h5>
             </div>
             <div class="card-body">
                 <p>

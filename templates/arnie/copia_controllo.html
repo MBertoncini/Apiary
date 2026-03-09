@@ -4,23 +4,18 @@
 {% block title %}Copia Controllo - Gestione Apiario{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <h1>Copia Controllo su Altre Arnie</h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' controllo.arnia.apiario.id %}">{{ controllo.arnia.apiario.nome }}</a></li>
-                <li class="breadcrumb-item active">Copia Controllo</li>
-            </ol>
-        </nav>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">📋 Copia Controllo</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' controllo.arnia.apiario.id %}">{{ controllo.arnia.apiario.nome }}</a> › Copia Controllo</p>
+  </div>
+  <a href="{% url 'visualizza_apiario' controllo.arnia.apiario.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Torna all'Apiario</a>
 </div>
 
 <div class="row">
     <div class="col-md-4">
         <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header">
                 <h5 class="mb-0">Dettagli Controllo da Copiare</h5>
             </div>
             <div class="card-body">
@@ -62,7 +57,7 @@
     
     <div class="col-md-8">
         <div class="card">
-            <div class="card-header bg-success text-white">
+            <div class="card-header">
                 <h5 class="mb-0">Seleziona Arnie di Destinazione</h5>
             </div>
             <div class="card-body">

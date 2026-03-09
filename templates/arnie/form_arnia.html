@@ -5,41 +5,30 @@
 {% block title %}{% if form.instance.pk %}Modifica{% else %}Nuova{% endif %} Arnia - Gestione Apiario{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <h1>
-            {% if form.instance.pk %}
-                <i class="bi bi-pencil-square"></i> Modifica Arnia
-            {% else %}
-                <i class="bi bi-plus-circle"></i> Nuova Arnia
-            {% endif %}
-        </h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                {% if form.instance.apiario %}
-                    <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' form.instance.apiario.id %}">{{ form.instance.apiario.nome }}</a></li>
-                {% elif form.initial.apiario %}
-                    <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' form.initial.apiario %}">Apiario</a></li>
-                {% endif %}
-                <li class="breadcrumb-item active">
-                    {% if form.instance.pk %}
-                        Modifica Arnia #{{ form.instance.numero }}
-                    {% else %}
-                        Nuova Arnia
-                    {% endif %}
-                </li>
-            </ol>
-        </nav>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if form.instance.pk %}✏️ Modifica Arnia #{{ form.instance.numero }}{% else %}🐝 Nuova Arnia{% endif %}</h1>
+    <p class="page-subtitle">
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      {% if form.instance.apiario %} › <a href="{% url 'visualizza_apiario' form.instance.apiario.id %}">{{ form.instance.apiario.nome }}</a>{% elif form.initial.apiario %} › <a href="{% url 'visualizza_apiario' form.initial.apiario %}">Apiario</a>{% endif %}
+      › {% if form.instance.pk %}Modifica{% else %}Nuova Arnia{% endif %}
+    </p>
+  </div>
+  {% if form.instance.apiario %}
+    <a href="{% url 'visualizza_apiario' form.instance.apiario.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Annulla</a>
+  {% elif form.initial.apiario %}
+    <a href="{% url 'visualizza_apiario' form.initial.apiario %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Annulla</a>
+  {% else %}
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Annulla</a>
+  {% endif %}
 </div>
 
 <div class="row">
     <div class="col-md-8">
         <div class="card">
-            <div class="card-header {% if form.instance.colore_hex %}bg-custom text-white{% else %}bg-primary text-white{% endif %}" 
-                 {% if form.instance.colore_hex %}style="background-color: {{ form.instance.colore_hex }} !important;"{% endif %}>
-                <h5 class="mb-0">Informazioni Arnia</h5>
+            <div class="card-header" id="arniaCardHeader"
+                 {% if form.instance.colore_hex %}style="background-color: {{ form.instance.colore_hex }}20; border-left: 4px solid {{ form.instance.colore_hex }};"{% endif %}>
+                <h5 class="mb-0"><i class="bi bi-box me-2"></i>Informazioni Arnia</h5>
             </div>
             <div class="card-body">
                 <form method="post" id="arniaForm">
@@ -85,22 +74,8 @@
                         {{ form.attiva|as_crispy_field }}
                     </div>
                     
-                    <div class="d-flex justify-content-between">
-                        {% if form.instance.apiario %}
-                            <a href="{% url 'visualizza_apiario' form.instance.apiario.id %}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Annulla
-                            </a>
-                        {% elif form.initial.apiario %}
-                            <a href="{% url 'visualizza_apiario' form.initial.apiario %}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Annulla
-                            </a>
-                        {% else %}
-                            <a href="{% url 'dashboard' %}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Annulla
-                            </a>
-                        {% endif %}
-                        
-                        <button type="submit" class="btn btn-success">
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle"></i> 
                             {% if form.instance.pk %}
                                 Aggiorna Arnia
@@ -116,8 +91,8 @@
     
     <div class="col-md-4">
         <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Suggerimenti</h5>
             </div>
             <div class="card-body">
                 <p>
@@ -163,7 +138,7 @@
         const coloreHexField = document.querySelector('.color-hex-field');
         const coloreHexInput = document.getElementById('id_colore_hex');
         const colorPreview = document.getElementById('colorPreview');
-        const cardHeader = document.querySelector('.card-header');
+        const cardHeader = document.getElementById('arniaCardHeader');
         
         function updateColorVisibility() {
             if (coloreSelect.value === 'altro') {
@@ -183,21 +158,8 @@
             colorPreview.style.backgroundColor = selectedColor;
             
             // Aggiorna anche l'intestazione della card
-            cardHeader.style.backgroundColor = selectedColor;
-            cardHeader.classList.add('bg-custom', 'text-white');
-            
-            // Cambia il colore del testo in base alla luminosità del colore di sfondo
-            const rgb = hexToRgb(selectedColor);
-            if (rgb) {
-                const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
-                if (brightness > 128) {
-                    cardHeader.classList.remove('text-white');
-                    cardHeader.classList.add('text-dark');
-                } else {
-                    cardHeader.classList.remove('text-dark');
-                    cardHeader.classList.add('text-white');
-                }
-            }
+            cardHeader.style.backgroundColor = selectedColor + '20';
+            cardHeader.style.borderLeft = '4px solid ' + selectedColor;
         }
         
         function hexToRgb(hex) {
