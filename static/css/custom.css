@@ -571,6 +571,9 @@ body.sidebar-hidden .main-content { margin-left: 0; }
 .btn-sm { font-size: 0.8rem; padding: 5px 12px; border-radius: 6px; }
 .btn-lg { font-size: 1rem; padding: 12px 28px; border-radius: 10px; }
 
+.btn-amber         { background: var(--honey); color: white; border: none; border-radius: 8px; font-weight: 600; transition: all .2s; }
+.btn-amber:hover   { background: var(--honey-dark); color: white; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,166,35,.35); }
+
 .btn-primary         { background: var(--honey); color: white; border: none; }
 .btn-primary:hover   { background: var(--honey-dark); color: white; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245,166,35,0.35); }
 .btn-primary:active  { background: var(--honey-darker); color: white; transform: translateY(0); }

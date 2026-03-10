@@ -155,4 +155,7 @@ urlpatterns = [
     path('ai/chat/', ai_views.chat_ai, name='ai_chat'),
     path('ai/voice/', ai_views.voice_ai, name='ai_voice'),
     path('ai/analisi-telaino/', ai_views.analisi_telaino, name='analisi_telaino'),
+    path('ai/controllo-vocale/', ai_views.voice_controllo_page, name='controllo_vocale'),
+    path('ai/voice-process/', ai_views.voice_process, name='voice_process'),
+    path('ai/voice-save/', ai_views.voice_save, name='voice_save'),
 ]

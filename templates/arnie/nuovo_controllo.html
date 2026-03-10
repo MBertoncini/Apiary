@@ -10,9 +10,50 @@
     <h1 class="page-title">{% if is_edit %}✏️ Modifica Controllo{% else %}📋 Nuovo Controllo{% endif %}</h1>
     <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' arnia.apiario.id %}">{{ arnia.apiario.nome }}</a> › Arnia #{{ arnia.numero }}</p>
   </div>
-  <a href="{% url 'visualizza_apiario' arnia.apiario.id %}" class="btn btn-outline-secondary">
-    <i class="bi bi-arrow-left me-1"></i> Torna all'Apiario
-  </a>
+  <div class="d-flex gap-2">
+    <button class="btn btn-amber" id="vc-fill-btn" title="Compila con voce">
+      <i class="bi bi-mic-fill me-1"></i> Compila con voce
+    </button>
+    <a href="{% url 'visualizza_apiario' arnia.apiario.id %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Torna all'Apiario
+    </a>
+  </div>
+</div>
+
+<!-- Apiario ID nascosto per il contesto AI -->
+<input type="hidden" id="vc-form-apiario-id" value="{{ arnia.apiario.id }}">
+
+<!-- ══ MODAL VOICE FILL ══════════════════════════════════════════════════ -->
+<div class="modal fade" id="voiceFillModal" tabindex="-1" aria-labelledby="voiceFillModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#2C1810,#3d2215);color:#F5A623;">
+        <h5 class="modal-title" id="voiceFillModalLabel" style="font-family:'Caveat',cursive;font-size:1.3rem;">
+          <i class="bi bi-mic-fill me-2"></i>Compila con voce — Arnia #{{ arnia.numero }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="text-muted small mb-3">
+          Parla liberamente: "{{ arnia.apiario.nome }}, 4 telaini covata, 3 scorte, regina presente, famiglia forte"
+        </p>
+        <button class="btn btn-danger btn-lg rounded-pill px-4" id="vf-record-btn" style="min-width:160px">
+          <i class="bi bi-mic-fill me-2"></i>Registra
+        </button>
+        <p class="small mt-3 mb-2" id="vf-status" style="min-height:20px">Clicca il microfono e parla</p>
+        <div class="vf-transcript-box mt-2" id="vf-transcript" style="
+          background:#f7f3ec; border:1px solid #EAD9BF; border-radius:10px;
+          padding:12px 14px; min-height:52px; font-size:.88rem; color:#3a2a1a;
+          text-align:left; white-space:pre-wrap;">…</div>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+        <button type="button" class="btn btn-success" id="vf-apply-btn" style="display:none">
+          <i class="bi bi-check-circle me-1"></i>Applica al form
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="row">
@@ -585,4 +626,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 </script>
+
+<!-- Voice Fill JS -->
+<script>
+  const VOICE_PROCESS_URL = "{% url 'voice_process' %}";
+  const VOICE_SAVE_URL    = "{% url 'voice_save' %}";
+</script>
+<script src="{% static 'js/voice-controllo.js' %}"></script>
 {% endblock %}

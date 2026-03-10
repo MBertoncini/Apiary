@@ -8,52 +8,99 @@
   .drop-zone {
     border: 2px dashed var(--amber, #F5A623);
     border-radius: 12px;
-    padding: 3rem 2rem;
+    padding: 2.5rem 1.5rem;
     text-align: center;
     cursor: pointer;
-    transition: background .2s;
+    transition: background .2s, border-color .2s;
     background: var(--cream, #FFFDF5);
+    position: relative;
   }
-  .drop-zone.dragover { background: #FFF3D6; }
-  .drop-zone img.preview {
-    max-height: 320px;
+  .drop-zone.dragover { background: #FFF3D6; border-color: #e8920f; }
+
+  #previewImg {
+    max-height: 260px;
     max-width: 100%;
     border-radius: 8px;
     display: none;
     margin: 0 auto;
-  }
-  .drop-zone .placeholder { color: #999; }
-
-  .analysis-card { animation: fadeInUp .4s ease; }
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
+    object-fit: contain;
   }
 
-  .yolo-badge {
-    display: inline-block;
-    background: var(--amber, #F5A623);
-    color: #fff;
-    font-size: .75rem;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 20px;
-    margin: 2px;
+  /* Annotated image risultato YOLO */
+  #annotatedImg {
+    width: 100%;
+    border-radius: 10px;
+    border: 2px solid #EAD9BF;
+    display: block;
   }
 
   .analysis-text {
     white-space: pre-wrap;
     font-family: 'Poppins', sans-serif;
-    font-size: .92rem;
-    line-height: 1.7;
+    font-size: .9rem;
+    line-height: 1.75;
     color: #3a2a1a;
   }
 
-  .model-badge {
-    font-size: .72rem;
-    color: #aaa;
-    font-style: italic;
+  .yolo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #fff;
+    border: 1.5px solid #EAD9BF;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: .82rem;
+    font-weight: 600;
+    color: #2C1810;
+    margin: 3px;
   }
+  .yolo-badge .count {
+    background: #F5A623;
+    color: #fff;
+    border-radius: 50%;
+    width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .78rem;
+    font-weight: 700;
+  }
+
+  .class-icon { font-size: 1rem; }
+
+  .model-badge { font-size: .72rem; color: #bbb; font-style: italic; }
+
+  .result-card { animation: fadeIn .35s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } }
+
+  #loadingOverlay {
+    display: none;
+    position: absolute; inset: 0;
+    background: rgba(255,253,245,.85);
+    border-radius: 12px;
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 10px;
+    z-index: 10;
+  }
+  #loadingOverlay.show { display: flex; }
+
+  .step-list { list-style: none; padding: 0; margin: 0; }
+  .step-list li {
+    padding: 6px 12px 6px 32px;
+    position: relative;
+    color: #888;
+    font-size: .85rem;
+    transition: color .3s;
+  }
+  .step-list li::before {
+    content: '○';
+    position: absolute; left: 8px;
+    color: #ccc;
+    transition: color .3s, content .3s;
+  }
+  .step-list li.done { color: #2C1810; }
+  .step-list li.done::before { content: '✓'; color: #F5A623; }
+  .step-list li.active { color: #F5A623; font-weight: 600; }
+  .step-list li.active::before { content: '◉'; color: #F5A623; }
 </style>
 {% endblock %}
 
@@ -61,61 +108,100 @@
 <div class="page-header">
   <div>
     <h1 class="page-title"><i class="bi bi-camera me-2"></i>Analisi Telaino</h1>
-    <p class="page-subtitle">Carica la foto di un telaino — l'AI lo analizza con Gemini Vision e il modello YOLO</p>
+    <p class="page-subtitle">Carica la foto di un telaino — YOLO rileva api/regine/celle reali, Gemini Vision analizza lo stato della covata</p>
   </div>
 </div>
 
 <div class="row g-4">
 
-  <!-- Upload column -->
-  <div class="col-lg-5">
-    <div class="card h-100">
-      <div class="card-body">
-        <h6 class="fw-semibold mb-3"><i class="bi bi-upload me-2 text-amber"></i>Carica immagine</h6>
+  <!-- ===== Colonna upload ===== -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-body" style="position:relative;">
 
-        <div class="drop-zone" id="dropZone">
-          <img id="previewImg" class="preview" alt="Anteprima">
-          <div class="placeholder" id="dropPlaceholder">
-            <i class="bi bi-image" style="font-size:2.5rem;color:#F5A623;"></i>
+        <!-- Drop zone -->
+        <div class="drop-zone mb-3" id="dropZone">
+          <img id="previewImg" alt="Anteprima">
+          <div id="dropPlaceholder">
+            <i class="bi bi-image" style="font-size:2.8rem;color:#F5A623;"></i>
             <p class="mt-2 mb-1 fw-medium">Trascina qui la foto</p>
-            <p class="small text-muted">oppure clicca per sceglierla</p>
+            <p class="small text-muted mb-0">oppure clicca per sceglierla</p>
+          </div>
+          <!-- Loading overlay sul drop zone -->
+          <div id="loadingOverlay">
+            <div class="spinner-border text-amber" style="width:2.5rem;height:2.5rem;" role="status"></div>
+            <div id="loadingMsg" class="small fw-semibold text-amber mt-1">Avvio…</div>
           </div>
         </div>
         <input type="file" id="imageInput" accept="image/*" style="display:none">
 
-        <div class="mt-3 d-grid">
+        <!-- Progress steps -->
+        <ul class="step-list mb-3" id="stepList" style="display:none">
+          <li id="step-upload">Caricamento immagine</li>
+          <li id="step-yolo">Segmentazione YOLO</li>
+          <li id="step-gemini">Analisi Gemini Vision</li>
+        </ul>
+
+        <div class="d-grid">
           <button class="btn btn-primary" id="analyzeBtn" disabled>
             <i class="bi bi-cpu me-2"></i>Analizza
           </button>
         </div>
 
-        <div id="loadingBlock" class="text-center mt-3" style="display:none">
-          <div class="spinner-border text-amber" role="status"></div>
-          <p class="small text-muted mt-2" id="loadingText">Analisi in corso…</p>
+      </div>
+    </div>
+
+    <!-- Classi YOLO info -->
+    <div class="card mt-3">
+      <div class="card-body">
+        <h6 class="fw-semibold mb-2" style="font-size:.85rem;color:#888;text-transform:uppercase;letter-spacing:.05em;">
+          Classi rilevate dal modello
+        </h6>
+        <div>
+          <span class="yolo-badge"><span class="class-icon">🐝</span> Operaia (bees)</span>
+          <span class="yolo-badge"><span class="class-icon">🐝</span> Fuco (drone)</span>
+          <span class="yolo-badge"><span class="class-icon">👑</span> Regina (queenbees)</span>
+          <span class="yolo-badge"><span class="class-icon">🔷</span> Cella reale (royal cell)</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Results column -->
-  <div class="col-lg-7" id="resultsCol" style="display:none">
+  <!-- ===== Colonna risultati ===== -->
+  <div class="col-lg-8" id="resultsCol" style="display:none">
 
-    <!-- Gemini analysis -->
-    <div class="card analysis-card mb-3">
+    <!-- Immagine annotata YOLO -->
+    <div class="card result-card mb-3" id="yoloImgCard" style="display:none">
       <div class="card-body">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <h6 class="fw-semibold mb-0"><i class="bi bi-stars me-2 text-amber"></i>Analisi AI</h6>
-          <span class="model-badge" id="modelUsed"></span>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="fw-semibold mb-0">
+            <i class="bi bi-grid-3x3-gap me-2 text-amber"></i>Segmentazione YOLO
+          </h6>
+          <div id="yoloBadges"></div>
         </div>
-        <p class="analysis-text" id="analysisText"></p>
+        <img id="annotatedImg" alt="Immagine annotata con maschere YOLO">
+        <p class="small text-muted mt-2 mb-0" id="yoloSubtitle"></p>
       </div>
     </div>
 
-    <!-- YOLO detections -->
-    <div class="card analysis-card" id="yoloCard" style="display:none">
+    <!-- Solo conteggi (se nessuna immagine annotata) -->
+    <div class="card result-card mb-3" id="yoloCountsCard" style="display:none">
       <div class="card-body">
         <h6 class="fw-semibold mb-2"><i class="bi bi-grid-3x3-gap me-2 text-amber"></i>Rilevamento YOLO</h6>
-        <div id="yoloContent"></div>
+        <div id="yoloCountsContent"></div>
+      </div>
+    </div>
+
+    <!-- Analisi Gemini -->
+    <div class="card result-card" id="geminiCard" style="display:none">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h6 class="fw-semibold mb-0">
+            <i class="bi bi-stars me-2 text-amber"></i>Analisi Gemini Vision
+          </h6>
+          <span class="model-badge" id="modelUsed"></span>
+        </div>
+        <p class="analysis-text mb-0" id="analysisText"></p>
       </div>
     </div>
 
@@ -125,38 +211,40 @@
 
 {% block extra_js %}
 <script>
-(function() {
-  const dropZone = document.getElementById('dropZone');
-  const imageInput = document.getElementById('imageInput');
-  const previewImg = document.getElementById('previewImg');
-  const dropPlaceholder = document.getElementById('dropPlaceholder');
-  const analyzeBtn = document.getElementById('analyzeBtn');
-  const loadingBlock = document.getElementById('loadingBlock');
-  const loadingText = document.getElementById('loadingText');
-  const resultsCol = document.getElementById('resultsCol');
-  const analysisText = document.getElementById('analysisText');
-  const modelUsed = document.getElementById('modelUsed');
-  const yoloCard = document.getElementById('yoloCard');
-  const yoloContent = document.getElementById('yoloContent');
+(function () {
+  const dropZone      = document.getElementById('dropZone');
+  const imageInput    = document.getElementById('imageInput');
+  const previewImg    = document.getElementById('previewImg');
+  const dropPH        = document.getElementById('dropPlaceholder');
+  const analyzeBtn    = document.getElementById('analyzeBtn');
+  const loadingOvl    = document.getElementById('loadingOverlay');
+  const loadingMsg    = document.getElementById('loadingMsg');
+  const stepList      = document.getElementById('stepList');
+  const resultsCol    = document.getElementById('resultsCol');
+  const annotatedImg  = document.getElementById('annotatedImg');
+  const yoloImgCard   = document.getElementById('yoloImgCard');
+  const yoloBadges    = document.getElementById('yoloBadges');
+  const yoloSubtitle  = document.getElementById('yoloSubtitle');
+  const yoloCountsCard   = document.getElementById('yoloCountsCard');
+  const yoloCountsContent = document.getElementById('yoloCountsContent');
+  const geminiCard    = document.getElementById('geminiCard');
+  const analysisText  = document.getElementById('analysisText');
+  const modelUsed     = document.getElementById('modelUsed');
 
+  const CLASS_ICONS = { bees: '🐝', drone: '🐝', queenbees: '👑', 'royal cell': '🔷' };
   let selectedFile = null;
 
-  // Click to open file picker
+  // ── File selection ──────────────────────────────────────────────────────
   dropZone.addEventListener('click', () => imageInput.click());
-
-  // Drag & drop
-  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
   dropZone.addEventListener('drop', e => {
     e.preventDefault();
     dropZone.classList.remove('dragover');
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) setFile(file);
+    const f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith('image/')) setFile(f);
   });
-
-  imageInput.addEventListener('change', () => {
-    if (imageInput.files[0]) setFile(imageInput.files[0]);
-  });
+  imageInput.addEventListener('change', () => { if (imageInput.files[0]) setFile(imageInput.files[0]); });
 
   function setFile(file) {
     selectedFile = file;
@@ -164,88 +252,125 @@
     reader.onload = e => {
       previewImg.src = e.target.result;
       previewImg.style.display = 'block';
-      dropPlaceholder.style.display = 'none';
+      dropPH.style.display = 'none';
     };
     reader.readAsDataURL(file);
     analyzeBtn.disabled = false;
+    // Reset results
+    resultsCol.style.display = 'none';
+    yoloImgCard.style.display = 'none';
+    yoloCountsCard.style.display = 'none';
+    geminiCard.style.display = 'none';
   }
 
-  // Analyze button
+  // ── Steps helper ────────────────────────────────────────────────────────
+  function setStep(id, state) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('done', 'active');
+    if (state) el.classList.add(state);
+  }
+
+  // ── Analyze ─────────────────────────────────────────────────────────────
   analyzeBtn.addEventListener('click', async () => {
     if (!selectedFile) return;
 
     analyzeBtn.disabled = true;
-    loadingBlock.style.display = 'block';
-    resultsCol.style.display = 'none';
-
-    // Simulated progress messages
-    const msgs = ['Caricamento immagine…', 'Analisi con Gemini Vision…', 'Elaborazione risultati…'];
-    let mi = 0;
-    const msgInterval = setInterval(() => {
-      loadingText.textContent = msgs[mi % msgs.length];
-      mi++;
-    }, 2000);
+    loadingMsg.textContent = 'Avvio analisi…';
+    loadingOvl.classList.add('show');
+    stepList.style.display = 'block';
+    setStep('step-upload', 'active');
+    setStep('step-yolo', '');
+    setStep('step-gemini', '');
 
     try {
       const formData = new FormData();
       formData.append('image', selectedFile);
-      formData.append('csrfmiddlewaretoken', getCsrf());
+
+      setStep('step-upload', 'done');
+      setStep('step-yolo', 'active');
+      loadingMsg.textContent = 'Segmentazione YOLO…';
 
       const resp = await fetch('{% url "analisi_telaino" %}', {
         method: 'POST',
         body: formData,
         headers: { 'X-CSRFToken': getCsrf() },
       });
+
+      setStep('step-yolo', 'done');
+      setStep('step-gemini', 'active');
+      loadingMsg.textContent = 'Analisi Gemini…';
+
       const data = await resp.json();
 
-      clearInterval(msgInterval);
-      loadingBlock.style.display = 'none';
+      setStep('step-gemini', 'done');
+      loadingOvl.classList.remove('show');
       analyzeBtn.disabled = false;
+      resultsCol.style.display = 'block';
 
       if (data.error) {
         alert('Errore: ' + data.error);
         return;
       }
 
-      analysisText.textContent = data.analysis || '';
-      modelUsed.textContent = 'Modello: ' + (data.model || '');
-      resultsCol.style.display = 'block';
+      // ── YOLO annotated image ──
+      const yolo = data.yolo || {};
+      if (yolo.annotated_image) {
+        annotatedImg.src = 'data:image/jpeg;base64,' + yolo.annotated_image;
+        // Badges
+        yoloBadges.innerHTML = '';
+        if (yolo.summary) {
+          for (const [cls, cnt] of Object.entries(yolo.summary)) {
+            const icon = CLASS_ICONS[cls] || '•';
+            yoloBadges.innerHTML += `
+              <span class="yolo-badge">
+                <span class="class-icon">${icon}</span> ${cls}
+                <span class="count">${cnt}</span>
+              </span>`;
+          }
+        }
+        const tot = (yolo.detections || []).length;
+        yoloSubtitle.textContent = tot > 0
+          ? `${tot} oggetti rilevati con conf ≥ 0.5`
+          : 'Nessun oggetto rilevato con conf ≥ 0.5';
+        yoloImgCard.style.display = 'block';
 
-      // YOLO results
-      if (data.yolo && data.yolo.summary && Object.keys(data.yolo.summary).length > 0) {
-        let html = '<div class="mb-2">';
-        for (const [cls, count] of Object.entries(data.yolo.summary)) {
-          html += `<span class="yolo-badge">${cls}: ${count}</span>`;
+      } else if (yolo.summary && Object.keys(yolo.summary).length > 0) {
+        // Fallback: solo conteggi senza immagine
+        let html = '';
+        for (const [cls, cnt] of Object.entries(yolo.summary)) {
+          const icon = CLASS_ICONS[cls] || '•';
+          html += `<span class="yolo-badge"><span class="class-icon">${icon}</span> ${cls} <span class="count">${cnt}</span></span>`;
         }
-        html += '</div>';
-        if (data.yolo.detections && data.yolo.detections.length > 0) {
-          html += `<p class="small text-muted mb-0">${data.yolo.detections.length} oggetti rilevati totali.</p>`;
-        }
-        yoloContent.innerHTML = html;
-        yoloCard.style.display = 'block';
-      } else if (data.yolo && data.yolo.nota) {
-        yoloContent.innerHTML = `<p class="small text-muted">${data.yolo.nota}</p>`;
-        yoloCard.style.display = 'block';
-      } else {
-        yoloCard.style.display = 'none';
+        yoloCountsContent.innerHTML = html;
+        yoloCountsCard.style.display = 'block';
+
+      } else if (yolo.nota) {
+        yoloCountsContent.innerHTML = `<p class="small text-muted mb-0">${yolo.nota}</p>`;
+        yoloCountsCard.style.display = 'block';
+      } else if (yolo.error) {
+        yoloCountsContent.innerHTML = `<p class="small text-danger mb-0">YOLO error: ${yolo.error}</p>`;
+        yoloCountsCard.style.display = 'block';
       }
 
+      // ── Gemini analysis ──
+      analysisText.textContent = data.analysis || '';
+      modelUsed.textContent = data.model ? 'Modello: ' + data.model : '';
+      geminiCard.style.display = 'block';
+
+      // Scroll to results
+      resultsCol.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
     } catch (err) {
-      clearInterval(msgInterval);
-      loadingBlock.style.display = 'none';
+      loadingOvl.classList.remove('show');
       analyzeBtn.disabled = false;
       alert('Errore di rete: ' + err.message);
     }
   });
 
   function getCsrf() {
-    const name = 'csrftoken';
-    const cookies = document.cookie.split(';');
-    for (let c of cookies) {
-      c = c.trim();
-      if (c.startsWith(name + '=')) return decodeURIComponent(c.slice(name.length + 1));
-    }
-    return '';
+    const m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
   }
 })();
 </script>
