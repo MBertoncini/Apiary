@@ -1,442 +1,496 @@
 <!-- templates/maps/mappa_apiari.html -->
 {% extends 'maps/base_map.html' %}
 
-{% block title %}Mappa Apiari - Apiary{% endblock %}
+{% block title %}Mappa Apiari — Apiary{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1><i class="bi bi-geo-alt"></i> Mappa Apiari</h1>
-            <div>
-                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Torna alla Dashboard
-                </a>
-                <a href="{% url 'crea_apiario' %}" class="btn btn-success ms-2">
-                    <i class="bi bi-plus-circle"></i> Nuovo Apiario
-                </a>
-            </div>
-        </div>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-geo-alt-fill me-2" style="color:var(--honey);"></i>Mappa Apiari</h1>
+    <p class="page-subtitle">Visualizza apiari, fioriture e raggio di volo delle api</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'gestione_fioriture' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-flower1 me-1"></i>Fioriture
+    </a>
+    <a href="{% url 'crea_apiario' %}" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-1"></i>Nuovo Apiario
+    </a>
+  </div>
 </div>
 
-<div class="row">
-    <div class="col-md-9">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-map"></i> Mappa degli Apiari</h5>
+<div class="row g-4">
+  <!-- Mappa principale -->
+  <div class="col-lg-9">
+    <div class="card">
+      <div class="card-body p-3">
+
+        <!-- Controlli mappa -->
+        <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+          <!-- Toggle layer -->
+          <div class="d-flex flex-wrap gap-3">
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="showApiari" checked>
+              <label class="form-check-label small fw-semibold" for="showApiari">
+                <span class="badge rounded-pill me-1" style="background:#F5A623;">&#x2665;</span>Apiari
+              </label>
             </div>
-            <div class="card-body">
-                <div class="map-controls mb-3">
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" id="showApiariOnly" checked>
-                        <label class="form-check-label" for="showApiariOnly">
-                            <i class="bi bi-grid" style="color: #28a745;"></i> Mostra Apiari
-                        </label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" id="showFioritureAttive" checked>
-                        <label class="form-check-label" for="showFioritureAttive">
-                            <i class="bi bi-flower1" style="color: #20c997;"></i> Fioriture Attive
-                        </label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" id="showFioritureProgrammate">
-                        <label class="form-check-label" for="showFioritureProgrammate">
-                            <i class="bi bi-flower1" style="color: #ffc107;"></i> Fioriture Programmate
-                        </label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" id="showFioriturePassate">
-                        <label class="form-check-label" for="showFioriturePassate">
-                            <i class="bi bi-flower1" style="color: #6c757d;"></i> Fioriture Passate
-                        </label>
-                    </div>
-                    
-                    <!-- Legenda -->
-                    <div class="dropdown mb-2">
-                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="dropdownMapLegend" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-info-circle"></i> Legenda
-                        </button>
-                        <ul class="dropdown-menu p-3" aria-labelledby="dropdownMapLegend">
-                            <li class="mb-2"><span class="badge bg-success me-2">■</span> I tuoi apiari</li>
-                            <li class="mb-2"><span class="badge bg-primary me-2">■</span> Apiari condivisi con te</li>
-                            <li class="mb-2"><span class="badge me-2" style="background-color: #6f42c1;">■</span> Apiari visibili al tuo gruppo</li>
-                            <li class="mb-2"><span class="badge me-2" style="background-color: #fd7e14;">■</span> Apiari pubblici</li>
-                            <li class="mb-2"><span class="badge me-2" style="background-color: #20c997;">■</span> Fioriture attive</li>
-                            <li class="mb-2"><span class="badge me-2" style="background-color: #ffc107;">■</span> Fioriture programmate</li>
-                            <li class="mb-2"><span class="badge me-2" style="background-color: #6c757d;">■</span> Fioriture passate</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div id="map" class="mb-3"></div>
-                
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i> Fai click su un apiario o su una fioritura per maggiori dettagli.
-                </div>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="showFioritureAttive" checked>
+              <label class="form-check-label small fw-semibold" for="showFioritureAttive">
+                <span class="badge rounded-pill me-1" style="background:#20c997;">&#x273F;</span>Fioriture attive
+              </label>
             </div>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="showFioritureProgrammate">
+              <label class="form-check-label small fw-semibold" for="showFioritureProgrammate">
+                <span class="badge rounded-pill me-1" style="background:#ffc107;">&#x273F;</span>Programmate
+              </label>
+            </div>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="showFioriturePassate">
+              <label class="form-check-label small fw-semibold" for="showFioriturePassate">
+                <span class="badge rounded-pill me-1" style="background:#adb5bd;">&#x273F;</span>Passate
+              </label>
+            </div>
+          </div>
+
+          <!-- Toggle raggio di volo -->
+          <div class="ms-auto d-flex gap-2">
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="showFlightRadius">
+              <label class="form-check-label small fw-semibold" for="showFlightRadius">
+                <i class="bi bi-circle-fill me-1" style="color:rgba(245,166,35,.5);"></i>Raggio di volo (3 km)
+              </label>
+            </div>
+            <button class="btn btn-outline-secondary btn-sm" id="btnFitBounds" title="Adatta vista">
+              <i class="bi bi-fullscreen"></i>
+            </button>
+          </div>
         </div>
+
+        <!-- Mappa Leaflet -->
+        <div id="map"></div>
+
+        <!-- Legenda -->
+        <div class="d-flex flex-wrap gap-2 mt-3 small text-muted">
+          <span><span class="badge me-1" style="background:#28a745;">&#11044;</span>Tuo apiario</span>
+          <span><span class="badge me-1" style="background:#0d6efd;">&#11044;</span>Condiviso</span>
+          <span><span class="badge me-1" style="background:#6f42c1;">&#11044;</span>Visibile al gruppo</span>
+          <span><span class="badge me-1" style="background:#fd7e14;">&#11044;</span>Pubblico</span>
+          <span><span class="badge me-1" style="background:#20c997;">&#10047;</span>Fioritura attiva</span>
+          <span><span class="badge me-1" style="background:#ffc107; color:#333;">&#10047;</span>Programmata</span>
+          <span><span class="badge me-1" style="background:#adb5bd;">&#10047;</span>Passata</span>
+          <span><i class="bi bi-circle me-1" style="color:#F5A623;"></i>Raggio volo 3km</span>
+        </div>
+      </div>
     </div>
-    
-    <div class="col-md-3">
-        <div class="card mb-3">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-grid"></i> Apiari</h5>
+  </div>
+
+  <!-- Pannello laterale -->
+  <div class="col-lg-3">
+    <!-- Lista apiari -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center py-2">
+        <span class="fw-semibold small"><i class="bi bi-grid me-1"></i>Apiari ({{ apiari|length }})</span>
+      </div>
+      <div class="card-body p-2" style="max-height:260px;overflow-y:auto;">
+        {% if apiari %}
+        <div class="list-group list-group-flush">
+          {% for apiario in apiari_propri %}
+          <a href="#" class="list-group-item list-group-item-action py-2 px-2 apiario-item apiario-proprio"
+             data-id="{{ apiario.id }}"
+             {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-semibold small">{{ apiario.nome }}</span>
+              <span class="badge" style="background:#28a745; font-size:.65rem;">Tuo</span>
             </div>
-            <div class="card-body">
-                <div class="list-group">
-                    <!-- Apiari propri -->
-                    {% for apiario in apiari_propri %}
-                        <a href="#" class="list-group-item list-group-item-action apiario-item apiario-proprio" data-id="{{ apiario.id }}" {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">{{ apiario.nome }}</h6>
-                                <small>{{ apiario.arnie.count }} arnie</small>
-                            </div>
-                            <small class="text-muted">{{ apiario.posizione }}</small>
-                            <span class="badge bg-success">Tuo</span>
-                        </a>
-                    {% endfor %}
-                    
-                    <!-- Apiari condivisi -->
-                    {% for apiario in apiari_condivisi %}
-                        <a href="#" class="list-group-item list-group-item-action apiario-item apiario-condiviso" data-id="{{ apiario.id }}" {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">{{ apiario.nome }}</h6>
-                                <small>{{ apiario.arnie.count }} arnie</small>
-                            </div>
-                            <small class="text-muted">{{ apiario.posizione }}</small>
-                            <span class="badge bg-primary">Condiviso</span>
-                        </a>
-                    {% endfor %}
-                    
-                    <!-- Apiari visibili al gruppo -->
-                    {% for apiario in apiari_visibili_gruppo %}
-                        <a href="#" class="list-group-item list-group-item-action apiario-item apiario-visibile-gruppo" data-id="{{ apiario.id }}" {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">{{ apiario.nome }}</h6>
-                                <small>{{ apiario.arnie.count }} arnie</small>
-                            </div>
-                            <small class="text-muted">{{ apiario.posizione }}</small>
-                            <span class="badge" style="background-color: #6f42c1;">Gruppo</span>
-                        </a>
-                    {% endfor %}
-                    
-                    <!-- Apiari pubblici -->
-                    {% for apiario in apiari_pubblici %}
-                        <a href="#" class="list-group-item list-group-item-action apiario-item apiario-pubblico" data-id="{{ apiario.id }}" {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">{{ apiario.nome }}</h6>
-                                <small>{{ apiario.arnie.count }} arnie</small>
-                            </div>
-                            <small class="text-muted">{{ apiario.posizione }}</small>
-                            <span class="badge" style="background-color: #fd7e14;">Pubblico</span>
-                        </a>
-                    {% endfor %}
-                    
-                    {% if not apiari %}
-                        <div class="text-center py-3">
-                            <p class="mb-0">Nessun apiario trovato.</p>
-                        </div>
-                    {% endif %}
-                </div>
+            <div class="text-muted" style="font-size:.75rem;">
+              <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"—" }}
+              &nbsp;·&nbsp;{{ apiario.arnie.count }} arnie
             </div>
+          </a>
+          {% endfor %}
+          {% for apiario in apiari_condivisi %}
+          <a href="#" class="list-group-item list-group-item-action py-2 px-2 apiario-item apiario-condiviso"
+             data-id="{{ apiario.id }}"
+             {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-semibold small">{{ apiario.nome }}</span>
+              <span class="badge bg-primary" style="font-size:.65rem;">Condiviso</span>
+            </div>
+            <div class="text-muted" style="font-size:.75rem;">
+              <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"—" }}
+              &nbsp;·&nbsp;{{ apiario.arnie.count }} arnie
+            </div>
+          </a>
+          {% endfor %}
+          {% for apiario in apiari_visibili_gruppo %}
+          <a href="#" class="list-group-item list-group-item-action py-2 px-2 apiario-item apiario-visibile-gruppo"
+             data-id="{{ apiario.id }}"
+             {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-semibold small">{{ apiario.nome }}</span>
+              <span class="badge" style="background:#6f42c1; font-size:.65rem;">Gruppo</span>
+            </div>
+            <div class="text-muted" style="font-size:.75rem;">
+              <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"—" }}
+              &nbsp;·&nbsp;{{ apiario.arnie.count }} arnie
+            </div>
+          </a>
+          {% endfor %}
+          {% for apiario in apiari_pubblici %}
+          <a href="#" class="list-group-item list-group-item-action py-2 px-2 apiario-item apiario-pubblico"
+             data-id="{{ apiario.id }}"
+             {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-semibold small">{{ apiario.nome }}</span>
+              <span class="badge" style="background:#fd7e14; font-size:.65rem;">Pubblico</span>
+            </div>
+            <div class="text-muted" style="font-size:.75rem;">
+              <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"—" }}
+              &nbsp;·&nbsp;{{ apiario.arnie.count }} arnie
+            </div>
+          </a>
+          {% endfor %}
         </div>
-        
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-flower1"></i> Fioriture Attive</h5>
-            </div>
-            <div class="card-body">
-                <div class="list-group">
-                    {% for fioritura in fioriture_attive %}
-                        <a href="#" class="list-group-item list-group-item-action fioritura-item" 
-                           data-id="{{ fioritura.id }}" 
-                           {% if fioritura.has_coordinates %}data-lat="{{ fioritura.latitudine|stringformat:'.6f' }}" data-lng="{{ fioritura.longitudine|stringformat:'.6f' }}" data-raggio="{{ fioritura.raggio }}"{% endif %}
-                           data-stato="attiva">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">{{ fioritura.pianta }}</h6>
-                                <small class="badge bg-success">Attiva</small>
-                            </div>
-                            <small class="text-muted">
-                                {% if fioritura.apiario %}
-                                    {{ fioritura.apiario.nome }}
-                                {% else %}
-                                    Senza apiario
-                                {% endif %}
-                            </small>
-                        </a>
-                    {% empty %}
-                        <div class="text-center py-3">
-                            <p class="mb-0">Nessuna fioritura attiva.</p>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
+        {% else %}
+        <div class="text-center text-muted py-4 small">
+          <i class="bi bi-geo-alt display-6 d-block mb-2 opacity-50"></i>
+          Nessun apiario trovato.<br>
+          <a href="{% url 'crea_apiario' %}" class="btn btn-sm btn-primary mt-2">
+            <i class="bi bi-plus-circle me-1"></i>Crea apiario
+          </a>
         </div>
+        {% endif %}
+      </div>
     </div>
+
+    <!-- Lista fioriture attive -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center py-2">
+        <span class="fw-semibold small"><i class="bi bi-flower1 me-1"></i>Fioriture attive ({{ fioriture_attive|length }})</span>
+      </div>
+      <div class="card-body p-2" style="max-height:240px;overflow-y:auto;">
+        {% if fioriture_attive %}
+        <div class="list-group list-group-flush">
+          {% for f in fioriture_attive %}
+          <a href="#" class="list-group-item list-group-item-action py-2 px-2 fioritura-item"
+             data-id="{{ f.id }}" data-stato="attiva"
+             {% if f.has_coordinates %}data-lat="{{ f.latitudine|stringformat:'.6f' }}" data-lng="{{ f.longitudine|stringformat:'.6f' }}" data-raggio="{{ f.raggio }}"{% endif %}>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-semibold small">{{ f.pianta }}</span>
+              <span class="badge" style="background:#20c997; font-size:.65rem;">Attiva</span>
+            </div>
+            <div class="text-muted" style="font-size:.75rem;">
+              {% if f.apiario %}<i class="bi bi-geo-alt me-1"></i>{{ f.apiario.nome }}{% else %}Senza apiario{% endif %}
+              {% if f.data_fine %} · fino al {{ f.data_fine|date:"d/m" }}{% endif %}
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-3 small">
+          <i class="bi bi-flower1 d-block mb-1 opacity-50"></i>Nessuna fioritura attiva
+        </div>
+        {% endif %}
+
+        <!-- Fioriture programmate/passate hidden (usate da JS) -->
+        <div style="display:none">
+          {% for f in fioriture_programmate %}
+          <span class="fioritura-item" data-id="{{ f.id }}" data-stato="programmata"
+            {% if f.has_coordinates %}data-lat="{{ f.latitudine|stringformat:'.6f' }}" data-lng="{{ f.longitudine|stringformat:'.6f' }}" data-raggio="{{ f.raggio }}"{% endif %}
+            data-pianta="{{ f.pianta }}" data-apiario="{% if f.apiario %}{{ f.apiario.nome }}{% else %}—{% endif %}"
+            data-inizio="{{ f.data_inizio|date:'d/m/Y' }}" data-fine="{{ f.data_fine|date:'d/m/Y' }}"></span>
+          {% endfor %}
+          {% for f in fioriture_passate %}
+          <span class="fioritura-item" data-id="{{ f.id }}" data-stato="terminata"
+            {% if f.has_coordinates %}data-lat="{{ f.latitudine|stringformat:'.6f' }}" data-lng="{{ f.longitudine|stringformat:'.6f' }}" data-raggio="{{ f.raggio }}"{% endif %}
+            data-pianta="{{ f.pianta }}" data-apiario="{% if f.apiario %}{{ f.apiario.nome }}{% else %}—{% endif %}"
+            data-inizio="{{ f.data_inizio|date:'d/m/Y' }}" data-fine="{{ f.data_fine|date:'d/m/Y' }}"></span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 {{ block.super }}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inizializza la mappa
-        var map = L.map('map');
-        
-        // Aggiungi il layer di OpenStreetMap
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-        
-        // Crea i layer group per le diverse categorie
-        var apiariLayer = L.layerGroup().addTo(map);
-        var fioritureAttiveLayer = L.layerGroup().addTo(map);
-        var fioritureProgrammateLayer = L.layerGroup();
-        var fioriturePassateLayer = L.layerGroup();
-        
-        // Carica i dati degli apiari (tramite attributi data-*)
-        var bounds = L.latLngBounds();
-        var hasCoordinates = false;
-        
-        // Funzione per creare un marker di apiario con diverse stili in base al tipo
-        function createApiarioMarker(apiario, isProprio, isCondiviso, isVisibileGruppo, isPubblico) {
-            var id = apiario.dataset.id;
-            var lat = parseFloat(apiario.dataset.lat);
-            var lng = parseFloat(apiario.dataset.lng);
-            
-            if (!isNaN(lat) && !isNaN(lng)) {
-                hasCoordinates = true;
-                
-                // Definiamo colori diversi in base al tipo di accesso
-                let markerColor = '#28a745'; // Default verde per apiari propri
-                let tooltipText = '';
-                
-                if (isProprio) {
-                    markerColor = '#28a745'; // Verde
-                    tooltipText = 'Tuo apiario';
-                } else if (isCondiviso) {
-                    markerColor = '#0d6efd'; // Blu
-                    tooltipText = 'Apiario condiviso';
-                } else if (isVisibileGruppo) {
-                    markerColor = '#6f42c1'; // Viola
-                    tooltipText = 'Visibile al gruppo';
-                } else if (isPubblico) {
-                    markerColor = '#fd7e14'; // Arancione
-                    tooltipText = 'Apiario pubblico';
-                }
-                
-                var marker = L.marker([lat, lng], {
-                    title: apiario.querySelector('h6').textContent,
-                    icon: L.divIcon({
-                        className: 'marker-apiario',
-                        iconSize: [20, 20],
-                        html: `<div style="width:100%;height:100%;border-radius:50%;background-color:${markerColor};border:2px solid white;"></div>`
-                    })
-                });
-                
-                // Aggiungi tooltip con informazioni sul tipo di accesso
-                marker.bindTooltip(tooltipText);
-                
-                // Crea il contenuto del popup con dati meteo se disponibili
-                var meteoHtml = '';
-                if (typeof datiMeteo !== 'undefined' && datiMeteo[id]) {
-                    var meteo = datiMeteo[id];
-                    meteoHtml = `
-                        <div class="meteo-info mt-3 p-2 bg-light rounded">
-                            <h6 class="mb-2"><i class="bi bi-cloud"></i> Meteo</h6>
-                            <div class="d-flex align-items-center">
-                                <img src="https://openweathermap.org/img/wn/${meteo.icona}.png" alt="${meteo.descrizione}" class="me-2">
-                                <div>
-                                    <div class="fw-bold">${meteo.temperatura}°C</div>
-                                    <div class="text-capitalize">${meteo.descrizione}</div>
-                                </div>
-                            </div>
-                            <div class="row mt-2 small">
-                                <div class="col-6">
-                                    <i class="bi bi-droplet"></i> ${meteo.umidita}%
-                                </div>
-                                <div class="col-6">
-                                    <i class="bi bi-wind"></i> ${meteo.velocita_vento} km/h ${meteo.direzione_testo || ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                // Aggiungi popup con informazioni
-                var popupContent = `
-                    <h6>${apiario.querySelector('h6').textContent}</h6>
-                    <p>${apiario.querySelector('small.text-muted').textContent}</p>
-                    <p><strong>Arnie:</strong> ${apiario.querySelector('small:not(.text-muted)').textContent}</p>
-                    ${meteoHtml}
-                    <div class="mt-3 d-flex justify-content-between">
-                        <a href="/app/apiario/${id}/" class="btn btn-sm btn-primary">
-                            <i class="bi bi-grid"></i> Dettagli
-                        </a>
-                        <a href="/app/apiario/${id}/meteo/" class="btn btn-sm btn-info text-white">
-                            <i class="bi bi-cloud"></i> Meteo
-                        </a>
-                    </div>
-                `;
-                
-                marker.bindPopup(popupContent, {
-                    maxWidth: 300
-                });
-                
-                marker.addTo(apiariLayer);
-                bounds.extend([lat, lng]);
-        
-                // Aggiungi evento di click sulla lista
-                apiario.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    map.setView([lat, lng], 14);
-                    marker.openPopup();
-                });
-            }
-        }
-        
-        // Funzione per creare un marker di fioritura
-        function createFiorituraMarker(fioritura, layer) {
-            var id = fioritura.dataset.id;
-            var lat = parseFloat(fioritura.dataset.lat);
-            var lng = parseFloat(fioritura.dataset.lng);
-            var raggio = parseInt(fioritura.dataset.raggio) || 500;
-            var stato = fioritura.dataset.stato;
-            
-            if (!isNaN(lat) && !isNaN(lng)) {
-                hasCoordinates = true;
-                
-                // Crea marker
-                var marker = L.marker([lat, lng], {
-                    title: fioritura.querySelector('h6').textContent,
-                    icon: L.divIcon({
-                        className: `marker-fioritura marker-${stato}`,
-                        iconSize: [16, 16],
-                        html: `<div style="width:100%;height:100%;border-radius:50%;background-color:${stato === 'attiva' ? '#20c997' : (stato === 'programmata' ? '#ffc107' : '#6c757d')};border:2px solid white;"></div>`
-                    })
-                });
-                
-                // Aggiungi cerchio che rappresenta l'area della fioritura
-                var circle = L.circle([lat, lng], {
-                    radius: raggio,
-                    color: stato === 'attiva' ? '#20c997' : (stato === 'programmata' ? '#ffc107' : '#6c757d'),
-                    fillColor: stato === 'attiva' ? '#20c997' : (stato === 'programmata' ? '#ffc107' : '#6c757d'),
-                    fillOpacity: 0.2,
-                    weight: 1
-                });
-                
-                // Aggiungi popup con informazioni
-                var statusBadge = '';
-                if (stato === 'attiva') {
-                    statusBadge = '<span class="badge bg-success">Attiva</span>';
-                } else if (stato === 'programmata') {
-                    statusBadge = '<span class="badge bg-warning text-dark">Programmata</span>';
-                } else {
-                    statusBadge = '<span class="badge bg-secondary">Terminata</span>';
-                }
-                
-                var popupContent = `
-                    <h6>${fioritura.querySelector('h6').textContent} ${statusBadge}</h6>
-                    <p><strong>Apiario:</strong> ${fioritura.querySelector('small.text-muted').textContent}</p>
-                    <p><strong>Area:</strong> circa ${raggio} metri</p>
-                    <div class="mt-2">
-                        <a href="/app/fioriture/" class="btn btn-sm btn-primary">Gestisci fioriture</a>
-                    </div>
-                `;
-                
-                marker.bindPopup(popupContent);
-                
-                // Aggiungi marker e cerchio al layer appropriato
-                layer.addLayer(marker);
-                layer.addLayer(circle);
-                bounds.extend([lat, lng]);
-                
-                // Aggiungi evento di click sulla lista
-                fioritura.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    map.setView([lat, lng], 14);
-                    marker.openPopup();
-                });
-            }
-        }
-        
-        // Carica gli apiari propri sulla mappa
-        document.querySelectorAll('.apiario-proprio').forEach(function(apiario) {
-            createApiarioMarker(apiario, true, false, false, false);
-        });
-        
-        // Carica gli apiari condivisi
-        document.querySelectorAll('.apiario-condiviso').forEach(function(apiario) {
-            createApiarioMarker(apiario, false, true, false, false);
-        });
-        
-        // Carica gli apiari visibili al gruppo
-        document.querySelectorAll('.apiario-visibile-gruppo').forEach(function(apiario) {
-            createApiarioMarker(apiario, false, false, true, false);
-        });
-        
-        // Carica gli apiari pubblici
-        document.querySelectorAll('.apiario-pubblico').forEach(function(apiario) {
-            createApiarioMarker(apiario, false, false, false, true);
-        });
-        
-        // Carica le fioriture sulla mappa
-        document.querySelectorAll('.fioritura-item[data-stato="attiva"]').forEach(function(fioritura) {
-            createFiorituraMarker(fioritura, fioritureAttiveLayer);
-        });
-        
-        // Carica le fioriture programmate (aggiunte via JavaScript)
-        document.querySelectorAll('.fioritura-item[data-stato="programmata"]').forEach(function(fioritura) {
-            createFiorituraMarker(fioritura, fioritureProgrammateLayer);
-        });
-        
-        // Carica le fioriture passate (aggiunte via JavaScript)
-        document.querySelectorAll('.fioritura-item[data-stato="terminata"]').forEach(function(fioritura) {
-            createFiorituraMarker(fioritura, fioriturePassateLayer);
-        });
-        
-        // Imposta la vista iniziale della mappa
-        if (hasCoordinates) {
-            map.fitBounds(bounds, { padding: [50, 50] });
-        } else {
-            // Se non ci sono coordinate, centra la mappa sull'Italia
-            map.setView([42.83, 12.83], 6);
-        }
-        
-        // Gestisci i checkbox per mostrare/nascondere i layer
-        document.getElementById('showApiariOnly').addEventListener('change', function(e) {
-            if (e.target.checked) {
-                map.addLayer(apiariLayer);
-            } else {
-                map.removeLayer(apiariLayer);
-            }
-        });
-        
-        document.getElementById('showFioritureAttive').addEventListener('change', function(e) {
-            if (e.target.checked) {
-                map.addLayer(fioritureAttiveLayer);
-            } else {
-                map.removeLayer(fioritureAttiveLayer);
-            }
-        });
-        
-        document.getElementById('showFioritureProgrammate').addEventListener('change', function(e) {
-            if (e.target.checked) {
-                map.addLayer(fioritureProgrammateLayer);
-            } else {
-                map.removeLayer(fioritureProgrammateLayer);
-            }
-        });
-        
-        document.getElementById('showFioriturePassate').addEventListener('change', function(e) {
-            if (e.target.checked) {
-                map.addLayer(fioriturePassateLayer);
-            } else {
-                map.removeLayer(fioriturePassateLayer);
-            }
-        });
+document.addEventListener('DOMContentLoaded', function () {
+
+  // ── Mappa inizializzazione ──────────────────────────────────────────
+  var map = L.map('map');
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19
+  }).addTo(map);
+
+  // ── Layer groups ───────────────────────────────────────────────────
+  // Cluster per apiari
+  var apiariCluster = L.markerClusterGroup({
+    maxClusterRadius: 60,
+    iconCreateFunction: function (cluster) {
+      var count = cluster.getChildCount();
+      return L.divIcon({
+        html: '<div style="background:rgba(245,166,35,.85);color:#fff;font-weight:700;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2);">' + count + '</div>',
+        className: '',
+        iconSize: [36, 36]
+      });
+    }
+  });
+
+  var fioritureAttiveLayer    = L.layerGroup().addTo(map);
+  var fioritureProgrammateLayer = L.layerGroup();
+  var fioriturePassateLayer   = L.layerGroup();
+  var flightRingsLayer        = L.layerGroup();  // 3km volo
+
+  // ── Utility ────────────────────────────────────────────────────────
+  var bounds = L.latLngBounds();
+  var hasCoordinates = false;
+  var flightRingsVisible = false;
+
+  function extendBounds(lat, lng) {
+    hasCoordinates = true;
+    bounds.extend([lat, lng]);
+  }
+
+  // ── Marker apiario ─────────────────────────────────────────────────
+  var COLORS = {
+    proprio:        '#28a745',
+    condiviso:      '#0d6efd',
+    visibileGruppo: '#6f42c1',
+    pubblico:       '#fd7e14',
+  };
+  var LABELS = {
+    proprio:        'Tuo apiario',
+    condiviso:      'Apiario condiviso',
+    visibileGruppo: 'Visibile al gruppo',
+    pubblico:       'Apiario pubblico',
+  };
+
+  function apiarioIcon(color) {
+    return L.divIcon({
+      className: '',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -14],
+      html: `<div style="width:28px;height:28px;border-radius:50%;background:${color};border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;">
+               <span style="font-size:13px;">🍯</span>
+             </div>`
     });
+  }
+
+  function createApiarioMarker(el, tipo) {
+    var id  = el.dataset.id;
+    var lat = parseFloat(el.dataset.lat);
+    var lng = parseFloat(el.dataset.lng);
+    if (isNaN(lat) || isNaN(lng)) return;
+    extendBounds(lat, lng);
+
+    var color = COLORS[tipo];
+    var marker = L.marker([lat, lng], { icon: apiarioIcon(color), title: el.querySelector('.fw-semibold').textContent });
+    marker.bindTooltip(LABELS[tipo], { direction: 'top', offset: [0, -10] });
+
+    // Ring di volo 3km (nascosto di default)
+    var flightRing = L.circle([lat, lng], {
+      radius: 3000,
+      color: '#F5A623',
+      weight: 2,
+      dashArray: '6 4',
+      fillColor: '#F5A623',
+      fillOpacity: 0.06,
+      className: 'flight-ring'
+    });
+    flightRingsLayer.addLayer(flightRing);
+
+    // Popup
+    var popupHtml = `
+      <div style="min-width:220px;">
+        <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">${el.querySelector('.fw-semibold').textContent}</div>
+        <div style="color:#7B6E5D;font-size:.85rem;margin-bottom:8px;">${el.querySelector('.text-muted').textContent.trim()}</div>
+        <hr style="margin:6px 0;border-color:#EAD9BF;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <a href="/app/apiario/${id}/" class="btn btn-sm btn-primary" style="font-size:.8rem;">
+            <i class="bi bi-grid"></i> Dettagli
+          </a>
+          <a href="/app/apiario/${id}/ispezioni/export-pdf/" class="btn btn-sm btn-outline-danger" style="font-size:.8rem;">
+            <i class="bi bi-file-earmark-pdf"></i> PDF
+          </a>
+          <button class="btn btn-sm btn-outline-warning toggle-ring-btn" data-lat="${lat}" data-lng="${lng}" style="font-size:.8rem;">
+            <i class="bi bi-circle"></i> Raggio volo
+          </button>
+        </div>
+      </div>`;
+    marker.bindPopup(popupHtml, { maxWidth: 280 });
+
+    // Click singolo raggio dal popup
+    marker.on('popupopen', function () {
+      document.querySelectorAll('.toggle-ring-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          if (map.hasLayer(flightRing)) {
+            flightRingsLayer.removeLayer(flightRing);
+          } else {
+            flightRingsLayer.addLayer(flightRing);
+            if (!map.hasLayer(flightRingsLayer)) map.addLayer(flightRingsLayer);
+          }
+        });
+      });
+    });
+
+    apiariCluster.addLayer(marker);
+
+    // Click sulla lista laterale
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      map.setView([lat, lng], 14);
+      apiariCluster.zoomToShowLayer(marker, function () { marker.openPopup(); });
+    });
+  }
+
+  // ── Marker fioritura ───────────────────────────────────────────────
+  var FIORITURA_COLORS = { attiva: '#20c997', programmata: '#ffc107', terminata: '#adb5bd' };
+  var FIORITURA_LABELS = { attiva: 'Attiva', programmata: 'Programmata', terminata: 'Terminata' };
+
+  function fiorituraIcon(stato) {
+    var c = FIORITURA_COLORS[stato];
+    return L.divIcon({
+      className: '',
+      iconSize: [22, 22],
+      iconAnchor: [11, 11],
+      popupAnchor: [0, -11],
+      html: `<div style="width:22px;height:22px;border-radius:50%;background:${c};border:2px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;">
+               <span style="font-size:10px;">✿</span>
+             </div>`
+    });
+  }
+
+  function createFiorituraMarker(el, layer) {
+    var lat    = parseFloat(el.dataset.lat);
+    var lng    = parseFloat(el.dataset.lng);
+    var raggio = parseInt(el.dataset.raggio) || 500;
+    var stato  = el.dataset.stato;
+    if (isNaN(lat) || isNaN(lng)) return;
+    extendBounds(lat, lng);
+
+    var color  = FIORITURA_COLORS[stato];
+    var label  = FIORITURA_LABELS[stato];
+
+    // Leggi nome pianta e apiario (da attributi data-* o dall'elemento visibile)
+    var pianta  = el.dataset.pianta  || (el.querySelector && el.querySelector('.fw-semibold') ? el.querySelector('.fw-semibold').textContent : '—');
+    var apiario = el.dataset.apiario || (el.querySelector && el.querySelector('.text-muted') ? el.querySelector('.text-muted').textContent.trim() : '—');
+    var inizio  = el.dataset.inizio  || '';
+    var fine    = el.dataset.fine    || '';
+
+    // Cerchio raggio fioritura
+    var circle = L.circle([lat, lng], {
+      radius: raggio,
+      color: color,
+      weight: 1.5,
+      fillColor: color,
+      fillOpacity: stato === 'attiva' ? 0.18 : 0.08
+    });
+
+    var marker = L.marker([lat, lng], { icon: fiorituraIcon(stato) });
+    marker.bindTooltip(`${pianta} (${label})`, { direction: 'top', offset: [0, -8] });
+
+    var badgeStyle = stato === 'attiva'
+      ? 'background:#20c997;'
+      : (stato === 'programmata' ? 'background:#ffc107;color:#333;' : 'background:#adb5bd;');
+    var popupHtml = `
+      <div style="min-width:200px;">
+        <div style="font-weight:700;font-size:1rem;margin-bottom:2px;">${pianta}
+          <span class="badge" style="${badgeStyle}font-size:.7rem;">${label}</span>
+        </div>
+        <div style="color:#7B6E5D;font-size:.82rem;margin-bottom:4px;">
+          <i class="bi bi-geo-alt"></i> ${apiario}
+        </div>
+        ${inizio ? `<div style="font-size:.8rem;color:#888;">Dal ${inizio}${fine ? ' al ' + fine : ''}</div>` : ''}
+        <div style="font-size:.8rem;color:#888;margin-top:2px;">
+          <i class="bi bi-circle"></i> Raggio: ${raggio} m
+        </div>
+        <hr style="margin:6px 0;border-color:#EAD9BF;">
+        <a href="/app/fioriture/" class="btn btn-sm btn-outline-secondary" style="font-size:.8rem;">
+          <i class="bi bi-flower1"></i> Gestisci fioriture
+        </a>
+      </div>`;
+    marker.bindPopup(popupHtml, { maxWidth: 260 });
+
+    layer.addLayer(circle);
+    layer.addLayer(marker);
+
+    // Click dalla lista laterale (solo per fioriture attive visibili)
+    if (el.addEventListener) {
+      el.addEventListener('click', function (e) {
+        e.preventDefault();
+        map.setView([lat, lng], 14);
+        marker.openPopup();
+      });
+    }
+  }
+
+  // ── Carica tutti i marker ──────────────────────────────────────────
+  document.querySelectorAll('.apiario-proprio').forEach(function (el) { createApiarioMarker(el, 'proprio'); });
+  document.querySelectorAll('.apiario-condiviso').forEach(function (el) { createApiarioMarker(el, 'condiviso'); });
+  document.querySelectorAll('.apiario-visibile-gruppo').forEach(function (el) { createApiarioMarker(el, 'visibileGruppo'); });
+  document.querySelectorAll('.apiario-pubblico').forEach(function (el) { createApiarioMarker(el, 'pubblico'); });
+
+  document.querySelectorAll('.fioritura-item[data-stato="attiva"]').forEach(function (el) { createFiorituraMarker(el, fioritureAttiveLayer); });
+  document.querySelectorAll('.fioritura-item[data-stato="programmata"]').forEach(function (el) { createFiorituraMarker(el, fioritureProgrammateLayer); });
+  document.querySelectorAll('.fioritura-item[data-stato="terminata"]').forEach(function (el) { createFiorituraMarker(el, fioriturePassateLayer); });
+
+  // Aggiungi cluster alla mappa
+  map.addLayer(apiariCluster);
+
+  // ── Vista iniziale ─────────────────────────────────────────────────
+  if (hasCoordinates && bounds.isValid()) {
+    map.fitBounds(bounds, { padding: [50, 50] });
+  } else {
+    map.setView([42.83, 12.83], 6);
+  }
+
+  // ── Toggle layer checkbox ──────────────────────────────────────────
+  document.getElementById('showApiari').addEventListener('change', function (e) {
+    if (e.target.checked) map.addLayer(apiariCluster); else map.removeLayer(apiariCluster);
+  });
+  document.getElementById('showFioritureAttive').addEventListener('change', function (e) {
+    if (e.target.checked) map.addLayer(fioritureAttiveLayer); else map.removeLayer(fioritureAttiveLayer);
+  });
+  document.getElementById('showFioritureProgrammate').addEventListener('change', function (e) {
+    if (e.target.checked) map.addLayer(fioritureProgrammateLayer); else map.removeLayer(fioritureProgrammateLayer);
+  });
+  document.getElementById('showFioriturePassate').addEventListener('change', function (e) {
+    if (e.target.checked) map.addLayer(fioriturePassateLayer); else map.removeLayer(fioriturePassateLayer);
+  });
+
+  // ── Toggle globale raggio di volo ──────────────────────────────────
+  document.getElementById('showFlightRadius').addEventListener('change', function (e) {
+    flightRingsVisible = e.target.checked;
+    if (flightRingsVisible) {
+      map.addLayer(flightRingsLayer);
+    } else {
+      map.removeLayer(flightRingsLayer);
+    }
+  });
+
+  // ── Fit bounds button ──────────────────────────────────────────────
+  document.getElementById('btnFitBounds').addEventListener('click', function () {
+    if (hasCoordinates && bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [50, 50] });
+    } else {
+      map.setView([42.83, 12.83], 6);
+    }
+  });
+
+  // ── Focus da URL (?focus=<id>) ─────────────────────────────────────
+  var urlParams = new URLSearchParams(window.location.search);
+  var focusId = urlParams.get('focus');
+  if (focusId) {
+    var el = document.querySelector('.apiario-item[data-id="' + focusId + '"]');
+    if (el) el.click();
+  }
+});
 </script>
 {% endblock %}
