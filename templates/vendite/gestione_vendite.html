@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% block title %}Vendite - Apiary{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-bag-heart me-2" style="color:var(--honey);"></i>Vendite</h1>
+    <p class="page-subtitle">Storico vendite e fatturato prodotti</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'gestione_clienti' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-people me-1"></i>Clienti
+    </a>
+    <a href="{% url 'crea_vendita' %}" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i>Nuova Vendita
+    </a>
+  </div>
+</div>
+
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3">
+    <div class="card stat-card">
+      <div class="stat-icon" style="background:rgba(245,166,35,.15);">
+        <i class="bi bi-currency-euro" style="color:var(--honey);"></i>
+      </div>
+      <div class="stat-value">€ {{ totale_ricavi|floatformat:2 }}</div>
+      <div class="stat-label">Ricavo totale{% if anno_selezionato %} {{ anno_selezionato }}{% endif %}</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card stat-card">
+      <div class="stat-icon" style="background:rgba(245,166,35,.15);">
+        <i class="bi bi-receipt" style="color:var(--honey);"></i>
+      </div>
+      <div class="stat-value">{{ num_vendite }}</div>
+      <div class="stat-label">Vendite registrate</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Grafico -->
+  <div class="col-lg-8">
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Ricavi mensili (ultimi 12 mesi)</h6>
+      </div>
+      <div class="card-body">
+        <canvas id="chartRicavi" height="100"></canvas>
+      </div>
+    </div>
+
+    <!-- Tabella vendite -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-table me-2"></i>Lista vendite</h6>
+        <!-- filtro anno -->
+        <div class="d-flex gap-2 align-items-center">
+          {% if anni_disponibili %}
+          <select class="form-select form-select-sm" onchange="location='?anno='+this.value" style="width:auto;">
+            <option value="">Tutti gli anni</option>
+            {% for a in anni_disponibili %}
+            <option value="{{ a }}" {% if anno_selezionato == a|stringformat:'s' %}selected{% endif %}>{{ a }}</option>
+            {% endfor %}
+          </select>
+          {% endif %}
+        </div>
+      </div>
+      <div class="card-body p-0">
+        {% if vendite %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Cliente / Acquirente</th>
+                <th>Canale</th>
+                <th>Pagamento</th>
+                <th class="text-end">Totale</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for v in vendite %}
+              <tr>
+                <td>{{ v.data|date:"d/m/Y" }}</td>
+                <td>
+                  {% if v.cliente %}
+                    <a href="{% url 'dettaglio_cliente' v.cliente.pk %}">{{ v.cliente.nome }}</a>
+                  {% else %}
+                    {{ v.acquirente_nome|default:"—" }}
+                  {% endif %}
+                </td>
+                <td><span class="badge bg-light text-dark border">{{ v.get_canale_display }}</span></td>
+                <td>{{ v.get_pagamento_display }}</td>
+                <td class="text-end fw-bold">€ {{ v.totale|floatformat:2 }}</td>
+                <td class="text-end">
+                  <a href="{% url 'dettaglio_vendita' v.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
+                  <a href="{% url 'modifica_vendita' v.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                  <a href="{% url 'elimina_vendita' v.pk %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-bag-x fs-1 d-block mb-2"></i>
+          Nessuna vendita registrata.
+          <div class="mt-3">
+            <a href="{% url 'crea_vendita' %}" class="btn btn-primary btn-sm">
+              <i class="bi bi-plus-lg me-1"></i>Prima vendita
+            </a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar info -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Per canale</h6></div>
+      <div class="card-body">
+        {% regroup vendite by canale as per_canale %}
+        {% if per_canale %}
+        <ul class="list-group list-group-flush">
+          {% for gruppo in per_canale %}
+          <li class="list-group-item d-flex justify-content-between px-0">
+            <span>{{ gruppo.grouper|capfirst }}</span>
+            <span class="badge" style="background:var(--honey);color:#fff;">{{ gruppo.list|length }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted small mb-0">Dati non disponibili.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header"><h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Azioni rapide</h6></div>
+      <div class="card-body d-grid gap-2">
+        <a href="{% url 'crea_vendita' %}" class="btn btn-primary">
+          <i class="bi bi-plus-lg me-1"></i>Nuova vendita
+        </a>
+        <a href="{% url 'gestione_clienti' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-people me-1"></i>Gestisci clienti
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const ctx = document.getElementById('chartRicavi');
+if (ctx) {
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: {{ mesi_labels|safe }},
+      datasets: [{
+        label: 'Ricavi (€)',
+        data: {{ mesi_ricavi|safe }},
+        backgroundColor: 'rgba(245,166,35,0.7)',
+        borderColor: '#F5A623',
+        borderWidth: 1,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { callback: v => '€' + v } } }
+    }
+  });
+}
+</script>
+{% endblock %}

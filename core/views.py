@@ -23,7 +23,7 @@ from .models import (
     Apiario, Arnia, ControlloArnia, Fioritura, Pagamento, QuotaUtente,
     TrattamentoSanitario, TipoTrattamento, Gruppo, MembroGruppo, InvitoGruppo, Melario, Smielatura, Regina, StoriaRegine,
     CategoriaAttrezzatura, Attrezzatura, ManutenzioneAttrezzatura, PrestitoAttrezzatura, SpesaAttrezzatura, InventarioAttrezzature,
-    ApiarioMapLayout,
+    ApiarioMapLayout, Cliente, Vendita, DettaglioVendita,
 )
 from .forms import (
     ApiarioForm, ArniaForm, ControlloArniaForm, FiorituraForm, PagamentoForm,
@@ -31,6 +31,7 @@ from .forms import (
     InvitoGruppoForm, MembroGruppoRoleForm, ApiarioGruppoForm, RimozioneMelarioForm, SmielaturaForm, MelarioForm, ReginaForm,
     SostituzioneReginaForm, CategoriaAttrezzaturaForm, AttrezzaturaForm, AttrezzaturaFiltroForm, ManutenzioneAttrezzaturaForm,
     PrestitoAttrezzaturaForm, RestituzioneAttrezzaturaForm, SpesaAttrezzaturaForm, RicercaReginaForm,
+    ClienteForm, VenditaForm, DettaglioVenditaFormSet,
 )
 from .decorators import (
     richiedi_proprietario_o_gruppo, richiedi_appartenenza_gruppo, 
@@ -4952,3 +4953,161 @@ def confronta_regine(request):
     }
 
     return render(request, 'regine/confronta_regine.html', context)
+
+
+# ══════════════════════════════════════════════════════════
+# VENDITE & CLIENTI
+# ══════════════════════════════════════════════════════════
+
+@login_required
+def gestione_vendite(request):
+    """Lista vendite con statistiche e grafici."""
+    vendite = Vendita.objects.filter(utente=request.user).prefetch_related('dettagli')
+
+    # --- filtri rapidi ---
+    anno = request.GET.get('anno')
+    if anno:
+        vendite = vendite.filter(data__year=anno)
+
+    # --- stats ---
+    totale_ricavi = sum(v.totale for v in vendite)
+    num_vendite   = vendite.count()
+
+    # --- dati grafico: ricavi per mese (ultimi 12 mesi) ---
+    oggi = timezone.now().date()
+    mesi_labels = []
+    mesi_ricavi = []
+    for i in range(11, -1, -1):
+        mese_dt = oggi - relativedelta(months=i)
+        label = mese_dt.strftime('%b %Y')
+        tot = sum(
+            v.totale for v in vendite
+            if v.data.year == mese_dt.year and v.data.month == mese_dt.month
+        )
+        mesi_labels.append(label)
+        mesi_ricavi.append(float(tot))
+
+    # --- anni disponibili per filtro ---
+    anni_disponibili = (
+        Vendita.objects.filter(utente=request.user)
+        .dates('data', 'year', order='DESC')
+    )
+
+    context = {
+        'vendite':           vendite,
+        'totale_ricavi':     totale_ricavi,
+        'num_vendite':       num_vendite,
+        'mesi_labels':       json.dumps(mesi_labels),
+        'mesi_ricavi':       json.dumps(mesi_ricavi),
+        'anni_disponibili':  [d.year for d in anni_disponibili],
+        'anno_selezionato':  anno,
+    }
+    return render(request, 'vendite/gestione_vendite.html', context)
+
+
+@login_required
+def crea_vendita(request):
+    if request.method == 'POST':
+        form    = VenditaForm(request.POST, user=request.user)
+        formset = DettaglioVenditaFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            vendita = form.save(commit=False)
+            vendita.utente = request.user
+            vendita.save()
+            formset.instance = vendita
+            formset.save()
+            messages.success(request, "Vendita registrata con successo.")
+            return redirect('gestione_vendite')
+    else:
+        form    = VenditaForm(user=request.user)
+        formset = DettaglioVenditaFormSet()
+
+    context = {'form': form, 'formset': formset, 'azione': 'Nuova'}
+    return render(request, 'vendite/form_vendita.html', context)
+
+
+@login_required
+def modifica_vendita(request, pk):
+    vendita = get_object_or_404(Vendita, pk=pk, utente=request.user)
+    if request.method == 'POST':
+        form    = VenditaForm(request.POST, instance=vendita, user=request.user)
+        formset = DettaglioVenditaFormSet(request.POST, instance=vendita)
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            messages.success(request, "Vendita aggiornata.")
+            return redirect('dettaglio_vendita', pk=pk)
+    else:
+        form    = VenditaForm(instance=vendita, user=request.user)
+        formset = DettaglioVenditaFormSet(instance=vendita)
+
+    context = {'form': form, 'formset': formset, 'azione': 'Modifica', 'vendita': vendita}
+    return render(request, 'vendite/form_vendita.html', context)
+
+
+@login_required
+def elimina_vendita(request, pk):
+    vendita = get_object_or_404(Vendita, pk=pk, utente=request.user)
+    if request.method == 'POST':
+        vendita.delete()
+        messages.success(request, "Vendita eliminata.")
+        return redirect('gestione_vendite')
+    return render(request, 'vendite/conferma_elimina_vendita.html', {'vendita': vendita})
+
+
+@login_required
+def dettaglio_vendita(request, pk):
+    vendita = get_object_or_404(Vendita, pk=pk, utente=request.user)
+    return render(request, 'vendite/dettaglio_vendita.html', {'vendita': vendita})
+
+
+# ── Clienti ──────────────────────────────────
+
+@login_required
+def gestione_clienti(request):
+    clienti = Cliente.objects.filter(utente=request.user).annotate(
+        num_acquisti=Count('vendite'),
+        totale_speso=Sum('vendite__dettagli__quantita'),   # conteggio pezzi
+    )
+    form = ClienteForm()
+    if request.method == 'POST':
+        form = ClienteForm(request.POST)
+        if form.is_valid():
+            cliente = form.save(commit=False)
+            cliente.utente = request.user
+            cliente.save()
+            messages.success(request, f"Cliente «{cliente.nome}» aggiunto.")
+            return redirect('gestione_clienti')
+
+    context = {'clienti': clienti, 'form': form}
+    return render(request, 'clienti/gestione_clienti.html', context)
+
+
+@login_required
+def modifica_cliente(request, pk):
+    cliente = get_object_or_404(Cliente, pk=pk, utente=request.user)
+    form = ClienteForm(request.POST or None, instance=cliente)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Cliente aggiornato.")
+        return redirect('gestione_clienti')
+    return render(request, 'clienti/form_cliente.html', {'form': form, 'cliente': cliente})
+
+
+@login_required
+def elimina_cliente(request, pk):
+    cliente = get_object_or_404(Cliente, pk=pk, utente=request.user)
+    if request.method == 'POST':
+        cliente.delete()
+        messages.success(request, "Cliente eliminato.")
+        return redirect('gestione_clienti')
+    return render(request, 'clienti/conferma_elimina_cliente.html', {'cliente': cliente})
+
+
+@login_required
+def dettaglio_cliente(request, pk):
+    cliente  = get_object_or_404(Cliente, pk=pk, utente=request.user)
+    vendite  = cliente.vendite.prefetch_related('dettagli').order_by('-data')
+    totale   = sum(v.totale for v in vendite)
+    context  = {'cliente': cliente, 'vendite': vendite, 'totale': totale}
+    return render(request, 'clienti/dettaglio_cliente.html', context)

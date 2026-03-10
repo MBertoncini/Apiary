@@ -99,6 +99,18 @@
       Quote
     </a>
 
+    <a href="{% url 'gestione_vendite' %}"
+       class="sidebar-link {% if 'vendita' in request.resolver_match.url_name or 'vendite' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-bag-heart nav-icon"></i>
+      Vendite
+    </a>
+
+    <a href="{% url 'gestione_clienti' %}"
+       class="sidebar-link {% if 'client' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-people nav-icon"></i>
+      Clienti
+    </a>
+
     <!-- INVENTARIO -->
     <div class="sidebar-section-label">Inventario</div>
 

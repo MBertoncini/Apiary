@@ -117,4 +117,17 @@ urlpatterns = [
     path('regine/ricerca/', views.ricerca_regine, name='ricerca_regine'),
     path('regina/<int:regina_id>/genealogia-completa/', views.albero_genealogico_completo, name='albero_genealogico_completo'),
     path('regine/confronta/', views.confronta_regine, name='confronta_regine'),
+
+    # Vendite
+    path('vendite/', views.gestione_vendite, name='gestione_vendite'),
+    path('vendite/nuova/', views.crea_vendita, name='crea_vendita'),
+    path('vendite/<int:pk>/', views.dettaglio_vendita, name='dettaglio_vendita'),
+    path('vendite/<int:pk>/modifica/', views.modifica_vendita, name='modifica_vendita'),
+    path('vendite/<int:pk>/elimina/', views.elimina_vendita, name='elimina_vendita'),
+
+    # Clienti
+    path('clienti/', views.gestione_clienti, name='gestione_clienti'),
+    path('clienti/<int:pk>/', views.dettaglio_cliente, name='dettaglio_cliente'),
+    path('clienti/<int:pk>/modifica/', views.modifica_cliente, name='modifica_cliente'),
+    path('clienti/<int:pk>/elimina/', views.elimina_cliente, name='elimina_cliente'),
 ]
