@@ -5,7 +5,7 @@ from .models import (
     Apiario, Arnia, ControlloArnia, Fioritura, Pagamento, QuotaUtente,
     TipoTrattamento, TrattamentoSanitario, Melario, Smielatura, Gruppo, MembroGruppo, InvitoGruppo,
     Regina, CategoriaAttrezzatura, Attrezzatura, ManutenzioneAttrezzatura,
-    PrestitoAttrezzatura, SpesaAttrezzatura
+    PrestitoAttrezzatura, SpesaAttrezzatura, Cliente, Vendita, DettaglioVendita,
 )
 
 from django.utils  import timezone
@@ -755,3 +755,65 @@ class RicercaReginaForm(forms.Form):
         widget=forms.NumberInput(attrs={'min': 1, 'max': 5}),
         label="Valutazione minima (media)"
     )
+
+
+# ──────────────────────────────────────────────
+# Vendite & Clienti
+# ──────────────────────────────────────────────
+
+class ClienteForm(forms.ModelForm):
+    class Meta:
+        model = Cliente
+        fields = ['nome', 'telefono', 'email', 'indirizzo', 'note']
+        widgets = {
+            'nome':      forms.TextInput(attrs={'class': 'form-control'}),
+            'telefono':  forms.TextInput(attrs={'class': 'form-control'}),
+            'email':     forms.EmailInput(attrs={'class': 'form-control'}),
+            'indirizzo': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'note':      forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+
+class VenditaForm(forms.ModelForm):
+    class Meta:
+        model = Vendita
+        fields = ['data', 'cliente', 'acquirente_nome', 'canale', 'pagamento', 'note']
+        widgets = {
+            'data':           forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'cliente':        forms.Select(attrs={'class': 'form-control form-select'}),
+            'acquirente_nome': forms.TextInput(attrs={'class': 'form-control'}),
+            'canale':         forms.Select(attrs={'class': 'form-control form-select'}),
+            'pagamento':      forms.Select(attrs={'class': 'form-control form-select'}),
+            'note':           forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['cliente'].queryset = Cliente.objects.filter(utente=user)
+        self.fields['cliente'].required = False
+        self.fields['acquirente_nome'].required = False
+
+
+class DettaglioVenditaForm(forms.ModelForm):
+    class Meta:
+        model = DettaglioVendita
+        fields = ['categoria', 'tipo_miele', 'formato_vasetto', 'quantita', 'prezzo_unitario']
+        widgets = {
+            'categoria':       forms.Select(attrs={'class': 'form-control form-select det-categoria'}),
+            'tipo_miele':      forms.TextInput(attrs={'class': 'form-control det-tipo-miele', 'placeholder': 'es. Acacia'}),
+            'formato_vasetto': forms.NumberInput(attrs={'class': 'form-control det-formato', 'placeholder': 'grammi'}),
+            'quantita':        forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'prezzo_unitario': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+        }
+
+
+DettaglioVenditaFormSet = forms.inlineformset_factory(
+    Vendita,
+    DettaglioVendita,
+    form=DettaglioVenditaForm,
+    extra=1,
+    can_delete=True,
+    min_num=1,
+    validate_min=True,
+)

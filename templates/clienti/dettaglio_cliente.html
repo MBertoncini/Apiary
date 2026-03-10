@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}{{ cliente.nome }} - Apiary{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-person me-2" style="color:var(--honey);"></i>{{ cliente.nome }}</h1>
+    <p class="page-subtitle">Storico acquisti cliente</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'modifica_cliente' cliente.pk %}" class="btn btn-outline-primary">
+      <i class="bi bi-pencil me-1"></i>Modifica
+    </a>
+    <a href="{% url 'gestione_clienti' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Clienti
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><h6 class="mb-0"><i class="bi bi-person-vcard me-2"></i>Informazioni</h6></div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          {% if cliente.email %}
+          <dt class="col-4">Email</dt>
+          <dd class="col-8"><a href="mailto:{{ cliente.email }}">{{ cliente.email }}</a></dd>
+          {% endif %}
+          {% if cliente.telefono %}
+          <dt class="col-4">Telefono</dt>
+          <dd class="col-8"><a href="tel:{{ cliente.telefono }}">{{ cliente.telefono }}</a></dd>
+          {% endif %}
+          {% if cliente.indirizzo %}
+          <dt class="col-4">Indirizzo</dt>
+          <dd class="col-8">{{ cliente.indirizzo }}</dd>
+          {% endif %}
+          {% if cliente.note %}
+          <dt class="col-4">Note</dt>
+          <dd class="col-8">{{ cliente.note }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header"><h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Riepilogo</h6></div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Acquisti totali</span>
+          <strong>{{ vendite.count }}</strong>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span class="text-muted">Spesa totale</span>
+          <strong style="color:var(--honey);">€ {{ totale|floatformat:2 }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header"><h6 class="mb-0"><i class="bi bi-receipt me-2"></i>Storico vendite</h6></div>
+      <div class="card-body p-0">
+        {% if vendite %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Canale</th>
+                <th>Prodotti</th>
+                <th class="text-end">Totale</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for v in vendite %}
+              <tr>
+                <td>{{ v.data|date:"d/m/Y" }}</td>
+                <td>{{ v.get_canale_display }}</td>
+                <td>{{ v.dettagli.count }} articoli</td>
+                <td class="text-end fw-bold">€ {{ v.totale|floatformat:2 }}</td>
+                <td>
+                  <a href="{% url 'dettaglio_vendita' v.pk %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-bag-x fs-1 d-block mb-2"></i>
+          Nessuna vendita per questo cliente.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
