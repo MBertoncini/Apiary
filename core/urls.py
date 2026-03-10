@@ -130,4 +130,10 @@ urlpatterns = [
     path('clienti/<int:pk>/', views.dettaglio_cliente, name='dettaglio_cliente'),
     path('clienti/<int:pk>/modifica/', views.modifica_cliente, name='modifica_cliente'),
     path('clienti/<int:pk>/elimina/', views.elimina_cliente, name='elimina_cliente'),
+
+    # Export
+    path('apiario/<int:apiario_id>/ispezioni/export-pdf/', views.export_ispezioni_pdf, name='export_ispezioni_pdf'),
+    path('trattamenti/export-csv/', views.export_trattamenti_csv, name='export_trattamenti_csv'),
+    path('produzione/export-csv/', views.export_produzione_csv, name='export_produzione_csv'),
+    path('vendite/export-csv/', views.export_vendite_csv, name='export_vendite_csv'),
 ]
