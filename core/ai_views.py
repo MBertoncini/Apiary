@@ -159,8 +159,76 @@ Rispondi SOLO con il JSON grezzo, senza markdown."""
         return JsonResponse({'error': str(e)}, status=500)
 
 
+def _genera_analisi_yolo(yolo_result):
+    """Genera un testo di analisi strutturato basato sui risultati YOLO."""
+    if not yolo_result or 'error' in yolo_result:
+        err = yolo_result.get('error', 'modello non disponibile') if yolo_result else 'modello non disponibile'
+        return f"Analisi YOLO non disponibile: {err}"
+    if 'nota' in yolo_result:
+        return f"Analisi YOLO non disponibile: {yolo_result['nota']}"
+
+    summary = yolo_result.get('summary', {})
+    if not summary:
+        return "Nessun elemento rilevato nell'immagine. Verifica che la foto mostri chiaramente il telaino."
+
+    # Leggi conteggi (nomi classi in inglese come da modello)
+    api = summary.get('bee', summary.get('bees', 0))
+    fuchi = summary.get('drone', summary.get('drones', 0))
+    regine = summary.get('queenbee', summary.get('queenbees', summary.get('queen', 0)))
+    celle_reali = summary.get('royal cell', summary.get('royalcell', summary.get('queen_cell', 0)))
+
+    righe = []
+
+    # Regina
+    if regine > 0:
+        righe.append(f"PRESENZA REGINA: rilevata ({regine} individuo/i identificato/i dal modello).")
+    else:
+        righe.append("PRESENZA REGINA: non rilevata direttamente nell'immagine. Presenza incerta.")
+
+    # Celle reali
+    if celle_reali > 0:
+        righe.append(f"CELLE REALI: rilevate {celle_reali}. Attenzione: possibile preparazione alla sciamatura o sostituzione della regina.")
+    else:
+        righe.append("CELLE REALI: nessuna rilevata.")
+
+    # Forza della famiglia (api operaie)
+    if api > 100:
+        forza = "famiglia molto numerosa"
+    elif api > 50:
+        forza = "famiglia di buona forza"
+    elif api > 20:
+        forza = "famiglia di media forza"
+    elif api > 0:
+        forza = "famiglia debole"
+    else:
+        forza = "nessuna ape operaia rilevata"
+    righe.append(f"POPOLAZIONE: {api} api operaie rilevate ({forza}).")
+
+    # Fuchi
+    if fuchi > 0:
+        righe.append(f"FUCHI: rilevati {fuchi}. Presenza normale in primavera/estate.")
+
+    # Riepilogo conteggi
+    tutti = ", ".join(f"{cls}: {n}" for cls, n in summary.items())
+    righe.append(f"RIEPILOGO RILEVAZIONI: {tutti}.")
+
+    # Consiglio pratico
+    consigli = []
+    if celle_reali > 0:
+        consigli.append("Controlla lo stato di sciamatura e valuta se intervenire.")
+    if regine == 0:
+        consigli.append("Verifica la presenza della regina ispezionando i favi centrali alla ricerca di uova.")
+    if api < 20:
+        consigli.append("La famiglia sembra debole: valuta un'unione o un rinforzo con covata.")
+    if not consigli:
+        consigli.append("Famiglia nella norma. Prosegui con i controlli periodici.")
+    righe.append("CONSIGLIO: " + " ".join(consigli))
+
+    return "\n\n".join(righe)
+
+
 # ---------------------------------------------------------------------------
-# Analisi Telaino (Vision + YOLO)
+# Analisi Telaino (YOLO locale)
 # ---------------------------------------------------------------------------
 @login_required
 def analisi_telaino(request):
@@ -175,8 +243,6 @@ def analisi_telaino(request):
     try:
         image_file = request.FILES['image']
         image_data = image_file.read()
-        image_b64 = base64.b64encode(image_data).decode('utf-8')
-        content_type = image_file.content_type or 'image/jpeg'
 
         # --- YOLO segmentazione ---
         yolo_result = None
@@ -229,30 +295,12 @@ def analisi_telaino(request):
             except Exception as e:
                 yolo_result = {'error': str(e)}
 
-        # --- Gemini Vision ---
-        yolo_ctx = ""
-        if yolo_result and 'summary' in yolo_result and yolo_result['summary']:
-            counts_str = ", ".join(f"{k}: {v}" for k, v in yolo_result['summary'].items())
-            yolo_ctx = f"\nIl modello di segmentazione ha rilevato: {counts_str}."
-
-        vision_prompt = f"""Sei un apicoltore esperto. Analizza attentamente questa foto di telaino/favo.{yolo_ctx}
-
-Fornisci un'analisi strutturata in italiano con questi punti:
-1. PRESENZA REGINA: sì / no / probabile — motivazione breve
-2. UOVA E COVATA: presenza uova, larve aperte, covata opercolata, qualità del pattern
-3. SCORTE: miele opercolato, polline, posizione e abbondanza stimata
-4. STATO SANITARIO: varroa visibile, covata calcificata, saccheggio, altri problemi
-5. CONSIGLIO PRATICO: una o due azioni raccomandate
-
-Scrivi in testo semplice, senza markdown, conciso e diretto."""
-
-        analysis_text, model_used = gemini_service.generate_with_image(
-            vision_prompt, image_b64, mime_type=content_type
-        )
+        # --- Analisi basata solo su YOLO ---
+        analysis_text = _genera_analisi_yolo(yolo_result)
 
         return JsonResponse({
             'analysis': analysis_text,
-            'model': model_used,
+            'model': 'YOLO locale',
             'yolo': yolo_result,
         })
 
