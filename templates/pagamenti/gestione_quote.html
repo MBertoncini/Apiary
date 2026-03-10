@@ -2,7 +2,7 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Gestione Quote - Gestione Apiario{% endblock %}
+{% block title %}Gestione Quote - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -92,11 +92,11 @@
                                 {% endif %}
                             </div>
                             <div class="progress" style="width: 200px; height: 25px;">
-                                <div class="progress-bar {% if total_percentuale > 100 %}bg-danger{% elif total_percentuale == 100 %}bg-success{% else %}bg-warning{% endif %}" 
-                                     role="progressbar" 
-                                     style="width: {{ total_percentuale }}%;"
-                                     aria-valuenow="{{ total_percentuale }}" 
-                                     aria-valuemin="0" 
+                                <div class="progress-bar {% if total_percentuale > 100 %}bg-danger{% elif total_percentuale == 100 %}bg-success{% else %}bg-warning{% endif %}"
+                                     role="progressbar"
+                                     style="width: {{ progress_width }}%;"
+                                     aria-valuenow="{{ progress_width }}"
+                                     aria-valuemin="0"
                                      aria-valuemax="100">
                                     {{ total_percentuale }}%
                                 </div>

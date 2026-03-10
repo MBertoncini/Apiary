@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Apiary Manager{% endblock %}</title>
+  <title>{% block title %}Apiary{% endblock %}</title>
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,11 +38,8 @@
 
   <!-- Logo -->
   <a href="{% url 'dashboard' %}" class="sidebar-logo">
-    <span class="logo-icon">🐝</span>
-    <div>
-      <span class="logo-text">Apiary</span>
-      <span class="logo-sub">Manager</span>
-    </div>
+    <img src="{% static 'images/logo.svg' %}" alt="Apiary" class="logo-icon" style="width:40px;height:40px;object-fit:contain;flex-shrink:0">
+    <span class="logo-text">Apiary</span>
   </a>
 
   <!-- Navigation -->
@@ -249,8 +246,7 @@
 
   <footer class="app-footer">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-      <span>&copy; {% now "Y" %} Apiary Manager</span>
-      <span class="text-muted">Gestione apiario professionale 🐝</span>
+      <span>&copy; {% now "Y" %} Apiary</span>
     </div>
   </footer>
 

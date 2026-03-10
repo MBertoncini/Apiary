@@ -1,7 +1,7 @@
 <!-- templates/arnie/visualizza_apiario.html -->
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}{{ apiario.nome }} - Gestione Apiario{% endblock %}
+{% block title %}{{ apiario.nome }} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -109,18 +109,19 @@
       {% if can_edit %}
       <div class="piantina-toolbar" id="piantina-toolbar">
         <div class="tool-group">
-          <button class="tool-btn active" id="tool-pan"     onclick="PIANTINA.setTool('pan')"     title="Sposta vista  [P]"><i class="bi bi-hand-index-thumb"></i></button>
-          <button class="tool-btn"        id="tool-select"  onclick="PIANTINA.setTool('select')"  title="Seleziona/Trascina  [S]"><i class="bi bi-cursor"></i></button>
+          <button class="tool-btn active" id="tool-pan"    onclick="PIANTINA.setTool('pan')"    title="Sposta vista  [P]"><i class="bi bi-hand-index-thumb"></i></button>
+          <button class="tool-btn"        id="tool-select" onclick="PIANTINA.setTool('select')" title="Seleziona elemento (poi Canc per eliminare)  [S]"><i class="bi bi-cursor"></i></button>
         </div>
         <div class="tool-sep"></div>
         <div class="tool-group">
-          <button class="tool-btn"        id="tool-albero"   onclick="PIANTINA.setTool('albero')"   title="Aggiungi albero  [A]"><i class="bi bi-tree"></i></button>
-          <button class="tool-btn"        id="tool-vialetto" onclick="PIANTINA.setTool('vialetto')" title="Disegna vialetto  [V]"><i class="bi bi-bezier"></i></button>
-          <button class="tool-btn"        id="tool-nucleo"   onclick="PIANTINA.setTool('nucleo')"   title="Aggiungi nucleo  [N]"><i class="bi bi-hexagon"></i></button>
+          <a href="{% url 'crea_arnia' %}?apiario_id={{ apiario.id }}" class="tool-btn" title="Aggiungi nuova arnia al registro" style="text-decoration:none"><i class="bi bi-plus-circle"></i></a>
+          <button class="tool-btn" id="tool-albero"   onclick="PIANTINA.setTool('albero')"   title="Pianta albero  [A]"><i class="bi bi-tree"></i></button>
+          <button class="tool-btn" id="tool-vialetto" onclick="PIANTINA.setTool('vialetto')" title="Disegna vialetto  [V]"><i class="bi bi-bezier"></i></button>
+          <button class="tool-btn" id="tool-nucleo"   onclick="PIANTINA.setTool('nucleo')"   title="Aggiungi nucleo  [N]"><i class="bi bi-hexagon"></i></button>
         </div>
         <div class="tool-sep"></div>
         <div class="tool-group">
-          <button class="tool-btn danger" id="btn-delete" onclick="PIANTINA.deleteSelected()" title="Elimina selezionato  [Canc]"><i class="bi bi-trash3"></i></button>
+          <button class="tool-btn danger" id="btn-delete" onclick="PIANTINA.deleteSelected()" title="Elimina selezionato  [Canc]" disabled><i class="bi bi-trash3"></i></button>
           <button class="tool-btn"        id="btn-undo"   onclick="PIANTINA.undo()"           title="Annulla  [Ctrl+Z]"><i class="bi bi-arrow-counterclockwise"></i></button>
           <button class="tool-btn"        id="btn-fit"    onclick="PIANTINA.fitAll()"         title="Adatta vista  [F]"><i class="bi bi-fullscreen"></i></button>
         </div>
@@ -141,12 +142,55 @@
         <canvas id="piantina-canvas"></canvas>
         <!-- Info arnia (overlay) -->
         <div id="piantina-info" class="piantina-info" style="display:none"></div>
+        <!-- Info nucleo (overlay) -->
+        <div id="piantina-nucleo-info" class="piantina-info" style="display:none"></div>
         <!-- Tooltip hover -->
         <div id="piantina-tooltip" class="piantina-tooltip" style="display:none"></div>
         <!-- Status bar -->
         <div id="piantina-status" class="piantina-status">Pronto</div>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- ═══  MODAL: Nuovo Nucleo  ═══ -->
+<div class="modal fade" id="nucleoModal" tabindex="-1" aria-labelledby="nucleoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header" style="background:#f8f4ec;border-bottom:1px solid #e8dfc8">
+        <h5 class="modal-title" id="nucleoModalLabel"><i class="bi bi-hexagon me-2"></i>Nuovo Nucleo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Numero</label>
+          <input type="number" id="nucleo-numero" class="form-control form-control-sm" min="1" value="1">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Colore</label>
+          <div class="d-flex flex-wrap gap-2 mt-1" id="nucleo-color-picker">
+            <button class="nucleo-color-btn active" data-color="#8B6914" style="background:#8B6914"  title="Miele (default)"></button>
+            <button class="nucleo-color-btn"        data-color="#FFC107" style="background:#FFC107"  title="Giallo"></button>
+            <button class="nucleo-color-btn"        data-color="#FF8F00" style="background:#FF8F00"  title="Arancione"></button>
+            <button class="nucleo-color-btn"        data-color="#C62828" style="background:#C62828"  title="Rosso"></button>
+            <button class="nucleo-color-btn"        data-color="#1565C0" style="background:#1565C0"  title="Blu"></button>
+            <button class="nucleo-color-btn"        data-color="#2E7D32" style="background:#2E7D32"  title="Verde"></button>
+            <button class="nucleo-color-btn"        data-color="#6A1B9A" style="background:#6A1B9A"  title="Viola"></button>
+            <button class="nucleo-color-btn"        data-color="#37474F" style="background:#37474F"  title="Grigio"></button>
+            <button class="nucleo-color-btn"        data-color="#212121" style="background:#212121"  title="Nero"></button>
+            <button class="nucleo-color-btn"        data-color="#F5F5F5" style="background:#F5F5F5;border:1.5px solid #bbb" title="Bianco"></button>
+          </div>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="nucleo-attiva" checked>
+          <label class="form-check-label" for="nucleo-attiva">Attivo</label>
+        </div>
+      </div>
+      <div class="modal-footer" style="background:#f8f4ec;border-top:1px solid #e8dfc8">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annulla</button>
+        <button type="button" class="btn btn-primary btn-sm" id="nucleo-confirm-btn"><i class="bi bi-check-lg me-1"></i>Aggiungi</button>
+      </div>
     </div>
   </div>
 </div>
@@ -575,17 +619,23 @@ document.addEventListener('DOMContentLoaded', function() {
 .tool-group { display:flex;gap:2px; }
 .tool-sep { width:1px;background:#d8cdb8;margin:2px 4px;align-self:stretch; }
 .tool-btn { width:34px;height:34px;border-radius:8px;border:1.5px solid transparent;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#5a4030;transition:background .15s,border-color .15s,color .15s; }
-.tool-btn:hover { background:#ede0c8;border-color:#d4b896; }
+.tool-btn:hover:not(:disabled) { background:#ede0c8;border-color:#d4b896; }
 .tool-btn.active { background:#F5A623;border-color:#d4851a;color:#fff;box-shadow:0 2px 6px rgba(245,166,35,.35); }
-.tool-btn.danger:hover { background:#fee2e2;border-color:#fca5a5;color:#b91c1c; }
+.tool-btn.danger:not(:disabled):hover { background:#fee2e2;border-color:#fca5a5;color:#b91c1c; }
+.tool-btn:disabled { opacity:.38;cursor:not-allowed; }
 #piantina-body { background:#e8e0c8;border-radius:0 0 12px 12px;overflow:hidden; }
 #piantina-canvas { display:block;width:100%;touch-action:none;border-radius:0 0 12px 12px; }
-.piantina-info { position:absolute;bottom:40px;right:12px;width:210px;border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.22);z-index:20;animation:slideInInfo .2s ease; }
+.piantina-info { position:absolute;bottom:40px;right:12px;width:220px;border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.22);z-index:20;animation:slideInInfo .2s ease; }
+#piantina-nucleo-info { bottom:40px;right:240px; }
 @keyframes slideInInfo { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
 .piantina-tooltip { position:absolute;pointer-events:none;z-index:30;background:rgba(44,24,16,.88);color:#fff;padding:3px 8px;border-radius:5px;font-size:.75rem;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.3); }
 .piantina-status { position:absolute;bottom:0;left:0;right:0;background:rgba(44,24,16,.72);color:rgba(255,255,255,.9);font-size:.7rem;padding:3px 10px;pointer-events:none;z-index:10;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
 @keyframes arniaHighlight { 0%,100%{box-shadow:none} 20%,80%{box-shadow:0 0 0 4px #F5A623,0 0 20px rgba(245,166,35,.5)} }
 .arnia-highlight { animation:arniaHighlight 2.2s ease; }
+/* Nucleo color picker */
+.nucleo-color-btn { width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .15s,border-color .15s;flex-shrink:0; }
+.nucleo-color-btn:hover { transform:scale(1.15); }
+.nucleo-color-btn.active { border-color:#2C1810;transform:scale(1.1);box-shadow:0 0 0 2px #F5A623; }
 </style>
 
 <script>
@@ -595,14 +645,15 @@ const SAVE_URL       = '{% url "save_map_layout" apiario.id %}';
 const CAN_EDIT       = {{ can_edit|yesno:"true,false" }};
 
 const PIANTINA = (() => {
-  const CELL=90,SNAP=60,H_CSS=460,MIN_SC=0.003,MAX_SC=0.5;
+  const CELL=90,SNAP=60,H_CSS=460,MIN_SC=0.003,MAX_SC=0.5,MIN_HIT=20;
   const CSRF=()=>document.cookie.match(/csrftoken=([^;]+)/)?.[1]||'';
   let layout=deep(INITIAL_LAYOUT),vp={x:0,y:0,scale:.05};
   let tool='pan',snapOn=false,sel=null,hov=null;
   let dragMode='none',dragStart=null,isDrag=false;
   let pathPts=[],pathPrev=null,undoStack=[],dirty=false;
+  let pendingNucleoPos=null;
   let raf=null,needDraw=true;
-  let canvas,ctx,infoEl,tipEl,statEl,zoomLbl,cntBadge,saveStatEl;
+  let canvas,ctx,infoEl,nucleoInfoEl,tipEl,statEl,zoomLbl,cntBadge,saveStatEl;
 
   function deep(o){return JSON.parse(JSON.stringify(o));}
   function toS(fx,fy){return[fx*vp.scale+vp.x,fy*vp.scale+vp.y];}
@@ -641,10 +692,22 @@ const PIANTINA = (() => {
   function zoom(dir,cx,cy){cx=cx??canvas.offsetWidth/2;cy=cy??H_CSS/2;const[fx,fy]=toF(cx,cy);vp.scale=Math.max(MIN_SC,Math.min(MAX_SC,vp.scale*(dir>0?1.3:.77)));vp.x=cx-fx*vp.scale;vp.y=cy-fy*vp.scale;updZoom();needDraw=true;}
   function updZoom(){if(zoomLbl)zoomLbl.textContent=Math.round(vp.scale*1000)+'%';}
 
+  /* hit test con area minima MIN_HIT px per non perdere elementi a zoom ridotto */
   function hitTest(mx,my){
     const[fx,fy]=toF(mx,my);
-    for(const id of Object.keys(arniePos()).reverse()){if(!ARNIE_DATA[id])continue;const sz=CELL*vp.scale,[sx,sy]=toS(arniePos()[id].x,arniePos()[id].y);if(mx>=sx-sz/2&&mx<=sx+sz/2&&my>=sy-sz*.15&&my<=sy+sz)return{kind:'arnia',id};}
-    for(const el of[...elems()].reverse()){const[sx,sy]=toS(el.x,el.y);if(el.type==='vialetto'){if(hitPath(el,fx,fy))return{kind:'element',id:el.id};}else{const sz=(el.type==='nucleo'?70:72)*vp.scale;if(mx>=sx-sz/2&&mx<=sx+sz/2&&my>=sy-sz*1.1&&my<=sy+sz*.3)return{kind:'element',id:el.id};}}
+    for(const id of Object.keys(arniePos()).reverse()){
+      if(!ARNIE_DATA[id])continue;
+      const sz=Math.max(CELL*vp.scale,MIN_HIT),[sx,sy]=toS(arniePos()[id].x,arniePos()[id].y);
+      if(mx>=sx-sz/2&&mx<=sx+sz/2&&my>=sy-sz*.15&&my<=sy+sz)return{kind:'arnia',id};
+    }
+    for(const el of[...elems()].reverse()){
+      const[sx,sy]=toS(el.x,el.y);
+      if(el.type==='vialetto'){if(hitPath(el,fx,fy))return{kind:'element',id:el.id};}
+      else{
+        const sz=Math.max((el.type==='nucleo'?70:72)*vp.scale,MIN_HIT);
+        if(mx>=sx-sz/2&&mx<=sx+sz/2&&my>=sy-sz*1.1&&my<=sy+sz*.3)return{kind:'element',id:el.id};
+      }
+    }
     return null;
   }
   function hitPath(el,fx,fy){if(!el.segments)return false;const thr=(el.path_width||40)/2+15;let cx=el.x,cy=el.y;for(const s of el.segments){const rad=s.angle*Math.PI/180,nx=cx+Math.cos(rad)*s.length,ny=cy+Math.sin(rad)*s.length,dx=nx-cx,dy=ny-cy,len2=dx*dx+dy*dy;let t=len2>0?((fx-cx)*dx+(fy-cy)*dy)/len2:0;t=Math.max(0,Math.min(1,t));if((cx+t*dx-fx)**2+(cy+t*dy-fy)**2<=thr*thr)return true;cx=nx;cy=ny;}return false;}
@@ -716,8 +779,9 @@ const PIANTINA = (() => {
     if(tool==='vialetto'){const[fx,fy]=toF(mx,my);pathPts.push({x:snapV(fx),y:snapV(fy)});needDraw=true;return;}
     const hit=hitTest(mx,my);
     if(!hit||tool==='pan'){dragMode='pan';dragStart={mx,my,vx:vp.x,vy:vp.y};canvas.style.cursor='grabbing';}
-    else if(tool==='select'){doSelect(hit);const pos=hit.kind==='arnia'?arniePos()[hit.id]:elems().find(e=>e.id===hit.id);dragMode='move';dragStart={mx,my,ex:pos.x,ey:pos.y};}
-    else if(tool==='albero'||tool==='nucleo'){const[fx,fy]=toF(mx,my);saveUndoState();addEl(tool,snapV(fx),snapV(fy));needDraw=true;}
+    else if(tool==='select'){doSelect(hit);const pos=hit.kind==='arnia'?arniePos()[hit.id]:elems().find(e=>e.id===hit.id);if(pos){dragMode='move';dragStart={mx,my,ex:pos.x,ey:pos.y};}}
+    else if(tool==='albero'){const[fx,fy]=toF(mx,my);saveUndoState();addEl('albero',snapV(fx),snapV(fy));needDraw=true;}
+    else if(tool==='nucleo'){const[fx,fy]=toF(mx,my);openNucleoModal(snapV(fx),snapV(fy));}
     isDrag=false;
   }
   function onMove(e){
@@ -743,11 +807,43 @@ const PIANTINA = (() => {
     if(e.key==='f')fitAll();if(e.key==='g')toggleSnap();
   }
 
-  function doSelect(hit){sel=hit;needDraw=true;if(hit?.kind==='arnia')showInfo(hit.id);else hideInfo();updStatus();}
+  function doSelect(hit){
+    sel=hit;needDraw=true;
+    if(hit?.kind==='arnia'){showInfo(hit.id);hideNucleoInfo();}
+    else if(hit?.kind==='element'){hideInfo();const el=elems().find(e=>e.id===hit.id);if(el?.type==='nucleo')showNucleoInfo(el);else hideNucleoInfo();}
+    else{hideInfo();hideNucleoInfo();}
+    updStatus();updDeleteBtn();
+  }
+  function updDeleteBtn(){const btn=document.getElementById('btn-delete');if(!btn)return;const can=sel?.kind==='element';btn.disabled=!can;}
   function moveEl(nx,ny){if(!sel)return;if(sel.kind==='arnia')layout.arnie[sel.id]={x:nx,y:ny};else{const el=elems().find(e=>e.id===sel.id);if(el){el.x=nx;el.y=ny;}}}
-  function addEl(type,fx,fy){if(!layout.elements)layout.elements=[];const id='elem_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);const el={id,type,x:fx,y:fy};if(type==='nucleo'){el.numero=elems().filter(e=>e.type==='nucleo').length+1;el.colore_hex='#8B6914';}layout.elements.push(el);doSelect({kind:'element',id});markDirty();}
+  function addEl(type,fx,fy){if(!layout.elements)layout.elements=[];const id='elem_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);const el={id,type,x:fx,y:fy};layout.elements.push(el);doSelect({kind:'element',id});markDirty();}
   function finishVialetto(){if(!layout.elements)layout.elements=[];const id='elem_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);const segs=[];for(let i=1;i<pathPts.length;i++){const dx=pathPts[i].x-pathPts[i-1].x,dy=pathPts[i].y-pathPts[i-1].y;segs.push({angle:Math.atan2(dy,dx)*180/Math.PI,length:Math.sqrt(dx*dx+dy*dy)});}layout.elements.push({id,type:'vialetto',x:pathPts[0].x,y:pathPts[0].y,path_width:40,segments:segs});pathPts=[];pathPrev=null;doSelect({kind:'element',id});markDirty();setTool('select');needDraw=true;}
   function deleteSelected(){if(!sel||sel.kind==='arnia')return;saveUndoState();layout.elements=layout.elements.filter(e=>e.id!==sel.id);doSelect(null);markDirty();needDraw=true;}
+
+  /* === Nucleo modal === */
+  function openNucleoModal(fx,fy){
+    pendingNucleoPos={x:fx,y:fy};
+    const nextNum=elems().filter(e=>e.type==='nucleo').length+1;
+    const numEl=document.getElementById('nucleo-numero');if(numEl)numEl.value=nextNum;
+    document.querySelectorAll('.nucleo-color-btn').forEach(b=>b.classList.remove('active'));
+    const def=document.querySelector('.nucleo-color-btn[data-color="#8B6914"]');if(def)def.classList.add('active');
+    const m=document.getElementById('nucleoModal');if(m)bootstrap.Modal.getOrCreateInstance(m).show();
+  }
+  function confirmNucleo(){
+    if(!pendingNucleoPos)return;
+    const colBtn=document.querySelector('.nucleo-color-btn.active');
+    const col=colBtn?.dataset.color||'#8B6914';
+    const numEl=document.getElementById('nucleo-numero');
+    const num=parseInt(numEl?.value)||elems().filter(e=>e.type==='nucleo').length+1;
+    const attiva=document.getElementById('nucleo-attiva')?.checked!==false;
+    saveUndoState();
+    if(!layout.elements)layout.elements=[];
+    const id='elem_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+    layout.elements.push({id,type:'nucleo',x:pendingNucleoPos.x,y:pendingNucleoPos.y,numero:num,colore_hex:col,attiva});
+    doSelect({kind:'element',id});markDirty();needDraw=true;
+    pendingNucleoPos=null;
+    const m=document.getElementById('nucleoModal');if(m)bootstrap.Modal.getInstance(m)?.hide();
+  }
 
   function saveUndoState(){undoStack.push(deep(layout));if(undoStack.length>50)undoStack.shift();}
   function undo(){if(!undoStack.length)return;layout=undoStack.pop();doSelect(null);markDirty();needDraw=true;}
@@ -765,7 +861,7 @@ const PIANTINA = (() => {
     const a=ARNIE_DATA[id];if(!a||!infoEl)return;
     const rB=a.presenza_regina===true?'<span class="badge bg-success" style="font-size:.7rem">Presente</span>':a.presenza_regina===false?'<span class="badge bg-danger" style="font-size:.7rem">Assente</span>':'<span class="badge bg-secondary" style="font-size:.7rem">—</span>';
     const w=(a.problemi_sanitari?'<span class="badge bg-danger ms-1" style="font-size:.68rem">Problemi</span>':'')+(a.sciamatura?'<span class="badge bg-warning text-dark ms-1" style="font-size:.68rem">Sciamatura</span>':'');
-    infoEl.innerHTML='<div style="background:'+a.colore_hex+';padding:8px 12px;display:flex;align-items:center;justify-content:space-between"><span style="font-weight:700;color:'+tcol(a.colore_hex)+';font-size:.95rem">Arnia #'+a.numero+'</span><button onclick="PIANTINA.hideInfo()" style="background:none;border:none;color:'+tcol(a.colore_hex)+';font-size:1.1rem;cursor:pointer">x</button></div>'
+    infoEl.innerHTML='<div style="background:'+a.colore_hex+';padding:8px 12px;display:flex;align-items:center;justify-content:space-between"><span style="font-weight:700;color:'+tcol(a.colore_hex)+';font-size:.95rem">Arnia #'+a.numero+'</span><button onclick="PIANTINA.hideInfo()" style="background:none;border:none;color:'+tcol(a.colore_hex)+';font-size:1.1rem;cursor:pointer">×</button></div>'
       +'<div style="padding:10px 12px;background:rgba(255,253,245,.97)">'
       +'<div class="d-flex justify-content-between align-items-center mb-1"><small class="text-muted">Regina</small>'+rB+'</div>'
       +'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Covata</small><small class="fw-semibold">'+(a.telaini_covata??'—')+' tel.</small></div>'
@@ -776,13 +872,45 @@ const PIANTINA = (() => {
       +'<button onclick="PIANTINA.scrollToArnia(\''+id+'\')" class="btn btn-sm w-100 mt-2 fw-semibold" style="background:#F5A623;color:#2C1810;border:none"><i class="bi bi-arrow-down-circle me-1"></i>Vai all\'arnia</button></div>';
     infoEl.style.display='block';
   }
-  function hideInfo(){if(infoEl)infoEl.style.display='none';sel=null;needDraw=true;}
+  function hideInfo(){if(infoEl)infoEl.style.display='none';}
   function scrollToArnia(id){const card=document.querySelector('.arnia-card[data-arnia-id="'+id+'"]');if(card){card.scrollIntoView({behavior:'smooth',block:'center'});card.classList.remove('arnia-highlight');void card.offsetWidth;card.classList.add('arnia-highlight');}}
 
-  function showTip(hit,mx,my){if(!tipEl)return;if(!hit){tipEl.style.display='none';return;}const names={albero:'Albero',nucleo:'Nucleo',vialetto:'Vialetto'};const txt=hit.kind==='arnia'?'Arnia #'+(ARNIE_DATA[hit.id]?.numero||'?'):(names[elems().find(e=>e.id===hit.id)?.type]||'?');tipEl.textContent=txt;tipEl.style.left=(mx+14)+'px';tipEl.style.top=(my-8)+'px';tipEl.style.display='block';}
+  function showNucleoInfo(el){
+    if(!nucleoInfoEl)return;
+    const col=el.colore_hex||'#8B6914';
+    nucleoInfoEl.innerHTML='<div style="background:'+col+';padding:8px 12px;display:flex;align-items:center;justify-content:space-between"><span style="font-weight:700;color:'+tcol(col)+';font-size:.95rem">Nucleo N'+el.numero+'</span><button onclick="PIANTINA.hideNucleoInfo()" style="background:none;border:none;color:'+tcol(col)+';font-size:1.1rem;cursor:pointer">×</button></div>'
+      +'<div style="padding:10px 12px;background:rgba(255,253,245,.97)">'
+      +(el.attiva!==false?'<span class="badge bg-success mb-2">Attivo</span>':'<span class="badge bg-secondary mb-2">Inattivo</span>')
+      +'<div class="d-flex gap-1 mt-1">'
+      +'<button onclick="PIANTINA.editNucleo(\''+el.id+'\')" class="btn btn-sm btn-outline-secondary flex-grow-1" style="font-size:.72rem"><i class="bi bi-pencil me-1"></i>Modifica</button>'
+      +'<button onclick="PIANTINA.deleteSelected()" class="btn btn-sm btn-outline-danger" style="font-size:.72rem"><i class="bi bi-trash3"></i></button>'
+      +'</div></div>';
+    nucleoInfoEl.style.display='block';
+  }
+  function hideNucleoInfo(){if(nucleoInfoEl)nucleoInfoEl.style.display='none';}
+
+  function editNucleo(id){
+    const el=elems().find(e=>e.id===id);if(!el)return;
+    pendingNucleoPos=null; // editing, not placing
+    const numEl=document.getElementById('nucleo-numero');if(numEl)numEl.value=el.numero||1;
+    document.querySelectorAll('.nucleo-color-btn').forEach(b=>b.classList.remove('active'));
+    const btn=document.querySelector('.nucleo-color-btn[data-color="'+el.colore_hex+'"]');
+    if(btn)btn.classList.add('active');
+    else{const def=document.querySelector('.nucleo-color-btn');if(def)def.classList.add('active');}
+    const attEl=document.getElementById('nucleo-attiva');if(attEl)attEl.checked=el.attiva!==false;
+    const m=document.getElementById('nucleoModal');
+    if(m){
+      // On confirm we update the existing element
+      const confirmBtn=document.getElementById('nucleo-confirm-btn');
+      confirmBtn._editId=id;
+      bootstrap.Modal.getOrCreateInstance(m).show();
+    }
+  }
+
+  function showTip(hit,mx,my){if(!tipEl)return;if(!hit){tipEl.style.display='none';return;}const names={albero:'Albero — Seleziona [S] per spostare/eliminare',nucleo:'Nucleo — Seleziona [S] per spostare/eliminare',vialetto:'Vialetto — Seleziona [S] per spostare/eliminare'};const txt=hit.kind==='arnia'?'Arnia #'+(ARNIE_DATA[hit.id]?.numero||'?'):(names[elems().find(e=>e.id===hit.id)?.type]||'?');tipEl.textContent=txt;tipEl.style.left=(mx+14)+'px';tipEl.style.top=(my-8)+'px';tipEl.style.display='block';}
 
   function setTool(t){tool=t;if(t!=='vialetto'){pathPts=[];pathPrev=null;}document.querySelectorAll('.tool-btn[id^="tool-"]').forEach(b=>b.classList.remove('active'));document.getElementById('tool-'+t)?.classList.add('active');const c={pan:'grab',select:'default',albero:'crosshair',vialetto:'crosshair',nucleo:'crosshair'};canvas.style.cursor=c[t]||'default';updStatus();needDraw=true;}
-  function updStatus(){if(!statEl)return;const n={pan:'Sposta vista',select:'Seleziona',albero:'Aggiungi albero',vialetto:'Disegna vialetto',nucleo:'Aggiungi nucleo'};const t={pan:'Trascina · Rotella per zoom',select:'Clicca per selezionare · Trascina per spostare',albero:'Clicca per piazzare',vialetto:'Clicca per punti · Doppio clic per terminare · Esc per annullare',nucleo:'Clicca per aggiungere'};statEl.textContent=(n[tool]||'')+'  —  '+(t[tool]||'')+(snapOn?' · Snap':'');}
+  function updStatus(){if(!statEl)return;const n={pan:'Sposta vista',select:'Seleziona elemento',albero:'Pianta albero',vialetto:'Disegna vialetto',nucleo:'Aggiungi nucleo'};const t={pan:'Trascina · Rotella per zoom',select:'Clicca per selezionare · Trascina per spostare · [Canc] per eliminare',albero:'Clicca per piazzare',vialetto:'Clicca per punti · Doppio clic per terminare · Esc per annullare',nucleo:'Clicca per posizionare (apre configurazione)'};statEl.textContent=(n[tool]||'')+'  —  '+(t[tool]||'')+(snapOn?' · Snap griglia':'')+(sel?.kind==='element'?' · Elemento selezionato':'');}
 
   let lastTD=null;
   function onTouchStart(e){if(e.touches.length===2)lastTD=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);else onDown(e);}
@@ -791,10 +919,44 @@ const PIANTINA = (() => {
 
   function init(){
     canvas=document.getElementById('piantina-canvas');if(!canvas)return;
-    ctx=canvas.getContext('2d');infoEl=document.getElementById('piantina-info');tipEl=document.getElementById('piantina-tooltip');statEl=document.getElementById('piantina-status');zoomLbl=document.getElementById('zoom-label');cntBadge=document.getElementById('piantina-count');saveStatEl=document.getElementById('save-status');
+    ctx=canvas.getContext('2d');
+    infoEl=document.getElementById('piantina-info');
+    nucleoInfoEl=document.getElementById('piantina-nucleo-info');
+    tipEl=document.getElementById('piantina-tooltip');
+    statEl=document.getElementById('piantina-status');
+    zoomLbl=document.getElementById('zoom-label');
+    cntBadge=document.getElementById('piantina-count');
+    saveStatEl=document.getElementById('save-status');
     canvas.style.height=H_CSS+'px';
     const autoInit=ensureInit();const n=Object.keys(ARNIE_DATA).length;if(cntBadge)cntBadge.textContent=n+(n===1?' arnia':' arnie');
     fitAll();updStatus();if(autoInit)setTimeout(markDirty,200);
+
+    /* Color picker buttons */
+    document.querySelectorAll('.nucleo-color-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{document.querySelectorAll('.nucleo-color-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');});
+    });
+    /* Nucleo confirm button */
+    const confirmBtn=document.getElementById('nucleo-confirm-btn');
+    if(confirmBtn){confirmBtn.addEventListener('click',()=>{
+      if(confirmBtn._editId){
+        // Editing existing nucleo
+        const el=elems().find(e=>e.id===confirmBtn._editId);
+        if(el){
+          saveUndoState();
+          const colBtn=document.querySelector('.nucleo-color-btn.active');
+          el.colore_hex=colBtn?.dataset.color||el.colore_hex;
+          el.numero=parseInt(document.getElementById('nucleo-numero')?.value)||el.numero;
+          el.attiva=document.getElementById('nucleo-attiva')?.checked!==false;
+          markDirty();needDraw=true;
+          const selEl=elems().find(e=>e.id===el.id);if(selEl)showNucleoInfo(selEl);
+        }
+        confirmBtn._editId=null;
+      }else{confirmNucleo();}
+      const m=document.getElementById('nucleoModal');if(m)bootstrap.Modal.getInstance(m)?.hide();
+    });}
+    /* Reset editId on modal close */
+    document.getElementById('nucleoModal')?.addEventListener('hidden.bs.modal',()=>{if(confirmBtn)confirmBtn._editId=null;pendingNucleoPos=null;});
+
     if(CAN_EDIT){canvas.addEventListener('mousedown',onDown);canvas.addEventListener('mousemove',onMove);canvas.addEventListener('mouseup',onUp);canvas.addEventListener('dblclick',onDbl);canvas.addEventListener('touchstart',onTouchStart,{passive:false});canvas.addEventListener('touchmove',onTouchMove,{passive:false});canvas.addEventListener('touchend',onTouchEnd);window.addEventListener('keydown',onKey);canvas.style.cursor='grab';}
     else{canvas.addEventListener('mousemove',onMove);canvas.style.cursor='default';}
     canvas.addEventListener('mouseleave',()=>{hov=null;if(tipEl)tipEl.style.display='none';needDraw=true;});
@@ -802,7 +964,7 @@ const PIANTINA = (() => {
     window.addEventListener('resize',()=>needDraw=true);
     loop();
   }
-  return{init,setTool,save,undo,deleteSelected,toggleSnap,zoom:d=>zoom(d),fitAll,hideInfo,scrollToArnia};
+  return{init,setTool,save,undo,deleteSelected,toggleSnap,zoom:d=>zoom(d),fitAll,hideInfo,hideNucleoInfo,scrollToArnia,editNucleo};
 })();
 
 document.addEventListener('DOMContentLoaded',()=>PIANTINA.init());
