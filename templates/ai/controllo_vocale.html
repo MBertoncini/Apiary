@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Controllo Vocale — Apiary{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Status dot ───────────────────────────────────────── */
+.vc-status-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #ccc; display: inline-block; margin-right: 8px;
+  flex-shrink: 0; transition: background .3s;
+}
+.vc-status-dot.recording  { background: #dc3545; animation: pulse 1s infinite; }
+.vc-status-dot.processing { background: #F5A623; animation: pulse .7s infinite; }
+.vc-status-dot.error      { background: #dc3545; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.25)} }
+
+/* ── Record button ────────────────────────────────────── */
+.vc-record-btn {
+  width: 96px; height: 96px; border-radius: 50%;
+  background: linear-gradient(135deg, #F5A623, #e8920f);
+  color: #fff; font-size: 2.2rem;
+  border: none; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(245,166,35,.45);
+  transition: transform .15s, box-shadow .15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.vc-record-btn:hover  { transform: scale(1.06); box-shadow: 0 6px 26px rgba(245,166,35,.55); }
+.vc-record-btn.active { background: linear-gradient(135deg,#dc3545,#b02a37); animation: pulse 1.2s infinite; }
+
+.vc-stop-btn {
+  width: 96px; height: 96px; border-radius: 50%;
+  background: linear-gradient(135deg,#dc3545,#b02a37);
+  color: #fff; font-size: 2rem;
+  border: none; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(220,53,69,.4);
+  display: none; align-items: center; justify-content: center;
+  animation: pulse 1.2s infinite;
+}
+
+/* ── Transcript box ───────────────────────────────────── */
+.vc-transcript-box {
+  background: #f7f3ec; border: 1px solid #EAD9BF;
+  border-radius: 10px; padding: 14px 16px;
+  min-height: 64px; font-family: 'Poppins', sans-serif;
+  font-size: .9rem; color: #3a2a1a; line-height: 1.6;
+}
+.vc-corrected-box {
+  background: #fff; border: 1.5px solid #F5A623;
+  border-radius: 10px; padding: 12px 16px;
+  min-height: 50px; font-size: .88rem; color: #2C1810;
+}
+
+/* ── Review cards ─────────────────────────────────────── */
+.review-card { border-color: #EAD9BF; transition: box-shadow .2s; }
+.review-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+.review-card .card-header {
+  background: #f7f3ec; border-bottom: 1px solid #EAD9BF;
+  padding: 10px 14px;
+}
+.form-label-sm {
+  font-size: .75rem; color: #888; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .04em;
+  display: block; margin-bottom: 3px;
+}
+
+/* ── Queue list ───────────────────────────────────────── */
+.bg-amber { background: #F5A623 !important; }
+
+/* ── Trigger hint ─────────────────────────────────────── */
+.trigger-hint {
+  background: #fff8e6; border: 1px solid #F5A623;
+  border-radius: 8px; padding: 10px 14px;
+  font-size: .82rem; color: #7a5000; line-height: 1.6;
+}
+.trigger-pill {
+  display: inline-block;
+  background: #F5A623; color: #fff;
+  border-radius: 12px; padding: 1px 9px;
+  font-weight: 700; font-size: .78rem;
+  margin: 1px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-mic-fill me-2"></i>Controllo Vocale</h1>
+    <p class="page-subtitle">Registra i controlli di più arnie a voce, l'AI estrae i dati automaticamente</p>
+  </div>
+  <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+  </a>
+</div>
+
+<div class="row g-4">
+
+  <!-- ══ Pannello di controllo ══════════════════════════════════════════════ -->
+  <div class="col-lg-5">
+
+    <!-- Config -->
+    <div class="card mb-3">
+      <div class="card-body">
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Apiario</label>
+          <select class="form-select" id="vc-apiario">
+            <option value="">— Seleziona apiario —</option>
+            {% for a in apiari %}
+            <option value="{{ a.id }}">{{ a.nome }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" id="vc-batch-toggle">
+            <label class="form-check-label fw-semibold" for="vc-batch-toggle">
+              Modalità batch (più arnie)
+            </label>
+          </div>
+        </div>
+
+        <!-- Trigger hint (batch mode) -->
+        <div class="trigger-hint mb-3" id="vc-trigger-hint" style="display:none">
+          <strong>Comandi vocali:</strong><br>
+          <span class="trigger-pill">avanti</span>
+          <span class="trigger-pill">prossima</span>
+          <span class="trigger-pill">continua</span>
+          → passa all'arnia successiva<br>
+          <span class="trigger-pill">stop</span>
+          <span class="trigger-pill">fine</span>
+          <span class="trigger-pill">ho finito</span>
+          → termina e processa
+        </div>
+
+        <!-- Mic buttons -->
+        <div class="d-flex justify-content-center gap-3 my-3">
+          <button class="vc-record-btn" id="vc-start-btn" title="Inizia registrazione">
+            <i class="bi bi-mic-fill"></i>
+          </button>
+          <button class="vc-stop-btn" id="vc-stop-btn" title="Ferma registrazione">
+            <i class="bi bi-stop-fill"></i>
+          </button>
+        </div>
+
+        <!-- Status -->
+        <div class="d-flex align-items-center justify-content-center mb-3">
+          <span class="vc-status-dot" id="vc-status-dot"></span>
+          <span class="small text-muted" id="vc-status-text">Pronto</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Trascrizione in tempo reale -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <h6 class="fw-semibold mb-2" style="font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:#888;">
+          Trascrizione
+        </h6>
+        <div class="vc-transcript-box mb-2" id="vc-transcript">…</div>
+
+        <h6 class="fw-semibold mb-2" style="font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:#888;">
+          Testo corretto (vocabolario apicolo)
+        </h6>
+        <div class="vc-corrected-box" id="vc-corrected"></div>
+      </div>
+    </div>
+
+    <!-- Coda batch -->
+    <div class="card" id="vc-queue-section" style="display:none">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="fw-semibold mb-0">
+            <i class="bi bi-list-ol me-2 text-amber"></i>Arnie in coda
+          </h6>
+          <button class="btn btn-sm btn-primary" id="vc-process-btn" disabled>
+            <i class="bi bi-cpu me-1"></i>Elabora con AI
+          </button>
+        </div>
+        <ul class="list-group list-group-flush" id="vc-queue"></ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ Review & Save ══════════════════════════════════════════════════════ -->
+  <div class="col-lg-7" id="vc-review-section" style="display:none">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0 fw-bold">
+        <i class="bi bi-clipboard-check me-2 text-amber"></i>Verifica e salva
+      </h5>
+      <button class="btn btn-success" id="vc-save-btn">
+        <i class="bi bi-cloud-check me-2"></i>Salva tutti i controlli
+      </button>
+    </div>
+
+    <div id="vc-save-result" style="display:none"></div>
+
+    <div class="row g-3" id="vc-review-grid"></div>
+  </div>
+
+</div>
+
+<!-- ══ Esempio di voce ════════════════════════════════════════════════════ -->
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="fw-semibold mb-2"><i class="bi bi-lightbulb me-2 text-amber"></i>Esempi di frasi riconosciute</h6>
+        <div class="row g-2">
+          <div class="col-md-6 small text-muted">
+            <em>"Arnia 5, famiglia forte, 4 telaini covata, 3 telaini scorte, regina presente, tutto ok"</em>
+          </div>
+          <div class="col-md-6 small text-muted">
+            <em>"Arnia 12, regina assente, celle reali 2, rischio sciamatura, 3 telaini covata"</em>
+          </div>
+          <div class="col-md-6 small text-muted">
+            <em>"Arnia 7, problemi sanitari, varroa visibile, 5 telaini covata, famiglia normale"</em>
+          </div>
+          <div class="col-md-6 small text-muted">
+            <em>"Arnia 3, regina presente, uova fresche, 6 telaini covata, 4 telaini scorte, famiglia forte"</em>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const VOICE_PROCESS_URL = "{% url 'voice_process' %}";
+  const VOICE_SAVE_URL    = "{% url 'voice_save' %}";
+</script>
+<script src="{% static 'js/voice-controllo.js' %}"></script>
+{% endblock %}

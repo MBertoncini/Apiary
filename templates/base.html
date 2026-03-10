@@ -150,6 +150,12 @@
     <!-- AI -->
     <div class="sidebar-section-label">Intelligenza Artificiale</div>
 
+    <a href="{% url 'controllo_vocale' %}"
+       class="sidebar-link {% if request.resolver_match.url_name == 'controllo_vocale' %}active{% endif %}">
+      <i class="bi bi-mic-fill nav-icon"></i>
+      Controllo Vocale
+    </a>
+
     <a href="{% url 'analisi_telaino' %}"
        class="sidebar-link {% if request.resolver_match.url_name == 'analisi_telaino' %}active{% endif %}">
       <i class="bi bi-camera nav-icon"></i>
