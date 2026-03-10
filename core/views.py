@@ -383,7 +383,6 @@ def modifica_controllo(request, controllo_id):
     return render(request, 'arnie/nuovo_controllo.html', context)
 
 @login_required
-@richiedi_permesso_scrittura
 def copia_controllo(request, controllo_id):
     """Copia un controllo esistente su altre arnie"""
     controllo_origine = get_object_or_404(ControlloArnia, pk=controllo_id)
@@ -480,7 +479,6 @@ def copia_controllo(request, controllo_id):
     return render(request, 'arnie/copia_controllo.html', context)
 
 @login_required
-@richiedi_permesso_scrittura
 def elimina_controllo(request, pk):
     """Elimina un controllo esistente"""
     controllo = get_object_or_404(ControlloArnia, pk=pk)
@@ -632,13 +630,24 @@ def aggiungi_regina(request, arnia_id):
     return render(request, 'regine/form_regina.html', context)
 
 @login_required
-@richiedi_permesso_scrittura
 def modifica_regina(request, regina_id):
     """Vista per modificare i dati di una regina"""
     regina = get_object_or_404(Regina, pk=regina_id)
     arnia = regina.arnia
     apiario = arnia.apiario
-    
+
+    # Verifica permessi
+    can_edit = apiario.proprietario == request.user
+    if not can_edit and apiario.gruppo and apiario.condiviso_con_gruppo:
+        try:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=apiario.gruppo)
+            can_edit = membro.ruolo in ['admin', 'editor']
+        except MembroGruppo.DoesNotExist:
+            pass
+    if not can_edit:
+        messages.error(request, "Non hai i permessi per modificare questa regina.")
+        return redirect('visualizza_apiario', apiario_id=apiario.id)
+
     if request.method == 'POST':
         form = ReginaForm(request.POST, instance=regina)
         if form.is_valid():
@@ -1587,20 +1596,29 @@ def quota_delete(request, pk):
 @login_required
 def gestione_trattamenti(request):
     """Vista per gestire tutti i trattamenti sanitari"""
-    # Ottieni trattamenti recenti (ultimi 6 mesi)
+    # Apiari accessibili all'utente (propri + condivisi via gruppo)
+    gruppi_utente = Gruppo.objects.filter(membri=request.user)
+    apiari_accessibili = Apiario.objects.filter(
+        Q(proprietario=request.user) |
+        Q(gruppo__in=gruppi_utente, condiviso_con_gruppo=True)
+    ).distinct()
+
+    # Ottieni trattamenti recenti (ultimi 6 mesi) solo per apiarii accessibili
     sei_mesi_fa = timezone.now().date() - timedelta(days=180)
     trattamenti_recenti = TrattamentoSanitario.objects.filter(
+        apiario__in=apiari_accessibili,
         data_inizio__gte=sei_mesi_fa
     ).order_by('-data_inizio')
-    
+
     # Trattamenti in corso o programmati
     trattamenti_attivi = TrattamentoSanitario.objects.filter(
-        Q(stato='programmato') | Q(stato='in_corso')
-    ).order_by('data_inizio')
-    
+        apiario__in=apiari_accessibili,
+    ).filter(Q(stato='programmato') | Q(stato='in_corso')).order_by('data_inizio')
+
     # Trattamenti in sospensione (completati ma ancora nel periodo di sospensione)
     oggi = timezone.now().date()
     trattamenti_sospensione = TrattamentoSanitario.objects.filter(
+        apiario__in=apiari_accessibili,
         stato='completato',
         data_fine_sospensione__gte=oggi
     ).order_by('data_fine_sospensione')
@@ -1620,7 +1638,6 @@ def gestione_trattamenti(request):
 # Aggiornamento delle funzioni in views.py per gestire il blocco di covata
 
 @login_required
-@richiedi_permesso_scrittura
 def nuovo_trattamento(request, apiario_id=None):
     """Vista per aggiungere un nuovo trattamento sanitario"""
     apiario = None
@@ -1738,7 +1755,6 @@ def nuovo_trattamento(request, apiario_id=None):
 
 
 @login_required
-@richiedi_permesso_scrittura
 def modifica_trattamento(request, pk):
     """Vista per modificare un trattamento esistente"""
     trattamento = get_object_or_404(TrattamentoSanitario, pk=pk)
@@ -1827,7 +1843,6 @@ def modifica_trattamento(request, pk):
     return render(request, 'trattamenti/form_trattamento.html', context)
 
 @login_required
-@richiedi_permesso_scrittura
 def elimina_trattamento(request, pk):
     """Vista per eliminare un trattamento"""
     trattamento = get_object_or_404(TrattamentoSanitario, pk=pk)
@@ -1890,7 +1905,6 @@ def tipi_trattamento(request):
     return render(request, 'trattamenti/tipi_trattamento.html', context)
 
 @login_required
-@richiedi_permesso_scrittura
 def modifica_tipo_trattamento(request, pk):
     """Vista per modificare un tipo di trattamento"""
     tipo = get_object_or_404(TipoTrattamento, pk=pk)
@@ -1912,7 +1926,6 @@ def modifica_tipo_trattamento(request, pk):
     return render(request, 'trattamenti/form_tipo_trattamento.html', context)
 
 @login_required
-@richiedi_permesso_scrittura
 def elimina_tipo_trattamento(request, pk):
     """Vista per eliminare un tipo di trattamento"""
     tipo = get_object_or_404(TipoTrattamento, pk=pk)
@@ -1930,7 +1943,6 @@ def elimina_tipo_trattamento(request, pk):
     return render(request, 'trattamenti/conferma_elimina_tipo.html', context)
 
 @login_required
-@richiedi_permesso_scrittura
 def cambio_stato_trattamento(request, pk, nuovo_stato):
     """Vista per cambiare rapidamente lo stato di un trattamento"""
     trattamento = get_object_or_404(TrattamentoSanitario, pk=pk)
