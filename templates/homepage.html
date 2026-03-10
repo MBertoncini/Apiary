@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Apiary Manager — Gestione Apiario Professionale{% endblock %}
+{% block title %}Apiary — Apiary{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -155,7 +155,7 @@
 <!-- ======= AUTHENTICATED: redirect-style card ======= -->
 <div class="page-header">
   <div>
-    <h1 class="page-title">Benvenuto su Apiary Manager</h1>
+    <h1 class="page-title">Benvenuto su Apiary</h1>
     <p class="page-subtitle">La piattaforma professionale per la gestione dell'apiario</p>
   </div>
   <a href="{% url 'dashboard' %}" class="btn btn-primary">
@@ -212,7 +212,7 @@
 <section class="hero">
   <div style="max-width: 700px; margin: 0 auto; padding: 0 20px;">
     <div style="font-size: 4rem; margin-bottom: 16px;">🐝</div>
-    <h1>Apiary Manager</h1>
+    <h1>Apiary</h1>
     <p class="lead">La piattaforma completa per gestire il tuo apiario in modo collaborativo, efficiente e professionale.</p>
     <div class="d-flex gap-3 justify-content-center flex-wrap">
       <a href="{% url 'login' %}" class="btn-hero">
@@ -319,7 +319,7 @@
 <!-- CTA -->
 <section class="cta-section">
   <h2>Pronto a gestire il tuo apiario?</h2>
-  <p>Unisciti agli apicoltori che usano Apiary Manager per tenere tutto sotto controllo.</p>
+  <p>Unisciti agli apicoltori che usano Apiary per tenere tutto sotto controllo.</p>
   <a href="{% url 'register' %}" class="btn btn-primary btn-lg">
     <i class="bi bi-person-plus me-2"></i> Crea il tuo account gratuito
   </a>

@@ -46,11 +46,11 @@
 </head>
 <body>
     <div class="header">
-        <h1>Sei stato invitato a un gruppo su Gestione Apiario</h1>
+        <h1>Sei stato invitato a un gruppo su Apiary</h1>
     </div>
     <div class="content">
         <p>Ciao,</p>
-        <p><strong>{{ invito.invitato_da.username }}</strong> ti ha invitato a unirti al gruppo <strong>{{ invito.gruppo.nome }}</strong> sulla piattaforma Gestione Apiario.</p>
+        <p><strong>{{ invito.invitato_da.username }}</strong> ti ha invitato a unirti al gruppo <strong>{{ invito.gruppo.nome }}</strong> su Apiary.</p>
         
         <h3>Informazioni sul gruppo:</h3>
         <p><strong>Nome:</strong> {{ invito.gruppo.nome }}</p>
@@ -70,9 +70,9 @@
             <small>Link: <a href="http://{{ request.get_host }}{{ accept_url }}">http://{{ request.get_host }}{{ accept_url }}</a></small>
         </p>
         
-        <p>Se non hai un account su Gestione Apiario, dovrai registrarti con questo indirizzo email prima di poter accettare l'invito.</p>
+        <p>Se non hai un account su Apiary, dovrai registrarti con questo indirizzo email prima di poter accettare l'invito.</p>
         
-        <p>Grazie,<br>Il team di Gestione Apiario</p>
+        <p>Grazie,<br>Il team di Apiary</p>
     </div>
     <div class="footer">
         <p>Questo è un messaggio automatico. Si prega di non rispondere a questa email.</p>

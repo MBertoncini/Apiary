@@ -330,7 +330,6 @@ def nuovo_controllo(request, arnia_id):
 
 
 @login_required
-@richiedi_permesso_scrittura
 def modifica_controllo(request, controllo_id):
     """Modifica un controllo esistente"""
     controllo = get_object_or_404(ControlloArnia, pk=controllo_id)
@@ -1481,6 +1480,7 @@ def gestione_quote(request):
         'gruppo_selezionato': gruppo_selezionato,
         'can_add': can_add,
         'total_percentuale': total_percentuale,
+        'progress_width': min(int(total_percentuale), 100),
     }
     
     return render(request, 'pagamenti/gestione_quote.html', context)

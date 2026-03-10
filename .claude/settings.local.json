@@ -14,7 +14,8 @@
       "Bash(do)",
       "Bash(echo \"=== $f ===\")",
       "Read(//i/Progetti Git/Apiary/**)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(mkdir:*)"
     ]
   }
 }
