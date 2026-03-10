@@ -4,46 +4,46 @@
 {% block extra_css %}
 <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- Leaflet MarkerCluster CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 <style>
     #map {
-        height: 500px;
+        height: 560px;
         width: 100%;
-        border-radius: 6px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(44,24,16,.12);
     }
-    .map-container {
-        margin-bottom: 20px;
-    }
-    .map-controls {
-        margin-bottom: 15px;
-    }
+    .map-container { margin-bottom: 20px; }
+    .map-controls { margin-bottom: 15px; }
     .marker-apiario {
         background-color: #28a745;
         border-radius: 50%;
         border: 2px solid #fff;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 0 10px rgba(0,0,0,.3);
     }
     .marker-fioritura {
         background-color: #ffc107;
         border-radius: 50%;
         border: 2px solid #fff;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 0 10px rgba(0,0,0,.3);
     }
-    .marker-attiva {
-        background-color: #20c997;
+    .marker-attiva  { background-color: #20c997; }
+    .marker-inattiva{ background-color: #6c757d; }
+    .leaflet-popup-content { min-width: 220px; }
+    /* Pulse animation for active apiario flight ring */
+    @keyframes pulse-ring {
+        0%   { opacity: .6; }
+        50%  { opacity: .2; }
+        100% { opacity: .6; }
     }
-    .marker-inattiva {
-        background-color: #6c757d;
-    }
-    .leaflet-popup-content {
-        min-width: 200px;
-    }
-    /* Per la mappa nella pagina di modifica */
+    .flight-ring { animation: pulse-ring 3s ease-in-out infinite; }
+    /* Map picker (edit pages) */
     .map-picker {
         height: 400px;
         margin-bottom: 15px;
-        border-radius: 4px;
-        border: 1px solid #ced4da;
+        border-radius: 8px;
+        border: 1px solid var(--border-color, #EAD9BF);
     }
     .coordinate-display {
         font-family: monospace;
@@ -53,10 +53,19 @@
         border-radius: 4px;
         margin-bottom: 15px;
     }
+    /* Cluster custom color */
+    .marker-cluster-small  { background-color: rgba(245,166,35,.4); }
+    .marker-cluster-small div  { background-color: rgba(245,166,35,.8); color:#fff; font-weight:700; }
+    .marker-cluster-medium { background-color: rgba(245,130,20,.4); }
+    .marker-cluster-medium div { background-color: rgba(245,130,20,.8); color:#fff; font-weight:700; }
+    .marker-cluster-large  { background-color: rgba(200,80,10,.4); }
+    .marker-cluster-large div  { background-color: rgba(200,80,10,.8); color:#fff; font-weight:700; }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Leaflet MarkerCluster JS -->
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 {% endblock %}
