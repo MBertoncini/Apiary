@@ -22,6 +22,9 @@
       <i class="bi bi-people"></i>
     </a>
     {% endif %}
+    <a href="{% url 'crea_nucleo' %}?apiario_id={{ apiario.id }}" class="btn btn-outline-secondary btn-sm" title="Aggiungi nucleo">
+      <i class="bi bi-hexagon-half me-1"></i>Nucleo
+    </a>
     <a href="{% url 'export_ispezioni_pdf' apiario.id %}" class="btn btn-outline-danger btn-sm" title="Esporta ispezioni PDF">
       <i class="bi bi-file-earmark-pdf me-1"></i>PDF
     </a>

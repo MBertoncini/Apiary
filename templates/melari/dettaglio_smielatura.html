@@ -9,7 +9,14 @@
     <h1 class="page-title">💧 Dettaglio Smielatura</h1>
     <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'gestione_melari' apiario.id %}">Melari</a> › Smielatura</p>
   </div>
-  <a href="{% url 'gestione_melari' apiario.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Torna ai Melari</a>
+  <div class="d-flex gap-2">
+    <a href="{% url 'crea_invasettamento' smielatura.id %}" class="btn btn-warning btn-sm">
+      <i class="bi bi-jar me-1"></i>Invasetta
+    </a>
+    <a href="{% url 'gestione_melari' apiario.id %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Torna ai Melari
+    </a>
+  </div>
 </div>
 
 <div class="row">
@@ -117,7 +124,69 @@
     </div>
 </div>
 
+<!-- Invasettamenti -->
 <div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-jar me-1"></i>Invasettamenti da questa smielatura</span>
+                <a href="{% url 'crea_invasettamento' smielatura.id %}" class="btn btn-sm btn-warning">
+                    <i class="bi bi-plus me-1"></i>Aggiungi
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if smielatura.invasettamenti.all %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo miele</th>
+                                <th>Formato</th>
+                                <th>Vasetti</th>
+                                <th>kg confezionati</th>
+                                <th>Lotto</th>
+                                <th class="text-end">Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for inv in smielatura.invasettamenti.all %}
+                            <tr>
+                                <td class="small">{{ inv.data|date:"d/m/Y" }}</td>
+                                <td>{{ inv.tipo_miele }}</td>
+                                <td class="small">{{ inv.formato_vasetto }}g</td>
+                                <td>{{ inv.numero_vasetti }}</td>
+                                <td class="fw-semibold">{{ inv.kg_totali|floatformat:2 }} kg</td>
+                                <td class="small text-muted">{{ inv.lotto|default:"—" }}</td>
+                                <td class="text-end">
+                                    <form method="post" action="{% url 'elimina_invasettamento' inv.pk %}" class="d-inline"
+                                          onsubmit="return confirm('Eliminare questo invasettamento?')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted small">
+                    <i class="bi bi-jar d-block mb-2 opacity-25" style="font-size:2rem;"></i>
+                    Nessun invasettamento registrato.
+                    <a href="{% url 'crea_invasettamento' smielatura.id %}" class="d-block mt-2">
+                        Aggiungi il primo invasettamento
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
     <div class="col-12">
         <div class="d-flex justify-content-between">
             <a href="{% url 'gestione_melari' apiario.id %}#smielature" class="btn btn-secondary">

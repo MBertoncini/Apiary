@@ -1,6 +1,7 @@
 # core/urls.py
 from django.urls import path
 from . import views
+from . import ai_views
 
 urlpatterns = [
     # Dashboard
@@ -136,4 +137,22 @@ urlpatterns = [
     path('trattamenti/export-csv/', views.export_trattamenti_csv, name='export_trattamenti_csv'),
     path('produzione/export-csv/', views.export_produzione_csv, name='export_produzione_csv'),
     path('vendite/export-csv/', views.export_vendite_csv, name='export_vendite_csv'),
+
+    # Invasettamento
+    path('smielatura/<int:smielatura_id>/invasetta/', views.crea_invasettamento, name='crea_invasettamento'),
+    path('invasettamento/<int:pk>/elimina/', views.elimina_invasettamento, name='elimina_invasettamento'),
+
+    # Nuclei
+    path('nuclei/', views.gestione_nuclei, name='gestione_nuclei'),
+    path('nucleo/nuovo/', views.crea_nucleo, name='crea_nucleo'),
+    path('nucleo/<int:pk>/', views.dettaglio_nucleo, name='dettaglio_nucleo'),
+    path('nucleo/<int:pk>/modifica/', views.modifica_nucleo, name='modifica_nucleo'),
+    path('nucleo/<int:pk>/elimina/', views.elimina_nucleo, name='elimina_nucleo'),
+    path('nucleo/<int:nucleo_id>/controllo/', views.aggiungi_controllo_nucleo, name='aggiungi_controllo_nucleo'),
+    path('nucleo/<int:pk>/converti/', views.converti_nucleo_in_arnia, name='converti_nucleo_in_arnia'),
+
+    # AI Features
+    path('ai/chat/', ai_views.chat_ai, name='ai_chat'),
+    path('ai/voice/', ai_views.voice_ai, name='ai_voice'),
+    path('ai/analisi-telaino/', ai_views.analisi_telaino, name='analisi_telaino'),
 ]
