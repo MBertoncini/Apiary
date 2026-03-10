@@ -11,6 +11,7 @@ urlpatterns = [
     path('apiario/<int:apiario_id>/', views.visualizza_apiario, name='visualizza_apiario'),
     path('apiario/<int:apiario_id>/condividi/', views.condividi_apiario, name='condividi_apiario'),
     path('apiario/<int:apiario_id>/gruppo/', views.gestione_apiario_gruppo, name='gestione_apiario_gruppo'),
+    path('apiario/<int:apiario_id>/save-layout/', views.save_map_layout, name='save_map_layout'),
     
     # Arnie
     path('arnia/nuova/', views.ArniaCreateView.as_view(), name='crea_arnia'),
