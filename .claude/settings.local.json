@@ -16,7 +16,8 @@
       "Read(//i/Progetti Git/Apiary/**)",
       "Bash(done)",
       "Bash(mkdir:*)",
-      "Bash(py:*)"
+      "Bash(py:*)",
+      "Bash(cd \"I:\\\\Progetti Git\\\\Apiary\" && pip install reportlab 2>&1 | tail -5)"
     ]
   }
 }

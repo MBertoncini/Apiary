@@ -6,7 +6,7 @@ from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
 from django.db.models import Sum, Count, Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from datetime import datetime, timedelta
 from django.contrib import messages
 from django.contrib.auth import logout
@@ -16,6 +16,8 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 import uuid
 import json
+import csv
+import io
 from functools import wraps
 from dateutil.relativedelta import relativedelta
 
@@ -5111,3 +5113,225 @@ def dettaglio_cliente(request, pk):
     totale   = sum(v.totale for v in vendite)
     context  = {'cliente': cliente, 'vendite': vendite, 'totale': totale}
     return render(request, 'clienti/dettaglio_cliente.html', context)
+
+
+# ─── EXPORT VIEWS ────────────────────────────────────────────────────────────
+
+@login_required
+def export_ispezioni_pdf(request, apiario_id):
+    """Esporta le ispezioni di un apiario in PDF usando ReportLab."""
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+    from reportlab.lib.enums import TA_LEFT, TA_CENTER
+
+    apiario = get_object_or_404(Apiario, pk=apiario_id)
+    # Verifica accesso
+    gruppi_utente = Gruppo.objects.filter(membri=request.user)
+    has_access = (
+        apiario.proprietario == request.user or
+        (apiario.gruppo in gruppi_utente and apiario.condiviso_con_gruppo)
+    )
+    if not has_access:
+        messages.error(request, "Non hai accesso a questo apiario.")
+        return redirect('dashboard')
+
+    controlli = ControlloArnia.objects.filter(
+        arnia__apiario=apiario,
+        utente=request.user
+    ).select_related('arnia').order_by('-data')
+
+    # Costruzione PDF
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=A4,
+        rightMargin=2*cm, leftMargin=2*cm,
+        topMargin=2*cm, bottomMargin=2*cm
+    )
+
+    styles = getSampleStyleSheet()
+    honey = colors.HexColor('#F5A623')
+    dark = colors.HexColor('#2C1810')
+    light_bg = colors.HexColor('#FFFDF5')
+    border_color = colors.HexColor('#EAD9BF')
+
+    title_style = ParagraphStyle('Title', parent=styles['Title'],
+                                  textColor=dark, fontSize=20, spaceAfter=4)
+    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'],
+                                     textColor=colors.HexColor('#7B6E5D'), fontSize=10, spaceAfter=12)
+    section_style = ParagraphStyle('Section', parent=styles['Normal'],
+                                    textColor=dark, fontSize=12, fontName='Helvetica-Bold', spaceAfter=6, spaceBefore=10)
+    normal = styles['Normal']
+
+    story = []
+
+    # Intestazione
+    story.append(Paragraph(f"Registro Ispezioni — {apiario.nome}", title_style))
+    story.append(Paragraph(
+        f"Posizione: {apiario.posizione or '—'} | "
+        f"Generato il: {timezone.now().strftime('%d/%m/%Y')} | "
+        f"Totale ispezioni: {controlli.count()}",
+        subtitle_style
+    ))
+    story.append(HRFlowable(width="100%", thickness=2, color=honey, spaceAfter=12))
+
+    if not controlli.exists():
+        story.append(Paragraph("Nessuna ispezione registrata.", normal))
+    else:
+        for c in controlli:
+            # Titolo riga ispezione
+            story.append(Paragraph(
+                f"<b>Ispezione {c.data.strftime('%d/%m/%Y')}</b> — Arnia: <b>{c.arnia.nome}</b>",
+                section_style
+            ))
+
+            table_data = [
+                ['Campo', 'Valore'],
+                ['Telaini scorte', str(c.telaini_scorte)],
+                ['Telaini covata', str(c.telaini_covata)],
+                ['Presenza regina', 'Sì' if c.presenza_regina else 'No'],
+                ['Regina vista', 'Sì' if c.regina_vista else 'No'],
+                ['Uova fresche', 'Sì' if c.uova_fresche else 'No'],
+                ['Celle reali', f"{'Sì' if c.celle_reali else 'No'} ({c.numero_celle_reali})"],
+                ['Sciamatura', 'Sì' if c.sciamatura else 'No'],
+                ['Problemi sanitari', 'Sì' if c.problemi_sanitari else 'No'],
+            ]
+            if c.note:
+                table_data.append(['Note', c.note])
+            if c.note_problemi:
+                table_data.append(['Note problemi', c.note_problemi])
+
+            t = Table(table_data, colWidths=[5*cm, 12*cm])
+            t.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), honey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                ('BACKGROUND', (0, 1), (0, -1), border_color),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, light_bg]),
+                ('GRID', (0, 0), (-1, -1), 0.5, border_color),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 6),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ]))
+            story.append(t)
+            story.append(Spacer(1, 10))
+
+    doc.build(story)
+    buffer.seek(0)
+    filename = f"ispezioni_{apiario.nome}_{timezone.now().strftime('%Y%m%d')}.pdf"
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+@login_required
+def export_trattamenti_csv(request):
+    """Esporta i trattamenti sanitari in CSV."""
+    gruppi_utente = Gruppo.objects.filter(membri=request.user)
+    apiari_accessibili = Apiario.objects.filter(
+        Q(proprietario=request.user) |
+        Q(gruppo__in=gruppi_utente, condiviso_con_gruppo=True)
+    ).distinct()
+
+    trattamenti = TrattamentoSanitario.objects.filter(
+        apiario__in=apiari_accessibili
+    ).select_related('apiario', 'tipo_trattamento').order_by('-data_inizio')
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    filename = f"trattamenti_{timezone.now().strftime('%Y%m%d')}.csv"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response.write('\ufeff')  # BOM per Excel
+
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow([
+        'Data inizio', 'Data fine', 'Apiario', 'Tipo trattamento',
+        'Stato', 'Metodo applicazione', 'Blocco covata',
+        'Data inizio blocco', 'Data fine blocco', 'Data fine sospensione', 'Note'
+    ])
+    for t in trattamenti:
+        writer.writerow([
+            t.data_inizio.strftime('%d/%m/%Y') if t.data_inizio else '',
+            t.data_fine.strftime('%d/%m/%Y') if t.data_fine else '',
+            t.apiario.nome,
+            t.tipo_trattamento.nome,
+            t.get_stato_display(),
+            t.get_metodo_applicazione_display() if t.metodo_applicazione else '',
+            'Sì' if t.blocco_covata_attivo else 'No',
+            t.data_inizio_blocco.strftime('%d/%m/%Y') if t.data_inizio_blocco else '',
+            t.data_fine_blocco.strftime('%d/%m/%Y') if t.data_fine_blocco else '',
+            t.data_fine_sospensione.strftime('%d/%m/%Y') if t.data_fine_sospensione else '',
+            t.note or '',
+        ])
+    return response
+
+
+@login_required
+def export_produzione_csv(request):
+    """Esporta le smielature (produzione miele) in CSV."""
+    gruppi_utente = Gruppo.objects.filter(membri=request.user)
+    apiari_accessibili = Apiario.objects.filter(
+        Q(proprietario=request.user) |
+        Q(gruppo__in=gruppi_utente, condiviso_con_gruppo=True)
+    ).distinct()
+
+    smielature = Smielatura.objects.filter(
+        apiario__in=apiari_accessibili
+    ).select_related('apiario').order_by('-data')
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    filename = f"produzione_miele_{timezone.now().strftime('%Y%m%d')}.csv"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow(['Data', 'Apiario', 'Tipo miele', 'Quantità (kg)', 'Note'])
+    for s in smielature:
+        writer.writerow([
+            s.data.strftime('%d/%m/%Y'),
+            s.apiario.nome,
+            s.tipo_miele,
+            str(s.quantita_miele).replace('.', ','),
+            s.note or '',
+        ])
+    return response
+
+
+@login_required
+def export_vendite_csv(request):
+    """Esporta le vendite in CSV (una riga per dettaglio)."""
+    vendite = Vendita.objects.filter(
+        utente=request.user
+    ).prefetch_related('dettagli').select_related('cliente').order_by('-data')
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    filename = f"vendite_{timezone.now().strftime('%Y%m%d')}.csv"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow([
+        'Data', 'Cliente', 'Canale', 'Pagamento',
+        'Categoria', 'Tipo miele', 'Formato (g)', 'Quantità', 'Prezzo unitario (€)', 'Subtotale (€)', 'Note vendita'
+    ])
+    for v in vendite:
+        cliente_nome = v.cliente.nome if v.cliente_id else (v.acquirente_nome or '—')
+        for d in v.dettagli.all():
+            writer.writerow([
+                v.data.strftime('%d/%m/%Y'),
+                cliente_nome,
+                v.get_canale_display(),
+                v.get_pagamento_display(),
+                d.get_categoria_display(),
+                d.tipo_miele or '',
+                d.formato_vasetto or '',
+                d.quantita,
+                str(d.prezzo_unitario).replace('.', ','),
+                str(d.subtotale).replace('.', ','),
+                v.note or '',
+            ])
+    return response

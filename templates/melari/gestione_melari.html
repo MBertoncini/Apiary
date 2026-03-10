@@ -16,9 +16,14 @@
       </ol>
     </nav>
   </div>
-  <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-outline-secondary">
-    <i class="bi bi-arrow-left me-1"></i>Torna all'apiario
-  </a>
+  <div class="d-flex gap-2">
+    <a href="{% url 'export_produzione_csv' %}" class="btn btn-outline-success btn-sm" title="Esporta produzione miele">
+      <i class="bi bi-filetype-csv me-1"></i>Esporta produzione
+    </a>
+    <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Torna all'apiario
+    </a>
+  </div>
 </div>
 
 <!-- Tab navigation -->
