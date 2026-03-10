@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% block title %}Nucleo #{{ nucleo.numero }} — Apiary{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:{{ nucleo.colore_hex }};border:2px solid #EAD9BF;vertical-align:middle;margin-right:6px;"></span>
+      Nucleo #{{ nucleo.numero }}
+    </h1>
+    <p class="page-subtitle">
+      <a href="{% url 'visualizza_apiario' nucleo.apiario.id %}">{{ nucleo.apiario.nome }}</a>
+      · Installato il {{ nucleo.data_installazione|date:"d/m/Y" }}
+      {% if not nucleo.attiva %}<span class="badge bg-success ms-2">Convertito</span>{% endif %}
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if nucleo.attiva %}
+    <a href="{% url 'modifica_nucleo' nucleo.pk %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-pencil me-1"></i>Modifica
+    </a>
+    <a href="{% url 'converti_nucleo_in_arnia' nucleo.pk %}" class="btn btn-success btn-sm">
+      <i class="bi bi-arrow-up-circle me-1"></i>Converti in Arnia
+    </a>
+    {% else %}
+    <a href="{% url 'visualizza_apiario' nucleo.apiario.id %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-grid me-1"></i>Vai all'Arnia #{{ nucleo.arnia.numero }}
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Info + Aggiungi controllo -->
+  <div class="col-lg-4">
+    <div class="card mb-4">
+      <div class="card-header"><i class="bi bi-info-circle me-1"></i>Dati Nucleo</div>
+      <div class="card-body">
+        <dl class="row mb-0 small">
+          <dt class="col-5">Apiario</dt>
+          <dd class="col-7">{{ nucleo.apiario.nome }}</dd>
+          <dt class="col-5">Numero</dt>
+          <dd class="col-7">#{{ nucleo.numero }}</dd>
+          <dt class="col-5">Installato</dt>
+          <dd class="col-7">{{ nucleo.data_installazione|date:"d/m/Y" }}</dd>
+          <dt class="col-5">Colore</dt>
+          <dd class="col-7">
+            <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:{{ nucleo.colore_hex }};border:1px solid #ccc;vertical-align:middle;"></span>
+            {{ nucleo.colore_hex }}
+          </dd>
+          <dt class="col-5">Stato</dt>
+          <dd class="col-7">
+            {% if nucleo.attiva %}<span class="badge" style="background:var(--honey);">Attivo</span>
+            {% else %}<span class="badge bg-success">Convertito il {{ nucleo.data_conversione|date:"d/m/Y" }}</span>{% endif %}
+          </dd>
+          {% if nucleo.note %}
+          <dt class="col-5">Note</dt>
+          <dd class="col-7">{{ nucleo.note }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+
+    {% if nucleo.attiva %}
+    <div class="card">
+      <div class="card-header"><i class="bi bi-clipboard-plus me-1"></i>Aggiungi Controllo</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'aggiungi_controllo_nucleo' nucleo.pk %}">
+          {% csrf_token %}
+          {% for field in form_controllo %}
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="text-danger small">{{ field.errors.0 }}</div>{% endif %}
+          </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-primary btn-sm w-100">
+            <i class="bi bi-save me-1"></i>Salva controllo
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Lista controlli -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-clipboard-check me-1"></i>Storico Controlli</span>
+        <span class="badge" style="background:var(--honey);">{{ controlli|length }}</span>
+      </div>
+      <div class="card-body p-0">
+        {% if controlli %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Telaini</th>
+                <th>Forza</th>
+                <th>Regina</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in controlli %}
+              <tr>
+                <td class="fw-semibold small">{{ c.data|date:"d/m/Y" }}</td>
+                <td class="small">
+                  {% if c.n_telaini is not None %}
+                  <span class="badge bg-secondary">{{ c.n_telaini }} tel.</span>
+                  {% else %}—{% endif %}
+                </td>
+                <td class="small">
+                  {% if c.forza_colonia %}
+                  {% for i in "12345" %}
+                    <i class="bi bi-star{% if forloop.counter <= c.forza_colonia %}-fill{% endif %}" style="color:var(--honey);font-size:.7rem;"></i>
+                  {% endfor %}
+                  {% else %}—{% endif %}
+                </td>
+                <td class="small">
+                  {% if c.presenza_regina is True %}<span class="badge bg-success">Sì</span>
+                  {% elif c.presenza_regina is False %}<span class="badge bg-danger">No</span>
+                  {% else %}<span class="text-muted">—</span>{% endif %}
+                </td>
+                <td class="small text-muted" style="max-width:200px;">
+                  {% if c.note %}<span title="{{ c.note }}">{{ c.note|truncatechars:50 }}</span>{% else %}—{% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-clipboard display-4 d-block mb-2 opacity-25"></i>
+          <p>Nessun controllo registrato.<br>
+          {% if nucleo.attiva %}Usa il form a sinistra per aggiungere il primo.{% endif %}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Danger zone -->
+{% if nucleo.attiva %}
+<div class="mt-4 pt-3 border-top">
+  <a href="{% url 'elimina_nucleo' nucleo.pk %}"
+     class="btn btn-sm btn-outline-danger">
+    <i class="bi bi-trash me-1"></i>Elimina nucleo
+  </a>
+</div>
+{% endif %}
+{% endblock %}

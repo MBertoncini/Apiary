@@ -25,7 +25,7 @@ from .models import (
     Apiario, Arnia, ControlloArnia, Fioritura, Pagamento, QuotaUtente,
     TrattamentoSanitario, TipoTrattamento, Gruppo, MembroGruppo, InvitoGruppo, Melario, Smielatura, Regina, StoriaRegine,
     CategoriaAttrezzatura, Attrezzatura, ManutenzioneAttrezzatura, PrestitoAttrezzatura, SpesaAttrezzatura, InventarioAttrezzature,
-    ApiarioMapLayout, Cliente, Vendita, DettaglioVendita,
+    ApiarioMapLayout, Cliente, Vendita, DettaglioVendita, Invasettamento, Nucleo, ControlloNucleo,
 )
 from .forms import (
     ApiarioForm, ArniaForm, ControlloArniaForm, FiorituraForm, PagamentoForm,
@@ -33,7 +33,7 @@ from .forms import (
     InvitoGruppoForm, MembroGruppoRoleForm, ApiarioGruppoForm, RimozioneMelarioForm, SmielaturaForm, MelarioForm, ReginaForm,
     SostituzioneReginaForm, CategoriaAttrezzaturaForm, AttrezzaturaForm, AttrezzaturaFiltroForm, ManutenzioneAttrezzaturaForm,
     PrestitoAttrezzaturaForm, RestituzioneAttrezzaturaForm, SpesaAttrezzaturaForm, RicercaReginaForm,
-    ClienteForm, VenditaForm, DettaglioVenditaFormSet,
+    ClienteForm, VenditaForm, DettaglioVenditaFormSet, InvasettamentoForm, NucleoForm, ControlloNucleoForm,
 )
 from .decorators import (
     richiedi_proprietario_o_gruppo, richiedi_appartenenza_gruppo, 
@@ -5335,3 +5335,148 @@ def export_vendite_csv(request):
                 v.note or '',
             ])
     return response
+
+
+# ─── INVASETTAMENTO VIEWS ─────────────────────────────────────────────────────
+
+@login_required
+def crea_invasettamento(request, smielatura_id):
+    """Registra un invasettamento partendo da una smielatura."""
+    smielatura = get_object_or_404(Smielatura, pk=smielatura_id, utente=request.user)
+    if request.method == 'POST':
+        form = InvasettamentoForm(request.POST)
+        if form.is_valid():
+            inv = form.save(commit=False)
+            inv.smielatura = smielatura
+            inv.utente = request.user
+            inv.save()
+            messages.success(request, f"Invasettamento registrato: {inv.numero_vasetti}×{inv.formato_vasetto}g di {inv.tipo_miele}.")
+            return redirect('dettaglio_smielatura', smielatura_id=smielatura.id)
+    else:
+        form = InvasettamentoForm(initial={'tipo_miele': smielatura.tipo_miele})
+    return render(request, 'melari/form_invasettamento.html', {'form': form, 'smielatura': smielatura})
+
+
+@login_required
+def elimina_invasettamento(request, pk):
+    inv = get_object_or_404(Invasettamento, pk=pk, utente=request.user)
+    smielatura_id = inv.smielatura_id
+    if request.method == 'POST':
+        inv.delete()
+        messages.success(request, "Invasettamento eliminato.")
+    return redirect('dettaglio_smielatura', smielatura_id=smielatura_id)
+
+
+# ─── NUCLEI VIEWS ─────────────────────────────────────────────────────────────
+
+@login_required
+def gestione_nuclei(request):
+    """Lista di tutti i nuclei dell'utente."""
+    apiari_propri = Apiario.objects.filter(proprietario=request.user)
+    nuclei_attivi = Nucleo.objects.filter(apiario__in=apiari_propri, attiva=True).select_related('apiario').order_by('apiario__nome', 'numero')
+    nuclei_convertiti = Nucleo.objects.filter(apiario__in=apiari_propri, attiva=False).select_related('apiario', 'arnia').order_by('-data_conversione')
+    context = {
+        'nuclei_attivi': nuclei_attivi,
+        'nuclei_convertiti': nuclei_convertiti,
+        'apiari': apiari_propri,
+    }
+    return render(request, 'nuclei/gestione_nuclei.html', context)
+
+
+@login_required
+def crea_nucleo(request):
+    """Crea un nuovo nucleo."""
+    if request.method == 'POST':
+        form = NucleoForm(request.POST, user=request.user)
+        if form.is_valid():
+            nucleo = form.save(commit=False)
+            nucleo.save()
+            messages.success(request, f"Nucleo #{nucleo.numero} creato in {nucleo.apiario.nome}.")
+            return redirect('dettaglio_nucleo', pk=nucleo.pk)
+    else:
+        apiario_id = request.GET.get('apiario_id')
+        initial = {}
+        if apiario_id:
+            try:
+                apiario = Apiario.objects.get(pk=apiario_id, proprietario=request.user)
+                initial['apiario'] = apiario
+            except Apiario.DoesNotExist:
+                pass
+        form = NucleoForm(user=request.user, initial=initial)
+    return render(request, 'nuclei/form_nucleo.html', {'form': form, 'titolo': 'Nuovo Nucleo'})
+
+
+@login_required
+def modifica_nucleo(request, pk):
+    nucleo = get_object_or_404(Nucleo, pk=pk, apiario__proprietario=request.user)
+    if request.method == 'POST':
+        form = NucleoForm(request.POST, instance=nucleo, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Nucleo aggiornato.")
+            return redirect('dettaglio_nucleo', pk=nucleo.pk)
+    else:
+        form = NucleoForm(instance=nucleo, user=request.user)
+    return render(request, 'nuclei/form_nucleo.html', {'form': form, 'nucleo': nucleo, 'titolo': 'Modifica Nucleo'})
+
+
+@login_required
+def dettaglio_nucleo(request, pk):
+    """Dettaglio nucleo con lista controlli."""
+    nucleo = get_object_or_404(Nucleo, pk=pk, apiario__proprietario=request.user)
+    controlli = nucleo.controlli.all().order_by('-data')
+    form_controllo = ControlloNucleoForm()
+    context = {'nucleo': nucleo, 'controlli': controlli, 'form_controllo': form_controllo}
+    return render(request, 'nuclei/dettaglio_nucleo.html', context)
+
+
+@login_required
+def aggiungi_controllo_nucleo(request, nucleo_id):
+    nucleo = get_object_or_404(Nucleo, pk=nucleo_id, apiario__proprietario=request.user)
+    if request.method == 'POST':
+        form = ControlloNucleoForm(request.POST)
+        if form.is_valid():
+            ctrl = form.save(commit=False)
+            ctrl.nucleo = nucleo
+            ctrl.utente = request.user
+            ctrl.save()
+            messages.success(request, "Controllo registrato.")
+        else:
+            messages.error(request, "Errore nel form del controllo.")
+    return redirect('dettaglio_nucleo', pk=nucleo_id)
+
+
+@login_required
+def elimina_nucleo(request, pk):
+    nucleo = get_object_or_404(Nucleo, pk=pk, apiario__proprietario=request.user)
+    if request.method == 'POST':
+        apiario_id = nucleo.apiario_id
+        nucleo.delete()
+        messages.success(request, "Nucleo eliminato.")
+        return redirect('visualizza_apiario', apiario_id=apiario_id)
+    return render(request, 'nuclei/conferma_elimina_nucleo.html', {'nucleo': nucleo})
+
+
+@login_required
+def converti_nucleo_in_arnia(request, pk):
+    """Converte un nucleo attivo in arnia completa."""
+    nucleo = get_object_or_404(Nucleo, pk=pk, apiario__proprietario=request.user, attiva=True)
+    if request.method == 'POST':
+        # Crea l'arnia
+        arnia = Arnia.objects.create(
+            apiario=nucleo.apiario,
+            numero=nucleo.numero,
+            colore='altro',
+            colore_hex=nucleo.colore_hex,
+            data_installazione=timezone.now().date(),
+            note=(nucleo.note or '') + f'\nConvertito da nucleo il {timezone.now().date().strftime("%d/%m/%Y")}',
+            attiva=True,
+        )
+        # Marca il nucleo come convertito
+        nucleo.arnia = arnia
+        nucleo.data_conversione = timezone.now().date()
+        nucleo.attiva = False
+        nucleo.save()
+        messages.success(request, f"Nucleo #{nucleo.numero} convertito in Arnia #{arnia.numero}!")
+        return redirect('visualizza_apiario', apiario_id=nucleo.apiario_id)
+    return render(request, 'nuclei/conferma_converti_nucleo.html', {'nucleo': nucleo})

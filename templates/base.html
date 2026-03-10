@@ -111,6 +111,12 @@
       Clienti
     </a>
 
+    <a href="{% url 'gestione_nuclei' %}"
+       class="sidebar-link {% if 'nucleo' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-hexagon-half nav-icon"></i>
+      Nuclei
+    </a>
+
     <!-- INVENTARIO -->
     <div class="sidebar-section-label">Inventario</div>
 

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Registra Invasettamento — Apiary{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-jar me-2" style="color:var(--honey);"></i>Registra Invasettamento</h1>
+    <p class="page-subtitle">
+      Smielatura del {{ smielatura.data|date:"d/m/Y" }} —
+      {{ smielatura.tipo_miele }} · {{ smielatura.quantita_miele }} kg
+    </p>
+  </div>
+  <a href="{% url 'dettaglio_smielatura' smielatura.id %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Torna alla smielatura
+  </a>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+            {{ field }}
+            {% if field.help_text %}<div class="form-text text-muted small">{{ field.help_text }}</div>{% endif %}
+            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+          </div>
+          {% endfor %}
+
+          <!-- Calcolo vasetti in tempo reale -->
+          <div id="calc-preview" class="alert alert-info small d-none">
+            <i class="bi bi-calculator me-1"></i>
+            <span id="calc-text"></span>
+          </div>
+
+          <div class="d-flex gap-2 justify-content-end mt-4">
+            <a href="{% url 'dettaglio_smielatura' smielatura.id %}" class="btn btn-outline-secondary">Annulla</a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-jar me-1"></i>Salva invasettamento
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var numInput    = document.querySelector('[name="numero_vasetti"]');
+  var fmtInput    = document.querySelector('[name="formato_vasetto"]');
+  var preview     = document.getElementById('calc-preview');
+  var previewText = document.getElementById('calc-text');
+
+  function update() {
+    var n   = parseInt(numInput.value) || 0;
+    var fmt = parseInt(fmtInput.value) || 0;
+    if (n > 0 && fmt > 0) {
+      var kg = (n * fmt / 1000).toFixed(2);
+      previewText.textContent = n + ' vasetti × ' + fmt + 'g = ' + kg + ' kg confezionati';
+      preview.classList.remove('d-none');
+    } else {
+      preview.classList.add('d-none');
+    }
+  }
+
+  if (numInput) numInput.addEventListener('input', update);
+  if (fmtInput) fmtInput.addEventListener('change', update);
+})();
+</script>
+{% endblock %}

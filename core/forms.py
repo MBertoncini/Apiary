@@ -6,6 +6,7 @@ from .models import (
     TipoTrattamento, TrattamentoSanitario, Melario, Smielatura, Gruppo, MembroGruppo, InvitoGruppo,
     Regina, CategoriaAttrezzatura, Attrezzatura, ManutenzioneAttrezzatura,
     PrestitoAttrezzatura, SpesaAttrezzatura, Cliente, Vendita, DettaglioVendita,
+    Invasettamento, Nucleo, ControlloNucleo,
 )
 
 from django.utils  import timezone
@@ -817,3 +818,69 @@ DettaglioVenditaFormSet = forms.inlineformset_factory(
     min_num=1,
     validate_min=True,
 )
+
+
+class InvasettamentoForm(forms.ModelForm):
+    class Meta:
+        model = Invasettamento
+        fields = ['data', 'tipo_miele', 'formato_vasetto', 'numero_vasetti', 'lotto', 'note']
+        widgets = {
+            'data':           forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'tipo_miele':     forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'es. Acacia, Millefiori'}),
+            'formato_vasetto':forms.Select(attrs={'class': 'form-control form-select'},
+                                           choices=[(250,'250g'),(500,'500g'),(1000,'1kg')]),
+            'numero_vasetti': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'lotto':          forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'es. LOT-2025-001'}),
+            'note':           forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['lotto'].required = False
+        self.fields['note'].required = False
+        if not self.instance.pk:
+            self.fields['data'].initial = timezone.now().date()
+
+
+class NucleoForm(forms.ModelForm):
+    class Meta:
+        model = Nucleo
+        fields = ['apiario', 'numero', 'colore_hex', 'data_installazione', 'note']
+        widgets = {
+            'apiario':           forms.Select(attrs={'class': 'form-control form-select'}),
+            'numero':            forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'colore_hex':        forms.TextInput(attrs={'type': 'color', 'class': 'form-control form-control-color', 'style': 'width:60px;'}),
+            'data_installazione':forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'note':              forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['apiario'].queryset = Apiario.objects.filter(proprietario=user)
+        self.fields['note'].required = False
+        if not self.instance.pk:
+            self.fields['data_installazione'].initial = timezone.now().date()
+
+
+class ControlloNucleoForm(forms.ModelForm):
+    class Meta:
+        model = ControlloNucleo
+        fields = ['data', 'n_telaini', 'forza_colonia', 'presenza_regina', 'note']
+        widgets = {
+            'data':            forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'n_telaini':       forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 20}),
+            'forza_colonia':   forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 5}),
+            'presenza_regina': forms.Select(attrs={'class': 'form-control form-select'},
+                                            choices=[(True,'Sì'),(False,'No'),('','Non verificata')]),
+            'note':            forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['n_telaini'].required = False
+        self.fields['forza_colonia'].required = False
+        self.fields['presenza_regina'].required = False
+        self.fields['note'].required = False
+        if not self.instance.pk:
+            self.fields['data'].initial = timezone.now().date()

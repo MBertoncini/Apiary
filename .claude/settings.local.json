@@ -17,7 +17,8 @@
       "Bash(done)",
       "Bash(mkdir:*)",
       "Bash(py:*)",
-      "Bash(cd \"I:\\\\Progetti Git\\\\Apiary\" && pip install reportlab 2>&1 | tail -5)"
+      "Bash(cd \"I:\\\\Progetti Git\\\\Apiary\" && pip install reportlab 2>&1 | tail -5)",
+      "Bash(cat >> \"I:\\\\Progetti Git\\\\Apiary\\\\core\\\\views.py\" << 'PYEOF'\n    return response\nPYEOF)"
     ]
   }
 }

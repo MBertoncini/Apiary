@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block title %}Nuclei — Apiary{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-hexagon-half me-2" style="color:var(--honey);"></i>Nuclei</h1>
+    <p class="page-subtitle">Gestisci i nuclei e convertili in arnie quando pronti</p>
+  </div>
+  <a href="{% url 'crea_nucleo' %}" class="btn btn-primary">
+    <i class="bi bi-plus-circle me-1"></i>Nuovo Nucleo
+  </a>
+</div>
+
+<!-- Stat mini bar -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3">
+    <div class="card stat-card">
+      <div class="stat-icon" style="background:rgba(245,166,35,.15);">
+        <i class="bi bi-hexagon-half" style="color:var(--honey);"></i>
+      </div>
+      <div class="stat-value">{{ nuclei_attivi|length }}</div>
+      <div class="stat-label">Nuclei attivi</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card stat-card">
+      <div class="stat-icon" style="background:rgba(25,135,84,.15);">
+        <i class="bi bi-check-circle" style="color:#198754;"></i>
+      </div>
+      <div class="stat-value">{{ nuclei_convertiti|length }}</div>
+      <div class="stat-label">Convertiti in arnia</div>
+    </div>
+  </div>
+</div>
+
+<!-- Nuclei attivi -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-hexagon-half me-1"></i>Nuclei Attivi</span>
+    <span class="badge" style="background:var(--honey);">{{ nuclei_attivi|length }}</span>
+  </div>
+  <div class="card-body p-0">
+    {% if nuclei_attivi %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Nucleo</th>
+            <th>Apiario</th>
+            <th>Installato il</th>
+            <th>Colore</th>
+            <th>Ultimo controllo</th>
+            <th class="text-end">Azioni</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for nucleo in nuclei_attivi %}
+          <tr>
+            <td>
+              <a href="{% url 'dettaglio_nucleo' nucleo.pk %}" class="fw-semibold text-decoration-none">
+                Nucleo #{{ nucleo.numero }}
+              </a>
+            </td>
+            <td>
+              <a href="{% url 'visualizza_apiario' nucleo.apiario.id %}" class="text-muted text-decoration-none small">
+                <i class="bi bi-geo-alt me-1"></i>{{ nucleo.apiario.nome }}
+              </a>
+            </td>
+            <td class="small">{{ nucleo.data_installazione|date:"d/m/Y" }}</td>
+            <td>
+              <span class="badge rounded-circle p-2 border"
+                    style="background:{{ nucleo.colore_hex }};"
+                    title="{{ nucleo.colore_hex }}">&nbsp;</span>
+            </td>
+            <td class="small text-muted">
+              {% with last=nucleo.controlli.first %}
+                {% if last %}{{ last.data|date:"d/m/Y" }}{% else %}—{% endif %}
+              {% endwith %}
+            </td>
+            <td class="text-end">
+              <a href="{% url 'dettaglio_nucleo' nucleo.pk %}" class="btn btn-sm btn-outline-secondary" title="Dettaglio">
+                <i class="bi bi-eye"></i>
+              </a>
+              <a href="{% url 'converti_nucleo_in_arnia' nucleo.pk %}" class="btn btn-sm btn-outline-success" title="Converti in arnia">
+                <i class="bi bi-arrow-up-circle"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-hexagon-half display-4 d-block mb-2 opacity-25"></i>
+      <p>Nessun nucleo attivo.</p>
+      <a href="{% url 'crea_nucleo' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Aggiungi nucleo
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Nuclei convertiti -->
+{% if nuclei_convertiti %}
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-check-circle me-1"></i>Convertiti in Arnia</span>
+    <span class="badge bg-success">{{ nuclei_convertiti|length }}</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Nucleo</th>
+            <th>Apiario</th>
+            <th>Data conversione</th>
+            <th>Arnia risultante</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for nucleo in nuclei_convertiti %}
+          <tr>
+            <td class="text-muted">Nucleo #{{ nucleo.numero }}</td>
+            <td class="small text-muted">{{ nucleo.apiario.nome }}</td>
+            <td class="small">{{ nucleo.data_conversione|date:"d/m/Y"|default:"—" }}</td>
+            <td>
+              {% if nucleo.arnia %}
+              <a href="{% url 'visualizza_apiario' nucleo.apiario.id %}" class="text-decoration-none small">
+                Arnia #{{ nucleo.arnia.numero }}
+              </a>
+              {% else %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
