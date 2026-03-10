@@ -1,9 +1,10 @@
 """
-Viste AI: chat, elaborazione voce, analisi telaino (Gemini + YOLO).
+Viste AI: chat, elaborazione voce, analisi telaino (Gemini + YOLO segmentation).
 """
 import json
 import base64
 import os
+import io
 
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -13,6 +14,24 @@ from django.conf import settings
 
 from .ai_services import gemini_service
 from .models import Apiario, Arnia
+
+# Cache del modello YOLO (caricato una volta sola alla prima richiesta)
+_yolo_model = None
+
+def _get_yolo_model():
+    """Carica e cachea il modello YOLO segmentazione."""
+    global _yolo_model
+    if _yolo_model is not None:
+        return _yolo_model
+    yolo_path = getattr(settings, 'YOLO_MODEL_PATH', '')
+    if not yolo_path or not os.path.exists(yolo_path):
+        return None
+    try:
+        from ultralytics import YOLO
+        _yolo_model = YOLO(yolo_path)
+        return _yolo_model
+    except Exception:
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -157,34 +176,51 @@ def analisi_telaino(request):
         image_b64 = base64.b64encode(image_data).decode('utf-8')
         content_type = image_file.content_type or 'image/jpeg'
 
-        # --- YOLO (opzionale) ---
+        # --- YOLO segmentazione ---
         yolo_result = None
-        yolo_model_path = getattr(settings, 'YOLO_MODEL_PATH', '')
-        if yolo_model_path and os.path.exists(yolo_model_path):
+        yolo_model = _get_yolo_model()
+        if yolo_model is not None:
             try:
-                from ultralytics import YOLO
-                import io
                 from PIL import Image as PILImage
+                import numpy as np
 
-                yolo_model = YOLO(yolo_model_path)
-                img = PILImage.open(io.BytesIO(image_data))
-                results = yolo_model(img, verbose=False)
+                # Apri immagine
+                img = PILImage.open(io.BytesIO(image_data)).convert('RGB')
 
+                # Predizione con stessi parametri dello script di test
+                results = yolo_model.predict(
+                    source=img,
+                    conf=0.5,
+                    iou=0.4,
+                    verbose=False,
+                )
+                r = results[0]
+
+                # Conta detection per classe
                 detections = []
-                for r in results:
+                if r.boxes is not None:
                     for box in r.boxes:
                         cls_id = int(box.cls[0])
                         cls_name = r.names.get(cls_id, str(cls_id))
-                        conf = float(box.conf[0])
-                        detections.append({'class': cls_name, 'confidence': round(conf, 2)})
+                        conf_val = float(box.conf[0])
+                        detections.append({'class': cls_name, 'confidence': round(conf_val, 2)})
 
                 class_counts = {}
                 for d in detections:
                     class_counts[d['class']] = class_counts.get(d['class'], 0) + 1
 
+                # Genera immagine annotata con maschere disegnate
+                annotated_bgr = r.plot()          # numpy array BGR (da ultralytics)
+                annotated_rgb = annotated_bgr[:, :, ::-1]  # BGR → RGB
+                annotated_pil = PILImage.fromarray(annotated_rgb.astype('uint8'))
+                buf = io.BytesIO()
+                annotated_pil.save(buf, format='JPEG', quality=88)
+                annotated_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+
                 yolo_result = {
-                    'detections': detections[:60],
+                    'detections': detections[:80],
                     'summary': class_counts,
+                    'annotated_image': annotated_b64,  # JPEG base64
                 }
             except ImportError:
                 yolo_result = {'nota': 'ultralytics non installato'}
