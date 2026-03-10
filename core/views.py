@@ -22,7 +22,8 @@ from dateutil.relativedelta import relativedelta
 from .models import (
     Apiario, Arnia, ControlloArnia, Fioritura, Pagamento, QuotaUtente,
     TrattamentoSanitario, TipoTrattamento, Gruppo, MembroGruppo, InvitoGruppo, Melario, Smielatura, Regina, StoriaRegine,
-    CategoriaAttrezzatura, Attrezzatura, ManutenzioneAttrezzatura, PrestitoAttrezzatura, SpesaAttrezzatura, InventarioAttrezzature
+    CategoriaAttrezzatura, Attrezzatura, ManutenzioneAttrezzatura, PrestitoAttrezzatura, SpesaAttrezzatura, InventarioAttrezzature,
+    ApiarioMapLayout,
 )
 from .forms import (
     ApiarioForm, ArniaForm, ControlloArniaForm, FiorituraForm, PagamentoForm,
@@ -189,11 +190,19 @@ def visualizza_apiario(request, apiario_id, data=None):
     except Exception:
         layout_json = '{}'
 
+    ctrl_by_arnia = {ctrl.arnia_id: ctrl for ctrl in ultimi_controlli}
     arnie_map_data = json.dumps({
         str(a.id): {
             'numero': a.numero,
             'colore_hex': a.colore_hex or '#F5A623',
             'attiva': a.attiva,
+            'ultimo_controllo': ctrl_by_arnia[a.id].data.strftime('%d/%m/%Y') if a.id in ctrl_by_arnia else None,
+            'presenza_regina': ctrl_by_arnia[a.id].presenza_regina if a.id in ctrl_by_arnia else None,
+            'telaini_covata': ctrl_by_arnia[a.id].telaini_covata if a.id in ctrl_by_arnia else None,
+            'telaini_scorte': ctrl_by_arnia[a.id].telaini_scorte if a.id in ctrl_by_arnia else None,
+            'problemi_sanitari': ctrl_by_arnia[a.id].problemi_sanitari if a.id in ctrl_by_arnia else False,
+            'sciamatura': ctrl_by_arnia[a.id].sciamatura if a.id in ctrl_by_arnia else False,
+            'note': ((ctrl_by_arnia[a.id].note or '')[:80]) if a.id in ctrl_by_arnia else '',
         }
         for a in arnie
     })
@@ -228,6 +237,34 @@ def visualizza_apiario(request, apiario_id, data=None):
         context['can_edit'] = apiario.proprietario == request.user
     
     return render(request, 'arnie/visualizza_apiario.html', context)
+
+
+@login_required
+def save_map_layout(request, apiario_id):
+    """Salva il layout della piantina apiario (JSON con posizioni arnie/elementi)."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    apiario = get_object_or_404(Apiario, pk=apiario_id)
+    can_edit = apiario.proprietario == request.user
+    if not can_edit and apiario.gruppo and apiario.condiviso_con_gruppo:
+        try:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=apiario.gruppo)
+            can_edit = membro.ruolo in ['admin', 'editor']
+        except MembroGruppo.DoesNotExist:
+            pass
+    if not can_edit:
+        return JsonResponse({'error': 'Permesso negato'}, status=403)
+    try:
+        import json as _json
+        data = _json.loads(request.body)
+        layout_str = data.get('layout_json', '{}')
+        _json.loads(layout_str)  # validazione
+    except (ValueError, KeyError):
+        return JsonResponse({'error': 'JSON non valido'}, status=400)
+    ml, _ = ApiarioMapLayout.objects.get_or_create(apiario=apiario)
+    ml.layout_json = layout_str
+    ml.save()
+    return JsonResponse({'ok': True})
 
 
 @login_required
