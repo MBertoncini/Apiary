@@ -1,1 +1,7 @@
 db.sqlite3
+.env
+*.env
+core/ai_models/*.pt
+__pycache__/
+*.pyc
+

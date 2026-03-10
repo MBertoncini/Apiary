@@ -147,6 +147,15 @@
       Confronta Regine
     </a>
 
+    <!-- AI -->
+    <div class="sidebar-section-label">Intelligenza Artificiale</div>
+
+    <a href="{% url 'analisi_telaino' %}"
+       class="sidebar-link {% if request.resolver_match.url_name == 'analisi_telaino' %}active{% endif %}">
+      <i class="bi bi-camera nav-icon"></i>
+      Analisi Telaino
+    </a>
+
     <!-- COLLABORAZIONE -->
     <div class="sidebar-section-label">Collaborazione</div>
 
@@ -342,6 +351,11 @@
 </script>
 
 {% block extra_js %}{% endblock %}
+
+{% if user.is_authenticated %}
+<!-- AI Chat Widget -->
+<script src="{% static 'js/ai-chat.js' %}"></script>
+{% endif %}
 
 </body>
 </html>

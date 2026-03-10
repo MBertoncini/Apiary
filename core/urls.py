@@ -1,6 +1,7 @@
 # core/urls.py
 from django.urls import path
 from . import views
+from . import ai_views
 
 urlpatterns = [
     # Dashboard
@@ -149,4 +150,9 @@ urlpatterns = [
     path('nucleo/<int:pk>/elimina/', views.elimina_nucleo, name='elimina_nucleo'),
     path('nucleo/<int:nucleo_id>/controllo/', views.aggiungi_controllo_nucleo, name='aggiungi_controllo_nucleo'),
     path('nucleo/<int:pk>/converti/', views.converti_nucleo_in_arnia, name='converti_nucleo_in_arnia'),
+
+    # AI Features
+    path('ai/chat/', ai_views.chat_ai, name='ai_chat'),
+    path('ai/voice/', ai_views.voice_ai, name='ai_voice'),
+    path('ai/analisi-telaino/', ai_views.analisi_telaino, name='analisi_telaino'),
 ]

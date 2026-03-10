@@ -5,6 +5,13 @@ Django settings for apiario_manager project.
 import os
 from pathlib import Path
 
+# Carica variabili da .env (se esiste)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent.parent / '.env')
+except ImportError:
+    pass
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -128,7 +135,14 @@ MEDIA_ROOT = '/home/Cible99/Apiary/media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 METEO_DATA_RETENTION_DAYS = 120  # Mantieni dati meteo per 120 giorni
-OPENWEATHERMAP_API_KEY = '2868f252e943fb71e4d98533c1fb9722'
+OPENWEATHERMAP_API_KEY = os.environ.get('OPENWEATHERMAP_API_KEY', '')
+
+# Gemini AI
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+
+# YOLO model path (relativo a BASE_DIR, opzionale)
+_yolo_rel = os.environ.get('YOLO_MODEL_PATH', 'core/ai_models/best.pt')
+YOLO_MODEL_PATH = str(BASE_DIR / _yolo_rel) if _yolo_rel else ''
 
 # Configurazione crispy forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
