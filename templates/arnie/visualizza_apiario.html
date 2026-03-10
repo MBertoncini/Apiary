@@ -234,178 +234,17 @@
                                                 </div>
                                                 
                                                 <!-- Sostituisci la visualizzazione dell'arnia con questo codice -->
-                                                <div class="arnia-visualization mb-3">
-                                                    <div class="bg-light border rounded p-2 mb-2">
-                                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                                            <small class="text-muted">Vista dall'alto</small>
-                                                            <div class="d-flex">
-                                                                <div class="d-flex align-items-center me-2">
-                                                                    <div style="width: 10px; height: 10px; background-color: #dc3545; margin-right: 3px;"></div>
-                                                                    <span style="font-size: 0.7rem;">Covata</span>
-                                                                </div>
-                                                                <div class="d-flex align-items-center me-2">
-                                                                    <div style="width: 10px; height: 10px; background-color: #ffc107; margin-right: 3px;"></div>
-                                                                    <span style="font-size: 0.7rem;">Scorte</span>
-                                                                </div>
-                                                                <div class="d-flex align-items-center me-2">
-                                                                    <div style="width: 10px; height: 10px; background-color: #343a40; margin-right: 3px;"></div>
-                                                                    <span style="font-size: 0.7rem;">Diaframma</span>
-                                                                </div>
-                                                                <div class="d-flex align-items-center">
-                                                                    <div style="width: 10px; height: 10px; background-color: #E8D4B9; margin-right: 3px;"></div>
-                                                                    <span style="font-size: 0.7rem;">Nutritore</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <div style="border: 2px solid #b17c2b; border-radius: 5px; padding: 5px; background-color: #FFF8E1;">
-                                                            <div class="d-flex justify-content-center" style="gap: 3px;">
-                                                                {% if controllo.telaini_config %}
-                                                                    <!-- Utilizzare un ID univoco per ogni controllo -->
-                                                                    <div id="telaini-container-{{ controllo.id }}" class="d-flex justify-content-center" style="gap: 3px;"></div>
-                                                                    <script>
-                                                                        (function() {
-                                                                            try {
-                                                                                // Parse JSON config
-                                                                                const config = JSON.parse('{{ controllo.telaini_config|escapejs }}');
-                                                                                const container = document.getElementById('telaini-container-{{ controllo.id }}');
-                                                                                
-                                                                                // Clear container
-                                                                                container.innerHTML = '';
-                                                                                
-                                                                                // Create telaini based on config
-                                                                                config.forEach(type => {
-                                                                                    const telaino = document.createElement('div');
-                                                                                    telaino.style.height = '80px';
-                                                                                    telaino.style.borderRadius = '2px';
-                                                                                    
-                                                                                    switch(type) {
-                                                                                        case 'covata':
-                                                                                            telaino.style.width = '15px';
-                                                                                            telaino.style.backgroundColor = '#dc3545';
-                                                                                            telaino.style.border = '1px solid #c82333';
-                                                                                            telaino.title = 'Telaino con covata';
-                                                                                            break;
-                                                                                        case 'scorte':
-                                                                                            telaino.style.width = '15px';
-                                                                                            telaino.style.backgroundColor = '#ffc107';
-                                                                                            telaino.style.border = '1px solid #e0a800';
-                                                                                            telaino.title = 'Telaino con scorte';
-                                                                                            break;
-                                                                                        case 'diaframma':
-                                                                                            telaino.style.width = '6px';
-                                                                                            telaino.style.backgroundColor = '#343a40';
-                                                                                            telaino.style.border = '1px solid #1d2124';
-                                                                                            telaino.title = 'Diaframma';
-                                                                                            break;
-                                                                                        case 'nutritore':
-                                                                                            telaino.style.width = '15px';
-                                                                                            telaino.style.backgroundColor = '#E8D4B9';
-                                                                                            telaino.style.border = '1px solid #D4B995';
-                                                                                            telaino.title = 'Nutritore';
-                                                                                            break;
-                                                                                        default: // vuoto
-                                                                                            telaino.style.width = '15px';
-                                                                                            telaino.style.backgroundColor = '#e9ecef';
-                                                                                            telaino.style.border = '1px dashed #ced4da';
-                                                                                            telaino.title = 'Spazio vuoto';
-                                                                                    }
-                                                                                    
-                                                                                    container.appendChild(telaino);
-                                                                                });
-                                                                            } catch (e) {
-                                                                                console.error("Error parsing telaini config:", e);
-                                                                                document.getElementById('telaini-container-{{ controllo.id }}').innerHTML = 
-                                                                                    '<div class="text-center text-danger">Errore visualizzazione</div>';
-                                                                            }
-                                                                        })();
-                                                                    </script>
-                                                                {% else %}
-                                                                    <!-- Fallback to old visualization method if telaini_config is not available -->
-                                                                    <!-- Telaini di scorte a sinistra -->
-                                                                    {% for i in "x"|ljust:controllo.scorte_sinistra|default:"" %}
-                                                                        <div style="width: 15px; height: 80px; background-color: #ffc107; border-radius: 2px;"
-                                                                            title="Telaino con scorte (lato sinistro)"></div>
-                                                                    {% endfor %}
-
-                                                                    <!-- Telaini di covata (al centro) -->
-                                                                    {% for i in "x"|ljust:controllo.telaini_covata|default:"" %}
-                                                                        <div style="width: 15px; height: 80px; background-color: #dc3545; border-radius: 2px;" 
-                                                                            title="Telaino con covata"></div>
-                                                                    {% endfor %}
-
-                                                                    <!-- Telaini di scorte a destra -->
-                                                                    {% for i in "x"|ljust:controllo.scorte_destra|default:"" %}
-                                                                        <div style="width: 15px; height: 80px; background-color: #ffc107; border-radius: 2px;"
-                                                                            title="Telaino con scorte (lato destro)"></div>
-                                                                    {% endfor %}
-                                                                        
-                                                                    <!-- Diaframma se necessario -->
-                                                                    {% if controllo.telaini_covata|add:controllo.telaini_scorte < 9 %}
-                                                                        <div style="width: 6px; height: 80px; background-color: #6c757d; border-radius: 2px;"
-                                                                            title="Diaframma"></div>
-                                                                    {% endif %}
-                                                                        
-                                                                    <!-- Spazi vuoti -->
-                                                                    {% with total=controllo.telaini_covata|add:controllo.telaini_scorte %}
-                                                                        {% with vuoti=9|add:"-total"|add:"-1" %}
-                                                                            {% if controllo.telaini_covata|add:controllo.telaini_scorte < 9 %}
-                                                                                {% for i in "x"|rjust:vuoti %}
-                                                                                    {% if forloop.counter <= vuoti and vuoti > 0 %}
-                                                                                        <div style="width: 15px; height: 80px; background-color: #e9ecef; border: 1px dashed #ced4da; border-radius: 2px;"
-                                                                                            title="Spazio vuoto"></div>
-                                                                                    {% endif %}
-                                                                                {% endfor %}
-                                                                            {% endif %}
-                                                                        {% endwith %}
-                                                                    {% endwith %}
-                                                                {% endif %}
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <div class="text-center mt-1">
-                                                            <small>
-                                                                <span class="fw-bold">{{ controllo.telaini_covata|add:controllo.telaini_scorte }}</span> telaini totali
-                                                                {% if controllo.telaini_config %}
-                                                                    <span id="stats-{{ controllo.id }}"></span>
-                                                                    <script>
-                                                                        (function() {
-                                                                            try {
-                                                                                const config = JSON.parse('{{ controllo.telaini_config|escapejs }}');
-                                                                                const counts = {
-                                                                                    covata: 0,
-                                                                                    scorte: 0,
-                                                                                    diaframma: 0,
-                                                                                    nutritore: 0
-                                                                                };
-                                                                                
-                                                                                // Count telaini types
-                                                                                config.forEach(type => {
-                                                                                    if (counts[type] !== undefined) {
-                                                                                        counts[type]++;
-                                                                                    }
-                                                                                });
-                                                                                
-                                                                                // Update stats display
-                                                                                document.getElementById('stats-{{ controllo.id }}').innerHTML = 
-                                                                                    `(<span class="text-danger fw-bold">${counts.covata}</span> covata, 
-                                                                                    <span style="color: #ffc107; font-weight: bold;">${counts.scorte}</span> scorte, 
-                                                                                    <span style="color: #343a40; font-weight: bold;">${counts.diaframma}</span> diaframmi, 
-                                                                                    <span style="color: #E8D4B9; font-weight: bold;">${counts.nutritore}</span> nutritori)`;
-                                                                            } catch(e) {
-                                                                                console.error("Error calculating telaini stats:", e);
-                                                                            }
-                                                                        })();
-                                                                    </script>
-                                                                {% else %}
-                                                                    (<span class="text-danger fw-bold">{{ controllo.telaini_covata }}</span> covata,
-                                                                    <span style="color: #ffc107; font-weight: bold;">{{ controllo.telaini_scorte }}</span> scorte)
-                                                                {% endif %}
-                                                            </small>
-                                                        </div>
-                                                    </div>
+                                                <!-- ══ MINI HIVE VIEW ══ -->
+                                                <div class="mini-hive-wrap mb-3"
+                                                     data-config="{{ controllo.telaini_config|escapejs }}"
+                                                     data-covata="{{ controllo.telaini_covata }}"
+                                                     data-scorte="{{ controllo.telaini_scorte }}">
+                                                  <div class="mini-hive-shell">
+                                                    <div class="mini-hive-row"></div>
+                                                  </div>
+                                                  <div class="mini-hive-legend"></div>
                                                 </div>
-                                                <!-- Fine Visualizzazione Grafica dell'Arnia -->
+                                                <!-- ══ FINE MINI HIVE VIEW ══ -->
                                                 
                                                 <div class="mb-2">
                                                     <a href="{% url 'visualizza_regina' controllo.arnia.id %}" class="text-decoration-none">
@@ -551,66 +390,115 @@
     });
 </script>
 
+<style>
+/* ── Mini Hive (read-only) ── */
+.mini-hive-wrap { font-size: 0; }
+.mini-hive-shell {
+  background: linear-gradient(135deg,#5d3e23,#8b6914 60%,#5d3e23);
+  border-radius: 7px;
+  padding: 6px 8px 14px;
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+}
+.mini-hive-row {
+  display: inline-flex;
+  gap: 3px;
+  align-items: flex-end;
+  min-height: 60px;
+}
+.mini-frame {
+  display: inline-block;
+  height: 56px;
+  width: 13px;
+  border-radius: 2px 2px 1px 1px;
+  border: 1px solid rgba(0,0,0,.22);
+  box-shadow: inset 0 2px 3px rgba(255,255,255,.18), inset 0 -2px 3px rgba(0,0,0,.12);
+  flex-shrink: 0;
+  transition: filter .15s, transform .15s;
+  cursor: default;
+}
+.mini-frame:hover { filter: brightness(1.2); transform: scaleY(1.06); }
+.mini-frame.t-covata    { background: linear-gradient(180deg,#ef5350,#b71c1c); border-color:#b71c1c; }
+.mini-frame.t-scorte    { background: linear-gradient(180deg,#ffee58,#f9a825); border-color:#f9a825; }
+.mini-frame.t-misto     { background: linear-gradient(180deg,#ef5350 50%,#f9a825 50%); border-color:#b71c1c; }
+.mini-frame.t-diaframma { background: linear-gradient(180deg,#546e7a,#263238); border-color:#263238; width:5px; }
+.mini-frame.t-nutritore { background: linear-gradient(180deg,#e8d4b9,#a1887f); border-color:#a1887f; }
+.mini-frame.t-vuoto     { background: repeating-linear-gradient(45deg,#f5f5f5,#f5f5f5 2px,#e0e0e0 2px,#e0e0e0 4px); border:1px dashed #aaa; }
+
+.mini-hive-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 5px;
+  font-size: .7rem;
+  color: #666;
+}
+.mini-hive-legend span { display:inline-flex; align-items:center; gap:3px; }
+.mini-hive-legend .dot { width:8px; height:8px; border-radius:2px; display:inline-block; }
+</style>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Funzione per aggiungere hover effects ai telaini
-    const telaini = document.querySelectorAll('.arnia-visualization [title]');
-    
-    telaini.forEach(telaino => {
-        // Aggiungi effetto hover
-        telaino.addEventListener('mouseenter', function() {
-            // Salva le dimensioni originali
-            if (!this.dataset.originalWidth) {
-                this.dataset.originalWidth = this.style.width;
-                this.dataset.originalHeight = this.style.height;
-            }
-            
-            // Aumenta leggermente la dimensione al passaggio del mouse
-            this.style.width = (parseInt(this.dataset.originalWidth) + 2) + 'px';
-            this.style.height = (parseInt(this.dataset.originalHeight) + 5) + 'px';
-            this.style.zIndex = '10';
-            this.style.boxShadow = '0 0 5px rgba(0,0,0,0.3)';
-            
-            // Mostra tooltip con informazioni
-            const tooltip = document.createElement('div');
-            tooltip.className = 'telaino-tooltip';
-            tooltip.innerHTML = this.getAttribute('title');
-            tooltip.style.position = 'absolute';
-            tooltip.style.backgroundColor = 'rgba(0,0,0,0.8)';
-            tooltip.style.color = 'white';
-            tooltip.style.padding = '5px 8px';
-            tooltip.style.borderRadius = '4px';
-            tooltip.style.fontSize = '12px';
-            tooltip.style.zIndex = '100';
-            tooltip.style.pointerEvents = 'none';
-            
-            // Posiziona il tooltip
-            const rect = this.getBoundingClientRect();
-            tooltip.style.left = (rect.left + window.scrollX) + 'px';
-            tooltip.style.top = (rect.top + window.scrollY - 30) + 'px';
-            
-            document.body.appendChild(tooltip);
-            this.dataset.tooltip = true;
-        });
-        
-        // Ripristina lo stato originale quando il mouse esce
-        telaino.addEventListener('mouseleave', function() {
-            if (this.dataset.originalWidth) {
-                this.style.width = this.dataset.originalWidth;
-                this.style.height = this.dataset.originalHeight;
-                this.style.zIndex = '1';
-                this.style.boxShadow = 'none';
-            }
-            
-            // Rimuovi il tooltip
-            if (this.dataset.tooltip) {
-                const tooltips = document.querySelectorAll('.telaino-tooltip');
-                tooltips.forEach(t => t.remove());
-                delete this.dataset.tooltip;
-            }
-        });
+/* ── Mini Hive Renderer ── */
+(function () {
+  const LABELS = {
+    covata:    ['Covata',    '#ef5350'],
+    scorte:    ['Scorte',    '#f9a825'],
+    misto:     ['Misto',     '#ef5350'],
+    diaframma: ['Diaframma', '#546e7a'],
+    nutritore: ['Nutritore', '#a1887f'],
+  };
+
+  function buildFallback(nC, nS, total) {
+    total = total || 10;
+    const frames = Array(total).fill('vuoto');
+    const mid = Math.floor(total / 2);
+    const hC  = Math.floor(nC / 2);
+    for (let i = 0; i < nC; i++) { const p = mid-hC+i; if(p>=0&&p<total) frames[p]='covata'; }
+    let sL = Math.floor(nS/2), sR = nS-sL;
+    for (let i = 0; i < sL; i++) { const p = mid-hC-1-i; if(p>=0) frames[p]='scorte'; }
+    for (let i = 0; i < sR; i++) { const p = mid+hC+i;   if(p<total) frames[p]='scorte'; }
+    return frames;
+  }
+
+  document.querySelectorAll('.mini-hive-wrap').forEach(wrap => {
+    const row      = wrap.querySelector('.mini-hive-row');
+    const legendEl = wrap.querySelector('.mini-hive-legend');
+    const raw      = wrap.dataset.config;
+    const nC       = parseInt(wrap.dataset.covata) || 0;
+    const nS       = parseInt(wrap.dataset.scorte)  || 0;
+
+    let frames;
+    try {
+      frames = raw ? JSON.parse(raw) : buildFallback(nC, nS);
+    } catch(e) {
+      frames = buildFallback(nC, nS);
+    }
+
+    // Render frames
+    const counts = { covata:0, scorte:0, diaframma:0, nutritore:0 };
+    frames.forEach((type, i) => {
+      const el = document.createElement('div');
+      el.className = 'mini-frame t-' + type;
+      el.title = `#${i+1} ${type}`;
+      row.appendChild(el);
+      if (type === 'covata' || type === 'misto') counts.covata++;
+      if (type === 'scorte' || type === 'misto') counts.scorte++;
+      if (type === 'diaframma') counts.diaframma++;
+      if (type === 'nutritore') counts.nutritore++;
     });
-});
+
+    // Build legend from non-zero counts
+    const parts = [];
+    for (const [k, [label, color]] of Object.entries(LABELS)) {
+      const c = k === 'misto' ? 0 : counts[k] || 0;
+      if (c > 0) parts.push(`<span><i class="dot" style="background:${color}"></i>${c} ${label}</span>`);
+    }
+    if (parts.length) legendEl.innerHTML = parts.join('');
+    else legendEl.innerHTML = '<span class="text-muted">Nessun dato</span>';
+  });
+})();
 </script>
 
 <!-- ═══════════════  PIANTINA CSS + JS INTERATTIVO  ═══════════════ -->
