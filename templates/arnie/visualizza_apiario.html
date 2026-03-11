@@ -118,8 +118,7 @@
       {% if can_edit %}
       <div class="piantina-toolbar" id="piantina-toolbar">
         <div class="tool-group">
-          <button class="tool-btn active" id="tool-pan"    onclick="PIANTINA.setTool('pan')"    title="Sposta vista  [P]"><i class="bi bi-hand-index-thumb"></i></button>
-          <button class="tool-btn"        id="tool-select" onclick="PIANTINA.setTool('select')" title="Seleziona elemento (poi Canc per eliminare)  [S]"><i class="bi bi-cursor"></i></button>
+          <button class="tool-btn active" id="tool-select" onclick="PIANTINA.setTool('select')" title="Puntatore  [S] · Clic su elemento → seleziona/sposta · Clic su prato → panoramica"><i class="bi bi-cursor"></i></button>
         </div>
         <div class="tool-sep"></div>
         <div class="tool-group">
@@ -643,7 +642,7 @@ const PIANTINA = (() => {
   const CELL=90,SNAP=60,H_CSS=460,MIN_SC=0.003,MAX_SC=0.5,MIN_HIT=20;
   const CSRF=()=>document.cookie.match(/csrftoken=([^;]+)/)?.[1]||'';
   let layout=deep(INITIAL_LAYOUT),vp={x:0,y:0,scale:.05};
-  let tool='pan',snapOn=false,sel=null,hov=null;
+  let tool='select',snapOn=false,sel=null,hov=null;
   let dragMode='none',dragStart=null,isDrag=false;
   let pathPts=[],pathPrev=null,undoStack=[],dirty=false;
   let pendingNucleoPos=null;
@@ -797,22 +796,27 @@ const PIANTINA = (() => {
     if(tool==='albero'){const[fx,fy]=toF(mx,my);saveUndoState();addEl('albero',snapV(fx),snapV(fy));isDrag=false;needDraw=true;return;}
     if(tool==='nucleo'){const[fx,fy]=toF(mx,my);openNucleoModal(snapV(fx),snapV(fy));isDrag=false;return;}
     const hit=hitTest(mx,my);
-    if(!hit||tool==='pan'){dragMode='pan';dragStart={mx,my,vx:vp.x,vy:vp.y};canvas.style.cursor='grabbing';}
-    else if(tool==='select'){doSelect(hit);const pos=hit.kind==='arnia'?arniePos()[hit.id]:elems().find(e=>e.id===hit.id);if(pos){dragMode='move';dragStart={mx,my,ex:pos.x,ey:pos.y};}}
+    if(hit){doSelect(hit);const pos=hit.kind==='arnia'?arniePos()[hit.id]:elems().find(e=>e.id===hit.id);if(pos){dragMode='move';dragStart={mx,my,ex:pos.x,ey:pos.y};}}
+    else{dragMode='pan';dragStart={mx,my,vx:vp.x,vy:vp.y};canvas.style.cursor='grabbing';}
     isDrag=false;
   }
   function onMove(e){
     const[mx,my]=mPos(e);
     const hit=hitTest(mx,my);if(JSON.stringify(hit)!==JSON.stringify(hov)){hov=hit;needDraw=true;showTip(hit,mx,my);}
+    if(!dragStart&&tool==='select')canvas.style.cursor=hov?'grab':'default';
     if(tool==='vialetto'){const[fx,fy]=toF(mx,my);pathPrev={x:fx,y:fy};needDraw=true;return;}
     if(!dragStart)return;const dx=mx-dragStart.mx,dy=my-dragStart.my;
-    if(!isDrag&&(Math.abs(dx)>3||Math.abs(dy)>3)){isDrag=true;if(dragMode==='move')saveUndoState();}
+    if(!isDrag&&(Math.abs(dx)>3||Math.abs(dy)>3)){isDrag=true;if(dragMode==='move'){saveUndoState();canvas.style.cursor='grabbing';}}
     if(!isDrag)return;
     if(dragMode==='pan'){vp.x=dragStart.vx+dx;vp.y=dragStart.vy+dy;updZoom();}
     else if(dragMode==='move'&&sel){const[ofx,ofy]=toF(dragStart.mx,dragStart.my);const[nfx,nfy]=toF(dragStart.mx+dx,dragStart.my+dy);moveEl(snapV(dragStart.ex+(nfx-ofx)),snapV(dragStart.ey+(nfy-ofy)));markDirty();}
     needDraw=true;
   }
-  function onUp(e){if(dragMode==='pan')canvas.style.cursor=tool==='pan'?'grab':'default';if(!isDrag&&dragMode==='pan'){const[mx,my]=mPos(e);if(tool==='select')doSelect(hitTest(mx,my));}dragStart=null;isDrag=false;dragMode='none';}
+  function onUp(e){
+    if(!isDrag&&dragMode==='pan')doSelect(null); // click su prato → deseleziona
+    if(tool==='select')canvas.style.cursor=hov?'grab':'default';
+    dragStart=null;isDrag=false;dragMode='none';
+  }
   function onWheel(e){e.preventDefault();const[mx,my]=mPos(e);zoom(e.deltaY<0?1:-1,mx,my);}
   function onDbl(e){if(tool==='vialetto'&&pathPts.length>=2){saveUndoState();finishVialetto();}else if(tool==='vialetto'){pathPts=[];pathPrev=null;needDraw=true;}}
   function onKey(e){
@@ -820,7 +824,7 @@ const PIANTINA = (() => {
     if(e.key==='Escape'){pathPts=[];pathPrev=null;doSelect(null);needDraw=true;}
     if((e.key==='Delete'||e.key==='Backspace')&&sel)deleteSelected();
     if(e.ctrlKey&&e.key==='z'){e.preventDefault();undo();}
-    const keys={p:'pan',s:'select',a:'albero',v:'vialetto',n:'nucleo'};if(!e.ctrlKey&&keys[e.key])setTool(keys[e.key]);
+    const keys={s:'select',a:'albero',v:'vialetto',n:'nucleo'};if(!e.ctrlKey&&keys[e.key])setTool(keys[e.key]);
     if(e.key==='f')fitAll();if(e.key==='g')toggleSnap();
   }
 
@@ -994,10 +998,10 @@ const PIANTINA = (() => {
     }
   }
 
-  function showTip(hit,mx,my){if(!tipEl)return;if(!hit){tipEl.style.display='none';return;}const names={albero:'Albero — Seleziona [S] per spostare/eliminare',nucleo:'Nucleo — Seleziona [S] per spostare/eliminare',vialetto:'Vialetto — Seleziona [S] per spostare/eliminare'};const txt=hit.kind==='arnia'?'Arnia #'+(ARNIE_DATA[hit.id]?.numero||'?'):(names[elems().find(e=>e.id===hit.id)?.type]||'?');tipEl.textContent=txt;tipEl.style.left=(mx+14)+'px';tipEl.style.top=(my-8)+'px';tipEl.style.display='block';}
+  function showTip(hit,mx,my){if(!tipEl)return;if(!hit){tipEl.style.display='none';return;}const names={albero:'Albero · trascina per spostare, [Canc] per eliminare',nucleo:'Nucleo · trascina per spostare, [Canc] per eliminare',vialetto:'Vialetto · trascina per spostare, [Canc] per eliminare'};const txt=hit.kind==='arnia'?'Arnia #'+(ARNIE_DATA[hit.id]?.numero||'?')+' · trascina per spostare, [Canc] per rimuovere dalla piantina':(names[elems().find(e=>e.id===hit.id)?.type]||'?');tipEl.textContent=txt;tipEl.style.left=(mx+14)+'px';tipEl.style.top=(my-8)+'px';tipEl.style.display='block';}
 
-  function setTool(t){tool=t;if(t!=='vialetto'){pathPts=[];pathPrev=null;}document.querySelectorAll('.tool-btn[id^="tool-"]').forEach(b=>b.classList.remove('active'));document.getElementById('tool-'+t)?.classList.add('active');const c={pan:'grab',select:'default',albero:'crosshair',vialetto:'crosshair',nucleo:'crosshair'};canvas.style.cursor=c[t]||'default';updStatus();needDraw=true;}
-  function updStatus(){if(!statEl)return;const n={pan:'Sposta vista',select:'Seleziona elemento',albero:'Pianta albero',vialetto:'Disegna vialetto',nucleo:'Aggiungi nucleo'};const t={pan:'Trascina · Rotella per zoom',select:'Clicca per selezionare · Trascina per spostare · [Canc] per eliminare',albero:'Clicca per piazzare',vialetto:'Clicca per punti · Doppio clic per terminare · Esc per annullare',nucleo:'Clicca per posizionare (apre configurazione)'};statEl.textContent=(n[tool]||'')+'  —  '+(t[tool]||'')+(snapOn?' · Snap griglia':'')+(sel?.kind==='element'?' · Elemento selezionato':'');}
+  function setTool(t){tool=t;if(t!=='vialetto'){pathPts=[];pathPrev=null;}document.querySelectorAll('.tool-btn[id^="tool-"]').forEach(b=>b.classList.remove('active'));document.getElementById('tool-'+t)?.classList.add('active');const c={select:'default',albero:'crosshair',vialetto:'crosshair',nucleo:'crosshair'};canvas.style.cursor=c[t]||'default';updStatus();needDraw=true;}
+  function updStatus(){if(!statEl)return;const n={select:'Puntatore',albero:'Pianta albero',vialetto:'Disegna vialetto',nucleo:'Aggiungi nucleo'};const t={select:'Clic elemento → seleziona/sposta · Clic prato → panoramica · Rotella zoom · [Canc] per rimuovere',albero:'Clicca per piazzare',vialetto:'Clicca per punti · Doppio clic per terminare · Esc per annullare',nucleo:'Clicca per posizionare (apre configurazione)'};statEl.textContent=(n[tool]||'')+'  —  '+(t[tool]||'')+(snapOn?' · Snap griglia':'')+(sel?' · Selezionato':'');}
 
   let lastTD=null;
   function onTouchStart(e){if(e.touches.length===2)lastTD=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);else onDown(e);}
@@ -1044,7 +1048,7 @@ const PIANTINA = (() => {
     /* Reset editId on modal close */
     document.getElementById('nucleoModal')?.addEventListener('hidden.bs.modal',()=>{if(confirmBtn)confirmBtn._editId=null;pendingNucleoPos=null;});
 
-    if(CAN_EDIT){canvas.addEventListener('mousedown',onDown);canvas.addEventListener('mousemove',onMove);canvas.addEventListener('mouseup',onUp);canvas.addEventListener('dblclick',onDbl);canvas.addEventListener('touchstart',onTouchStart,{passive:false});canvas.addEventListener('touchmove',onTouchMove,{passive:false});canvas.addEventListener('touchend',onTouchEnd);window.addEventListener('keydown',onKey);canvas.style.cursor='grab';}
+    if(CAN_EDIT){canvas.addEventListener('mousedown',onDown);canvas.addEventListener('mousemove',onMove);canvas.addEventListener('mouseup',onUp);canvas.addEventListener('dblclick',onDbl);canvas.addEventListener('touchstart',onTouchStart,{passive:false});canvas.addEventListener('touchmove',onTouchMove,{passive:false});canvas.addEventListener('touchend',onTouchEnd);window.addEventListener('keydown',onKey);canvas.style.cursor='default';}
     else{canvas.addEventListener('mousemove',onMove);canvas.style.cursor='default';}
     canvas.addEventListener('mouseleave',()=>{hov=null;if(tipEl)tipEl.style.display='none';needDraw=true;});
     canvas.addEventListener('wheel',onWheel,{passive:false});
