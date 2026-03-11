@@ -31,11 +31,11 @@ class GeminiService:
     def api_key(self):
         return getattr(settings, 'GEMINI_API_KEY', '')
 
-    def _call_model(self, model, payload, timeout=20):
+    def _call_model(self, model, payload, timeout=20, api_key=None):
         """Chiama un modello specifico. Ritorna (success, text, status_code)."""
-        key = self.api_key
+        key = api_key or self.api_key
         if not key:
-            return False, 'GEMINI_API_KEY non configurata nelle settings', 403
+            return False, 'Nessuna GEMINI_API_KEY configurata (né personale né di sistema)', 403
         url = f"{GEMINI_API_BASE}/{model}:generateContent?key={key}"
         try:
             resp = requests.post(url, json=payload, timeout=timeout)
@@ -69,7 +69,7 @@ class GeminiService:
             payload['systemInstruction'] = {'parts': [{'text': system_prompt}]}
         return payload
 
-    def generate(self, messages, system_prompt=None, temperature=0.7, max_tokens=1024):
+    def generate(self, messages, system_prompt=None, temperature=0.7, max_tokens=1024, api_key=None):
         """
         Genera una risposta con rotazione automatica dei modelli.
         Ritorna (response_text, model_used) o lancia Exception.
@@ -78,7 +78,7 @@ class GeminiService:
         last_error = None
 
         for model in GEMINI_MODELS:
-            success, text, status = self._call_model(model, payload)
+            success, text, status = self._call_model(model, payload, api_key=api_key)
             if success:
                 return text, model
             elif status == 429:
@@ -99,7 +99,7 @@ class GeminiService:
         raise Exception(f"Tutti i modelli Gemini hanno fallito. Ultimo errore: {last_error}")
 
     def generate_with_image(self, text_prompt, image_data_base64, mime_type='image/jpeg',
-                            system_prompt=None, temperature=0.3):
+                            system_prompt=None, temperature=0.3, api_key=None):
         """
         Genera una risposta con un'immagine (Gemini Vision).
         Ritorna (response_text, model_used) o lancia Exception.
@@ -120,7 +120,7 @@ class GeminiService:
 
         last_error = None
         for model in GEMINI_VISION_MODELS:
-            success, text, status = self._call_model(model, payload, timeout=40)
+            success, text, status = self._call_model(model, payload, timeout=40, api_key=api_key)
             if success:
                 return text, model
             elif status == 429:

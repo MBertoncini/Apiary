@@ -59,6 +59,14 @@ Non usare markdown (niente **, ##, liste con trattini). Scrivi in testo semplice
 Sii diretto come un apicoltore esperto che risponde a un collega."""
 
 
+def _get_user_api_key(user):
+    """Ritorna la chiave Gemini personale dell'utente, o stringa vuota."""
+    try:
+        return user.profilo.gemini_api_key or ''
+    except Exception:
+        return ''
+
+
 def _build_user_context(user):
     """Costruisce il contesto dati apiario dell'utente per il prompt."""
     try:
@@ -103,7 +111,8 @@ def chat_ai(request):
         messages.append({'role': 'user', 'text': message})
 
         response_text, model_used = gemini_service.generate(
-            messages, system_prompt=system, temperature=0.7, max_tokens=800
+            messages, system_prompt=system, temperature=0.7, max_tokens=800,
+            api_key=_get_user_api_key(request.user)
         )
         return JsonResponse({'response': response_text, 'model': model_used})
 
@@ -148,7 +157,8 @@ Rispondi SOLO con il JSON grezzo, senza markdown."""
 
         response_text, model_used = gemini_service.generate(
             [{'role': 'user', 'text': prompt}],
-            temperature=0.1, max_tokens=500
+            temperature=0.1, max_tokens=500,
+            api_key=_get_user_api_key(request.user)
         )
 
         # Pulisci e parsa il JSON
@@ -398,7 +408,8 @@ Regole:
 
         response_text, model_used = gemini_service.generate(
             [{'role': 'user', 'text': prompt}],
-            temperature=0, max_tokens=400
+            temperature=0, max_tokens=400,
+            api_key=_get_user_api_key(request.user)
         )
 
         # Pulisci e parsa JSON

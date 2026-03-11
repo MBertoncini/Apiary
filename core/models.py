@@ -840,6 +840,8 @@ class Profilo(models.Model):
     immagine = models.ImageField(upload_to='profili/', default='profili/default.png')
     data_nascita = models.DateField(null=True, blank=True)
     bio = models.TextField(max_length=500, blank=True)
+    gemini_api_key = models.CharField(max_length=200, blank=True, default='',
+                                      verbose_name='Gemini API Key personale')
     
     def __str__(self):
         return f"Profilo di {self.utente.username}"
