@@ -50,7 +50,8 @@ class GeminiService:
         except Exception as e:
             return False, str(e), -1
 
-    def _build_payload(self, messages, system_prompt=None, temperature=0.7, max_tokens=1024):
+    def _build_payload(self, messages, system_prompt=None, temperature=0.7, max_tokens=1024,
+                       response_mime_type=None):
         contents = []
         for msg in messages:
             if 'parts' in msg:
@@ -58,23 +59,29 @@ class GeminiService:
             else:
                 contents.append({'role': msg['role'], 'parts': [{'text': msg['text']}]})
 
+        gen_config = {
+            'temperature': temperature,
+            'maxOutputTokens': max_tokens,
+        }
+        if response_mime_type:
+            gen_config['responseMimeType'] = response_mime_type
+
         payload = {
             'contents': contents,
-            'generationConfig': {
-                'temperature': temperature,
-                'maxOutputTokens': max_tokens,
-            },
+            'generationConfig': gen_config,
         }
         if system_prompt:
             payload['systemInstruction'] = {'parts': [{'text': system_prompt}]}
         return payload
 
-    def generate(self, messages, system_prompt=None, temperature=0.7, max_tokens=1024, api_key=None):
+    def generate(self, messages, system_prompt=None, temperature=0.7, max_tokens=1024,
+                 api_key=None, response_mime_type=None):
         """
         Genera una risposta con rotazione automatica dei modelli.
         Ritorna (response_text, model_used) o lancia Exception.
         """
-        payload = self._build_payload(messages, system_prompt, temperature, max_tokens)
+        payload = self._build_payload(messages, system_prompt, temperature, max_tokens,
+                                      response_mime_type=response_mime_type)
         last_error = None
 
         for model in GEMINI_MODELS:
