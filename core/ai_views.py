@@ -2,6 +2,7 @@
 Viste AI: chat, elaborazione voce, analisi telaino (Gemini + YOLO segmentation).
 """
 import json
+import re
 import base64
 import os
 import io
@@ -50,6 +51,35 @@ def _get_yolo_model():
 # ---------------------------------------------------------------------------
 # Prompt di sistema per il chat AI
 # ---------------------------------------------------------------------------
+def _extract_json(text: str) -> dict:
+    """
+    Estrae il primo oggetto JSON valido da una stringa, gestendo markdown,
+    commenti JS e testo extra restituito da Gemini.
+    """
+    s = text.strip()
+
+    # Rimuovi blocco markdown ```json ... ``` o ``` ... ```
+    s = re.sub(r'^```(?:json)?\s*', '', s)
+    s = re.sub(r'\s*```$', '', s)
+    s = s.strip()
+
+    # Prova il parse diretto
+    try:
+        return json.loads(s)
+    except json.JSONDecodeError:
+        pass
+
+    # Estrai il primo oggetto {...} o array [...] con regex
+    m = re.search(r'(\{[\s\S]*\}|\[[\s\S]*\])', s)
+    if m:
+        try:
+            return json.loads(m.group(1))
+        except json.JSONDecodeError:
+            pass
+
+    raise json.JSONDecodeError("Nessun JSON valido trovato", s, 0)
+
+
 BEE_SYSTEM_PROMPT = """Sei ApiarioAI, un assistente esperto in apicoltura integrato nell'app Apiary.
 Rispondi SEMPRE in italiano, in modo conciso e pratico.
 Puoi aiutare con: gestione arnie, controlli sanitari, trattamenti varroa, produzione miele,
@@ -162,14 +192,8 @@ Rispondi SOLO con il JSON grezzo, senza markdown."""
         )
 
         # Pulisci e parsa il JSON
-        cleaned = response_text.strip()
-        if cleaned.startswith('```'):
-            parts = cleaned.split('```')
-            cleaned = parts[1] if len(parts) > 1 else cleaned
-            if cleaned.startswith('json'):
-                cleaned = cleaned[4:]
         try:
-            result = json.loads(cleaned)
+            result = _extract_json(response_text)
         except json.JSONDecodeError:
             result = {'azione': 'chat', 'risposta': response_text[:200], 'dati': {}}
 
@@ -413,19 +437,13 @@ Regole:
         )
 
         # Pulisci e parsa JSON
-        cleaned = response_text.strip()
-        if cleaned.startswith('```'):
-            parts = cleaned.split('```')
-            cleaned = parts[1] if len(parts) > 1 else cleaned
-            if cleaned.startswith('json'):
-                cleaned = cleaned[4:]
-        result = json.loads(cleaned.strip())
+        result = _extract_json(response_text)
         result['_model'] = model_used
         result['_transcript'] = transcript
         return JsonResponse(result)
 
     except json.JSONDecodeError as e:
-        return JsonResponse({'error': f'Risposta Gemini non valida: {e}', '_transcript': transcript}, status=500)
+        return JsonResponse({'error': f'Risposta Gemini non valida: {e}', '_transcript': transcript, '_raw': response_text[:300]}, status=500)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
