@@ -151,6 +151,13 @@ urlpatterns = [
     path('nucleo/<int:nucleo_id>/controllo/', views.aggiungi_controllo_nucleo, name='aggiungi_controllo_nucleo'),
     path('nucleo/<int:pk>/converti/', views.converti_nucleo_in_arnia, name='converti_nucleo_in_arnia'),
 
+    # Centro Notifiche
+    path('notifiche/', views.centro_notifiche, name='centro_notifiche'),
+    path('notifiche/api/recenti/', views.get_notifiche_recenti, name='notifiche_recenti_api'),
+    path('notifiche/segna-tutte-lette/', views.segna_tutte_notifiche_lette, name='segna_tutte_notifiche_lette'),
+    path('notifiche/<int:notifica_id>/segna-letta/', views.segna_notifica_letta, name='segna_notifica_letta'),
+    path('notifiche/<int:notifica_id>/elimina/', views.elimina_notifica, name='elimina_notifica'),
+
     # AI Features
     path('ai/chat/', ai_views.chat_ai, name='ai_chat'),
     path('ai/voice/', ai_views.voice_ai, name='ai_voice'),
