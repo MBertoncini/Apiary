@@ -25,7 +25,8 @@
       "Bash(cd \"I:/Progetti Git/Apiary\" && python -c \"\nimport os\nfrom django.conf import settings\nos.environ.setdefault\\('DJANGO_SETTINGS_MODULE', 'apiario_manager.settings'\\)\nimport django; django.setup\\(\\)\npath = settings.YOLO_MODEL_PATH\nprint\\('YOLO path:', path\\)\nprint\\('Exists:', os.path.exists\\(path\\)\\)\ntry:\n    from ultralytics import YOLO\n    model = YOLO\\(path\\)\n    print\\('YOLO loaded OK, classes:', list\\(model.names.values\\(\\)\\)[:10]\\)\nexcept ImportError:\n    print\\('ultralytics not installed — YOLO skipped gracefully'\\)\nexcept Exception as e:\n    print\\('YOLO error:', e\\)\n\" 2>&1 | grep -v \"^$\")",
       "Read(//c/Users/miche/Downloads/TEST SEGMENTATION BEES/**)",
       "Bash(cd \"I:/Progetti Git/Apiary\" && python manage.py check 2>&1 | tail -3 && python -c \"\nimport os, django\nos.environ.setdefault\\('DJANGO_SETTINGS_MODULE', 'apiario_manager.settings'\\)\ndjango.setup\\(\\)\nfrom django.urls import reverse\nfor name in ['controllo_vocale', 'voice_process', 'voice_save']:\n    print\\(name + ':', reverse\\(name\\)\\)\n\")",
-      "Bash(ls \"I:\\\\Progetti Git\\\\Apiary\\\\core\\\\ai_models\\\\\" 2>/dev/null || echo \"Cartella non trovata\")"
+      "Bash(ls \"I:\\\\Progetti Git\\\\Apiary\\\\core\\\\ai_models\\\\\" 2>/dev/null || echo \"Cartella non trovata\")",
+      "Bash(echo -e \"\\\\n# Modelli AI \\(file grandi\\)\\\\ncore/ai_models/*.pt\\\\ncore/ai_models/*.tflite\\\\ncore/ai_models/*.onnx\" >> \"I:/Progetti Git/Apiary/.gitignore\" && echo OK)"
     ]
   }
 }

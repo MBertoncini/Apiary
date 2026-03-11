@@ -4,3 +4,8 @@ db.sqlite3
 __pycache__/
 *.pyc
 
+
+# Modelli AI (file grandi)
+core/ai_models/*.pt
+core/ai_models/*.tflite
+core/ai_models/*.onnx

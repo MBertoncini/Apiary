@@ -141,9 +141,8 @@ OPENWEATHERMAP_API_KEY = os.environ.get('OPENWEATHERMAP_API_KEY', '')
 # Gemini AI
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 
-# YOLO model path (relativo a BASE_DIR, opzionale)
-_yolo_rel = os.environ.get('YOLO_MODEL_PATH', 'core/ai_models/best.pt')
-YOLO_MODEL_PATH = str(BASE_DIR / _yolo_rel) if _yolo_rel else ''
+# TFLite bee detection model (stesso usato dall'app Flutter)
+TFLITE_MODEL_PATH = str(BASE_DIR / 'core' / 'ai_models' / 'bee_detector.tflite')
 
 # Configurazione crispy forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
