@@ -285,5 +285,48 @@
             dataInput.value = formattedDate;
         }
     });
+
+    // ─── Ricorda la selezione gruppo tramite localStorage ───────────────────
+    (function() {
+        const STORAGE_KEY = 'apiary_pagamenti_gruppo_id';
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentGruppo = urlParams.get('gruppo_id');
+
+        if (currentGruppo !== null) {
+            // Siamo su un gruppo specifico: salvalo e pulisci il flag di redirect
+            localStorage.setItem(STORAGE_KEY, currentGruppo);
+            sessionStorage.removeItem('pagamenti_redirect_tried');
+        } else {
+            // Nessun gruppo nell'URL: controlla la preferenza salvata
+            const savedGruppo = localStorage.getItem(STORAGE_KEY);
+            if (savedGruppo && savedGruppo !== '') {
+                // Redirect solo se non l'abbiamo già tentato (evita loop se il gruppo non esiste più)
+                const alreadyTried = sessionStorage.getItem('pagamenti_redirect_tried');
+                if (!alreadyTried) {
+                    sessionStorage.setItem('pagamenti_redirect_tried', '1');
+                    window.location.search = '?gruppo_id=' + savedGruppo;
+                    return;
+                } else {
+                    // Il redirect è fallito (gruppo inesistente): ripristina personali come default
+                    localStorage.setItem(STORAGE_KEY, '');
+                    sessionStorage.removeItem('pagamenti_redirect_tried');
+                }
+            } else {
+                // Nessuna preferenza salvata o era già "personali": salva la scelta personali
+                localStorage.setItem(STORAGE_KEY, '');
+            }
+        }
+
+        // Salva la scelta quando l'utente clicca su un'opzione del dropdown
+        document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                const href = this.getAttribute('href') || '';
+                if (href.includes('gestione_pagamenti') || href === window.location.pathname) {
+                    const hrefParams = new URLSearchParams(href.includes('?') ? href.split('?')[1] : '');
+                    localStorage.setItem(STORAGE_KEY, hrefParams.get('gruppo_id') || '');
+                }
+            });
+        });
+    })();
 </script>
 {% endblock %}

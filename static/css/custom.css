@@ -500,7 +500,7 @@ body.sidebar-hidden .main-content { margin-left: 0; }
   box-shadow: var(--shadow-sm);
   background: white;
   transition: var(--transition);
-  overflow: hidden;
+  /* overflow: hidden rimosso — causava il clipping dei dropdown menu dentro le card */
 }
 
 .card:hover {
@@ -517,6 +517,7 @@ body.sidebar-hidden .main-content { margin-left: 0; }
   display: flex;
   align-items: center;
   gap: 8px;
+  border-radius: var(--radius) var(--radius) 0 0; /* clippa gli angoli superiori senza overflow:hidden sul .card */
 }
 
 .card-header.bg-primary   { background: var(--honey)    !important; border-color: var(--honey-dark)  !important; color: white !important; }
@@ -528,7 +529,7 @@ body.sidebar-hidden .main-content { margin-left: 0; }
 .card-header.bg-dark      { background: var(--brown-deep)   !important; border-color: #1A0C08        !important; color: white !important; }
 
 .card-body   { padding: 20px; }
-.card-footer { background: var(--cream-warm); border-top: 1px solid var(--cream-border); padding: 12px 20px; }
+.card-footer { background: var(--cream-warm); border-top: 1px solid var(--cream-border); padding: 12px 20px; border-radius: 0 0 var(--radius) var(--radius); }
 
 /* Accent border variants */
 .card-honey   { border-left: 4px solid var(--honey); }
@@ -781,6 +782,13 @@ body.sidebar-hidden .main-content { margin-left: 0; }
   background: var(--cream-warm);
   border-top: 1px solid var(--cream-border);
   padding: 14px 24px;
+}
+
+/* Previeni il "saltino" del body quando Bootstrap apre un modale
+   (Bootstrap aggiunge padding-right per compensare la scrollbar scomparsa) */
+body.modal-open {
+  padding-right: 0 !important;
+  overflow-y: scroll; /* mantieni la scrollbar visibile così la pagina non si sposta */
 }
 
 /* ============================================
