@@ -1,171 +1,252 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Analisi Telaino — Apiary{% endblock %}
+{% block title %}Analisi Telaino AI — Apiary{% endblock %}
 
 {% block extra_css %}
 <style>
-  .drop-zone {
-    border: 2px dashed var(--amber, #F5A623);
-    border-radius: 12px;
-    padding: 2.5rem 1.5rem;
-    text-align: center;
-    cursor: pointer;
-    transition: background .2s, border-color .2s;
-    background: var(--cream, #FFFDF5);
-    position: relative;
-  }
-  .drop-zone.dragover { background: #FFF3D6; border-color: #e8920f; }
+/* ── Layout steps ── */
+.step-wizard { display: flex; gap: 0; margin-bottom: 1.5rem; }
+.step-wizard .step {
+  flex: 1; text-align: center; padding: .5rem .25rem;
+  font-size: .78rem; font-weight: 600; color: #aaa;
+  border-bottom: 3px solid #EAD9BF; position: relative;
+  transition: color .3s, border-color .3s;
+}
+.step-wizard .step.active { color: #F5A623; border-color: #F5A623; }
+.step-wizard .step.done   { color: #4caf7d; border-color: #4caf7d; }
+.step-wizard .step .step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #EAD9BF; color: #2C1810; font-size: .72rem;
+  font-weight: 700; margin-right: 5px; transition: background .3s;
+}
+.step-wizard .step.active .step-num { background: #F5A623; color: #fff; }
+.step-wizard .step.done   .step-num { background: #4caf7d; color: #fff; }
 
-  #previewImg {
-    max-height: 260px;
-    max-width: 100%;
-    border-radius: 8px;
-    display: none;
-    margin: 0 auto;
-    object-fit: contain;
-  }
+/* ── Apiario/Arnia selectors ── */
+.arnia-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(90px,1fr)); gap: 8px; margin-top: 8px; }
+.arnia-btn {
+  border: 2px solid #EAD9BF; border-radius: 10px; background: #fff;
+  padding: 8px 4px; text-align: center; cursor: pointer;
+  transition: border-color .2s, transform .15s; font-size: .82rem; font-weight: 600;
+}
+.arnia-btn:hover { border-color: #F5A623; transform: translateY(-1px); }
+.arnia-btn.selected { border-color: #F5A623; background: #FFF3D6; }
+.arnia-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-bottom: 3px; }
 
-  #annotatedImg {
-    width: 100%;
-    border-radius: 10px;
-    border: 2px solid #EAD9BF;
-    display: block;
-  }
+/* ── Telaino selector ── */
+.telaino-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; }
+.tel-btn {
+  border: 2px solid #EAD9BF; border-radius: 8px; background: #fff;
+  padding: 6px 2px; text-align: center; cursor: pointer;
+  font-size: .8rem; font-weight: 600; transition: .15s;
+}
+.tel-btn:hover { border-color: #F5A623; }
+.tel-btn.selected { border-color: #F5A623; background: #FFF3D6; color: #c07a00; }
+.tel-btn.tipo-covata   { border-color: #e53935aa; }
+.tel-btn.tipo-scorte   { border-color: #f9a825aa; }
+.tel-btn.tipo-diaframma{ border-color: #78909caa; }
+.tel-btn.tipo-nutritore{ border-color: #a0785aaa; }
+.tel-tipo-badge { font-size: .6rem; display: block; color: #888; margin-top: 1px; }
 
-  .analysis-text {
-    white-space: pre-wrap;
-    font-family: 'Poppins', sans-serif;
-    font-size: .9rem;
-    line-height: 1.75;
-    color: #3a2a1a;
-  }
+/* ── Drop zone ── */
+.drop-zone {
+  border: 2px dashed #F5A623; border-radius: 12px;
+  padding: 2rem 1rem; text-align: center; cursor: pointer;
+  background: #FFFDF5; position: relative;
+  transition: background .2s, border-color .2s;
+}
+.drop-zone.dragover { background: #FFF3D6; border-color: #e8920f; }
+#previewImg { max-height: 220px; max-width: 100%; border-radius: 8px; display: none; margin: 0 auto; object-fit: contain; }
 
-  .det-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: #fff;
-    border: 1.5px solid #EAD9BF;
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: .82rem;
-    font-weight: 600;
-    color: #2C1810;
-    margin: 3px;
-  }
-  .det-badge .count {
-    background: #F5A623;
-    color: #fff;
-    border-radius: 50%;
-    width: 22px; height: 22px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: .78rem;
-    font-weight: 700;
-  }
+/* ── Loading overlay ── */
+#loadingOverlay {
+  display: none; position: absolute; inset: 0; background: rgba(255,253,245,.88);
+  border-radius: 12px; align-items: center; justify-content: center;
+  flex-direction: column; gap: 8px; z-index: 10;
+}
+#loadingOverlay.show { display: flex; }
 
-  .class-icon { font-size: 1rem; }
-  .model-badge { font-size: .72rem; color: #bbb; font-style: italic; }
-  .result-card { animation: fadeIn .35s ease; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } }
+/* ── Badges ── */
+.det-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #fff; border: 1.5px solid #EAD9BF; border-radius: 20px;
+  padding: 4px 12px; font-size: .82rem; font-weight: 600; color: #2C1810; margin: 3px;
+}
+.det-badge .count {
+  background: #F5A623; color: #fff; border-radius: 50%;
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .78rem; font-weight: 700;
+}
+.det-badge.zero .count { background: #ccc; }
 
-  #loadingOverlay {
-    display: none;
-    position: absolute; inset: 0;
-    background: rgba(255,253,245,.85);
-    border-radius: 12px;
-    align-items: center; justify-content: center;
-    flex-direction: column; gap: 10px;
-    z-index: 10;
-  }
-  #loadingOverlay.show { display: flex; }
+/* ── Risultati ── */
+#annotatedImg { width: 100%; border-radius: 10px; border: 2px solid #EAD9BF; display: block; }
+.analysis-text { white-space: pre-wrap; font-family: 'Poppins',sans-serif; font-size: .88rem; line-height: 1.75; color: #3a2a1a; }
+.model-badge { font-size: .72rem; color: #bbb; font-style: italic; }
+.result-card { animation: fadeIn .35s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } }
 
-  .step-list { list-style: none; padding: 0; margin: 0; }
-  .step-list li {
-    padding: 6px 12px 6px 32px;
-    position: relative;
-    color: #888;
-    font-size: .85rem;
-    transition: color .3s;
-  }
-  .step-list li::before {
-    content: '○';
-    position: absolute; left: 8px;
-    color: #ccc;
-    transition: color .3s, content .3s;
-  }
-  .step-list li.done { color: #2C1810; }
-  .step-list li.done::before { content: '✓'; color: #F5A623; }
-  .step-list li.active { color: #F5A623; font-weight: 600; }
-  .step-list li.active::before { content: '◉'; color: #F5A623; }
+.conf-bar-wrap { height: 6px; background: #EAD9BF; border-radius: 3px; flex: 1; }
+.conf-bar      { height: 6px; border-radius: 3px; background: #F5A623; transition: width .6s; }
 
-  .conf-bar-wrap { height: 6px; background: #EAD9BF; border-radius: 3px; flex: 1; }
-  .conf-bar      { height: 6px; border-radius: 3px; background: #F5A623; }
+/* ── Saved alert ── */
+.saved-banner {
+  background: #e8f5e9; border: 1.5px solid #a5d6a7;
+  border-radius: 10px; padding: .75rem 1rem;
+  display: flex; align-items: center; gap: 10px;
+  font-size: .88rem; font-weight: 500; color: #2e7d32;
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title"><i class="bi bi-camera me-2"></i>Analisi Telaino</h1>
-    <p class="page-subtitle">Carica la foto di un telaino — il modello locale rileva api, fuchi, regine e celle reali</p>
+    <h1 class="page-title"><i class="bi bi-camera me-2"></i>Analisi Telaino AI</h1>
+    <p class="page-subtitle">Seleziona un telaino di una tua arnia, scatta/carica la foto — il modello locale rileva api, fuchi, regine e celle reali</p>
   </div>
 </div>
 
 <div class="row g-4">
 
-  <!-- ===== Colonna upload ===== -->
-  <div class="col-lg-4">
+  <!-- ===== Colonna sinistra: form ===== -->
+  <div class="col-lg-5">
     <div class="card">
       <div class="card-body" style="position:relative;">
 
-        <div class="drop-zone mb-3" id="dropZone">
-          <img id="previewImg" alt="Anteprima">
-          <div id="dropPlaceholder">
-            <i class="bi bi-image" style="font-size:2.8rem;color:#F5A623;"></i>
-            <p class="mt-2 mb-1 fw-medium">Trascina qui la foto</p>
-            <p class="small text-muted mb-0">oppure clicca per sceglierla</p>
+        <!-- Wizard steps -->
+        <div class="step-wizard mb-3">
+          <div class="step active" id="wz1"><span class="step-num">1</span>Arnia</div>
+          <div class="step"        id="wz2"><span class="step-num">2</span>Telaino</div>
+          <div class="step"        id="wz3"><span class="step-num">3</span>Foto</div>
+        </div>
+
+        <!-- STEP 1: Apiario → Arnia -->
+        <div id="panelArnia">
+          {% if apiari %}
+            <label class="form-label fw-semibold mb-1">Apiario</label>
+            <select class="form-select form-select-sm mb-3" id="selApiario">
+              <option value="">— seleziona apiario —</option>
+              {% for ap in apiari %}
+                <option value="{{ ap.id }}" {% if preselect_apiario == ap.id|stringformat:"s" %}selected{% endif %}>{{ ap.nome }}</option>
+              {% endfor %}
+            </select>
+
+            <label class="form-label fw-semibold mb-1">Arnia</label>
+            <div id="arnieLoading" class="text-muted small" style="display:none">
+              <span class="spinner-border spinner-border-sm me-1"></span>Caricamento arnie…
+            </div>
+            <div class="arnia-grid" id="arnieGrid"></div>
+            <input type="hidden" id="selectedArniaId">
+          {% else %}
+            <div class="alert alert-warning">Non hai ancora apiari. <a href="{% url 'crea_apiario' %}">Crea il primo apiario</a>.</div>
+          {% endif %}
+        </div>
+
+        <!-- STEP 2: Telaino + Facciata -->
+        <div id="panelTelaino" style="display:none">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="fw-semibold">Telaino</span>
+            <button class="btn btn-sm btn-link p-0 text-muted" id="btnBackArnia">
+              <i class="bi bi-arrow-left me-1"></i>Cambia arnia
+            </button>
           </div>
-          <div id="loadingOverlay">
-            <div class="spinner-border text-amber" style="width:2.5rem;height:2.5rem;" role="status"></div>
-            <div id="loadingMsg" class="small fw-semibold text-amber mt-1">Avvio…</div>
+          <div class="telaino-grid mb-3" id="telainoGrid"></div>
+          <input type="hidden" id="selectedTelaino">
+
+          <div class="d-flex align-items-center gap-3 mt-2">
+            <span class="fw-semibold me-1">Facciata:</span>
+            <div class="btn-group btn-group-sm" role="group">
+              <input type="radio" class="btn-check" name="facciata" id="facA" value="A" checked>
+              <label class="btn btn-outline-warning" for="facA">A</label>
+              <input type="radio" class="btn-check" name="facciata" id="facB" value="B">
+              <label class="btn btn-outline-warning" for="facB">B</label>
+            </div>
+          </div>
+
+          <p id="telainoInfo" class="small text-muted mt-2 mb-0"></p>
+
+          <div class="d-grid mt-3">
+            <button class="btn btn-primary" id="btnGoFoto" disabled>
+              Avanti: carica foto <i class="bi bi-arrow-right ms-1"></i>
+            </button>
           </div>
         </div>
-        <input type="file" id="imageInput" accept="image/*" style="display:none">
 
-        <ul class="step-list mb-3" id="stepList" style="display:none">
-          <li id="step-upload">Caricamento immagine</li>
-          <li id="step-detect">Rilevamento oggetti</li>
-          <li id="step-analysis">Analisi diagnostica</li>
-        </ul>
+        <!-- STEP 3: Foto + Analizza -->
+        <div id="panelFoto" style="display:none">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="fw-semibold" id="telainoLabel">Telaino</span>
+            <button class="btn btn-sm btn-link p-0 text-muted" id="btnBackTelaino">
+              <i class="bi bi-arrow-left me-1"></i>Cambia telaino
+            </button>
+          </div>
 
-        <div class="d-grid">
-          <button class="btn btn-primary" id="analyzeBtn" disabled>
-            <i class="bi bi-cpu me-2"></i>Analizza
-          </button>
+          <div class="drop-zone mb-3" id="dropZone">
+            <img id="previewImg" alt="Anteprima">
+            <div id="dropPlaceholder">
+              <i class="bi bi-image" style="font-size:2.5rem;color:#F5A623;"></i>
+              <p class="mt-2 mb-1 fw-medium">Trascina la foto del telaino</p>
+              <p class="small text-muted mb-0">oppure clicca per scegliere</p>
+            </div>
+            <div id="loadingOverlay">
+              <div class="spinner-border text-warning" style="width:2.2rem;height:2.2rem;"></div>
+              <div class="small fw-semibold mt-1" style="color:#F5A623" id="loadingMsg">Analisi in corso…</div>
+            </div>
+          </div>
+          <input type="file" id="imageInput" accept="image/*" style="display:none">
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Note (opzionale)</label>
+            <textarea class="form-control form-control-sm" id="noteInput" rows="2" placeholder="Osservazioni sul telaino…"></textarea>
+          </div>
+
+          <div class="d-grid">
+            <button class="btn btn-primary" id="analyzeBtn" disabled>
+              <i class="bi bi-cpu me-2"></i>Analizza e salva
+            </button>
+          </div>
         </div>
 
       </div>
     </div>
 
-    <!-- Classi rilevate -->
+    <!-- Info classi -->
     <div class="card mt-3">
       <div class="card-body">
-        <h6 class="fw-semibold mb-2" style="font-size:.85rem;color:#888;text-transform:uppercase;letter-spacing:.05em;">
-          Classi rilevate dal modello
-        </h6>
+        <h6 class="fw-semibold mb-2" style="font-size:.8rem;color:#aaa;text-transform:uppercase;letter-spacing:.05em;">Classi rilevate dal modello</h6>
         <div>
-          <span class="det-badge"><span class="class-icon">🐝</span> Operaia</span>
-          <span class="det-badge"><span class="class-icon">🐝</span> Fuco</span>
-          <span class="det-badge"><span class="class-icon">👑</span> Regina</span>
-          <span class="det-badge"><span class="class-icon">🔷</span> Cella reale</span>
+          <span class="det-badge"><span>🐝</span> Operaie</span>
+          <span class="det-badge"><span>🐝</span> Fuchi</span>
+          <span class="det-badge"><span>👑</span> Regine</span>
+          <span class="det-badge"><span>🔷</span> Celle reali</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ===== Colonna risultati ===== -->
-  <div class="col-lg-8" id="resultsCol" style="display:none">
+  <!-- ===== Colonna destra: risultati ===== -->
+  <div class="col-lg-7" id="resultsCol" style="display:none">
+
+    <!-- Saved banner -->
+    <div id="savedBanner" class="saved-banner mb-3" style="display:none">
+      <i class="bi bi-check-circle-fill fs-5"></i>
+      <div>
+        <strong>Analisi salvata!</strong>
+        <span id="savedBannerText"></span>
+      </div>
+      <div class="ms-auto d-flex gap-2">
+        <a id="btnCreaControllo" href="#" class="btn btn-sm btn-success">
+          <i class="bi bi-clipboard-plus me-1"></i>Crea controllo
+        </a>
+        <a id="btnListaAnalisi" href="#" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-clock-history me-1"></i>Storico
+        </a>
+      </div>
+    </div>
 
     <!-- Immagine annotata -->
     <div class="card result-card mb-3" id="detImgCard" style="display:none">
@@ -178,19 +259,17 @@
         </div>
         <img id="annotatedImg" alt="Immagine annotata">
         <div class="d-flex align-items-center gap-2 mt-2">
-          <p class="small text-muted mb-0" id="detSubtitle"></p>
-          <div class="ms-auto d-flex align-items-center gap-2" id="confRow" style="display:none!important">
+          <span class="small text-muted" id="detSubtitle"></span>
+          <div class="ms-auto d-flex align-items-center gap-2" id="confRow" style="display:none">
             <span class="small text-muted">Conf. media:</span>
-            <div class="conf-bar-wrap" style="width:80px">
-              <div class="conf-bar" id="confBar" style="width:0%"></div>
-            </div>
+            <div class="conf-bar-wrap" style="width:80px"><div class="conf-bar" id="confBar"></div></div>
             <span class="small fw-semibold" id="confVal"></span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Solo conteggi (fallback senza immagine) -->
+    <!-- Solo conteggi (no immagine) -->
     <div class="card result-card mb-3" id="detCountsCard" style="display:none">
       <div class="card-body">
         <h6 class="fw-semibold mb-2"><i class="bi bi-grid-3x3-gap me-2 text-amber"></i>Rilevamento</h6>
@@ -198,7 +277,7 @@
       </div>
     </div>
 
-    <!-- Analisi diagnostica locale -->
+    <!-- Analisi diagnostica -->
     <div class="card result-card" id="analysisCard" style="display:none">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -211,40 +290,201 @@
       </div>
     </div>
 
+    <!-- Nuova analisi -->
+    <div class="text-end mt-3" id="btnNewWrap" style="display:none">
+      <button class="btn btn-outline-secondary btn-sm" id="btnNewAnalysis">
+        <i class="bi bi-plus-circle me-1"></i>Nuova analisi
+      </button>
+    </div>
   </div>
+
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 (function () {
-  const dropZone      = document.getElementById('dropZone');
-  const imageInput    = document.getElementById('imageInput');
-  const previewImg    = document.getElementById('previewImg');
-  const dropPH        = document.getElementById('dropPlaceholder');
-  const analyzeBtn    = document.getElementById('analyzeBtn');
-  const loadingOvl    = document.getElementById('loadingOverlay');
-  const loadingMsg    = document.getElementById('loadingMsg');
-  const stepList      = document.getElementById('stepList');
-  const resultsCol    = document.getElementById('resultsCol');
-  const annotatedImg  = document.getElementById('annotatedImg');
-  const detImgCard    = document.getElementById('detImgCard');
-  const detBadges     = document.getElementById('detBadges');
-  const detSubtitle   = document.getElementById('detSubtitle');
-  const confRow       = document.getElementById('confRow');
-  const confBar       = document.getElementById('confBar');
-  const confVal       = document.getElementById('confVal');
+  const TIPO_LABEL = { covata: 'Covata', scorte: 'Scorte', diaframma: 'Diaframma', nutritore: 'Nutritore' };
+  const TIPO_COLOR = { covata: '#e53935', scorte: '#f9a825', diaframma: '#78909c', nutritore: '#a0785a' };
+  const CLASS_ICONS  = { bees: '🐝', drone: '🐝', queenbees: '👑', 'royal cell': '🔷' };
+  const CLASS_LABELS = { bees: 'Operaie', drone: 'Fuchi', queenbees: 'Regine', 'royal cell': 'Celle reali' };
+
+  // ── State ────────────────────────────────────────────────────────────────
+  let selectedArniaId   = '';
+  let selectedArniaNome = '';
+  let selectedTelaino   = null;   // { numero, tipo } or { numero }
+  let telainoConfig     = null;   // array 10 elementi o null
+  let selectedFile      = null;
+
+  // ── DOM refs ─────────────────────────────────────────────────────────────
+  const selApiario   = document.getElementById('selApiario');
+  const arnieGrid    = document.getElementById('arnieGrid');
+  const arnieLoading = document.getElementById('arnieLoading');
+  const selArniaHid  = document.getElementById('selectedArniaId');
+  const telainoGrid  = document.getElementById('telainoGrid');
+  const selTelHid    = document.getElementById('selectedTelaino');
+  const telainoInfo  = document.getElementById('telainoInfo');
+  const telainoLabel = document.getElementById('telainoLabel');
+  const dropZone     = document.getElementById('dropZone');
+  const dropPH       = document.getElementById('dropPlaceholder');
+  const imageInput   = document.getElementById('imageInput');
+  const previewImg   = document.getElementById('previewImg');
+  const noteInput    = document.getElementById('noteInput');
+  const analyzeBtn   = document.getElementById('analyzeBtn');
+  const loadingOvl   = document.getElementById('loadingOverlay');
+  const loadingMsg   = document.getElementById('loadingMsg');
+
+  const panelArnia   = document.getElementById('panelArnia');
+  const panelTelaino = document.getElementById('panelTelaino');
+  const panelFoto    = document.getElementById('panelFoto');
+  const btnBackArnia = document.getElementById('btnBackArnia');
+  const btnBackTelaino = document.getElementById('btnBackTelaino');
+  const btnGoFoto    = document.getElementById('btnGoFoto');
+
+  const resultsCol   = document.getElementById('resultsCol');
+  const savedBanner  = document.getElementById('savedBanner');
+  const savedBannerText   = document.getElementById('savedBannerText');
+  const btnCreaControllo  = document.getElementById('btnCreaControllo');
+  const btnListaAnalisi   = document.getElementById('btnListaAnalisi');
+  const detImgCard   = document.getElementById('detImgCard');
+  const detBadges    = document.getElementById('detBadges');
+  const detSubtitle  = document.getElementById('detSubtitle');
+  const confRow      = document.getElementById('confRow');
+  const confBar      = document.getElementById('confBar');
+  const confVal      = document.getElementById('confVal');
+  const annotatedImg = document.getElementById('annotatedImg');
   const detCountsCard    = document.getElementById('detCountsCard');
   const detCountsContent = document.getElementById('detCountsContent');
-  const analysisCard  = document.getElementById('analysisCard');
-  const analysisText  = document.getElementById('analysisText');
-  const modelUsed     = document.getElementById('modelUsed');
+  const analysisCard = document.getElementById('analysisCard');
+  const analysisText = document.getElementById('analysisText');
+  const modelUsed    = document.getElementById('modelUsed');
+  const btnNewWrap   = document.getElementById('btnNewWrap');
+  const btnNewAnalysis = document.getElementById('btnNewAnalysis');
 
-  const CLASS_ICONS = { bees: '🐝', drone: '🐝', queenbees: '👑', 'royal cell': '🔷' };
-  const CLASS_LABELS = { bees: 'Operaie', drone: 'Fuchi', queenbees: 'Regine', 'royal cell': 'Celle reali' };
-  let selectedFile = null;
+  // ── Wizard helpers ────────────────────────────────────────────────────────
+  function setWizard(step) {
+    ['wz1','wz2','wz3'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      el.classList.toggle('active', i + 1 === step);
+      el.classList.toggle('done',   i + 1 < step);
+    });
+    panelArnia.style.display   = step === 1 ? '' : 'none';
+    panelTelaino.style.display = step === 2 ? '' : 'none';
+    panelFoto.style.display    = step === 3 ? '' : 'none';
+  }
 
-  // ── File selection ──────────────────────────────────────────────────────
+  // ── Step 1: Apiario → Arnie ───────────────────────────────────────────────
+  if (selApiario) {
+    selApiario.addEventListener('change', () => loadArnie(selApiario.value));
+    if (selApiario.value) loadArnie(selApiario.value);
+  }
+
+  function loadArnie(apiarioId) {
+    if (!apiarioId) { arnieGrid.innerHTML = ''; return; }
+    arnieLoading.style.display = '';
+    arnieGrid.innerHTML = '';
+    fetch(`{% url 'get_arnie_per_apiario' %}?apiario_id=${apiarioId}`)
+      .then(r => r.json())
+      .then(data => {
+        arnieLoading.style.display = 'none';
+        if (!data.arnie.length) {
+          arnieGrid.innerHTML = '<p class="small text-muted col-span-full">Nessuna arnia attiva in questo apiario.</p>';
+          return;
+        }
+        arnieGrid.innerHTML = '';
+        data.arnie.forEach(a => {
+          const btn = document.createElement('div');
+          btn.className = 'arnia-btn';
+          btn.dataset.id = a.id;
+          btn.dataset.nome = `Arnia ${a.numero}`;
+          btn.innerHTML = `
+            <div class="arnia-dot" style="background:${a.colore_hex || '#ccc'}; margin:0 auto 4px;"></div>
+            <div>Arnia ${a.numero}</div>`;
+          btn.addEventListener('click', () => selectArnia(a.id, `Arnia ${a.numero}`, btn));
+          arnieGrid.appendChild(btn);
+        });
+        // preselect
+        const pre = '{{ preselect_arnia }}';
+        if (pre) {
+          const found = arnieGrid.querySelector(`[data-id="${pre}"]`);
+          if (found) found.click();
+        }
+      })
+      .catch(() => { arnieLoading.style.display = 'none'; });
+  }
+
+  function selectArnia(id, nome, btnEl) {
+    selectedArniaId   = id;
+    selectedArniaNome = nome;
+    selArniaHid.value = id;
+    arnieGrid.querySelectorAll('.arnia-btn').forEach(b => b.classList.remove('selected'));
+    btnEl.classList.add('selected');
+
+    // Carica config telaini dall'ultimo controllo
+    fetch(`{% url 'get_telaini_per_arnia' %}?arnia_id=${id}`)
+      .then(r => r.json())
+      .then(data => {
+        telainoConfig = data.config || null;
+        buildTelainoGrid(data.config, data.data);
+        setWizard(2);
+      });
+  }
+
+  // ── Step 2: Telaino ───────────────────────────────────────────────────────
+  function buildTelainoGrid(config, dataControllo) {
+    telainoGrid.innerHTML = '';
+    selectedTelaino = null;
+    selTelHid.value = '';
+    btnGoFoto.disabled = true;
+
+    if (config && config.length) {
+      telainoInfo.textContent = dataControllo
+        ? `Configurazione dall'ultimo controllo (${dataControllo})`
+        : '';
+      config.forEach((tipo, idx) => {
+        if (tipo === 'vuoto') return;
+        const btn = document.createElement('div');
+        btn.className = `tel-btn tipo-${tipo}`;
+        btn.dataset.num  = idx + 1;
+        btn.dataset.tipo = tipo;
+        btn.innerHTML = `<div>${idx + 1}</div><span class="tel-tipo-badge">${TIPO_LABEL[tipo] || tipo}</span>`;
+        btn.addEventListener('click', () => selectTelaino(idx + 1, tipo, btn));
+        telainoGrid.appendChild(btn);
+      });
+    } else {
+      telainoInfo.textContent = 'Nessun controllo disponibile — selezione manuale (1–10)';
+      for (let i = 1; i <= 10; i++) {
+        const btn = document.createElement('div');
+        btn.className = 'tel-btn';
+        btn.dataset.num = i;
+        btn.innerHTML = `${i}`;
+        btn.addEventListener('click', () => selectTelaino(i, null, btn));
+        telainoGrid.appendChild(btn);
+      }
+    }
+  }
+
+  function selectTelaino(numero, tipo, btnEl) {
+    selectedTelaino = { numero, tipo };
+    selTelHid.value = numero;
+    telainoGrid.querySelectorAll('.tel-btn').forEach(b => b.classList.remove('selected'));
+    btnEl.classList.add('selected');
+    btnGoFoto.disabled = false;
+  }
+
+  btnBackArnia.addEventListener('click', () => setWizard(1));
+  btnGoFoto.addEventListener('click', () => {
+    const fac = document.querySelector('input[name="facciata"]:checked').value;
+    const tipo = selectedTelaino?.tipo;
+    telainoLabel.textContent =
+      `${selectedArniaNome} · Telaino ${selectedTelaino?.numero} ${fac}` +
+      (tipo ? ` (${TIPO_LABEL[tipo] || tipo})` : '');
+    setWizard(3);
+  });
+
+  // ── Step 3: Foto ──────────────────────────────────────────────────────────
+  btnBackTelaino.addEventListener('click', () => setWizard(2));
+
   dropZone.addEventListener('click', () => imageInput.click());
   dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
@@ -265,110 +505,38 @@
     };
     reader.readAsDataURL(file);
     analyzeBtn.disabled = false;
+    // reset results
     resultsCol.style.display = 'none';
-    detImgCard.style.display = 'none';
-    detCountsCard.style.display = 'none';
-    analysisCard.style.display = 'none';
   }
 
-  function setStep(id, state) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.remove('done', 'active');
-    if (state) el.classList.add(state);
-  }
-
-  // ── Analyze ─────────────────────────────────────────────────────────────
+  // ── Analizza ──────────────────────────────────────────────────────────────
   analyzeBtn.addEventListener('click', async () => {
-    if (!selectedFile) return;
+    if (!selectedFile || !selectedTelaino) return;
 
     analyzeBtn.disabled = true;
-    loadingMsg.textContent = 'Avvio analisi…';
+    loadingMsg.textContent = 'Rilevamento in corso…';
     loadingOvl.classList.add('show');
-    stepList.style.display = 'block';
-    setStep('step-upload', 'active');
-    setStep('step-detect', '');
-    setStep('step-analysis', '');
+
+    const facciata = document.querySelector('input[name="facciata"]:checked').value;
+    const formData = new FormData();
+    formData.append('image',          selectedFile);
+    formData.append('arnia_id',       selectedArniaId);
+    formData.append('numero_telaino', selectedTelaino.numero);
+    formData.append('facciata',       facciata);
+    formData.append('note',           noteInput.value.trim());
 
     try {
-      const formData = new FormData();
-      formData.append('image', selectedFile);
-
-      setStep('step-upload', 'done');
-      setStep('step-detect', 'active');
-      loadingMsg.textContent = 'Rilevamento in corso…';
-
       const resp = await fetch('{% url "analisi_telaino" %}', {
-        method: 'POST',
-        body: formData,
+        method: 'POST', body: formData,
         headers: { 'X-CSRFToken': getCsrf() },
       });
-
-      setStep('step-detect', 'done');
-      setStep('step-analysis', 'active');
-      loadingMsg.textContent = 'Analisi diagnostica…';
-
       const data = await resp.json();
-
-      setStep('step-analysis', 'done');
       loadingOvl.classList.remove('show');
       analyzeBtn.disabled = false;
-      resultsCol.style.display = 'block';
 
       if (data.error) { alert('Errore: ' + data.error); return; }
 
-      // ── Detection results ──
-      const det = data.yolo || {};
-
-      if (det.annotated_image) {
-        annotatedImg.src = 'data:image/jpeg;base64,' + det.annotated_image;
-        detBadges.innerHTML = '';
-        if (det.summary) {
-          for (const [cls, cnt] of Object.entries(det.summary)) {
-            const icon  = CLASS_ICONS[cls]  || '•';
-            const label = CLASS_LABELS[cls] || cls;
-            detBadges.innerHTML += `
-              <span class="det-badge">
-                <span class="class-icon">${icon}</span> ${label}
-                <span class="count">${cnt}</span>
-              </span>`;
-          }
-        }
-        const tot = (det.detections || []).length;
-        detSubtitle.textContent = tot > 0
-          ? `${tot} oggetti rilevati`
-          : 'Nessun oggetto rilevato';
-
-        if (det.avg_confidence != null) {
-          const pct = Math.round(det.avg_confidence * 100);
-          confBar.style.width = pct + '%';
-          confVal.textContent = pct + '%';
-          confRow.style.removeProperty('display');
-        }
-
-        detImgCard.style.display = 'block';
-
-      } else if (det.summary && Object.values(det.summary).some(v => v > 0)) {
-        let html = '';
-        for (const [cls, cnt] of Object.entries(det.summary)) {
-          const icon  = CLASS_ICONS[cls]  || '•';
-          const label = CLASS_LABELS[cls] || cls;
-          html += `<span class="det-badge"><span class="class-icon">${icon}</span> ${label} <span class="count">${cnt}</span></span>`;
-        }
-        detCountsContent.innerHTML = html;
-        detCountsCard.style.display = 'block';
-
-      } else if (det.error) {
-        detCountsContent.innerHTML = `<p class="small text-danger mb-0">${det.error}</p>`;
-        detCountsCard.style.display = 'block';
-      }
-
-      // ── Analisi diagnostica ──
-      analysisText.textContent = data.analysis || '';
-      if (data.model) modelUsed.textContent = data.model;
-      analysisCard.style.display = 'block';
-
-      resultsCol.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showResults(data, facciata);
 
     } catch (err) {
       loadingOvl.classList.remove('show');
@@ -377,10 +545,80 @@
     }
   });
 
+  function showResults(data, facciata) {
+    resultsCol.style.display = 'block';
+    detImgCard.style.display = 'none';
+    detCountsCard.style.display = 'none';
+    analysisCard.style.display = 'none';
+    savedBanner.style.display = 'none';
+
+    const det = data.yolo || {};
+
+    // ── Banner salvataggio ──
+    if (data.saved_id && selectedArniaId) {
+      const num = selectedTelaino?.numero;
+      savedBannerText.textContent = ` Telaino ${num}${facciata} — ${selectedArniaNome}`;
+      btnCreaControllo.href = `/app/ai/analisi-telaino/${data.saved_id}/crea-controllo/`;
+      btnListaAnalisi.href  = `/app/arnia/${selectedArniaId}/analisi-telaini/`;
+      savedBanner.style.display = 'flex';
+    }
+
+    // ── Immagine annotata ──
+    if (det.annotated_image) {
+      annotatedImg.src = 'data:image/jpeg;base64,' + det.annotated_image;
+      detBadges.innerHTML = '';
+      if (det.summary) {
+        for (const [cls, cnt] of Object.entries(det.summary)) {
+          const icon  = CLASS_ICONS[cls]  || '•';
+          const label = CLASS_LABELS[cls] || cls;
+          const badge = document.createElement('span');
+          badge.className = 'det-badge' + (cnt === 0 ? ' zero' : '');
+          badge.innerHTML = `<span>${icon}</span> ${label} <span class="count">${cnt}</span>`;
+          detBadges.appendChild(badge);
+        }
+      }
+      const tot = (det.detections || []).length;
+      detSubtitle.textContent = `${tot} oggetto/i rilevato/i`;
+      if (det.avg_confidence != null) {
+        const pct = Math.round(det.avg_confidence * 100);
+        confBar.style.width = pct + '%';
+        confVal.textContent = pct + '%';
+        confRow.style.display = '';
+      }
+      detImgCard.style.display = 'block';
+
+    } else if (det.error) {
+      detCountsContent.innerHTML = `<p class="small text-danger mb-0">${det.error}</p>`;
+      detCountsCard.style.display = 'block';
+    }
+
+    // ── Analisi diagnostica ──
+    analysisText.textContent = data.analysis || '';
+    if (data.model) modelUsed.textContent = data.model;
+    analysisCard.style.display = 'block';
+
+    btnNewWrap.style.display = '';
+    resultsCol.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ── Nuova analisi ─────────────────────────────────────────────────────────
+  btnNewAnalysis.addEventListener('click', () => {
+    selectedFile = null;
+    previewImg.style.display = 'none';
+    dropPH.style.display = '';
+    noteInput.value = '';
+    analyzeBtn.disabled = true;
+    resultsCol.style.display = 'none';
+    setWizard(3);
+  });
+
   function getCsrf() {
     const m = document.cookie.match(/csrftoken=([^;]+)/);
     return m ? decodeURIComponent(m[1]) : '';
   }
+
+  // Avvio wizard
+  setWizard(1);
 })();
 </script>
 {% endblock %}

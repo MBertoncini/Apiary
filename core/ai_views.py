@@ -16,7 +16,7 @@ from django.conf import settings
 from datetime import date
 
 from .ai_services import gemini_service
-from .models import Apiario, Arnia, ControlloArnia
+from .models import Apiario, Arnia, ControlloArnia, AnalisiTelaino
 
 # ---------------------------------------------------------------------------
 # ONNX bee detector — modello YOLOv8-seg esportato da best.pt
@@ -419,34 +419,196 @@ def _genera_analisi_yolo(yolo_result):
 
 
 # ---------------------------------------------------------------------------
-# Analisi Telaino (YOLO locale)
+# Analisi Telaino — selezione arnia + detection ONNX + salvataggio DB
 # ---------------------------------------------------------------------------
+
 @login_required
 def analisi_telaino(request):
-    """Pagina analisi telaino con upload foto."""
+    """Pagina analisi telaino: GET mostra form, POST esegue detection e salva."""
     if request.method == 'GET':
-        return render(request, 'ai/analisi_telaino.html')
+        apiari = list(
+            Apiario.objects.filter(proprietario=request.user)
+            .order_by('nome').values('id', 'nome')
+        )
+        # preseleziona arnia/apiario se passati in querystring
+        arnia_id   = request.GET.get('arnia')
+        apiario_id = request.GET.get('apiario')
+        return render(request, 'ai/analisi_telaino.html', {
+            'apiari':        apiari,
+            'preselect_arnia':   arnia_id,
+            'preselect_apiario': apiario_id,
+        })
 
-    # POST: analizza l'immagine
+    # ── POST: analizza + (opzionale) salva ──────────────────────────────────
     if 'image' not in request.FILES:
         return JsonResponse({'error': 'Nessuna immagine caricata'}, status=400)
 
     try:
-        image_data = request.FILES['image'].read()
+        image_file = request.FILES['image']
+        image_data = image_file.read()
 
-        # --- TFLite bee detection (stesso modello dell'app Flutter) ---
-        det_result = _run_detection(image_data)
+        arnia_id       = request.POST.get('arnia_id')
+        numero_telaino = request.POST.get('numero_telaino')
+        facciata       = request.POST.get('facciata', 'A')
+        note           = request.POST.get('note', '').strip()
 
-        analysis_text = _genera_analisi_yolo(det_result)
+        det_result     = _run_detection(image_data)
+        analysis_text  = _genera_analisi_yolo(det_result)
+
+        saved_id = None
+        if arnia_id and numero_telaino and 'error' not in det_result:
+            arnia = Arnia.objects.filter(
+                id=arnia_id,
+                apiario__proprietario=request.user,
+            ).first()
+            if arnia:
+                summary = det_result.get('summary', {})
+                import tempfile, os as _os
+                from django.core.files.base import ContentFile
+                analisi = AnalisiTelaino(
+                    arnia              = arnia,
+                    numero_telaino     = int(numero_telaino),
+                    facciata           = facciata,
+                    conteggio_api      = summary.get('bees', 0),
+                    conteggio_regine   = summary.get('queenbees', 0),
+                    conteggio_fuchi    = summary.get('drone', 0),
+                    conteggio_celle_reali = summary.get('royal cell', 0),
+                    confidence_media   = det_result.get('avg_confidence', 0.0),
+                    note               = note or None,
+                    utente             = request.user,
+                )
+                # salva immagine originale
+                image_file.seek(0)
+                analisi.immagine.save(
+                    f'telaino_{arnia_id}_{numero_telaino}{facciata}.jpg',
+                    ContentFile(image_file.read()),
+                    save=False,
+                )
+                analisi.save()
+                saved_id = analisi.id
 
         return JsonResponse({
             'analysis':  analysis_text,
-            'model':     'TFLite bee detector',
-            'yolo':      det_result,   # chiave invariata per compatibilità template
+            'model':     'ONNX bee detector',
+            'yolo':      det_result,
+            'saved_id':  saved_id,
         })
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+def get_arnie_per_apiario(request):
+    """AJAX: ritorna le arnie attive di un apiario dell'utente."""
+    apiario_id = request.GET.get('apiario_id')
+    if not apiario_id:
+        return JsonResponse({'arnie': []})
+    arnie = list(
+        Arnia.objects.filter(
+            apiario_id=apiario_id,
+            apiario__proprietario=request.user,
+            attiva=True,
+        ).order_by('numero').values('id', 'numero', 'colore', 'colore_hex')
+    )
+    return JsonResponse({'arnie': arnie})
+
+
+@login_required
+def get_telaini_per_arnia(request):
+    """AJAX: ritorna la configurazione telaini dall'ultimo controllo dell'arnia."""
+    arnia_id = request.GET.get('arnia_id')
+    if not arnia_id:
+        return JsonResponse({'config': None})
+    last = (
+        ControlloArnia.objects
+        .filter(arnia_id=arnia_id, arnia__apiario__proprietario=request.user)
+        .order_by('-data').first()
+    )
+    if last and last.telaini_config:
+        try:
+            config = json.loads(last.telaini_config)
+            return JsonResponse({'config': config, 'data': str(last.data)})
+        except Exception:
+            pass
+    return JsonResponse({'config': None})
+
+
+@login_required
+def lista_analisi_telaino(request, arnia_id):
+    """Lista storica analisi telaini per un'arnia."""
+    arnia = Arnia.objects.filter(
+        id=arnia_id, apiario__proprietario=request.user
+    ).select_related('apiario').first()
+    if not arnia:
+        from django.http import Http404
+        raise Http404
+
+    analisi = (
+        AnalisiTelaino.objects
+        .filter(arnia=arnia)
+        .order_by('-data_registrazione')
+        .select_related('utente')
+    )
+    return render(request, 'ai/lista_analisi_telaino.html', {
+        'arnia':   arnia,
+        'analisi': analisi,
+    })
+
+
+@login_required
+def elimina_analisi_telaino(request, analisi_id):
+    """Elimina un'analisi telaino."""
+    analisi = AnalisiTelaino.objects.filter(
+        id=analisi_id, utente=request.user
+    ).first()
+    if analisi:
+        arnia_id = analisi.arnia_id
+        analisi.delete()
+        from django.contrib import messages
+        messages.success(request, 'Analisi eliminata.')
+        from django.shortcuts import redirect
+        return redirect('lista_analisi_telaino', arnia_id=arnia_id)
+    from django.http import Http404
+    raise Http404
+
+
+@login_required
+def crea_controllo_da_analisi(request, analisi_id):
+    """
+    Crea un ControlloArnia pre-compilato dai dati dell'analisi telaino
+    e reindirizza alla pagina di modifica del controllo.
+    """
+    from django.shortcuts import redirect
+    from django.contrib import messages
+
+    analisi = AnalisiTelaino.objects.filter(
+        id=analisi_id, utente=request.user
+    ).select_related('arnia').first()
+    if not analisi:
+        from django.http import Http404
+        raise Http404
+
+    controllo = ControlloArnia(
+        arnia           = analisi.arnia,
+        data            = analisi.data,
+        utente          = request.user,
+        presenza_regina = analisi.conteggio_regine > 0,
+        regina_vista    = analisi.conteggio_regine > 0,
+        celle_reali     = analisi.conteggio_celle_reali > 0,
+        numero_celle_reali = analisi.conteggio_celle_reali,
+        telaini_scorte  = 0,
+        telaini_covata  = 0,
+        note            = (
+            f"[Da analisi telaino #{analisi.numero_telaino}{analisi.facciata}] "
+            f"Api: {analisi.conteggio_api}, Fuchi: {analisi.conteggio_fuchi}, "
+            f"Regine: {analisi.conteggio_regine}, Celle reali: {analisi.conteggio_celle_reali}."
+            + (f" {analisi.note}" if analisi.note else "")
+        ),
+    )
+    controllo.save()
+    messages.success(request, 'Controllo creato dall\'analisi telaino. Completa i dati mancanti.')
+    return redirect('modifica_controllo', controllo_id=controllo.id)
 
 
 # ---------------------------------------------------------------------------
