@@ -17,6 +17,7 @@ urlpatterns = [
     # Arnie
     path('arnia/nuova/', views.ArniaCreateView.as_view(), name='crea_arnia'),
     path('arnia/<int:pk>/modifica/', views.ArniaUpdateView.as_view(), name='modifica_arnia'),
+    path('arnia/<int:pk>/elimina/', views.elimina_arnia, name='elimina_arnia'),
     path('arnia/<int:arnia_id>/controllo/', views.nuovo_controllo, name='nuovo_controllo'),
     path('controllo/<int:controllo_id>/copia/', views.copia_controllo, name='copia_controllo'),
     path('controllo/<int:controllo_id>/modifica/', views.modifica_controllo, name='modifica_controllo'),

@@ -74,9 +74,16 @@
                         {{ form.attiva|as_crispy_field }}
                     </div>
                     
-                    <div class="d-flex justify-content-end">
+                    <div class="d-flex justify-content-between">
+                        {% if form.instance.pk %}
+                        <a href="{% url 'elimina_arnia' form.instance.pk %}" class="btn btn-outline-danger">
+                            <i class="bi bi-trash me-1"></i>Elimina arnia
+                        </a>
+                        {% else %}
+                        <div></div>
+                        {% endif %}
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-circle"></i> 
+                            <i class="bi bi-check-circle"></i>
                             {% if form.instance.pk %}
                                 Aggiorna Arnia
                             {% else %}

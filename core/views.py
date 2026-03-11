@@ -4317,9 +4317,43 @@ class ArniaUpdateView(LoginRequiredMixin, UpdateView):
     model = Arnia
     form_class = ArniaForm
     template_name = 'arnie/form_arnia.html'
-    
+
     def get_success_url(self):
         return reverse_lazy('visualizza_apiario', kwargs={'apiario_id': self.object.apiario.id})
+
+
+@login_required
+def elimina_arnia(request, pk):
+    """Elimina definitivamente un'arnia e tutti i dati correlati."""
+    arnia = get_object_or_404(Arnia, pk=pk)
+    apiario = arnia.apiario
+
+    # Verifica permessi
+    can_delete = False
+    if apiario.proprietario == request.user:
+        can_delete = True
+    elif apiario.gruppo and apiario.condiviso_con_gruppo:
+        try:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=apiario.gruppo)
+            if membro.ruolo == 'admin':
+                can_delete = True
+        except MembroGruppo.DoesNotExist:
+            pass
+
+    if not can_delete:
+        messages.error(request, "Non hai i permessi per eliminare questa arnia.")
+        return redirect('visualizza_apiario', apiario_id=apiario.id)
+
+    if request.method == 'POST':
+        arnia.delete()
+        messages.success(request, f"Arnia #{arnia.numero} eliminata definitivamente.")
+        return redirect('visualizza_apiario', apiario_id=apiario.id)
+
+    return render(request, 'arnie/conferma_elimina_arnia.html', {
+        'arnia': arnia,
+        'apiario': apiario,
+    })
+
 
 class ApiarioCreateView(LoginRequiredMixin, CreateView):
     model = Apiario
