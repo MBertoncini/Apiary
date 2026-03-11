@@ -1,0 +1,710 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestione Melari{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   GESTIONE MELARI GLOBALE — Design System
+   ============================================================ */
+.page-melari {
+  --sw: 150px;        /* super width */
+  --sh: 38px;         /* super height */
+  --nh: 80px;         /* nido height */
+}
+
+/* ── Stats row ── */
+.melari-stats {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+.melari-stat-card {
+  background: white;
+  border: 1px solid var(--border-color, #EAD9BF);
+  border-radius: 14px;
+  padding: .85rem 1.4rem;
+  min-width: 120px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+.melari-stat-value {
+  font-family: 'Caveat', cursive;
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--honey, #F5A623);
+}
+.melari-stat-label {
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* ── Legend ── */
+.hive-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .9rem;
+  align-items: center;
+  font-size: .78rem;
+  color: #666;
+  margin-bottom: 2rem;
+  padding: .75rem 1rem;
+  background: white;
+  border: 1px solid var(--border-color, #EAD9BF);
+  border-radius: 10px;
+}
+.legend-swatch {
+  display: inline-block;
+  width: 18px;
+  height: 12px;
+  border-radius: 3px;
+  margin-right: 5px;
+  vertical-align: middle;
+  border: 1px solid rgba(0,0,0,.12);
+}
+.legend-swatch.nido       { background: linear-gradient(180deg,#9B6B3C,#5C3518); }
+.legend-swatch.posizionato { background: linear-gradient(180deg,#FFBE4F,#E8941A); }
+.legend-swatch.in_smielatura { background: linear-gradient(180deg,#FF9E3D,#E56800); }
+.legend-swatch.smielato   { background: linear-gradient(180deg,#D8EEF5,#B8D8E8); }
+.legend-swatch.excluder   {
+  background: repeating-linear-gradient(90deg,#D0C0A0 0,#D0C0A0 3px,transparent 3px,transparent 6px);
+  border-color: #C8B08A;
+}
+
+/* ── Apiario section ── */
+.apiario-section { margin-bottom: 3.5rem; }
+.apiario-section-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .75rem;
+  padding-bottom: .8rem;
+  margin-bottom: 1.8rem;
+  border-bottom: 2px solid var(--honey, #F5A623);
+}
+.apiario-section-title {
+  font-family: 'Caveat', cursive;
+  font-size: 1.75rem;
+  color: var(--brown-dark, #2C1810);
+  margin: 0;
+}
+
+/* ── Scrollable arnie row ── */
+.arnie-hive-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 2rem;
+  overflow-x: auto;
+  padding-bottom: 1.2rem;
+  align-items: flex-end;   /* basi allineate */
+  scrollbar-width: thin;
+  scrollbar-color: var(--honey,#F5A623) transparent;
+}
+.arnie-hive-row::-webkit-scrollbar { height: 4px; }
+.arnie-hive-row::-webkit-scrollbar-thumb { background: var(--honey,#F5A623); border-radius: 2px; }
+
+/* ── Single hive column ── */
+.arnia-hive-col {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Arnia label above hive ── */
+.arnia-hive-label {
+  margin-bottom: .6rem;
+  text-align: center;
+}
+.arnia-hive-label-num {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--brown-dark, #2C1810);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.arnia-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1.5px solid rgba(0,0,0,.18);
+  flex-shrink: 0;
+}
+.arnia-hive-meta {
+  font-size: .68rem;
+  color: #999;
+  margin-top: 1px;
+}
+
+/* ── Add-super button ── */
+.hive-add-btn {
+  width: var(--sw);
+  height: 28px;
+  background: transparent;
+  border: 2px dashed var(--honey, #F5A623);
+  border-radius: 6px;
+  color: var(--honey, #F5A623);
+  font-size: .72rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 5px;
+  transition: background .15s, color .15s;
+}
+.hive-add-btn:hover {
+  background: var(--honey, #F5A623);
+  color: white;
+}
+
+/* ── Melario box ── */
+.hive-super {
+  width: var(--sw);
+  height: var(--sh);
+  border-radius: 4px 4px 2px 2px;
+  border: 2px solid rgba(0,0,0,.14);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  font-size: .72rem;
+  font-weight: 600;
+  cursor: default;
+  position: relative;
+  margin-bottom: 2px;
+  transition: transform .15s, box-shadow .15s;
+  overflow: visible;
+}
+.hive-super:hover {
+  transform: translateX(4px) scale(1.02);
+  box-shadow: -4px 0 10px rgba(0,0,0,.15);
+  z-index: 5;
+}
+.hive-super.posizionato {
+  background: linear-gradient(180deg, #FFCF70 0%, #F5A623 55%, #E08C15 100%);
+  border-color: #C07A0A;
+  color: #5C3A00;
+}
+.hive-super.in_smielatura {
+  background: linear-gradient(180deg, #FFAF5A 0%, #FF7A00 55%, #E06200 100%);
+  border-color: #C05000;
+  color: white;
+}
+.hive-super.smielato {
+  background: linear-gradient(180deg, #D8EEF5 0%, #B8D8E8 100%);
+  border-color: #8BBDD4;
+  color: #2C4F5E;
+  opacity: .75;
+}
+
+/* super info text */
+.hive-super-info { display: flex; flex-direction: column; line-height: 1.15; }
+.hive-super-telaini { font-size: .74rem; font-weight: 700; }
+.hive-super-sub { font-size: .6rem; opacity: .75; font-weight: 400; }
+
+/* action buttons inside super */
+.hive-super-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.hive-super:hover .hive-super-actions { opacity: 1; }
+.hive-super-btn {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 3px;
+  font-size: 9px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: filter .12s;
+}
+.hive-super-btn:hover { filter: brightness(.8); }
+.hive-super-btn.harvest { background: rgba(13,110,253,.85); color: white; }
+.hive-super-btn.remove  { background: rgba(220,53,69,.85);  color: white; }
+
+/* in-smielatura badge on right */
+.hive-super-status-badge {
+  font-size: .58rem;
+  background: rgba(255,255,255,.25);
+  border-radius: 3px;
+  padding: 1px 4px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ── Queen excluder ── */
+.hive-excluder {
+  width: var(--sw);
+  height: 7px;
+  background: repeating-linear-gradient(
+    90deg,
+    #D0C0A0 0px,
+    #D0C0A0 3px,
+    transparent 3px,
+    transparent 6px
+  );
+  border: 1px solid #C8B08A;
+  border-radius: 1px;
+  margin-bottom: 2px;
+  position: relative;
+}
+.hive-excluder::after {
+  content: 'QE';
+  position: absolute;
+  right: -24px;
+  top: -3px;
+  font-size: 8px;
+  color: #AAA;
+  font-weight: 600;
+}
+
+/* ── Brood box ── */
+.hive-nido {
+  width: var(--sw);
+  min-height: var(--nh);
+  background: linear-gradient(180deg, #A06840 0%, #7A4E2A 50%, #5C3518 100%);
+  border: 2px solid #3D200A;
+  border-radius: 4px 4px 2px 2px;
+  color: #FFE4B5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 6px;
+  text-align: center;
+  margin-bottom: 3px;
+  font-size: .7rem;
+  gap: 3px;
+}
+.hive-nido-title {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  opacity: .75;
+}
+.hive-nido-stats { font-size: .68rem; line-height: 1.4; }
+.nido-regina-ok  { color: #90EE90; font-weight: 700; }
+.nido-regina-ko  { color: #FF9090; font-weight: 700; }
+
+/* ── Base board + legs ── */
+.hive-base-board {
+  width: calc(var(--sw) + 10px);
+  height: 8px;
+  background: #3D200A;
+  border-radius: 2px;
+}
+.hive-legs {
+  display: flex;
+  justify-content: space-between;
+  width: calc(var(--sw) - 18px);
+}
+.hive-leg {
+  width: 10px;
+  height: 18px;
+  background: #3D200A;
+  border-radius: 0 0 4px 4px;
+}
+
+/* ── Empty states ── */
+.arnie-empty {
+  padding: 3rem;
+  text-align: center;
+  color: #AAA;
+}
+
+/* ── Smielature recenti ── */
+.smielature-section { margin-top: 3rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-melari">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">🍯 Gestione Melari</h1>
+      <p class="text-muted mb-0">Visualizzazione grafica dei melari su tutte le arnie</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'export_produzione_csv' %}" class="btn btn-outline-success btn-sm">
+        <i class="bi bi-filetype-csv me-1"></i>Esporta produzione
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats globali -->
+  <div class="melari-stats">
+    <div class="melari-stat-card">
+      <div class="melari-stat-value">{{ total_posizionati }}</div>
+      <div class="melari-stat-label">Posizionati</div>
+    </div>
+    <div class="melari-stat-card">
+      <div class="melari-stat-value" style="color:#FF7A00;">{{ total_in_smielatura }}</div>
+      <div class="melari-stat-label">In smielatura</div>
+    </div>
+    <div class="melari-stat-card">
+      <div class="melari-stat-value" style="color:#6B7280;">{{ apiari_data|length }}</div>
+      <div class="melari-stat-label">Apiari</div>
+    </div>
+  </div>
+
+  <!-- Legenda -->
+  <div class="hive-legend">
+    <strong style="color:#2C1810;font-size:.78rem;">Legenda:</strong>
+    <span><span class="legend-swatch nido"></span>Nido</span>
+    <span><span class="legend-swatch excluder"></span>Escludi-regina (QE)</span>
+    <span><span class="legend-swatch posizionato"></span>Posizionato</span>
+    <span><span class="legend-swatch in_smielatura"></span>In smielatura</span>
+    <span><span class="legend-swatch smielato"></span>Smielato</span>
+    <span class="ms-2 text-muted" style="font-size:.7rem;"><i class="bi bi-cursor me-1"></i>Passa il mouse su un melario per le azioni</span>
+  </div>
+
+  {% if apiari_data %}
+    {% for ap in apiari_data %}
+    <div class="apiario-section">
+
+      <!-- Apiario header -->
+      <div class="apiario-section-header">
+        <h2 class="apiario-section-title">🏡 {{ ap.apiario.nome }}</h2>
+        <span class="badge" style="background:var(--honey,#F5A623);color:#fff;font-size:.75rem;">
+          {{ ap.arnie|length }} arni{% if ap.arnie|length == 1 %}a{% else %}e{% endif %}
+        </span>
+        <div class="ms-auto d-flex gap-2">
+          <a href="{% url 'gestione_melari' ap.apiario.id %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-gear me-1"></i>Smielature
+          </a>
+          <a href="{% url 'visualizza_apiario' ap.apiario.id %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        </div>
+      </div>
+
+      {% if ap.arnie %}
+      <div class="arnie-hive-row">
+        {% for ai in ap.arnie %}
+        <div class="arnia-hive-col">
+
+          <!-- Label -->
+          <div class="arnia-hive-label">
+            <div class="arnia-hive-label-num">
+              <span class="arnia-color-dot" style="background:{{ ai.arnia.colore_hex }};"></span>
+              Arnia #{{ ai.arnia.numero }}
+            </div>
+            <div class="arnia-hive-meta">
+              {% if ai.melari %}{{ ai.melari|length }} melario{% if ai.melari|length != 1 %}i{% endif %}{% else %}nessun melario{% endif %}
+            </div>
+          </div>
+
+          <!-- Add melario button (at top) -->
+          <button class="hive-add-btn"
+                  data-bs-toggle="modal"
+                  data-bs-target="#addModal{{ ai.arnia.id }}"
+                  title="Aggiungi melario all'arnia #{{ ai.arnia.numero }}">
+            <i class="bi bi-plus-lg"></i> Aggiungi
+          </button>
+
+          <!-- Melari stack (dal più alto al più basso per posizione) -->
+          {% for melario in ai.melari %}
+          <div class="hive-super {{ melario.stato }}"
+               title="Melario #{{ melario.id }} — {{ melario.get_tipo_melario_display }} — {{ melario.numero_telaini }} telaini — Pos. {{ melario.posizione }}">
+            <div class="hive-super-info">
+              <span class="hive-super-telaini">🍯 {{ melario.numero_telaini }} favi</span>
+              <span class="hive-super-sub">Pos. {{ melario.posizione }} · {{ melario.get_tipo_melario_display }}</span>
+            </div>
+            {% if melario.stato == 'posizionato' %}
+            <div class="hive-super-actions">
+              <button class="hive-super-btn harvest"
+                      data-bs-toggle="modal"
+                      data-bs-target="#smielModal{{ melario.id }}"
+                      title="Invia in smielatura"
+                      onclick="event.stopPropagation()">
+                <i class="bi bi-droplet-fill"></i>
+              </button>
+              <button class="hive-super-btn remove"
+                      data-bs-toggle="modal"
+                      data-bs-target="#removeModal{{ melario.id }}"
+                      title="Rimuovi melario"
+                      onclick="event.stopPropagation()">
+                <i class="bi bi-box-arrow-up"></i>
+              </button>
+            </div>
+            {% elif melario.stato == 'in_smielatura' %}
+            <div class="hive-super-status-badge">In<br>smiel.</div>
+            {% endif %}
+          </div>
+          {% endfor %}
+
+          <!-- Escludi-regina separator (if any melario present) -->
+          {% if ai.melari %}
+          <div class="hive-excluder" title="Escludi-regina"></div>
+          {% endif %}
+
+          <!-- Nido / brood box -->
+          <div class="hive-nido">
+            <div class="hive-nido-title">🐝 Nido</div>
+            {% if ai.ultimo_controllo %}
+            <div class="hive-nido-stats">
+              Cov: {{ ai.ultimo_controllo.telaini_covata }} · Sc: {{ ai.ultimo_controllo.telaini_scorte }}
+              <br>
+              {% if ai.ultimo_controllo.presenza_regina %}
+              <span class="nido-regina-ok">Regina ✓</span>
+              {% else %}
+              <span class="nido-regina-ko">Regina ✗</span>
+              {% endif %}
+            </div>
+            {% else %}
+            <div class="hive-nido-stats" style="opacity:.55;">Nessun<br>controllo</div>
+            {% endif %}
+          </div>
+
+          <!-- Base + legs -->
+          <div class="hive-base-board"></div>
+          <div class="hive-legs">
+            <div class="hive-leg"></div>
+            <div class="hive-leg"></div>
+          </div>
+
+        </div>{# end arnia-hive-col #}
+        {% endfor %}
+      </div>{# end arnie-hive-row #}
+      {% else %}
+      <div class="arnie-empty">
+        <i class="bi bi-inbox" style="font-size:2.5rem;opacity:.3;"></i>
+        <p class="mt-2">Nessuna arnia attiva in questo apiario.</p>
+      </div>
+      {% endif %}
+
+    </div>{# end apiario-section #}
+    {% endfor %}
+
+  {% else %}
+  <div class="text-center py-5">
+    <i class="bi bi-archive" style="font-size:4rem;color:#DDD;"></i>
+    <h4 class="mt-3 text-muted">Nessun apiario trovato</h4>
+    <p class="text-muted">Crea prima un apiario con delle arnie attive.</p>
+    <a href="{% url 'crea_apiario' %}" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-1"></i>Crea apiario
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- Smielature recenti -->
+  {% if smielature_recenti %}
+  <div class="smielature-section">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Smielature recenti</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Apiario</th>
+                <th>Tipo miele</th>
+                <th>Quantità</th>
+                <th>Melari</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in smielature_recenti %}
+              <tr>
+                <td>{{ s.data|date:"d/m/Y" }}</td>
+                <td>{{ s.apiario.nome }}</td>
+                <td>{{ s.tipo_miele|default:"—" }}</td>
+                <td>{% if s.quantita_miele %}{{ s.quantita_miele }} kg{% else %}—{% endif %}</td>
+                <td>{{ s.melari.count }}</td>
+                <td>
+                  <a href="{% url 'dettaglio_smielatura' s.id %}" class="btn btn-sm btn-outline-info">
+                    <i class="bi bi-info-circle"></i>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>{# end page-melari #}
+
+<!-- ============================================================
+     MODALS
+     ============================================================ -->
+{% for ap in apiari_data %}
+  {% for ai in ap.arnie %}
+
+  <!-- Modal: Aggiungi Melario — Arnia #{{ ai.arnia.numero }} -->
+  <div class="modal fade" id="addModal{{ ai.arnia.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header" style="background:var(--honey,#F5A623);color:white;">
+          <h5 class="modal-title">
+            <i class="bi bi-plus-circle me-1"></i>
+            Aggiungi Melario — Arnia #{{ ai.arnia.numero }}
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form method="post" action="{% url 'aggiungi_melario' ai.arnia.id %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-6">
+                <label class="form-label fw-semibold">N° telaini</label>
+                <input type="number" class="form-control" name="numero_telaini" value="10" min="1" max="12">
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Posizione</label>
+                <input type="number" class="form-control" name="posizione" value="{{ ai.melari|length|add:1 }}" min="1" max="5">
+                <div class="form-text">1 = vicino al nido</div>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Tipo melario</label>
+                <select class="form-select" name="tipo_melario">
+                  <option value="standard">Standard (Dadan)</option>
+                  <option value="tre_quarti">3/4</option>
+                  <option value="meta">1/2</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Data posizionamento</label>
+                <input type="date" class="form-control" name="data_posizionamento" value="{{ today|date:'Y-m-d' }}">
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Stato favi</label>
+                <select class="form-select" name="stato_favi">
+                  <option value="costruiti">Già costruiti</option>
+                  <option value="fogli_cerei">Fogli cerei</option>
+                </select>
+              </div>
+              <div class="col-6 d-flex align-items-end">
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" name="escludi_regina"
+                         id="escReg{{ ai.arnia.id }}" checked>
+                  <label class="form-check-label" for="escReg{{ ai.arnia.id }}">Escludi-regina</label>
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Note</label>
+                <textarea class="form-control" name="note" rows="2"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+            <button type="submit" class="btn" style="background:var(--honey,#F5A623);color:white;border:none;">
+              <i class="bi bi-plus-circle me-1"></i>Aggiungi
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% for melario in ai.melari %}{% if melario.stato == 'posizionato' %}
+
+  <!-- Modal: Rimuovi Melario #{{ melario.id }} -->
+  <div class="modal fade" id="removeModal{{ melario.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">
+            <i class="bi bi-box-arrow-up me-1"></i>
+            Rimuovi Melario #{{ melario.id }}
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form method="post" action="{% url 'rimuovi_melario' melario.id %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <div class="modal-body">
+            <p>Rimuovere il melario #{{ melario.id }}
+              <strong>({{ melario.numero_telaini }} telaini, posizione {{ melario.posizione }})</strong>
+              dall'arnia #{{ ai.arnia.numero }}?
+            </p>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Data rimozione</label>
+              <input type="date" class="form-control" name="data_rimozione" value="{{ today|date:'Y-m-d' }}">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Note</label>
+              <textarea class="form-control" name="notes" rows="2"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-box-arrow-up me-1"></i>Rimuovi
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Invia in Smielatura — Melario #{{ melario.id }} -->
+  <div class="modal fade" id="smielModal{{ melario.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header text-white" style="background:#E87000;">
+          <h5 class="modal-title">
+            <i class="bi bi-droplet-fill me-1"></i>
+            Invia in Smielatura — Melario #{{ melario.id }}
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <form method="post" action="{% url 'invia_in_smielatura' melario.id %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <div class="modal-body">
+            <p>Inviare il melario #{{ melario.id }}
+              <strong>({{ melario.numero_telaini }} telaini, posizione {{ melario.posizione }})</strong>
+              dell'arnia #{{ ai.arnia.numero }} in smielatura?
+            </p>
+            <p class="text-muted small mb-3">Il melario verrà rimosso dall'arnia e contrassegnato come "In Smielatura".</p>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Note</label>
+              <textarea class="form-control" name="notes" rows="2"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+            <button type="submit" class="btn text-white" style="background:#E87000;border:none;">
+              <i class="bi bi-droplet-fill me-1"></i>Invia in Smielatura
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% endif %}{% endfor %}{# melari loop #}
+  {% endfor %}{# arnie loop #}
+{% endfor %}{# apiari loop #}
+{% endblock %}
