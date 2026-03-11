@@ -146,6 +146,9 @@
       </div>
       {% endif %}
 
+      <!-- Banner arnie non posizionate -->
+      <div id="piantina-banner" style="display:none"></div>
+
       <!-- Canvas body -->
       <div class="card-body p-0 position-relative" id="piantina-body">
         <canvas id="piantina-canvas"></canvas>
@@ -650,8 +653,9 @@ const PIANTINA = (() => {
   function ensureInit(){
     if(!layout.arnie)layout.arnie={};if(!layout.elements)layout.elements=[];
     const miss=Object.keys(ARNIE_DATA).filter(id=>!layout.arnie[id]);
-    if(!miss.length)return false;
-    miss.forEach((id,i)=>{layout.arnie[id]={x:(i%5)*140,y:Math.floor(i/5)*140};});return true;
+    if(!miss.length)return 0;
+    miss.forEach((id,i)=>{layout.arnie[id]={x:(i%5)*140,y:Math.floor(i/5)*140};});
+    return miss.length;
   }
   function allPts(){
     const pts=[];
@@ -695,20 +699,13 @@ const PIANTINA = (() => {
   function makeGrass(){
     const ts=80,oc=document.createElement('canvas');oc.width=ts;oc.height=ts;
     const c=oc.getContext('2d');
-    // Base verde
-    c.fillStyle='#7db548';c.fillRect(0,0,ts,ts);
-    // Macchie più scure
-    c.fillStyle='#6a9e3c';
-    for(const[x,y,rx,ry]of[[12,14,11,8],[42,6,13,9],[56,38,10,11],[6,52,12,9],[32,57,14,8],[62,64,9,7]]){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();}
-    // Macchie più chiare
-    c.fillStyle='#8ec44e';
-    for(const[x,y,rx,ry]of[[26,22,9,6],[50,52,10,7],[11,36,8,6],[64,20,8,7],[38,40,7,5]]){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();}
-    // Fili d'erba (stilizzati)
-    c.strokeStyle='#4e8228';c.lineWidth=1;
-    for(const[bx,by]of[[14,30],[46,18],[71,44],[24,63],[61,9],[8,56],[53,70],[35,37],[18,68],[68,30]]){
-      c.beginPath();c.moveTo(bx,by);c.quadraticCurveTo(bx-3,by-5,bx-1,by-9);c.stroke();
-      c.beginPath();c.moveTo(bx,by);c.quadraticCurveTo(bx+3,by-5,bx+1,by-9);c.stroke();
-    }
+    // Base verde chiaro, quasi pastello
+    c.fillStyle='#d4ebae';c.fillRect(0,0,ts,ts);
+    // Variazioni tonali molto sottili
+    c.fillStyle='rgba(90,150,40,.07)';
+    for(const[x,y,rx,ry]of[[12,14,14,10],[44,8,16,11],[57,42,12,13],[7,54,14,10],[33,58,16,10],[63,66,11,9]]){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();}
+    c.fillStyle='rgba(200,235,130,.18)';
+    for(const[x,y,rx,ry]of[[27,24,10,7],[51,53,12,8],[12,37,8,7],[65,21,9,7]]){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();}
     grassCache=ctx.createPattern(oc,'repeat');
   }
   function drawBg(){
@@ -886,6 +883,21 @@ const PIANTINA = (() => {
 
   function toggleSnap(){snapOn=!snapOn;document.getElementById('btn-snap')?.classList.toggle('active',snapOn);updStatus();}
 
+  function showNewArnieBanner(n){
+    const el=document.getElementById('piantina-banner');if(!el||!CAN_EDIT)return;
+    const s=n===1;
+    el.innerHTML='<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:#fff8e1;border-bottom:1px solid #ffe082;font-size:.82rem;color:#5d4037">'
+      +'<i class="bi bi-exclamation-triangle-fill" style="color:#f59f00;font-size:1rem;flex-shrink:0"></i>'
+      +'<span><strong>'+(s?'1 nuova arnia rilevata':n+' nuove arnie rilevate')+'</strong> — '
+      +(s?'è stata posizionata':'sono state posizionate')+' automaticamente nella piantina. '
+      +'Trascina'+(s?'la':'le')+' nella posizione corretta, poi salva.'
+      +'</span>'
+      +'<button onclick="document.getElementById(\'piantina-banner\').style.display=\'none\'" '
+      +'style="margin-left:auto;background:none;border:none;font-size:1.1rem;cursor:pointer;color:#999;line-height:1" title="Chiudi">×</button>'
+      +'</div>';
+    el.style.display='block';
+  }
+
   function showInfo(id){
     const a=ARNIE_DATA[id];if(!a||!infoEl)return;
     const rB=a.presenza_regina===true?'<span class="badge bg-success" style="font-size:.7rem">Presente</span>':a.presenza_regina===false?'<span class="badge bg-danger" style="font-size:.7rem">Assente</span>':'<span class="badge bg-secondary" style="font-size:.7rem">—</span>';
@@ -957,8 +969,9 @@ const PIANTINA = (() => {
     cntBadge=document.getElementById('piantina-count');
     saveStatEl=document.getElementById('save-status');
     canvas.style.height=H_CSS+'px';
-    const autoInit=ensureInit();const n=Object.keys(ARNIE_DATA).length;if(cntBadge)cntBadge.textContent=n+(n===1?' arnia':' arnie');
-    requestAnimationFrame(()=>{fitAll();needDraw=true;});updStatus();if(autoInit)setTimeout(markDirty,200);
+    const missCount=ensureInit();const n=Object.keys(ARNIE_DATA).length;if(cntBadge)cntBadge.textContent=n+(n===1?' arnia':' arnie');
+    requestAnimationFrame(()=>{fitAll();needDraw=true;});updStatus();
+    if(missCount){setTimeout(markDirty,200);showNewArnieBanner(missCount);}
 
     /* Color picker buttons */
     document.querySelectorAll('.nucleo-color-btn').forEach(btn=>{
