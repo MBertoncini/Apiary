@@ -141,8 +141,8 @@ OPENWEATHERMAP_API_KEY = os.environ.get('OPENWEATHERMAP_API_KEY', '')
 # Gemini AI
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 
-# TFLite bee detection model (stesso usato dall'app Flutter)
-TFLITE_MODEL_PATH = str(BASE_DIR / 'core' / 'ai_models' / 'bee_detector.tflite')
+# ONNX bee detection model (esportato da best.pt con ultralytics)
+ONNX_MODEL_PATH = str(BASE_DIR / 'core' / 'ai_models' / 'best.onnx')
 
 # Configurazione crispy forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"

@@ -1,12 +1,11 @@
 """
-Viste AI: chat, elaborazione voce, analisi telaino (Gemini + TFLite bee detection).
+Viste AI: chat, elaborazione voce, analisi telaino (ONNX bee detection locale).
 """
 import json
 import re
 import base64
 import os
 import io
-import math
 
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -20,106 +19,83 @@ from .ai_services import gemini_service
 from .models import Apiario, Arnia, ControlloArnia
 
 # ---------------------------------------------------------------------------
-# TFLite bee detector — stessa logica di bee_detection_service.dart (Flutter)
+# ONNX bee detector — modello YOLOv8-seg esportato da best.pt
+# Stessa logica di parsing di bee_detection_service.dart (Flutter)
 # ---------------------------------------------------------------------------
 
 _CLASS_NAMES = ['bees', 'drone', 'queenbees', 'royal cell']
 _CLASS_COLORS = [
-    (255, 165, 0),   # bees     → arancione
-    (0, 120, 255),   # drone    → blu
-    (160, 0, 220),   # queenbees → viola
-    (220, 180, 0),   # royal cell → ambra
+    (255, 165,   0),   # bees      → arancione
+    (  0, 120, 255),   # drone     → blu
+    (160,   0, 220),   # queenbees → viola
+    (220, 180,   0),   # royal cell → ambra
 ]
-_INPUT_SIZE       = 640
-_CONF_THRESHOLD   = 0.25
-_IOU_THRESHOLD    = 0.45
+_INPUT_SIZE     = 640
+_CONF_THRESHOLD = 0.25
+_IOU_THRESHOLD  = 0.45
 
-# Cache interprete TFLite (caricato una volta sola)
-_tflite_interp      = None
-_tflite_load_error  = None
-_tflite_meta        = None   # dict con features_first, num_features, num_detections
+# Cache sessione ONNX
+_onnx_session    = None
+_onnx_load_error = None
 
 
-def _get_tflite_interpreter():
-    """Carica e cachea l'interprete TFLite. Ritorna (interp, meta, error_str)."""
-    global _tflite_interp, _tflite_load_error, _tflite_meta
-    if _tflite_interp is not None:
-        return _tflite_interp, _tflite_meta, None
-    if _tflite_load_error is not None:
-        return None, None, _tflite_load_error
+def _get_onnx_session():
+    """Carica e cachea la sessione ONNX Runtime. Ritorna (session, error_str)."""
+    global _onnx_session, _onnx_load_error
+    if _onnx_session is not None:
+        return _onnx_session, None
+    if _onnx_load_error is not None:
+        return None, _onnx_load_error
 
-    model_path = getattr(settings, 'TFLITE_MODEL_PATH', '')
+    model_path = getattr(settings, 'ONNX_MODEL_PATH', '')
     if not model_path or not os.path.exists(model_path):
-        _tflite_load_error = f'Modello TFLite non trovato: {model_path}'
-        return None, None, _tflite_load_error
-
+        _onnx_load_error = f'Modello ONNX non trovato: {model_path}'
+        return None, _onnx_load_error
     try:
-        try:
-            from tflite_runtime.interpreter import Interpreter
-        except ImportError:
-            import tensorflow as tf
-            Interpreter = tf.lite.Interpreter
-
-        interp = Interpreter(model_path=model_path)
-        interp.allocate_tensors()
-
-        out_details = interp.get_output_details()
-        out_shape   = out_details[0]['shape']   # [1, dim1, dim2]
-
-        dim1, dim2 = int(out_shape[1]), int(out_shape[2])
-        features_first  = dim1 < dim2
-        num_features    = dim1 if features_first else dim2
-        num_detections  = dim2 if features_first else dim1
-
-        _tflite_interp = interp
-        _tflite_meta   = {
-            'features_first': features_first,
-            'num_features':   num_features,
-            'num_detections': num_detections,
-            'input_index':    interp.get_input_details()[0]['index'],
-            'output_index':   out_details[0]['index'],
-        }
-        return _tflite_interp, _tflite_meta, None
-
+        import onnxruntime as ort
+        sess = ort.InferenceSession(model_path, providers=['CPUExecutionProvider'])
+        _onnx_session = sess
+        return sess, None
     except ImportError:
-        _tflite_load_error = 'tflite_runtime non installato (pip install tflite-runtime)'
-        return None, None, _tflite_load_error
+        _onnx_load_error = 'onnxruntime non installato (pip install onnxruntime)'
+        return None, _onnx_load_error
     except Exception as e:
-        _tflite_load_error = str(e)
-        return None, None, _tflite_load_error
+        _onnx_load_error = str(e)
+        return None, _onnx_load_error
 
 
-def _letterbox(pil_img, target=640):
-    """Ridimensiona con letterbox a target×target. Ritorna (tensor float32, scaleX, scaleY, padX, padY)."""
+def _letterbox_chw(pil_img, target=640):
+    """
+    Letterbox + resize a target×target.
+    Ritorna tensor float32 [1,3,H,W] (CHW, valori 0-1) + parametri di rescale.
+    """
     import numpy as np
-    from PIL import Image as PILImage
-
     orig_w, orig_h = pil_img.size
     scale  = min(target / orig_w, target / orig_h)
     new_w  = round(orig_w * scale)
     new_h  = round(orig_h * scale)
+
+    from PIL import Image as PILImage
     resized = pil_img.resize((new_w, new_h), PILImage.BILINEAR)
 
     pad_x = (target - new_w) / 2.0
     pad_y = (target - new_h) / 2.0
+    px, py = round(pad_x), round(pad_y)
 
     canvas = np.full((target, target, 3), 114, dtype=np.float32)
-    px, py = round(pad_x), round(pad_y)
-    arr = np.array(resized, dtype=np.float32)
-    canvas[py:py + new_h, px:px + new_w] = arr
-
+    canvas[py:py + new_h, px:px + new_w] = np.array(resized, dtype=np.float32)
     canvas /= 255.0
-    tensor = canvas[np.newaxis]  # [1, H, W, 3]
-    return tensor, scale, scale, pad_x, pad_y
+
+    # HWC → CHW → batch
+    tensor = canvas.transpose(2, 0, 1)[np.newaxis]   # [1, 3, H, W]
+    return tensor, scale, pad_x, pad_y
 
 
 def _iou(a, b):
     x1 = max(a[0], b[0]); y1 = max(a[1], b[1])
     x2 = min(a[2], b[2]); y2 = min(a[3], b[3])
     inter = max(0.0, x2 - x1) * max(0.0, y2 - y1)
-    area_a = (a[2] - a[0]) * (a[3] - a[1])
-    area_b = (b[2] - b[0]) * (b[3] - b[1])
-    union = area_a + area_b - inter
+    union = (a[2]-a[0])*(a[3]-a[1]) + (b[2]-b[0])*(b[3]-b[1]) - inter
     return inter / union if union > 0 else 0.0
 
 
@@ -132,64 +108,50 @@ def _nms(detections, iou_thr):
             continue
         kept.append(di)
         for j in range(i + 1, len(detections)):
-            if suppressed[j]:
-                continue
-            if detections[j]['class_idx'] != di['class_idx']:
+            if suppressed[j] or detections[j]['class_idx'] != di['class_idx']:
                 continue
             if _iou(di['bbox'], detections[j]['bbox']) > iou_thr:
                 suppressed[j] = True
     return kept
 
 
-def _run_tflite_detection(image_data_bytes):
+def _run_detection(image_data_bytes):
     """
-    Esegue bee detection su un'immagine (bytes).
-    Ritorna dict con: detections, summary, annotated_image (base64 JPEG), error.
-    Identica logica a bee_detection_service.dart.
+    Bee detection con ONNX Runtime.
+    Output YOLOv8-seg: [1, 4+num_cls+32, 8400] — usiamo solo bbox+cls.
+    Ritorna dict con: detections, summary, avg_confidence, annotated_image (base64 JPEG).
     """
     import numpy as np
     from PIL import Image as PILImage, ImageDraw, ImageFont
 
-    interp, meta, err = _get_tflite_interpreter()
+    sess, err = _get_onnx_session()
     if err:
         return {'error': err}
 
     pil_img = PILImage.open(io.BytesIO(image_data_bytes)).convert('RGB')
-    orig_w, orig_h = pil_img.size
+    tensor, scale, pad_x, pad_y = _letterbox_chw(pil_img, _INPUT_SIZE)
 
-    tensor, scale_x, scale_y, pad_x, pad_y = _letterbox(pil_img, _INPUT_SIZE)
+    input_name = sess.get_inputs()[0].name
+    outputs    = sess.run(None, {input_name: tensor})
+    # output[0]: [1, features, detections]  features = 4bbox + num_cls + 32masks
+    out = outputs[0][0]   # [features, detections]
 
-    interp.set_tensor(meta['input_index'], tensor)
-    interp.invoke()
-    output = interp.get_tensor(meta['output_index'])[0]  # rimuovi batch dim
-
-    features_first  = meta['features_first']
-    num_det         = meta['num_detections']
-    num_feat        = meta['num_features']
-    num_cls         = len(_CLASS_NAMES)
-
-    def get_val(feat_idx, det_idx):
-        if features_first:
-            return float(output[feat_idx, det_idx])
-        else:
-            return float(output[det_idx, feat_idx])
+    num_cls = len(_CLASS_NAMES)
+    _, num_det = out.shape   # features × detections
 
     raw = []
     for d in range(num_det):
-        max_conf, best_cls = 0.0, 0
-        for c in range(num_cls):
-            conf = get_val(4 + c, d)
-            if conf > max_conf:
-                max_conf, best_cls = conf, c
+        cls_scores = out[4:4 + num_cls, d]
+        best_cls   = int(cls_scores.argmax())
+        max_conf   = float(cls_scores[best_cls])
         if max_conf < _CONF_THRESHOLD:
             continue
 
-        cx = get_val(0, d); cy = get_val(1, d)
-        w  = get_val(2, d); h  = get_val(3, d)
-        x1 = (cx - w / 2 - pad_x) / scale_x
-        y1 = (cy - h / 2 - pad_y) / scale_y
-        x2 = (cx + w / 2 - pad_x) / scale_x
-        y2 = (cy + h / 2 - pad_y) / scale_y
+        cx, cy, w, h = float(out[0,d]), float(out[1,d]), float(out[2,d]), float(out[3,d])
+        x1 = (cx - w/2 - pad_x) / scale
+        y1 = (cy - h/2 - pad_y) / scale
+        x2 = (cx + w/2 - pad_x) / scale
+        y2 = (cy + h/2 - pad_y) / scale
 
         raw.append({
             'class_idx':  best_cls,
@@ -198,18 +160,16 @@ def _run_tflite_detection(image_data_bytes):
             'bbox':       [x1, y1, x2, y2],
         })
 
-    filtered = _nms(raw, _IOU_THRESHOLD)
-
-    # Conteggi
-    summary = {n: 0 for n in _CLASS_NAMES}
+    filtered   = _nms(raw, _IOU_THRESHOLD)
+    summary    = {n: 0 for n in _CLASS_NAMES}
     total_conf = 0.0
     for det in filtered:
         summary[det['class']] += 1
         total_conf += det['confidence']
     avg_conf = total_conf / len(filtered) if filtered else 0.0
 
-    # Immagine annotata con bounding box (PIL)
-    draw    = ImageDraw.Draw(pil_img)
+    # Bounding box annotati con PIL
+    draw = ImageDraw.Draw(pil_img)
     try:
         font = ImageFont.truetype("arial.ttf", 14)
     except Exception:
@@ -220,18 +180,18 @@ def _run_tflite_detection(image_data_bytes):
         color = _CLASS_COLORS[det['class_idx']]
         draw.rectangle([x1, y1, x2, y2], outline=color, width=2)
         label = f"{det['class']} {det['confidence']*100:.0f}%"
-        draw.rectangle([x1, y1 - 14, x1 + len(label) * 7, y1], fill=color)
+        lw = len(label) * 7
+        draw.rectangle([x1, y1 - 14, x1 + lw, y1], fill=color)
         draw.text((x1 + 2, y1 - 14), label, fill=(255, 255, 255), font=font)
 
     buf = io.BytesIO()
     pil_img.save(buf, format='JPEG', quality=88)
-    annotated_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
 
     return {
         'detections':      [{'class': d['class'], 'confidence': d['confidence']} for d in filtered],
         'summary':         summary,
         'avg_confidence':  round(avg_conf, 3),
-        'annotated_image': annotated_b64,
+        'annotated_image': base64.b64encode(buf.getvalue()).decode('utf-8'),
     }
 
 
@@ -475,7 +435,7 @@ def analisi_telaino(request):
         image_data = request.FILES['image'].read()
 
         # --- TFLite bee detection (stesso modello dell'app Flutter) ---
-        det_result = _run_tflite_detection(image_data)
+        det_result = _run_detection(image_data)
 
         analysis_text = _genera_analisi_yolo(det_result)
 
