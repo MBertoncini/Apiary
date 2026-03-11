@@ -1012,8 +1012,8 @@ def rimuovi_melario(request, melario_id):
     arnia = melario.arnia
     apiario = arnia.apiario
     
-    # Verifica che il melario sia nello stato 'posizionato'
-    if melario.stato != 'posizionato':
+    # Verifica che il melario sia in uno stato rimovibile
+    if melario.stato not in ('posizionato', 'in_smielatura'):
         messages.error(request, f"Il melario è nello stato '{melario.get_stato_display()}' e non può essere rimosso.")
         return redirect('gestione_melari', apiario_id=apiario.id)
     
@@ -1043,6 +1043,47 @@ def rimuovi_melario(request, melario_id):
     }
     
     return render(request, 'melari/rimuovi_melario.html', context)
+
+@login_required
+def riordina_melari(request, arnia_id):
+    """Aggiorna le posizioni dei melari di un'arnia tramite drag-and-drop (AJAX POST)."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    arnia = get_object_or_404(Arnia, pk=arnia_id)
+
+    # Controllo permessi: proprietario o membro del gruppo con accesso
+    apiario = arnia.apiario
+    gruppi_utente = Gruppo.objects.filter(membri=request.user)
+    has_access = (
+        apiario.proprietario == request.user or
+        apiario.gruppo in gruppi_utente and apiario.condiviso_con_gruppo
+    )
+    if not has_access:
+        return JsonResponse({'error': 'Permesso negato'}, status=403)
+
+    try:
+        data = json.loads(request.body)
+        ids = [int(i) for i in data.get('order', [])]
+    except (ValueError, KeyError):
+        return JsonResponse({'error': 'Dati non validi'}, status=400)
+
+    # Solo melari posizionati appartenenti a questa arnia
+    melari = {
+        m.id: m for m in Melario.objects.filter(
+            arnia=arnia, id__in=ids, stato='posizionato'
+        )
+    }
+
+    # Assegna posizioni: il primo nell'array (visivamente in alto) = posizione più alta
+    n = len(ids)
+    for i, mid in enumerate(ids):
+        if mid in melari:
+            melari[mid].posizione = n - i
+            melari[mid].save(update_fields=['posizione'])
+
+    return JsonResponse({'success': True})
+
 
 @login_required
 @richiedi_permesso_scrittura
