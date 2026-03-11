@@ -146,20 +146,24 @@
       </div>
       {% endif %}
 
-      <!-- Banner arnie non posizionate -->
-      <div id="piantina-banner" style="display:none"></div>
-
       <!-- Canvas body -->
-      <div class="card-body p-0 position-relative" id="piantina-body">
-        <canvas id="piantina-canvas"></canvas>
-        <!-- Info arnia (overlay) -->
-        <div id="piantina-info" class="piantina-info" style="display:none"></div>
-        <!-- Info nucleo (overlay) -->
-        <div id="piantina-nucleo-info" class="piantina-info" style="display:none"></div>
-        <!-- Tooltip hover -->
-        <div id="piantina-tooltip" class="piantina-tooltip" style="display:none"></div>
-        <!-- Status bar -->
-        <div id="piantina-status" class="piantina-status">Pronto</div>
+      <div class="card-body p-0 d-flex" id="piantina-body">
+        {% if can_edit %}
+        <!-- Tray arnie non posizionate -->
+        <div id="arnie-tray" style="display:none;flex-direction:column;width:148px;flex-shrink:0;background:#f5efe0;border-right:1px solid #e8dfc8;overflow-y:auto"></div>
+        {% endif %}
+        <!-- Canvas area -->
+        <div id="piantina-canvas-wrap" class="position-relative" style="flex:1;min-width:0;overflow:hidden">
+          <canvas id="piantina-canvas"></canvas>
+          <!-- Info arnia (overlay) -->
+          <div id="piantina-info" class="piantina-info" style="display:none"></div>
+          <!-- Info nucleo (overlay) -->
+          <div id="piantina-nucleo-info" class="piantina-info" style="display:none"></div>
+          <!-- Tooltip hover -->
+          <div id="piantina-tooltip" class="piantina-tooltip" style="display:none"></div>
+          <!-- Status bar -->
+          <div id="piantina-status" class="piantina-status">Pronto</div>
+        </div>
       </div>
 
     </div>
@@ -616,6 +620,15 @@
 .nucleo-color-btn { width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .15s,border-color .15s;flex-shrink:0; }
 .nucleo-color-btn:hover { transform:scale(1.15); }
 .nucleo-color-btn.active { border-color:#2C1810;transform:scale(1.1);box-shadow:0 0 0 2px #F5A623; }
+/* Tray arnie non posizionate */
+#arnie-tray { flex-direction:column; }
+.tray-header { padding:8px 10px;font-size:.68rem;font-weight:700;color:#5a3a1a;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #e8dfc8;background:#ede4d0;display:flex;align-items:center;gap:5px;position:sticky;top:0;z-index:2; }
+.tray-hint { padding:6px 8px;font-size:.66rem;color:#8a6a3a;text-align:center;line-height:1.35;border-bottom:1px solid #e8dfc8;font-style:italic; }
+.tray-arnia-item { margin:6px 8px;padding:7px 9px;border-radius:8px;cursor:grab;display:flex;align-items:center;gap:7px;font-size:.78rem;font-weight:600;border:1.5px solid rgba(0,0,0,.09);background:#fff;user-select:none;transition:box-shadow .15s,transform .1s;color:#2c1810; }
+.tray-arnia-item:hover { box-shadow:0 3px 10px rgba(0,0,0,.16);transform:translateY(-1px); }
+.tray-arnia-item:active { cursor:grabbing; }
+.tray-arnia-dot { width:18px;height:18px;border-radius:4px;flex-shrink:0;border:1px solid rgba(0,0,0,.14); }
+.tray-drag-ghost { position:fixed;pointer-events:none;z-index:9999;border-radius:8px;padding:5px 10px;font-size:.78rem;font-weight:700;display:flex;align-items:center;gap:7px;box-shadow:0 6px 20px rgba(0,0,0,.28);opacity:.92;white-space:nowrap; }
 </style>
 
 <script>
@@ -652,10 +665,7 @@ const PIANTINA = (() => {
   function elems(){return layout.elements||[];}
   function ensureInit(){
     if(!layout.arnie)layout.arnie={};if(!layout.elements)layout.elements=[];
-    const miss=Object.keys(ARNIE_DATA).filter(id=>!layout.arnie[id]);
-    if(!miss.length)return 0;
-    miss.forEach((id,i)=>{layout.arnie[id]={x:(i%5)*140,y:Math.floor(i/5)*140};});
-    return miss.length;
+    return Object.keys(ARNIE_DATA).filter(id=>!layout.arnie[id]).length;
   }
   function allPts(){
     const pts=[];
@@ -808,7 +818,7 @@ const PIANTINA = (() => {
   function onKey(e){
     if(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName))return;
     if(e.key==='Escape'){pathPts=[];pathPrev=null;doSelect(null);needDraw=true;}
-    if((e.key==='Delete'||e.key==='Backspace')&&sel?.kind==='element')deleteSelected();
+    if((e.key==='Delete'||e.key==='Backspace')&&sel)deleteSelected();
     if(e.ctrlKey&&e.key==='z'){e.preventDefault();undo();}
     const keys={p:'pan',s:'select',a:'albero',v:'vialetto',n:'nucleo'};if(!e.ctrlKey&&keys[e.key])setTool(keys[e.key]);
     if(e.key==='f')fitAll();if(e.key==='g')toggleSnap();
@@ -821,14 +831,20 @@ const PIANTINA = (() => {
     else{hideInfo();hideNucleoInfo();}
     updStatus();updDeleteBtn();
   }
-  function updDeleteBtn(){const btn=document.getElementById('btn-delete');if(!btn)return;const can=sel?.kind==='element';btn.disabled=!can;}
+  function updDeleteBtn(){const btn=document.getElementById('btn-delete');if(!btn)return;btn.disabled=!sel;if(sel?.kind==='arnia')btn.title='Rimuovi dalla piantina (resta nel registro)  [Canc]';else btn.title='Elimina selezionato  [Canc]';}
   function moveEl(nx,ny){if(!sel)return;if(sel.kind==='arnia')layout.arnie[sel.id]={x:nx,y:ny};else{const el=elems().find(e=>e.id===sel.id);if(el){el.x=nx;el.y=ny;}}}
   function addEl(type,fx,fy){if(!layout.elements)layout.elements=[];const id='elem_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);const el={id,type,x:fx,y:fy};layout.elements.push(el);doSelect({kind:'element',id});markDirty();}
   function finishVialetto(){if(!layout.elements)layout.elements=[];const id='elem_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);const segs=[];for(let i=1;i<pathPts.length;i++){const dx=pathPts[i].x-pathPts[i-1].x,dy=pathPts[i].y-pathPts[i-1].y;segs.push({angle:Math.atan2(dy,dx)*180/Math.PI,length:Math.sqrt(dx*dx+dy*dy)});}layout.elements.push({id,type:'vialetto',x:pathPts[0].x,y:pathPts[0].y,path_width:40,segments:segs});pathPts=[];pathPrev=null;doSelect({kind:'element',id});markDirty();setTool('select');needDraw=true;}
   function deleteSelected(){
-    if(!sel||sel.kind==='arnia')return;
-    const el=elems().find(e=>e.id===sel.id);
+    if(!sel)return;
     saveUndoState();
+    if(sel.kind==='arnia'){
+      // Rimuove dalla piantina → torna nel tray (non elimina dal DB)
+      delete layout.arnie[sel.id];
+      doSelect(null);markDirty();updTray();needDraw=true;
+      return;
+    }
+    const el=elems().find(e=>e.id===sel.id);
     layout.elements=layout.elements.filter(e=>e.id!==sel.id);
     doSelect(null);markDirty();needDraw=true;
     // Se è un nucleo con db_id, eliminalo anche dal DB
@@ -883,19 +899,49 @@ const PIANTINA = (() => {
 
   function toggleSnap(){snapOn=!snapOn;document.getElementById('btn-snap')?.classList.toggle('active',snapOn);updStatus();}
 
-  function showNewArnieBanner(n){
-    const el=document.getElementById('piantina-banner');if(!el||!CAN_EDIT)return;
-    const s=n===1;
-    el.innerHTML='<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:#fff8e1;border-bottom:1px solid #ffe082;font-size:.82rem;color:#5d4037">'
-      +'<i class="bi bi-exclamation-triangle-fill" style="color:#f59f00;font-size:1rem;flex-shrink:0"></i>'
-      +'<span><strong>'+(s?'1 nuova arnia rilevata':n+' nuove arnie rilevate')+'</strong> — '
-      +(s?'è stata posizionata':'sono state posizionate')+' automaticamente nella piantina. '
-      +'Trascina'+(s?'la':'le')+' nella posizione corretta, poi salva.'
-      +'</span>'
-      +'<button onclick="document.getElementById(\'piantina-banner\').style.display=\'none\'" '
-      +'style="margin-left:auto;background:none;border:none;font-size:1.1rem;cursor:pointer;color:#999;line-height:1" title="Chiudi">×</button>'
-      +'</div>';
-    el.style.display='block';
+  function updTray(){
+    const trayEl=document.getElementById('arnie-tray');
+    if(!trayEl||!CAN_EDIT)return;
+    const unplaced=Object.keys(ARNIE_DATA).filter(id=>!layout.arnie[id]);
+    if(!unplaced.length){trayEl.style.display='none';return;}
+    trayEl.style.display='flex';
+    trayEl.innerHTML='<div class="tray-header"><i class="bi bi-inbox"></i> Non piazzate</div>'
+      +'<div class="tray-hint">Trascina sulla piantina</div>'
+      +unplaced.map(id=>{
+        const a=ARNIE_DATA[id];
+        return '<div class="tray-arnia-item" data-id="'+id+'" title="Trascina sulla piantina">'
+          +'<span class="tray-arnia-dot" style="background:'+a.colore_hex+'"></span>'
+          +'<span>#'+a.numero+'</span></div>';
+      }).join('');
+    trayEl.querySelectorAll('.tray-arnia-item').forEach(el=>{
+      el.addEventListener('mousedown',e=>{e.preventDefault();startTrayDrag(el.dataset.id,e.clientX,e.clientY);});
+      el.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];startTrayDrag(el.dataset.id,t.clientX,t.clientY);},{passive:false});
+    });
+  }
+
+  function startTrayDrag(id,cx0,cy0){
+    if(!CAN_EDIT||!canvas)return;
+    const a=ARNIE_DATA[id];if(!a)return;
+    const ghost=document.createElement('div');ghost.className='tray-drag-ghost';
+    ghost.style.cssText='background:'+a.colore_hex+';color:'+tcol(a.colore_hex)+';left:'+(cx0-35)+'px;top:'+(cy0-18)+'px';
+    ghost.innerHTML='<span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:'+shade(a.colore_hex,-20)+';border:1px solid rgba(0,0,0,.2);flex-shrink:0"></span>#'+a.numero;
+    document.body.appendChild(ghost);
+    function mv(cx,cy){ghost.style.left=(cx-35)+'px';ghost.style.top=(cy-18)+'px';}
+    function drop(cx,cy){
+      ghost.remove();
+      const r=canvas.getBoundingClientRect();
+      if(cx>=r.left&&cx<=r.right&&cy>=r.top&&cy<=r.bottom){
+        const[fx,fy]=toF(cx-r.left,cy-r.top);
+        saveUndoState();layout.arnie[id]={x:snapV(fx),y:snapV(fy)};
+        markDirty();updTray();needDraw=true;
+      }
+    }
+    function onMM(e){mv(e.clientX,e.clientY);}
+    function onMU(e){document.removeEventListener('mousemove',onMM);document.removeEventListener('mouseup',onMU);drop(e.clientX,e.clientY);}
+    function onTM(e){e.preventDefault();const t=e.touches[0];mv(t.clientX,t.clientY);}
+    function onTE(e){document.removeEventListener('touchmove',onTM);document.removeEventListener('touchend',onTE);const t=e.changedTouches[0];drop(t.clientX,t.clientY);}
+    document.addEventListener('mousemove',onMM);document.addEventListener('mouseup',onMU);
+    document.addEventListener('touchmove',onTM,{passive:false});document.addEventListener('touchend',onTE);
   }
 
   function showInfo(id){
@@ -969,9 +1015,8 @@ const PIANTINA = (() => {
     cntBadge=document.getElementById('piantina-count');
     saveStatEl=document.getElementById('save-status');
     canvas.style.height=H_CSS+'px';
-    const missCount=ensureInit();const n=Object.keys(ARNIE_DATA).length;if(cntBadge)cntBadge.textContent=n+(n===1?' arnia':' arnie');
-    requestAnimationFrame(()=>{fitAll();needDraw=true;});updStatus();
-    if(missCount){setTimeout(markDirty,200);showNewArnieBanner(missCount);}
+    ensureInit();const n=Object.keys(ARNIE_DATA).length;if(cntBadge)cntBadge.textContent=n+(n===1?' arnia':' arnie');
+    requestAnimationFrame(()=>{fitAll();needDraw=true;});updStatus();updTray();
 
     /* Color picker buttons */
     document.querySelectorAll('.nucleo-color-btn').forEach(btn=>{
@@ -1006,7 +1051,7 @@ const PIANTINA = (() => {
     window.addEventListener('resize',()=>needDraw=true);
     loop();
   }
-  return{init,setTool,save,undo,deleteSelected,toggleSnap,zoom:d=>zoom(d),fitAll,hideInfo,hideNucleoInfo,scrollToArnia,editNucleo};
+  return{init,setTool,save,undo,deleteSelected,toggleSnap,zoom:d=>zoom(d),fitAll,hideInfo,hideNucleoInfo,scrollToArnia,editNucleo,updTray};
 })();
 
 document.addEventListener('DOMContentLoaded',()=>PIANTINA.init());
