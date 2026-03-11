@@ -541,7 +541,7 @@ class ProfiloUpdateForm(forms.ModelForm):
         label="Immagine Profilo"
     )
     data_nascita = forms.DateField(
-        required=False, 
+        required=False,
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         label="Data di nascita"
     )
@@ -551,10 +551,20 @@ class ProfiloUpdateForm(forms.ModelForm):
         widget=forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
         label="Bio"
     )
-    
+    gemini_api_key = forms.CharField(
+        required=False,
+        max_length=200,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'autocomplete': 'off',
+                                          'placeholder': 'AIzaSy...'},
+                                   render_value=True),
+        label="Gemini API Key personale",
+        help_text="La tua chiave API Google Gemini (da <a href='https://aistudio.google.com/app/apikey' "
+                  "target='_blank'>Google AI Studio</a>). Lascia vuoto per usare quella di sistema."
+    )
+
     class Meta:
         model = Profilo
-        fields = ['immagine', 'data_nascita', 'bio']
+        fields = ['immagine', 'data_nascita', 'bio', 'gemini_api_key']
 
 class GruppoImmagineForm(forms.ModelForm):
     """Form per aggiornare l'immagine del profilo del gruppo"""

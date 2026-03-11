@@ -79,6 +79,28 @@
                             {{ profile_form.bio|as_crispy_field }}
                         </div>
                     </div>
+
+                    <div class="form-section">
+                        <h5 class="form-section-title"><i class="bi bi-cpu me-2"></i>Intelligenza Artificiale</h5>
+                        <p class="text-muted small mb-3">
+                            Inserisci la tua chiave API personale di Google Gemini per usare le funzioni AI
+                            (inserimento vocale, chat, analisi telaino).<br>
+                            Ottienila gratuitamente su
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a>.
+                        </p>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">{{ profile_form.gemini_api_key.label }}</label>
+                            <div class="input-group">
+                                {{ profile_form.gemini_api_key }}
+                                <button type="button" class="btn btn-outline-secondary" id="toggleApiKey" title="Mostra/Nascondi">
+                                    <i class="bi bi-eye" id="toggleApiKeyIcon"></i>
+                                </button>
+                            </div>
+                            {% if profile_form.gemini_api_key.help_text %}
+                            <div class="form-text">{{ profile_form.gemini_api_key.help_text|safe }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
                     
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary">
@@ -95,20 +117,29 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Anteprima dell'immagine quando viene caricata
+        // Anteprima immagine profilo
         const imageInput = document.getElementById('id_immagine');
         const imagePreview = document.getElementById('imagePreview');
-        
         imageInput.addEventListener('change', function() {
             const file = this.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    imagePreview.src = e.target.result;
-                };
+                reader.onload = function(e) { imagePreview.src = e.target.result; };
                 reader.readAsDataURL(file);
             }
         });
+
+        // Toggle visibilità API key
+        const toggleBtn = document.getElementById('toggleApiKey');
+        const toggleIcon = document.getElementById('toggleApiKeyIcon');
+        const apiKeyInput = document.getElementById('id_gemini_api_key');
+        if (toggleBtn && apiKeyInput) {
+            toggleBtn.addEventListener('click', function() {
+                const isPassword = apiKeyInput.type === 'password';
+                apiKeyInput.type = isPassword ? 'text' : 'password';
+                toggleIcon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+            });
+        }
     });
 </script>
 {% endblock %}
