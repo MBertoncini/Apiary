@@ -553,6 +553,7 @@ const PIANTINA = (() => {
   let pendingNucleoPos=null;
   let raf=null,needDraw=true;
   let canvas,ctx,infoEl,nucleoInfoEl,tipEl,statEl,zoomLbl,cntBadge,saveStatEl;
+  let grassCache=null;
 
   function deep(o){return JSON.parse(JSON.stringify(o));}
   function toS(fx,fy){return[fx*vp.scale+vp.x,fy*vp.scale+vp.y];}
@@ -611,7 +612,36 @@ const PIANTINA = (() => {
   }
   function hitPath(el,fx,fy){if(!el.segments)return false;const thr=(el.path_width||40)/2+15;let cx=el.x,cy=el.y;for(const s of el.segments){const rad=s.angle*Math.PI/180,nx=cx+Math.cos(rad)*s.length,ny=cy+Math.sin(rad)*s.length,dx=nx-cx,dy=ny-cy,len2=dx*dx+dy*dy;let t=len2>0?((fx-cx)*dx+(fy-cy)*dy)/len2:0;t=Math.max(0,Math.min(1,t));if((cx+t*dx-fx)**2+(cy+t*dy-fy)**2<=thr*thr)return true;cx=nx;cy=ny;}return false;}
 
-  function drawBg(){const W=canvas.offsetWidth;ctx.fillStyle='#e8e0c8';ctx.fillRect(0,0,W,H_CSS);ctx.fillStyle='rgba(0,0,0,0.04)';const g=28;for(let x=vp.x%g;x<W;x+=g)for(let y=vp.y%g;y<H_CSS;y+=g)ctx.fillRect(x,y,2,2);}
+  function makeGrass(){
+    const ts=80,oc=document.createElement('canvas');oc.width=ts;oc.height=ts;
+    const c=oc.getContext('2d');
+    // Base verde
+    c.fillStyle='#7db548';c.fillRect(0,0,ts,ts);
+    // Macchie più scure
+    c.fillStyle='#6a9e3c';
+    for(const[x,y,rx,ry]of[[12,14,11,8],[42,6,13,9],[56,38,10,11],[6,52,12,9],[32,57,14,8],[62,64,9,7]]){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();}
+    // Macchie più chiare
+    c.fillStyle='#8ec44e';
+    for(const[x,y,rx,ry]of[[26,22,9,6],[50,52,10,7],[11,36,8,6],[64,20,8,7],[38,40,7,5]]){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();}
+    // Fili d'erba (stilizzati)
+    c.strokeStyle='#4e8228';c.lineWidth=1;
+    for(const[bx,by]of[[14,30],[46,18],[71,44],[24,63],[61,9],[8,56],[53,70],[35,37],[18,68],[68,30]]){
+      c.beginPath();c.moveTo(bx,by);c.quadraticCurveTo(bx-3,by-5,bx-1,by-9);c.stroke();
+      c.beginPath();c.moveTo(bx,by);c.quadraticCurveTo(bx+3,by-5,bx+1,by-9);c.stroke();
+    }
+    grassCache=ctx.createPattern(oc,'repeat');
+  }
+  function drawBg(){
+    const W=canvas.offsetWidth;
+    if(!grassCache)makeGrass();
+    const ts=80,ox=((vp.x%ts)+ts)%ts,oy=((vp.y%ts)+ts)%ts;
+    ctx.save();ctx.translate(ox,oy);
+    ctx.fillStyle=grassCache||'#7db548';ctx.fillRect(-ox,-oy,W+ts,H_CSS+ts);
+    ctx.restore();
+    // Puntini griglia sottili per senso di profondità
+    ctx.fillStyle='rgba(0,0,0,0.06)';
+    const g=28;for(let x=vp.x%g;x<W;x+=g)for(let y=vp.y%g;y<H_CSS;y+=g)ctx.fillRect(x,y,1.5,1.5);
+  }
 
   function drawPath(el,isSel){
     if(!el.segments||!el.segments.length)return;
@@ -676,11 +706,12 @@ const PIANTINA = (() => {
   function onDown(e){
     e.preventDefault();const[mx,my]=mPos(e);
     if(tool==='vialetto'){const[fx,fy]=toF(mx,my);pathPts.push({x:snapV(fx),y:snapV(fy)});needDraw=true;return;}
+    // Strumenti di piazzamento: agiscono sempre, indipendentemente da cosa c'è sotto
+    if(tool==='albero'){const[fx,fy]=toF(mx,my);saveUndoState();addEl('albero',snapV(fx),snapV(fy));isDrag=false;needDraw=true;return;}
+    if(tool==='nucleo'){const[fx,fy]=toF(mx,my);openNucleoModal(snapV(fx),snapV(fy));isDrag=false;return;}
     const hit=hitTest(mx,my);
     if(!hit||tool==='pan'){dragMode='pan';dragStart={mx,my,vx:vp.x,vy:vp.y};canvas.style.cursor='grabbing';}
     else if(tool==='select'){doSelect(hit);const pos=hit.kind==='arnia'?arniePos()[hit.id]:elems().find(e=>e.id===hit.id);if(pos){dragMode='move';dragStart={mx,my,ex:pos.x,ey:pos.y};}}
-    else if(tool==='albero'){const[fx,fy]=toF(mx,my);saveUndoState();addEl('albero',snapV(fx),snapV(fy));needDraw=true;}
-    else if(tool==='nucleo'){const[fx,fy]=toF(mx,my);openNucleoModal(snapV(fx),snapV(fy));}
     isDrag=false;
   }
   function onMove(e){
@@ -847,7 +878,7 @@ const PIANTINA = (() => {
     saveStatEl=document.getElementById('save-status');
     canvas.style.height=H_CSS+'px';
     const autoInit=ensureInit();const n=Object.keys(ARNIE_DATA).length;if(cntBadge)cntBadge.textContent=n+(n===1?' arnia':' arnie');
-    fitAll();updStatus();if(autoInit)setTimeout(markDirty,200);
+    requestAnimationFrame(()=>{fitAll();needDraw=true;});updStatus();if(autoInit)setTimeout(markDirty,200);
 
     /* Color picker buttons */
     document.querySelectorAll('.nucleo-color-btn').forEach(btn=>{
