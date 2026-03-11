@@ -59,6 +59,18 @@ const BEE_VOCAB_RAW = [
   ['appliario','apiario'],  ['appiario', 'apiario'],  ['apiamo',  'apiario'],
   ['al piario','apiario'],
   ['un un',    'un'],
+  // Nuove sostituzioni (richieste 2026-03)
+  ['zelarini',              'telaini'],
+  ['daini',                 'telaini'],
+  ['tritte',                'tre'],
+  ['anni',                  'arnia'],
+  ['barroa',                'varroa'],
+  ['serio',                 'cereo'],
+  ['discorsi',              'di scorte'],
+  ['serie televisiva casa', 'telaini di covata'],
+  // Orari → numeri (Speech API trascrive cifre come orari in certi contesti)
+  ['1:00', '1'], ['2:00', '2'], ['3:00', '3'], ['4:00', '4'], ['5:00', '5'],
+  ['6:00', '6'], ['7:00', '7'], ['8:00', '8'], ['9:00', '9'], ['10:00', '10'],
 ];
 
 function correctVocabulary(text) {
@@ -75,6 +87,28 @@ function correctVocabulary(text) {
     });
   }
   return result;
+}
+
+// Versione con highlight HTML: le parole corrette appaiono marcate in <mark>
+function correctVocabularyHighlighted(text) {
+  let result = text;
+  for (const [wrong, correct] of BEE_VOCAB_RAW) {
+    const escaped = wrong.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
+                         .replace(/\\ /g, '\\s+');
+    const re = new RegExp(`\\b${escaped}\\b`, 'gi');
+    result = result.replace(re, (match) => {
+      const correctedWord = match[0] === match[0].toUpperCase()
+        ? correct.charAt(0).toUpperCase() + correct.slice(1)
+        : correct;
+      return `\x00\x01${correctedWord}\x01\x00`;  // placeholder sicuro
+    });
+  }
+  // Separa testo normale dai token corretti, escape HTML solo sul testo normale
+  return result.split(/(\x00\x01[^\x01]*\x01\x00)/).map(part => {
+    const m = part.match(/^\x00\x01([\s\S]*)\x01\x00$/);
+    if (m) return `<mark class="vc-mark">${escHtml(m[1])}</mark>`;
+    return escHtml(part);
+  }).join('');
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -303,11 +337,7 @@ class VoiceControllo {
       this.silenceTimer = setTimeout(() => {
         if (this.state === 'recording' && this.recFinal.trim()) {
           this._stopRecording(false);
-          // Auto-process in single mode
-          if (this.pendingTranscripts.length === 0 && this.recFinal === '') {
-            // Was already finalised in _stopRecording
-            this._processBatch();
-          }
+          // Non auto-processa: l'utente rivede il trascritto in coda e preme "Elabora con AI"
         }
       }, this.SILENCE_MS);
     }
@@ -317,13 +347,8 @@ class VoiceControllo {
   _finaliseTranscript(text) {
     if (!text) return;
     const corrected = correctVocabulary(text);
-    if (this.batchMode) {
-      this._enqueueTranscript(corrected);
-    } else {
-      // Single mode: process immediately
-      this._enqueueTranscript(corrected);
-      this._processBatch();
-    }
+    // Aggiunge sempre alla coda — l'utente deve premere "Elabora con AI" per inviare a Gemini
+    this._enqueueTranscript(corrected);
   }
 
   _enqueueTranscript(text) {
@@ -337,13 +362,51 @@ class VoiceControllo {
     if (!this.ui.queueList) return;
     this.ui.queueSection.style.display = this.pendingTranscripts.length > 0 ? 'block' : 'none';
     this.ui.queueList.innerHTML = this.pendingTranscripts.map((t, i) => `
-      <li class="list-group-item d-flex align-items-start gap-2">
-        <span class="badge bg-amber text-dark rounded-pill mt-1">${i + 1}</span>
-        <span class="flex-grow-1 small">${escHtml(correctVocabulary(t))}</span>
-        <button class="btn btn-sm btn-link text-danger p-0" onclick="window._vc.removeQueue(${i})" title="Rimuovi">
-          <i class="bi bi-x-circle"></i>
-        </button>
+      <li class="list-group-item vc-queue-item" data-qi="${i}">
+        <div class="d-flex align-items-start gap-2">
+          <span class="badge bg-amber text-dark rounded-pill mt-1 flex-shrink-0">${i + 1}</span>
+          <div class="flex-grow-1 min-w-0">
+            <div class="vc-queue-text small lh-base">${correctVocabularyHighlighted(t)}</div>
+            <textarea class="form-control form-control-sm vc-queue-edit mt-1"
+                      rows="2" style="display:none">${escHtml(t)}</textarea>
+          </div>
+          <div class="d-flex flex-column gap-1 flex-shrink-0">
+            <button class="btn btn-sm btn-link text-primary p-0 vc-edit-btn"
+                    onclick="window._vc.editQueue(${i})" title="Modifica">
+              <i class="bi bi-pencil-square"></i>
+            </button>
+            <button class="btn btn-sm btn-link text-danger p-0"
+                    onclick="window._vc.removeQueue(${i})" title="Rimuovi">
+              <i class="bi bi-x-circle"></i>
+            </button>
+          </div>
+        </div>
       </li>`).join('');
+  }
+
+  editQueue(idx) {
+    const li = this.ui.queueList.querySelector(`[data-qi="${idx}"]`);
+    if (!li) return;
+    const textDiv  = li.querySelector('.vc-queue-text');
+    const textarea = li.querySelector('.vc-queue-edit');
+    const editBtn  = li.querySelector('.vc-edit-btn');
+    const isEditing = textarea.style.display !== 'none';
+
+    if (!isEditing) {
+      // Entra in modalità modifica: mostra il testo grezzo originale (non corretto)
+      textarea.value = this.pendingTranscripts[idx];
+      textDiv.style.display  = 'none';
+      textarea.style.display = 'block';
+      textarea.focus();
+      editBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+      editBtn.title = 'Conferma';
+      editBtn.classList.replace('text-primary', 'text-success');
+    } else {
+      // Conferma: aggiorna e ri-renderizza per mostrare il testo corretto evidenziato
+      const newText = textarea.value.trim();
+      if (newText) this.pendingTranscripts[idx] = newText;
+      this._renderQueue();
+    }
   }
 
   removeQueue(idx) {
@@ -603,7 +666,13 @@ class VoiceControllo {
 
   _updateTranscript(text) {
     if (this.ui.transcriptBox) this.ui.transcriptBox.textContent = text || '…';
-    if (this.ui.correctedBox)  this.ui.correctedBox.textContent  = text ? correctVocabulary(text) : '';
+    if (this.ui.correctedBox) {
+      if (text) {
+        this.ui.correctedBox.innerHTML = correctVocabularyHighlighted(text);
+      } else {
+        this.ui.correctedBox.innerHTML = '';
+      }
+    }
   }
 }
 
