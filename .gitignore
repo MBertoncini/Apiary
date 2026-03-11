@@ -7,5 +7,5 @@ __pycache__/
 
 # Modelli AI (file grandi)
 core/ai_models/*.pt
-core/ai_models/*.tflite
+
 core/ai_models/*.onnx
