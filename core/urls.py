@@ -35,6 +35,7 @@ urlpatterns = [
     path('apiario/<int:apiario_id>/melari/', views.gestione_melari, name='gestione_melari'),
     path('arnia/<int:arnia_id>/melario/aggiungi/', views.aggiungi_melario, name='aggiungi_melario'),
     path('melario/<int:melario_id>/rimuovi/', views.rimuovi_melario, name='rimuovi_melario'),
+    path('arnia/<int:arnia_id>/melari/riordina/', views.riordina_melari, name='riordina_melari'),
     path('melario/<int:melario_id>/smielatura/', views.invia_in_smielatura, name='invia_in_smielatura'),
     path('apiario/<int:apiario_id>/smielatura/registra/', views.registra_smielatura, name='registra_smielatura'),
     path('smielatura/<int:smielatura_id>/', views.dettaglio_smielatura, name='dettaglio_smielatura'),
