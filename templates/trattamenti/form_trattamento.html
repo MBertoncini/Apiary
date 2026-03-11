@@ -32,7 +32,15 @@
                             {{ form.apiario|as_crispy_field }}
                         </div>
                         <div class="col-md-6 mb-3">
-                            {{ form.tipo_trattamento|as_crispy_field }}
+                            <label class="form-label">Tipo Trattamento</label>
+                            <div class="input-group">
+                                {{ form.tipo_trattamento }}
+                                <button type="button" class="btn btn-outline-primary" id="btn-nuovo-tipo"
+                                        data-bs-toggle="modal" data-bs-target="#modalNuovoTipo"
+                                        title="Aggiungi nuovo tipo">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
@@ -164,6 +172,45 @@
         </div>
     </div>
 </div>
+<!-- Modal Nuovo Tipo Trattamento -->
+<div class="modal fade" id="modalNuovoTipo" tabindex="-1" aria-labelledby="modalNuovoTipoLabel" aria-hidden="true" data-bs-scroll="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalNuovoTipoLabel"><i class="bi bi-plus-circle me-2"></i>Nuovo Tipo di Trattamento</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="nuovo-tipo-error" class="alert alert-danger d-none"></div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Nome *</label>
+            <input type="text" class="form-control" id="nt-nome" placeholder="es. Apiguard">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Principio Attivo</label>
+            <input type="text" class="form-control" id="nt-principio" placeholder="es. Timolo">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Tempo Sospensione (giorni)</label>
+            <input type="number" class="form-control" id="nt-sospensione" value="0" min="0">
+          </div>
+          <div class="col-md-8">
+            <label class="form-label fw-semibold">Descrizione</label>
+            <textarea class="form-control" id="nt-descrizione" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+        <button type="button" class="btn btn-primary" id="btn-salva-nuovo-tipo">
+          <i class="bi bi-check-circle me-1"></i>Salva e Seleziona
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -233,6 +280,56 @@
         
         if (dataInizioField && dataInizioBlockField && !dataInizioBlockField.value) {
             dataInizioBlockField.value = dataInizioField.value;
+        }
+
+        // Salva nuovo tipo di trattamento via AJAX
+        const btnSalvaTipo = document.getElementById('btn-salva-nuovo-tipo');
+        if (btnSalvaTipo) {
+            btnSalvaTipo.addEventListener('click', async function() {
+                const nome = document.getElementById('nt-nome').value.trim();
+                const errorEl = document.getElementById('nuovo-tipo-error');
+                errorEl.classList.add('d-none');
+                if (!nome) { errorEl.textContent = 'Il nome è obbligatorio.'; errorEl.classList.remove('d-none'); return; }
+
+                const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+                const formData = new FormData();
+                formData.append('nome', nome);
+                formData.append('principio_attivo', document.getElementById('nt-principio').value.trim());
+                formData.append('tempo_sospensione', document.getElementById('nt-sospensione').value || '0');
+                formData.append('descrizione', document.getElementById('nt-descrizione').value.trim());
+                formData.append('richiede_blocco_covata', 'false');
+                formData.append('giorni_blocco_covata', '0');
+
+                try {
+                    btnSalvaTipo.disabled = true;
+                    const resp = await fetch('{% url "ajax_crea_tipo_trattamento" %}', {
+                        method: 'POST',
+                        headers: {'X-CSRFToken': csrfToken},
+                        body: formData
+                    });
+                    const data = await resp.json();
+                    if (data.id) {
+                        // Aggiungi l'opzione al select e selezionala
+                        const sel = document.getElementById('id_tipo_trattamento');
+                        const opt = new Option(data.nome, data.id, true, true);
+                        sel.appendChild(opt);
+                        bootstrap.Modal.getInstance(document.getElementById('modalNuovoTipo'))?.hide();
+                        // Reset modal fields
+                        ['nt-nome','nt-principio','nt-descrizione'].forEach(id => document.getElementById(id).value = '');
+                        document.getElementById('nt-sospensione').value = '0';
+                        // Auto-submit form to load info for new type
+                        document.getElementById('trattamentoForm').submit();
+                    } else {
+                        errorEl.textContent = JSON.stringify(data.error);
+                        errorEl.classList.remove('d-none');
+                    }
+                } catch(e) {
+                    errorEl.textContent = 'Errore di rete.';
+                    errorEl.classList.remove('d-none');
+                } finally {
+                    btnSalvaTipo.disabled = false;
+                }
+            });
         }
     });
     {% endblock %}

@@ -41,7 +41,20 @@ class GeminiService:
             resp = requests.post(url, json=payload, timeout=timeout)
             if resp.status_code == 200:
                 data = resp.json()
-                text = data['candidates'][0]['content']['parts'][0]['text']
+                candidates = data.get('candidates', [])
+                if not candidates:
+                    return False, f'Risposta vuota (nessun candidato): {resp.text[:200]}', -1
+                candidate = candidates[0]
+                finish_reason = candidate.get('finishReason', 'STOP')
+                if finish_reason in ('SAFETY', 'RECITATION', 'OTHER'):
+                    return False, f'Risposta bloccata da Gemini (finishReason={finish_reason})', -1
+                content = candidate.get('content', {})
+                parts = content.get('parts', [])
+                if not parts:
+                    return False, f'Risposta senza contenuto (finishReason={finish_reason})', -1
+                text = parts[0].get('text', '')
+                if not text:
+                    return False, f'Testo risposta vuoto (finishReason={finish_reason})', -1
                 return True, text, 200
             else:
                 return False, resp.text, resp.status_code

@@ -1946,6 +1946,18 @@ def elimina_tipo_trattamento(request, pk):
     return render(request, 'trattamenti/conferma_elimina_tipo.html', context)
 
 @login_required
+def ajax_crea_tipo_trattamento(request):
+    """Crea un nuovo tipo di trattamento via AJAX e lo restituisce come JSON."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    form = TipoTrattamentoForm(request.POST)
+    if form.is_valid():
+        tipo = form.save()
+        return JsonResponse({'id': tipo.pk, 'nome': tipo.nome})
+    return JsonResponse({'error': form.errors}, status=400)
+
+
+@login_required
 def cambio_stato_trattamento(request, pk, nuovo_stato):
     """Vista per cambiare rapidamente lo stato di un trattamento"""
     trattamento = get_object_or_404(TrattamentoSanitario, pk=pk)
@@ -2647,44 +2659,76 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 @login_required
 def ricerca(request):
-    """Vista per la ricerca di utenti e gruppi"""
-    query = request.GET.get('q', '')
-    tipo = request.GET.get('tipo', 'tutti')  # 'utenti', 'gruppi', o 'tutti'
-    
+    """Vista per la ricerca globale"""
+    query = request.GET.get('q', '').strip()
+
     utenti = []
     gruppi = []
-    
+    apiari = []
+    arnie = []
+    nuclei = []
+    fioriture = []
+    trattamenti = []
+
     if query:
-        if tipo in ['utenti', 'tutti']:
-            # Ricerca utenti
-            utenti = User.objects.filter(
-                Q(username__icontains=query) | 
-                Q(email__icontains=query) |
-                Q(first_name__icontains=query) |
-                Q(last_name__icontains=query)
-            ).distinct()
-        
-        if tipo in ['gruppi', 'tutti']:
-            # Ricerca gruppi
-            gruppi_query = Gruppo.objects.filter(
-                Q(nome__icontains=query) | 
-                Q(descrizione__icontains=query)
-            )
-            
-            # Filtra in base ai gruppi a cui l'utente ha accesso
-            gruppi_propri = gruppi_query.filter(creatore=request.user)
-            gruppi_membro = gruppi_query.filter(membri=request.user)
-            
-            # Unisci i risultati
-            gruppi = (gruppi_propri | gruppi_membro).distinct()
-    
+        # Utenti
+        utenti = User.objects.filter(
+            Q(username__icontains=query) |
+            Q(email__icontains=query) |
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query)
+        ).distinct()
+
+        # Gruppi a cui l'utente ha accesso
+        gruppi_query = Gruppo.objects.filter(
+            Q(nome__icontains=query) | Q(descrizione__icontains=query)
+        )
+        gruppi = (gruppi_query.filter(creatore=request.user) | gruppi_query.filter(membri=request.user)).distinct()
+
+        # Apiari accessibili
+        gruppi_utente = Gruppo.objects.filter(membri=request.user)
+        apiari_qs = Apiario.objects.filter(
+            Q(proprietario=request.user) |
+            Q(gruppo__in=gruppi_utente, condiviso_con_gruppo=True)
+        ).distinct()
+        apiari = apiari_qs.filter(Q(nome__icontains=query) | Q(posizione__icontains=query))
+
+        # Arnie negli apiari accessibili (cerca per numero se intero, altrimenti nelle note)
+        try:
+            num = int(query)
+            arnie = Arnia.objects.filter(apiario__in=apiari_qs, numero=num)
+        except ValueError:
+            arnie = Arnia.objects.filter(apiario__in=apiari_qs, note__icontains=query)
+
+        # Nuclei
+        try:
+            nuclei = Nucleo.objects.filter(apiario__in=apiari_qs, numero=int(query))
+        except ValueError:
+            nuclei = Nucleo.objects.filter(apiario__in=apiari_qs, note__icontains=query)
+
+        # Fioriture (proprie o pubbliche)
+        fioriture = Fioritura.objects.filter(
+            Q(creatore=request.user) | Q(apiario__in=apiari_qs)
+        ).filter(Q(pianta__icontains=query) | Q(note__icontains=query)).distinct()
+
+        # Trattamenti
+        trattamenti = TrattamentoSanitario.objects.filter(
+            apiario__in=apiari_qs
+        ).filter(
+            Q(tipo_trattamento__nome__icontains=query) | Q(note__icontains=query)
+        ).select_related('apiario', 'tipo_trattamento').distinct()
+
     context = {
         'query': query,
-        'tipo': tipo,
         'utenti': utenti,
         'gruppi': gruppi,
+        'apiari': apiari,
+        'arnie': arnie,
+        'nuclei': nuclei,
+        'fioriture': fioriture,
+        'trattamenti': trattamenti,
     }
-    
+
     return render(request, 'ricerca/risultati.html', context)
 
 # Aggiungi queste viste al file views.py
@@ -5218,7 +5262,7 @@ def export_ispezioni_pdf(request, apiario_id):
         for c in controlli:
             # Titolo riga ispezione
             story.append(Paragraph(
-                f"<b>Ispezione {c.data.strftime('%d/%m/%Y')}</b> — Arnia: <b>{c.arnia.nome}</b>",
+                f"<b>Ispezione {c.data.strftime('%d/%m/%Y')}</b> — Arnia: <b>#{c.arnia.numero}</b>",
                 section_style
             ))
 
@@ -5490,6 +5534,42 @@ def elimina_nucleo(request, pk):
         messages.success(request, "Nucleo eliminato.")
         return redirect('visualizza_apiario', apiario_id=apiario_id)
     return render(request, 'nuclei/conferma_elimina_nucleo.html', {'nucleo': nucleo})
+
+
+@login_required
+def ajax_elimina_nucleo(request, pk):
+    """Elimina un nucleo via AJAX (usato dalla piantina)."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    nucleo = get_object_or_404(Nucleo, pk=pk, apiario__proprietario=request.user)
+    nucleo.delete()
+    return JsonResponse({'ok': True})
+
+
+@login_required
+def ajax_crea_nucleo(request, apiario_id):
+    """Crea un nucleo nel DB via AJAX (usato dalla piantina)."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    apiario = get_object_or_404(Apiario, pk=apiario_id, proprietario=request.user)
+    try:
+        import json as _json
+        data = _json.loads(request.body)
+        numero = int(data.get('numero', 1))
+        colore_hex = data.get('colore_hex', '#8B6914')
+        attiva = bool(data.get('attiva', True))
+    except (ValueError, KeyError):
+        return JsonResponse({'error': 'Dati non validi'}, status=400)
+    # Evita duplicati di numero nello stesso apiario
+    nucleo, created = Nucleo.objects.get_or_create(
+        apiario=apiario, numero=numero,
+        defaults={'colore_hex': colore_hex, 'attiva': attiva, 'data_installazione': timezone.now().date()}
+    )
+    if not created:
+        nucleo.colore_hex = colore_hex
+        nucleo.attiva = attiva
+        nucleo.save()
+    return JsonResponse({'ok': True, 'id': nucleo.pk})
 
 
 @login_required
