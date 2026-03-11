@@ -333,6 +333,11 @@
                                             <a href="{% url 'modifica_arnia' arnia.id %}" class="btn btn-sm btn-outline-secondary">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
+                                            {% if is_proprietario %}
+                                            <a href="{% url 'elimina_arnia' arnia.id %}" class="btn btn-sm btn-outline-danger" title="Elimina arnia">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                            {% endif %}
                                             {% for controllo in ultimi_controlli %}
                                                 {% if controllo.arnia.id == arnia.id %}
                                                     <a href="{% url 'copia_controllo' controllo.id %}" class="btn btn-sm btn-outline-success" title="Copia controllo su altre arnie">
