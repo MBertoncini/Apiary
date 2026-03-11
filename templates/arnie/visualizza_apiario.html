@@ -242,43 +242,63 @@
                                                     <small class="text-muted">Ultimo controllo: {{ controllo.data|date:"d/m/Y" }}</small>
                                                 </div>
                                                 
-                                                <!-- Sostituisci la visualizzazione dell'arnia con questo codice -->
-                                                <!-- ══ MINI HIVE VIEW ══ -->
+                                                <!-- ══ ARNIA TOP-DOWN VIEW ══ -->
                                                 <div class="mini-hive-wrap mb-3"
                                                      data-config="{{ controllo.telaini_config|escapejs }}"
                                                      data-covata="{{ controllo.telaini_covata }}"
                                                      data-scorte="{{ controllo.telaini_scorte }}">
-                                                  <div class="mini-hive-shell">
-                                                    <div class="mini-hive-row"></div>
+                                                  <div class="hive-topview">
+                                                    <div class="hive-topview-inner">
+                                                      <div class="mini-hive-row"></div>
+                                                    </div>
                                                   </div>
                                                   <div class="mini-hive-legend"></div>
                                                 </div>
-                                                <!-- ══ FINE MINI HIVE VIEW ══ -->
+                                                <!-- ══ FINE ARNIA TOP-DOWN VIEW ══ -->
                                                 
-                                                <div class="mb-2">
-                                                    <a href="{% url 'visualizza_regina' controllo.arnia.id %}" class="text-decoration-none">
-                                                        {% if controllo.presenza_regina %}
-                                                            <span class="badge bg-success">
-                                                                {% if controllo.arnia.regina.marcata %}
-                                                                    <img src="{% static 'media/regina.png' %}" alt="Regina" style="height: 16px; margin-right: 4px;" onerror="this.src=''; this.onerror=null; this.style.display='none';">
-                                                                {% endif %}
-                                                                <i class="bi bi-crown me-1"></i> Regina presente
-                                                            </span>
+                                                <!-- ══ REGINA STATUS ══ -->
+                                                <a href="{% url 'visualizza_regina' controllo.arnia.id %}" class="text-decoration-none d-block mb-2">
+                                                  {% if controllo.presenza_regina %}
+                                                  <div class="regina-status-row ok">
+                                                    <div class="regina-crown-icon">
+                                                      <i class="bi bi-crown-fill"></i>
+                                                    </div>
+                                                    <div class="regina-info">
+                                                      <span class="regina-label-ok">Regina presente</span>
+                                                      <span class="regina-meta">
+                                                        {% if controllo.arnia.regina and controllo.arnia.regina.marcata %}
+                                                          <span class="regina-mark-dot" style="background:{{ controllo.arnia.regina.get_hex_colore_marcatura|default:'#F5A623' }};"></span>
+                                                          marcata
                                                         {% else %}
-                                                            <span class="badge bg-danger">
-                                                                <i class="bi bi-crown me-1"></i> Regina assente
-                                                            </span>
+                                                          &nbsp;
                                                         {% endif %}
-                                                    </a>
-                                                    
-                                                    {% if controllo.sciamatura %}
-                                                        <span class="badge bg-warning text-dark">Sciamatura</span>
-                                                    {% endif %}
-                                                    
-                                                    {% if controllo.problemi_sanitari %}
-                                                        <span class="badge bg-danger">Problemi sanitari</span>
-                                                    {% endif %}
+                                                      </span>
+                                                    </div>
+                                                    <i class="bi bi-chevron-right regina-chevron"></i>
+                                                  </div>
+                                                  {% else %}
+                                                  <div class="regina-status-row absent">
+                                                    <div class="regina-crown-icon absent">
+                                                      <i class="bi bi-crown"></i>
+                                                    </div>
+                                                    <div class="regina-info">
+                                                      <span class="regina-label-absent">Regina assente</span>
+                                                      <span class="regina-meta">Verifica necessaria</span>
+                                                    </div>
+                                                    <i class="bi bi-chevron-right regina-chevron"></i>
+                                                  </div>
+                                                  {% endif %}
+                                                </a>
+                                                {% if controllo.sciamatura or controllo.problemi_sanitari %}
+                                                <div class="d-flex gap-1 flex-wrap mb-2">
+                                                  {% if controllo.sciamatura %}
+                                                  <span class="badge rounded-pill bg-warning text-dark"><i class="bi bi-exclamation-triangle-fill me-1"></i>Sciamatura</span>
+                                                  {% endif %}
+                                                  {% if controllo.problemi_sanitari %}
+                                                  <span class="badge rounded-pill bg-danger"><i class="bi bi-bug-fill me-1"></i>Problemi sanitari</span>
+                                                  {% endif %}
                                                 </div>
+                                                {% endif %}
                                                 
                                                 <!-- Badge per trattamenti attivi su questa arnia -->
                                                 {% for trattamento in trattamenti_per_arnia %}
@@ -298,39 +318,6 @@
                                         {% endfor %}
                                     </div>
                                     
-                                        {% if is_proprietario %}
-                                        <div class="mb-3">
-                                            <div class="card">
-                                                <div class="card-body">
-                                                    <div class="row">
-                                                        <div class="col-md-6">
-                                                            <h6><i class="bi bi-people"></i> Condivisione con gruppo</h6>
-                                                            {% if apiario.gruppo and apiario.condiviso_con_gruppo %}
-                                                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Condiviso con il gruppo {{ apiario.gruppo.nome }}</span>
-                                                            {% else %}
-                                                                <span class="badge bg-secondary"><i class="bi bi-x-circle"></i> Non condiviso con gruppi</span>
-                                                            {% endif %}
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <h6><i class="bi bi-map"></i> Visibilità sulla mappa</h6>
-                                                            {% if apiario.visibilita_mappa == 'privato' %}
-                                                                <span class="badge bg-secondary">Solo proprietario</span>
-                                                            {% elif apiario.visibilita_mappa == 'gruppo' %}
-                                                                <span class="badge bg-primary">Membri del gruppo</span>
-                                                            {% elif apiario.visibilita_mappa == 'pubblico' %}
-                                                                <span class="badge bg-warning text-dark">Tutti gli utenti</span>
-                                                            {% endif %}
-                                                        </div>
-                                                    </div>
-                                                    <div class="mt-3">
-                                                        <a href="{% url 'gestione_apiario_gruppo' apiario.id %}" class="btn btn-sm btn-outline-primary">
-                                                            <i class="bi bi-pencil"></i> Modifica impostazioni
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% endif %}
 
                                     <div class="card-footer">
                                         <div class="btn-group w-100">
@@ -400,16 +387,59 @@
 </script>
 
 <style>
-/* ── Mini Hive (read-only) ── */
+/* ── Arnia top-down view ── */
 .mini-hive-wrap { font-size: 0; }
-.mini-hive-shell {
-  background: linear-gradient(135deg,#5d3e23,#8b6914 60%,#5d3e23);
+
+/* Outer wooden frame (hive sides viewed from above) */
+.hive-topview {
+  background: linear-gradient(145deg, #7A4E2A 0%, #5C3518 40%, #7A4E2A 100%);
+  border-radius: 10px;
+  border: 2.5px solid #3D200A;
+  padding: 9px 11px 13px;
+  position: relative;
+  box-shadow: 0 3px 10px rgba(0,0,0,.28),
+              inset 0 1px 3px rgba(255,255,255,.12),
+              inset 0 -1px 3px rgba(0,0,0,.2);
+  overflow: visible;
+}
+
+/* Corner grain marks */
+.hive-topview::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
   border-radius: 7px;
-  padding: 6px 8px 14px;
-  overflow-x: auto;
+  border: 1px solid rgba(255,255,255,.06);
+  pointer-events: none;
+}
+
+/* Entrance notch at the bottom center */
+.hive-topview::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 6px;
+  background: #2A1008;
+  border-radius: 0;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.6);
+}
+
+/* Inner beige panel (lid/inner frame, where the telaini are visible) */
+.hive-topview-inner {
+  background: linear-gradient(180deg, #F8F0DC 0%, #EAD8B5 100%);
+  border-radius: 4px;
+  border: 1.5px solid #9B7020;
+  padding: 6px 5px;
+  box-shadow: inset 0 3px 6px rgba(0,0,0,.18),
+              inset 0 -1px 2px rgba(255,255,255,.5);
   display: flex;
   justify-content: center;
+  overflow: hidden;
 }
+
 .mini-hive-row {
   display: inline-flex;
   gap: 3px;
@@ -446,6 +476,56 @@
 }
 .mini-hive-legend span { display:inline-flex; align-items:center; gap:3px; }
 .mini-hive-legend .dot { width:8px; height:8px; border-radius:2px; display:inline-block; }
+
+/* ── Regina status row ── */
+.regina-status-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1.5px solid transparent;
+  transition: filter .15s, transform .1s;
+}
+.regina-status-row:hover { filter: brightness(.96); transform: translateX(2px); }
+.regina-status-row.ok {
+  background: linear-gradient(135deg, #D4EDDA, #C3E6CB);
+  border-color: #A8D5B5;
+}
+.regina-status-row.absent {
+  background: linear-gradient(135deg, #F8D7DA, #F5C6CB);
+  border-color: #F1AEB5;
+}
+.regina-crown-icon {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+}
+.regina-crown-icon:not(.absent) { background: #28A745; color: white; }
+.regina-crown-icon.absent        { background: #DC3545; color: white; }
+.regina-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.regina-label-ok     { font-weight: 700; font-size: .8rem; color: #155724; }
+.regina-label-absent { font-weight: 700; font-size: .8rem; color: #721C24; }
+.regina-meta         { font-size: .68rem; color: #777; }
+.regina-chevron      { color: #BBB; font-size: .72rem; }
+.regina-mark-dot {
+  display: inline-block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,0,0,.2);
+  vertical-align: middle;
+  margin-right: 3px;
+}
 </style>
 
 <script>
