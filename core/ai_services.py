@@ -27,12 +27,16 @@ GEMINI_VISION_MODELS = [
 
 
 class GeminiService:
-    def __init__(self):
-        self.api_key = getattr(settings, 'GEMINI_API_KEY', '')
+    @property
+    def api_key(self):
+        return getattr(settings, 'GEMINI_API_KEY', '')
 
     def _call_model(self, model, payload, timeout=20):
         """Chiama un modello specifico. Ritorna (success, text, status_code)."""
-        url = f"{GEMINI_API_BASE}/{model}:generateContent?key={self.api_key}"
+        key = self.api_key
+        if not key:
+            return False, 'GEMINI_API_KEY non configurata nelle settings', 403
+        url = f"{GEMINI_API_BASE}/{model}:generateContent?key={key}"
         try:
             resp = requests.post(url, json=payload, timeout=timeout)
             if resp.status_code == 200:
