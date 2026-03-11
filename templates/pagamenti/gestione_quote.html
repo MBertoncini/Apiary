@@ -183,6 +183,42 @@
 
 {% block extra_js %}
 <script>
+    // ─── Ricorda la selezione gruppo (sincronizzata con pagamenti) ───────────
+    (function() {
+        const STORAGE_KEY = 'apiary_pagamenti_gruppo_id';
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentGruppo = urlParams.get('gruppo_id');
+
+        if (currentGruppo !== null) {
+            localStorage.setItem(STORAGE_KEY, currentGruppo);
+            sessionStorage.removeItem('pagamenti_redirect_tried');
+        } else {
+            const savedGruppo = localStorage.getItem(STORAGE_KEY);
+            if (savedGruppo && savedGruppo !== '') {
+                const alreadyTried = sessionStorage.getItem('quote_redirect_tried');
+                if (!alreadyTried) {
+                    sessionStorage.setItem('quote_redirect_tried', '1');
+                    window.location.search = '?gruppo_id=' + savedGruppo;
+                    return;
+                } else {
+                    localStorage.setItem(STORAGE_KEY, '');
+                    sessionStorage.removeItem('quote_redirect_tried');
+                }
+            }
+        }
+        if (currentGruppo) sessionStorage.removeItem('quote_redirect_tried');
+
+        document.querySelectorAll('.dropdown-menu .dropdown-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                const href = this.getAttribute('href') || '';
+                if (href.includes('gestione_quote') || href.includes('gestione_pagamenti')) {
+                    const hrefParams = new URLSearchParams(href.includes('?') ? href.split('?')[1] : '');
+                    localStorage.setItem(STORAGE_KEY, hrefParams.get('gruppo_id') || '');
+                }
+            });
+        });
+    })();
+
     document.addEventListener('DOMContentLoaded', function() {
         // Calcolo automatico della somma delle percentuali
         const percentualeInput = document.getElementById('id_percentuale');
