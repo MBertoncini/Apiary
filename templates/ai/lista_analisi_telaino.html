@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Analisi Telaini — {{ arnia }} — Apiary{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">
+      <i class="bi bi-clock-history me-2"></i>Storico Analisi Telaini
+    </h1>
+    <p class="page-subtitle">
+      {{ arnia.apiario.nome }} · Arnia {{ arnia.numero }}
+    </p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'analisi_telaino' %}?arnia={{ arnia.id }}&apiario={{ arnia.apiario.id }}"
+       class="btn btn-primary">
+      <i class="bi bi-plus-circle me-1"></i>Nuova analisi
+    </a>
+    <a href="{% url 'visualizza_apiario' arnia.apiario.id %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Apiario
+    </a>
+  </div>
+</div>
+
+{% if analisi %}
+  <div class="row g-3">
+    {% for a in analisi %}
+    <div class="col-md-6 col-xl-4">
+      <div class="card h-100">
+        {% if a.immagine %}
+          <img src="{{ a.immagine.url }}" class="card-img-top"
+               style="height:180px;object-fit:cover;border-radius:12px 12px 0 0;" alt="Telaino">
+        {% endif %}
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <h6 class="fw-bold mb-0">Telaino {{ a.numero_telaino }}{{ a.facciata }}</h6>
+              <small class="text-muted">{{ a.data }} · {{ a.utente.get_short_name|default:a.utente.username }}</small>
+            </div>
+            {% if a.confidence_media %}
+            <span class="badge" style="background:#F5A623;color:#fff;font-size:.72rem;">
+              {{ a.confidence_media|floatformat:0 }}% conf.
+            </span>
+            {% endif %}
+          </div>
+
+          <!-- Conteggi -->
+          <div class="d-flex flex-wrap gap-1 mb-2">
+            <span class="badge bg-light text-dark border">🐝 {{ a.conteggio_api }} op.</span>
+            <span class="badge bg-light text-dark border">🐝 {{ a.conteggio_fuchi }} fuchi</span>
+            <span class="badge bg-light text-dark border">👑 {{ a.conteggio_regine }} reg.</span>
+            {% if a.conteggio_celle_reali > 0 %}
+            <span class="badge bg-warning text-dark">🔷 {{ a.conteggio_celle_reali }} celle reali</span>
+            {% else %}
+            <span class="badge bg-light text-dark border">🔷 0 celle</span>
+            {% endif %}
+          </div>
+
+          {% if a.note %}
+          <p class="small text-muted mb-2">{{ a.note|truncatechars:80 }}</p>
+          {% endif %}
+
+          <div class="d-flex gap-2 mt-auto pt-1">
+            <a href="{% url 'crea_controllo_da_analisi' a.id %}"
+               class="btn btn-sm btn-outline-success flex-fill"
+               title="Crea controllo arnia da questa analisi">
+              <i class="bi bi-clipboard-plus me-1"></i>Crea controllo
+            </a>
+            <a href="{% url 'elimina_analisi_telaino' a.id %}"
+               class="btn btn-sm btn-outline-danger"
+               onclick="return confirm('Eliminare questa analisi?')"
+               title="Elimina">
+              <i class="bi bi-trash"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <div class="card">
+    <div class="card-body text-center py-5">
+      <i class="bi bi-camera" style="font-size:3rem;color:#EAD9BF;"></i>
+      <p class="mt-3 text-muted">Nessuna analisi telaino ancora registrata per questa arnia.</p>
+      <a href="{% url 'analisi_telaino' %}?arnia={{ arnia.id }}&apiario={{ arnia.apiario.id }}"
+         class="btn btn-primary mt-1">
+        <i class="bi bi-plus-circle me-1"></i>Prima analisi
+      </a>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
