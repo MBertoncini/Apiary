@@ -33,7 +33,7 @@
   </div>
 
   {% if trattamenti_attivi %}
-  <div class="table-responsive" style="overflow:visible;">
+  <div class="table-responsive table-has-dropdown">
     <table class="table table-hover mb-0">
       <thead>
         <tr>
@@ -270,4 +270,18 @@
   {% endif %}
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Sposta tutti i modali direttamente nel <body> al caricamento della pagina.
+  // I modali Bootstrap usano position:fixed; se rimangono dentro un elemento con
+  // CSS transform (es. .card:hover) vengono posizionati relativi a quell'elemento
+  // invece che allo schermo, risultando "incastrati" e traballanti.
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.modal').forEach(function (modal) {
+      document.body.appendChild(modal);
+    });
+  });
+</script>
 {% endblock %}
