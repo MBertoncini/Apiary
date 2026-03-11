@@ -187,7 +187,7 @@ Rispondi SOLO con il JSON grezzo, senza markdown."""
 
         response_text, model_used = gemini_service.generate(
             [{'role': 'user', 'text': prompt}],
-            temperature=0.1, max_tokens=500,
+            temperature=0.1, max_tokens=1024,
             api_key=_get_user_api_key(request.user),
             response_mime_type='application/json',
         )
@@ -433,7 +433,7 @@ Regole:
 
         response_text, model_used = gemini_service.generate(
             [{'role': 'user', 'text': prompt}],
-            temperature=0, max_tokens=400,
+            temperature=0, max_tokens=1024,
             api_key=_get_user_api_key(request.user),
             response_mime_type='application/json',
         )

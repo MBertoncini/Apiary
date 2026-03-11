@@ -33,7 +33,7 @@
   </div>
 
   {% if trattamenti_attivi %}
-  <div class="table-responsive">
+  <div class="table-responsive" style="overflow:visible;">
     <table class="table table-hover mb-0">
       <thead>
         <tr>
@@ -79,7 +79,7 @@
               </button>
 
               <!-- Modal arnie -->
-              <div class="modal fade" id="modalArnie{{ trattamento.id }}" tabindex="-1" aria-hidden="true">
+              <div class="modal fade" id="modalArnie{{ trattamento.id }}" tabindex="-1" aria-hidden="true" data-bs-scroll="true">
                 <div class="modal-dialog">
                   <div class="modal-content">
                     <div class="modal-header">

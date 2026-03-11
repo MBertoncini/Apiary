@@ -65,6 +65,7 @@ urlpatterns = [
     path('trattamenti/tipi/', views.tipi_trattamento, name='tipi_trattamento'),
     path('trattamenti/tipo/<int:pk>/modifica/', views.modifica_tipo_trattamento, name='modifica_tipo_trattamento'),
     path('trattamenti/tipo/<int:pk>/elimina/', views.elimina_tipo_trattamento, name='elimina_tipo_trattamento'),
+    path('trattamenti/tipo/ajax-crea/', views.ajax_crea_tipo_trattamento, name='ajax_crea_tipo_trattamento'),
 
     # Calendario Apiario
     path('calendario/', views.calendario_apiario, name='calendario_apiario'),
@@ -148,6 +149,8 @@ urlpatterns = [
     path('nucleo/<int:pk>/', views.dettaglio_nucleo, name='dettaglio_nucleo'),
     path('nucleo/<int:pk>/modifica/', views.modifica_nucleo, name='modifica_nucleo'),
     path('nucleo/<int:pk>/elimina/', views.elimina_nucleo, name='elimina_nucleo'),
+    path('nucleo/<int:pk>/ajax-elimina/', views.ajax_elimina_nucleo, name='ajax_elimina_nucleo'),
+    path('apiario/<int:apiario_id>/nucleo/ajax-crea/', views.ajax_crea_nucleo, name='ajax_crea_nucleo'),
     path('nucleo/<int:nucleo_id>/controllo/', views.aggiungi_controllo_nucleo, name='aggiungi_controllo_nucleo'),
     path('nucleo/<int:pk>/converti/', views.converti_nucleo_in_arnia, name='converti_nucleo_in_arnia'),
 

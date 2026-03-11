@@ -536,10 +536,12 @@
 </style>
 
 <script>
-const INITIAL_LAYOUT = JSON.parse('{{ layout_json|escapejs }}');
-const ARNIE_DATA     = JSON.parse('{{ arnie_map_data|escapejs }}');
-const SAVE_URL       = '{% url "save_map_layout" apiario.id %}';
-const CAN_EDIT       = {{ can_edit|yesno:"true,false" }};
+const INITIAL_LAYOUT   = JSON.parse('{{ layout_json|escapejs }}');
+const ARNIE_DATA       = JSON.parse('{{ arnie_map_data|escapejs }}');
+const SAVE_URL         = '{% url "save_map_layout" apiario.id %}';
+const NUCLEO_CREA_URL  = '{% url "ajax_crea_nucleo" apiario.id %}';
+const NUCLEO_ELIM_BASE = '{% url "ajax_elimina_nucleo" 0 %}'.replace('/0/', '/');  // base URL per nucleo + pk + ajax-elimina/
+const CAN_EDIT         = {{ can_edit|yesno:"true,false" }};
 
 const PIANTINA = (() => {
   const CELL=90,SNAP=60,H_CSS=460,MIN_SC=0.003,MAX_SC=0.5,MIN_HIT=20;
@@ -715,7 +717,19 @@ const PIANTINA = (() => {
   function moveEl(nx,ny){if(!sel)return;if(sel.kind==='arnia')layout.arnie[sel.id]={x:nx,y:ny};else{const el=elems().find(e=>e.id===sel.id);if(el){el.x=nx;el.y=ny;}}}
   function addEl(type,fx,fy){if(!layout.elements)layout.elements=[];const id='elem_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);const el={id,type,x:fx,y:fy};layout.elements.push(el);doSelect({kind:'element',id});markDirty();}
   function finishVialetto(){if(!layout.elements)layout.elements=[];const id='elem_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);const segs=[];for(let i=1;i<pathPts.length;i++){const dx=pathPts[i].x-pathPts[i-1].x,dy=pathPts[i].y-pathPts[i-1].y;segs.push({angle:Math.atan2(dy,dx)*180/Math.PI,length:Math.sqrt(dx*dx+dy*dy)});}layout.elements.push({id,type:'vialetto',x:pathPts[0].x,y:pathPts[0].y,path_width:40,segments:segs});pathPts=[];pathPrev=null;doSelect({kind:'element',id});markDirty();setTool('select');needDraw=true;}
-  function deleteSelected(){if(!sel||sel.kind==='arnia')return;saveUndoState();layout.elements=layout.elements.filter(e=>e.id!==sel.id);doSelect(null);markDirty();needDraw=true;}
+  function deleteSelected(){
+    if(!sel||sel.kind==='arnia')return;
+    const el=elems().find(e=>e.id===sel.id);
+    saveUndoState();
+    layout.elements=layout.elements.filter(e=>e.id!==sel.id);
+    doSelect(null);markDirty();needDraw=true;
+    // Se è un nucleo con db_id, eliminalo anche dal DB
+    if(el?.type==='nucleo'&&el.db_id){
+      const url=NUCLEO_ELIM_BASE.replace('/0/','/'+el.db_id+'/');
+      fetch(url,{method:'POST',headers:{'X-CSRFToken':CSRF()}})
+        .catch(e=>console.warn('Errore eliminazione nucleo DB:',e));
+    }
+  }
 
   /* === Nucleo modal === */
   function openNucleoModal(fx,fy){
@@ -726,7 +740,7 @@ const PIANTINA = (() => {
     const def=document.querySelector('.nucleo-color-btn[data-color="#8B6914"]');if(def)def.classList.add('active');
     const m=document.getElementById('nucleoModal');if(m)bootstrap.Modal.getOrCreateInstance(m).show();
   }
-  function confirmNucleo(){
+  async function confirmNucleo(){
     if(!pendingNucleoPos)return;
     const colBtn=document.querySelector('.nucleo-color-btn.active');
     const col=colBtn?.dataset.color||'#8B6914';
@@ -736,10 +750,17 @@ const PIANTINA = (() => {
     saveUndoState();
     if(!layout.elements)layout.elements=[];
     const id='elem_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-    layout.elements.push({id,type:'nucleo',x:pendingNucleoPos.x,y:pendingNucleoPos.y,numero:num,colore_hex:col,attiva});
+    const el={id,type:'nucleo',x:pendingNucleoPos.x,y:pendingNucleoPos.y,numero:num,colore_hex:col,attiva};
+    layout.elements.push(el);
     doSelect({kind:'element',id});markDirty();needDraw=true;
     pendingNucleoPos=null;
     const m=document.getElementById('nucleoModal');if(m)bootstrap.Modal.getInstance(m)?.hide();
+    // Crea anche nel DB
+    try{
+      const r=await fetch(NUCLEO_CREA_URL,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':CSRF()},body:JSON.stringify({numero:num,colore_hex:col,attiva})});
+      const d=await r.json();
+      if(d.ok&&d.id){el.db_id=d.id;}
+    }catch(e){console.warn('Nucleo non salvato nel DB:',e);}
   }
 
   function saveUndoState(){undoStack.push(deep(layout));if(undoStack.length>50)undoStack.shift();}
