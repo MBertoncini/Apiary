@@ -1,11 +1,12 @@
 """
-Viste AI: chat, elaborazione voce, analisi telaino (Gemini + YOLO segmentation).
+Viste AI: chat, elaborazione voce, analisi telaino (Gemini + TFLite bee detection).
 """
 import json
 import re
 import base64
 import os
 import io
+import math
 
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -18,34 +19,220 @@ from datetime import date
 from .ai_services import gemini_service
 from .models import Apiario, Arnia, ControlloArnia
 
-# Cache del modello YOLO (caricato una volta sola alla prima richiesta)
-_yolo_model = None
-_yolo_load_error = None  # memorizza l'errore di caricamento per debug
+# ---------------------------------------------------------------------------
+# TFLite bee detector — stessa logica di bee_detection_service.dart (Flutter)
+# ---------------------------------------------------------------------------
 
-def _get_yolo_model():
-    """Carica e cachea il modello YOLO segmentazione. Ritorna (model, error_str)."""
-    global _yolo_model, _yolo_load_error
-    if _yolo_model is not None:
-        return _yolo_model, None
-    if _yolo_load_error is not None:
-        return None, _yolo_load_error
-    yolo_path = getattr(settings, 'YOLO_MODEL_PATH', '')
-    if not yolo_path:
-        _yolo_load_error = 'YOLO_MODEL_PATH non configurato'
-        return None, _yolo_load_error
-    if not os.path.exists(yolo_path):
-        _yolo_load_error = f'File modello non trovato: {yolo_path}'
-        return None, _yolo_load_error
+_CLASS_NAMES = ['bees', 'drone', 'queenbees', 'royal cell']
+_CLASS_COLORS = [
+    (255, 165, 0),   # bees     → arancione
+    (0, 120, 255),   # drone    → blu
+    (160, 0, 220),   # queenbees → viola
+    (220, 180, 0),   # royal cell → ambra
+]
+_INPUT_SIZE       = 640
+_CONF_THRESHOLD   = 0.25
+_IOU_THRESHOLD    = 0.45
+
+# Cache interprete TFLite (caricato una volta sola)
+_tflite_interp      = None
+_tflite_load_error  = None
+_tflite_meta        = None   # dict con features_first, num_features, num_detections
+
+
+def _get_tflite_interpreter():
+    """Carica e cachea l'interprete TFLite. Ritorna (interp, meta, error_str)."""
+    global _tflite_interp, _tflite_load_error, _tflite_meta
+    if _tflite_interp is not None:
+        return _tflite_interp, _tflite_meta, None
+    if _tflite_load_error is not None:
+        return None, None, _tflite_load_error
+
+    model_path = getattr(settings, 'TFLITE_MODEL_PATH', '')
+    if not model_path or not os.path.exists(model_path):
+        _tflite_load_error = f'Modello TFLite non trovato: {model_path}'
+        return None, None, _tflite_load_error
+
     try:
-        from ultralytics import YOLO
-        _yolo_model = YOLO(yolo_path)
-        return _yolo_model, None
+        try:
+            from tflite_runtime.interpreter import Interpreter
+        except ImportError:
+            import tensorflow as tf
+            Interpreter = tf.lite.Interpreter
+
+        interp = Interpreter(model_path=model_path)
+        interp.allocate_tensors()
+
+        out_details = interp.get_output_details()
+        out_shape   = out_details[0]['shape']   # [1, dim1, dim2]
+
+        dim1, dim2 = int(out_shape[1]), int(out_shape[2])
+        features_first  = dim1 < dim2
+        num_features    = dim1 if features_first else dim2
+        num_detections  = dim2 if features_first else dim1
+
+        _tflite_interp = interp
+        _tflite_meta   = {
+            'features_first': features_first,
+            'num_features':   num_features,
+            'num_detections': num_detections,
+            'input_index':    interp.get_input_details()[0]['index'],
+            'output_index':   out_details[0]['index'],
+        }
+        return _tflite_interp, _tflite_meta, None
+
     except ImportError:
-        _yolo_load_error = 'ultralytics non installato'
-        return None, _yolo_load_error
+        _tflite_load_error = 'tflite_runtime non installato (pip install tflite-runtime)'
+        return None, None, _tflite_load_error
     except Exception as e:
-        _yolo_load_error = str(e)
-        return None, _yolo_load_error
+        _tflite_load_error = str(e)
+        return None, None, _tflite_load_error
+
+
+def _letterbox(pil_img, target=640):
+    """Ridimensiona con letterbox a target×target. Ritorna (tensor float32, scaleX, scaleY, padX, padY)."""
+    import numpy as np
+    from PIL import Image as PILImage
+
+    orig_w, orig_h = pil_img.size
+    scale  = min(target / orig_w, target / orig_h)
+    new_w  = round(orig_w * scale)
+    new_h  = round(orig_h * scale)
+    resized = pil_img.resize((new_w, new_h), PILImage.BILINEAR)
+
+    pad_x = (target - new_w) / 2.0
+    pad_y = (target - new_h) / 2.0
+
+    canvas = np.full((target, target, 3), 114, dtype=np.float32)
+    px, py = round(pad_x), round(pad_y)
+    arr = np.array(resized, dtype=np.float32)
+    canvas[py:py + new_h, px:px + new_w] = arr
+
+    canvas /= 255.0
+    tensor = canvas[np.newaxis]  # [1, H, W, 3]
+    return tensor, scale, scale, pad_x, pad_y
+
+
+def _iou(a, b):
+    x1 = max(a[0], b[0]); y1 = max(a[1], b[1])
+    x2 = min(a[2], b[2]); y2 = min(a[3], b[3])
+    inter = max(0.0, x2 - x1) * max(0.0, y2 - y1)
+    area_a = (a[2] - a[0]) * (a[3] - a[1])
+    area_b = (b[2] - b[0]) * (b[3] - b[1])
+    union = area_a + area_b - inter
+    return inter / union if union > 0 else 0.0
+
+
+def _nms(detections, iou_thr):
+    detections.sort(key=lambda d: d['confidence'], reverse=True)
+    kept = []
+    suppressed = [False] * len(detections)
+    for i, di in enumerate(detections):
+        if suppressed[i]:
+            continue
+        kept.append(di)
+        for j in range(i + 1, len(detections)):
+            if suppressed[j]:
+                continue
+            if detections[j]['class_idx'] != di['class_idx']:
+                continue
+            if _iou(di['bbox'], detections[j]['bbox']) > iou_thr:
+                suppressed[j] = True
+    return kept
+
+
+def _run_tflite_detection(image_data_bytes):
+    """
+    Esegue bee detection su un'immagine (bytes).
+    Ritorna dict con: detections, summary, annotated_image (base64 JPEG), error.
+    Identica logica a bee_detection_service.dart.
+    """
+    import numpy as np
+    from PIL import Image as PILImage, ImageDraw, ImageFont
+
+    interp, meta, err = _get_tflite_interpreter()
+    if err:
+        return {'error': err}
+
+    pil_img = PILImage.open(io.BytesIO(image_data_bytes)).convert('RGB')
+    orig_w, orig_h = pil_img.size
+
+    tensor, scale_x, scale_y, pad_x, pad_y = _letterbox(pil_img, _INPUT_SIZE)
+
+    interp.set_tensor(meta['input_index'], tensor)
+    interp.invoke()
+    output = interp.get_tensor(meta['output_index'])[0]  # rimuovi batch dim
+
+    features_first  = meta['features_first']
+    num_det         = meta['num_detections']
+    num_feat        = meta['num_features']
+    num_cls         = len(_CLASS_NAMES)
+
+    def get_val(feat_idx, det_idx):
+        if features_first:
+            return float(output[feat_idx, det_idx])
+        else:
+            return float(output[det_idx, feat_idx])
+
+    raw = []
+    for d in range(num_det):
+        max_conf, best_cls = 0.0, 0
+        for c in range(num_cls):
+            conf = get_val(4 + c, d)
+            if conf > max_conf:
+                max_conf, best_cls = conf, c
+        if max_conf < _CONF_THRESHOLD:
+            continue
+
+        cx = get_val(0, d); cy = get_val(1, d)
+        w  = get_val(2, d); h  = get_val(3, d)
+        x1 = (cx - w / 2 - pad_x) / scale_x
+        y1 = (cy - h / 2 - pad_y) / scale_y
+        x2 = (cx + w / 2 - pad_x) / scale_x
+        y2 = (cy + h / 2 - pad_y) / scale_y
+
+        raw.append({
+            'class_idx':  best_cls,
+            'class':      _CLASS_NAMES[best_cls],
+            'confidence': round(max_conf, 3),
+            'bbox':       [x1, y1, x2, y2],
+        })
+
+    filtered = _nms(raw, _IOU_THRESHOLD)
+
+    # Conteggi
+    summary = {n: 0 for n in _CLASS_NAMES}
+    total_conf = 0.0
+    for det in filtered:
+        summary[det['class']] += 1
+        total_conf += det['confidence']
+    avg_conf = total_conf / len(filtered) if filtered else 0.0
+
+    # Immagine annotata con bounding box (PIL)
+    draw    = ImageDraw.Draw(pil_img)
+    try:
+        font = ImageFont.truetype("arial.ttf", 14)
+    except Exception:
+        font = ImageFont.load_default()
+
+    for det in filtered:
+        x1, y1, x2, y2 = det['bbox']
+        color = _CLASS_COLORS[det['class_idx']]
+        draw.rectangle([x1, y1, x2, y2], outline=color, width=2)
+        label = f"{det['class']} {det['confidence']*100:.0f}%"
+        draw.rectangle([x1, y1 - 14, x1 + len(label) * 7, y1], fill=color)
+        draw.text((x1 + 2, y1 - 14), label, fill=(255, 255, 255), font=font)
+
+    buf = io.BytesIO()
+    pil_img.save(buf, format='JPEG', quality=88)
+    annotated_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+
+    return {
+        'detections':      [{'class': d['class'], 'confidence': d['confidence']} for d in filtered],
+        'summary':         summary,
+        'avg_confidence':  round(avg_conf, 3),
+        'annotated_image': annotated_b64,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -206,22 +393,20 @@ Rispondi SOLO con il JSON grezzo, senza markdown."""
 
 
 def _genera_analisi_yolo(yolo_result):
-    """Genera un testo di analisi strutturato basato sui risultati YOLO."""
+    """Genera un testo di analisi strutturato dai risultati del detector TFLite."""
     if not yolo_result or 'error' in yolo_result:
         err = yolo_result.get('error', 'modello non disponibile') if yolo_result else 'modello non disponibile'
-        return f"Analisi YOLO non disponibile: {err}"
-    if 'nota' in yolo_result:
-        return f"Analisi YOLO non disponibile: {yolo_result['nota']}"
+        return f"Analisi non disponibile: {err}"
 
     summary = yolo_result.get('summary', {})
-    if not summary:
+    if not summary or all(v == 0 for v in summary.values()):
         return "Nessun elemento rilevato nell'immagine. Verifica che la foto mostri chiaramente il telaino."
 
-    # Leggi conteggi (nomi classi in inglese come da modello)
-    api = summary.get('bee', summary.get('bees', 0))
-    fuchi = summary.get('drone', summary.get('drones', 0))
-    regine = summary.get('queenbee', summary.get('queenbees', summary.get('queen', 0)))
-    celle_reali = summary.get('royal cell', summary.get('royalcell', summary.get('queen_cell', 0)))
+    # Nomi classe TFLite: bees, drone, queenbees, royal cell
+    api         = summary.get('bees', 0)
+    fuchi       = summary.get('drone', 0)
+    regine      = summary.get('queenbees', 0)
+    celle_reali = summary.get('royal cell', 0)
 
     righe = []
 
@@ -287,69 +472,17 @@ def analisi_telaino(request):
         return JsonResponse({'error': 'Nessuna immagine caricata'}, status=400)
 
     try:
-        image_file = request.FILES['image']
-        image_data = image_file.read()
+        image_data = request.FILES['image'].read()
 
-        # --- YOLO segmentazione ---
-        yolo_result = None
-        yolo_model, yolo_load_err = _get_yolo_model()
-        if yolo_load_err:
-            yolo_result = {'error': yolo_load_err}
-        if yolo_model is not None:
-            try:
-                from PIL import Image as PILImage
-                import numpy as np
+        # --- TFLite bee detection (stesso modello dell'app Flutter) ---
+        det_result = _run_tflite_detection(image_data)
 
-                # Apri immagine
-                img = PILImage.open(io.BytesIO(image_data)).convert('RGB')
-
-                # Predizione con stessi parametri dello script di test
-                results = yolo_model.predict(
-                    source=img,
-                    conf=0.5,
-                    iou=0.4,
-                    verbose=False,
-                )
-                r = results[0]
-
-                # Conta detection per classe
-                detections = []
-                if r.boxes is not None:
-                    for box in r.boxes:
-                        cls_id = int(box.cls[0])
-                        cls_name = r.names.get(cls_id, str(cls_id))
-                        conf_val = float(box.conf[0])
-                        detections.append({'class': cls_name, 'confidence': round(conf_val, 2)})
-
-                class_counts = {}
-                for d in detections:
-                    class_counts[d['class']] = class_counts.get(d['class'], 0) + 1
-
-                # Genera immagine annotata con maschere disegnate
-                annotated_bgr = r.plot()          # numpy array BGR (da ultralytics)
-                annotated_rgb = annotated_bgr[:, :, ::-1]  # BGR → RGB
-                annotated_pil = PILImage.fromarray(annotated_rgb.astype('uint8'))
-                buf = io.BytesIO()
-                annotated_pil.save(buf, format='JPEG', quality=88)
-                annotated_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
-
-                yolo_result = {
-                    'detections': detections[:80],
-                    'summary': class_counts,
-                    'annotated_image': annotated_b64,  # JPEG base64
-                }
-            except ImportError:
-                yolo_result = {'nota': 'ultralytics non installato'}
-            except Exception as e:
-                yolo_result = {'error': str(e)}
-
-        # --- Analisi basata solo su YOLO ---
-        analysis_text = _genera_analisi_yolo(yolo_result)
+        analysis_text = _genera_analisi_yolo(det_result)
 
         return JsonResponse({
-            'analysis': analysis_text,
-            'model': 'YOLO locale',
-            'yolo': yolo_result,
+            'analysis':  analysis_text,
+            'model':     'TFLite bee detector',
+            'yolo':      det_result,   # chiave invariata per compatibilità template
         })
 
     except Exception as e:
