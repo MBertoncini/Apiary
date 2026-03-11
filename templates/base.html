@@ -117,6 +117,12 @@
       Nuclei
     </a>
 
+    <a href="{% url 'gestione_melari_globale' %}"
+       class="sidebar-link {% if 'melari' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-layers nav-icon"></i>
+      Melari
+    </a>
+
     <!-- INVENTARIO -->
     <div class="sidebar-section-label">Inventario</div>
 
@@ -169,21 +175,6 @@
        class="sidebar-link {% if 'grupp' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-people nav-icon"></i>
       Gruppi
-    </a>
-
-    <a href="{% url 'ricerca' %}"
-       class="sidebar-link {% if request.resolver_match.url_name == 'ricerca' %}active{% endif %}">
-      <i class="bi bi-search nav-icon"></i>
-      Ricerca avanzata
-    </a>
-
-    <a href="{% url 'centro_notifiche' %}"
-       class="sidebar-link {% if 'notifiche' in request.resolver_match.url_name %}active{% endif %}">
-      <i class="bi bi-bell nav-icon"></i>
-      Notifiche
-      {% if notifiche_non_lette > 0 %}
-      <span class="ms-auto badge rounded-pill" style="background:var(--honey);color:#fff;font-size:.65rem;">{{ notifiche_non_lette }}</span>
-      {% endif %}
     </a>
 
   </nav>

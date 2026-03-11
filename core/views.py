@@ -868,6 +868,61 @@ def aggiorna_presenza_regina(request, controllo_id):
     return render(request, 'regine/aggiorna_presenza_regina.html', context)
 
 @login_required
+def gestione_melari_globale(request):
+    """Vista globale per la gestione dei melari su tutti gli apiari dell'utente"""
+    gruppi_utente = Gruppo.objects.filter(membri=request.user)
+    apiari = Apiario.objects.filter(
+        Q(proprietario=request.user) |
+        Q(gruppo__in=gruppi_utente, condiviso_con_gruppo=True)
+    ).distinct().order_by('nome')
+
+    apiari_data = []
+    total_posizionati = 0
+    total_in_smielatura = 0
+
+    for apiario in apiari:
+        arnie = Arnia.objects.filter(apiario=apiario, attiva=True).order_by('numero')
+        arnie_data = []
+        for arnia in arnie:
+            # Melari attivi ordinati per posizione decrescente (top = alta posizione)
+            melari_attivi = list(
+                Melario.objects.filter(
+                    arnia=arnia,
+                    stato__in=['posizionato', 'in_smielatura']
+                ).order_by('-posizione')
+            )
+            ultimo_controllo = ControlloArnia.objects.filter(arnia=arnia).order_by('-data').first()
+            arnie_data.append({
+                'arnia': arnia,
+                'melari': melari_attivi,
+                'ultimo_controllo': ultimo_controllo,
+            })
+            for m in melari_attivi:
+                if m.stato == 'posizionato':
+                    total_posizionati += 1
+                elif m.stato == 'in_smielatura':
+                    total_in_smielatura += 1
+
+        apiari_data.append({
+            'apiario': apiario,
+            'arnie': arnie_data,
+        })
+
+    smielature_recenti = Smielatura.objects.filter(
+        apiario__in=apiari
+    ).order_by('-data')[:10]
+
+    context = {
+        'apiari_data': apiari_data,
+        'smielature_recenti': smielature_recenti,
+        'total_posizionati': total_posizionati,
+        'total_in_smielatura': total_in_smielatura,
+        'today': timezone.now().date(),
+    }
+    return render(request, 'melari/gestione_melari_globale.html', context)
+
+
+@login_required
 @richiedi_proprietario_o_gruppo
 def gestione_melari(request, apiario_id):
     """Vista per la gestione dei melari di un apiario"""
@@ -932,8 +987,11 @@ def aggiungi_melario(request, arnia_id):
             melario.arnia = arnia
             melario.stato = 'posizionato'
             melario.save()
-            
+
             messages.success(request, f"Melario aggiunto all'arnia {arnia.numero}.")
+            next_url = request.POST.get('next') or request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
             return redirect('gestione_melari', apiario_id=apiario.id)
     else:
         form = MelarioForm(arnia=arnia)
@@ -968,8 +1026,11 @@ def rimuovi_melario(request, melario_id):
             if form.cleaned_data['note']:
                 melario.note = (melario.note or "") + "\n\nRimozione: " + form.cleaned_data['note']
             melario.save()
-            
+
             messages.success(request, f"Melario rimosso dall'arnia {arnia.numero}.")
+            next_url = request.POST.get('next') or request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
             return redirect('gestione_melari', apiario_id=apiario.id)
     else:
         form = RimozioneMelarioForm()
@@ -1002,8 +1063,11 @@ def invia_in_smielatura(request, melario_id):
     if request.POST.get('notes'):
         melario.note = (melario.note or "") + "\n\nInvio in smielatura: " + request.POST.get('notes')
     melario.save()
-    
+
     messages.success(request, f"Melario inviato in smielatura.")
+    next_url = request.POST.get('next') or request.GET.get('next')
+    if next_url:
+        return redirect(next_url)
     return redirect('gestione_melari', apiario_id=apiario.id)
 
 @login_required

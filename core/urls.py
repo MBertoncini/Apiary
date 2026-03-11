@@ -31,6 +31,7 @@ urlpatterns = [
     path('controllo/<int:controllo_id>/regina/', views.aggiorna_presenza_regina, name='aggiorna_presenza_regina'),
 
     # Gestione Melari e Smielatura
+    path('melari/', views.gestione_melari_globale, name='gestione_melari_globale'),
     path('apiario/<int:apiario_id>/melari/', views.gestione_melari, name='gestione_melari'),
     path('arnia/<int:arnia_id>/melario/aggiungi/', views.aggiungi_melario, name='aggiungi_melario'),
     path('melario/<int:melario_id>/rimuovi/', views.rimuovi_melario, name='rimuovi_melario'),

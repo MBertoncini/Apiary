@@ -272,10 +272,11 @@ class SostituzioneReginaForm(forms.Form):
 
 class MelarioForm(forms.ModelForm):
     """Form per l'aggiunta e modifica di un melario"""
-    
+
     class Meta:
         model = Melario
-        fields = ['numero_telaini', 'posizione', 'data_posizionamento', 'note']
+        fields = ['numero_telaini', 'posizione', 'tipo_melario', 'stato_favi',
+                  'escludi_regina', 'data_posizionamento', 'note']
         widgets = {
             'data_posizionamento': DateInput(),
             'note': forms.Textarea(attrs={'rows': 2}),
