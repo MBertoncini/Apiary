@@ -419,6 +419,16 @@ a:hover { color: var(--honey-darker); }
 }
 
 /* ============================================
+   UTILITY — tabelle che contengono dropdown
+   Sovrascrive Bootstrap .table-responsive overflow-x:auto con !important
+   così i dropdown menu escono fuori dal contenitore invece di essere clippati
+   ============================================ */
+
+.table-has-dropdown {
+  overflow: visible !important;
+}
+
+/* ============================================
    MAIN CONTENT
    ============================================ */
 
@@ -505,7 +515,8 @@ body.sidebar-hidden .main-content { margin-left: 0; }
 
 .card:hover {
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  /* transform rimosso: translateY() crea un nuovo containing block per position:fixed,
+     causando il posizionamento errato dei Bootstrap modal (apparivano "incastrati" nella card) */
 }
 
 .card-header {
