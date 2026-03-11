@@ -143,6 +143,7 @@ class VoiceControllo {
     this.apiarioId   = null;
     this.apiarioNome = '';
     this.batchMode   = false;
+    this.autoSend    = false;   // se true, invia a Gemini appena la registrazione si ferma
 
     // State machine: idle | recording | awaiting_trigger | processing | review
     this.state = 'idle';
@@ -182,6 +183,9 @@ class VoiceControllo {
       saveBtn:         document.getElementById('vc-save-btn'),
       saveResult:      document.getElementById('vc-save-result'),
       triggerHint:     document.getElementById('vc-trigger-hint'),
+      autoSendToggle:  document.getElementById('vc-autosend-toggle'),
+      restoreBanner:   document.getElementById('vc-restore-banner'),
+      clearSessionBtn: document.getElementById('vc-clear-session-btn'),
     };
 
     // Apiario selector
@@ -199,6 +203,11 @@ class VoiceControllo {
       }
     });
 
+    // Auto-send toggle
+    this.ui.autoSendToggle?.addEventListener('change', () => {
+      this.autoSend = this.ui.autoSendToggle.checked;
+    });
+
     // Start / Stop
     this.ui.startBtn?.addEventListener('click', () => this._startRecording());
     this.ui.stopBtn?.addEventListener('click',  () => this._stopRecording(true));
@@ -208,6 +217,29 @@ class VoiceControllo {
 
     // Save
     this.ui.saveBtn?.addEventListener('click', () => this._saveAll());
+
+    // Clear session
+    this.ui.clearSessionBtn?.addEventListener('click', () => {
+      if (confirm('Eliminare tutti i dati della sessione corrente? (trascrizioni in coda + controlli elaborati)')) {
+        this._clearSession();
+      }
+    });
+
+    // Avvisa se si naviga via con dati non salvati
+    window.addEventListener('beforeunload', (e) => {
+      if (this.pendingTranscripts.length > 0 || this.entries.length > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+
+    // Ripristina sessione precedente (se presente)
+    if (this._restoreSession()) {
+      if (this.ui.restoreBanner) {
+        this.ui.restoreBanner.classList.remove('d-none');
+        this.ui.restoreBanner.classList.add('d-flex');
+      }
+    }
   }
 
   // ── Speech Recognition init ───────────────────────────────────────────────
@@ -292,7 +324,7 @@ class VoiceControllo {
       const combined = (this.recFinal + ' ' + interim).toLowerCase();
       if (containsTrigger(combined, TRIGGER_STOP)) {
         this._stopRecording(false);
-        if (this.pendingTranscripts.length > 0 || this.recFinal.trim()) {
+        if (this.autoSend && (this.pendingTranscripts.length > 0 || this.recFinal.trim())) {
           this._processBatch();
         }
         return;
@@ -356,6 +388,7 @@ class VoiceControllo {
     this.pendingTranscripts.push(text);
     this._renderQueue();
     if (this.ui.processBtn) this.ui.processBtn.disabled = false;
+    this._saveSession();
   }
 
   _renderQueue() {
@@ -415,6 +448,7 @@ class VoiceControllo {
     if (this.pendingTranscripts.length === 0 && this.ui.processBtn) {
       this.ui.processBtn.disabled = true;
     }
+    this._saveSession();
   }
 
   // ── Gemini processing ─────────────────────────────────────────────────────
@@ -472,6 +506,7 @@ class VoiceControllo {
     }
 
     this.entries.push(...newEntries);
+    this._saveSession();
     this._renderReview();
 
     const status = newEntries.length > 0
@@ -479,6 +514,66 @@ class VoiceControllo {
       : 'Errore — trascrizioni rimesse in coda, riprova';
     this._setStatus(failedTexts.length > 0 && newEntries.length === 0 ? 'error' : 'idle', status);
     this.state = this.entries.length > 0 ? 'review' : 'idle';
+  }
+
+  // ── Session persistence ───────────────────────────────────────────────────
+  _saveSession() {
+    try {
+      sessionStorage.setItem('apiary_vc_session', JSON.stringify({
+        apiarioId:          this.apiarioId,
+        apiarioNome:        this.apiarioNome,
+        pendingTranscripts: this.pendingTranscripts,
+        entries:            this.entries,
+        ts:                 Date.now(),
+      }));
+    } catch (_) {}
+  }
+
+  _restoreSession() {
+    try {
+      const raw = sessionStorage.getItem('apiary_vc_session');
+      if (!raw) return false;
+      const s = JSON.parse(raw);
+      // Scarta sessioni più vecchie di 12h
+      if (!s.ts || Date.now() - s.ts > 12 * 3600 * 1000) {
+        sessionStorage.removeItem('apiary_vc_session');
+        return false;
+      }
+      if (!(s.pendingTranscripts?.length) && !(s.entries?.length)) return false;
+
+      this.apiarioId          = s.apiarioId;
+      this.apiarioNome        = s.apiarioNome;
+      this.pendingTranscripts = s.pendingTranscripts || [];
+      this.entries            = s.entries            || [];
+
+      // Ripristina selezione nel <select> apiario
+      if (this.apiarioId && this.ui.apiarioSel) {
+        this.ui.apiarioSel.value = this.apiarioId;
+      }
+      if (this.pendingTranscripts.length > 0) {
+        this._renderQueue();
+        if (this.ui.processBtn) this.ui.processBtn.disabled = false;
+      }
+      if (this.entries.length > 0) {
+        this._renderReview();
+        this.state = 'review';
+      }
+      return true;
+    } catch (_) { return false; }
+  }
+
+  _clearSession() {
+    sessionStorage.removeItem('apiary_vc_session');
+    this.pendingTranscripts = [];
+    this.entries            = [];
+    this._renderQueue();
+    this._renderReview();
+    if (this.ui.restoreBanner) {
+      this.ui.restoreBanner.classList.add('d-none');
+      this.ui.restoreBanner.classList.remove('d-flex');
+    }
+    this._setStatus('idle', 'Pronto');
+    this.state = 'idle';
   }
 
   // ── Toast notifica ────────────────────────────────────────────────────────
@@ -634,6 +729,7 @@ class VoiceControllo {
 
   removeEntry(idx) {
     this.entries.splice(idx, 1);
+    this._saveSession();
     this._renderReview();
   }
 
@@ -679,6 +775,7 @@ class VoiceControllo {
         // Rimuovi le entry salvate con successo
         const savedArnias = new Set(ok.map(r => r.arnia));
         this.entries = this.entries.filter(e => !savedArnias.has(e.arnia_numero));
+        this._saveSession();
         this._renderReview();
       }
     } catch (err) {
