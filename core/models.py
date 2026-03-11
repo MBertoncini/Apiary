@@ -1349,3 +1349,46 @@ class AnalisiTelaino(models.Model):
         verbose_name = "Analisi Telaino"
         verbose_name_plural = "Analisi Telaini"
         ordering = ['-data', '-data_registrazione']
+
+
+class Notifica(models.Model):
+    """Centro notifiche per ogni utente"""
+    TIPO_CHOICES = [
+        ('invito_gruppo', 'Invito Gruppo'),
+        ('membro_aggiunto', 'Aggiunto al Gruppo'),
+        ('membro_rimosso', 'Rimosso dal Gruppo'),
+        ('invito_accettato', 'Invito Accettato'),
+        ('invito_rifiutato', 'Invito Rifiutato'),
+        ('controllo_scaduto', 'Controllo Scaduto'),
+        ('trattamento_scaduto', 'Trattamento Scaduto'),
+        ('trattamento_promemoria', 'Promemoria Trattamento'),
+        ('fioritura_vicina', 'Fioritura Vicina'),
+        ('regina_assente', 'Regina Assente'),
+        ('sistema', 'Notifica di Sistema'),
+    ]
+    PRIORITA_CHOICES = [
+        ('bassa', 'Bassa'),
+        ('media', 'Media'),
+        ('alta', 'Alta'),
+    ]
+
+    utente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifiche')
+    tipo = models.CharField(max_length=30, choices=TIPO_CHOICES)
+    titolo = models.CharField(max_length=200)
+    messaggio = models.TextField()
+    letta = models.BooleanField(default=False)
+    data_creazione = models.DateTimeField(auto_now_add=True)
+    link = models.CharField(max_length=500, blank=True, null=True)
+    mittente = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='notifiche_inviate'
+    )
+    priorita = models.CharField(max_length=10, choices=PRIORITA_CHOICES, default='media')
+
+    def __str__(self):
+        return f"[{self.get_tipo_display()}] {self.utente.username}: {self.titolo}"
+
+    class Meta:
+        ordering = ['-data_creazione']
+        verbose_name = 'Notifica'
+        verbose_name_plural = 'Notifiche'

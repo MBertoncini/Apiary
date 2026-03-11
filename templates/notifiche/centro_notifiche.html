@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Centro Notifiche — Apiary{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+  <div class="d-flex align-items-center gap-3">
+    <div class="page-icon" style="background: var(--honey);">
+      <i class="bi bi-bell-fill text-white"></i>
+    </div>
+    <div>
+      <h1 class="page-title mb-0">Centro Notifiche</h1>
+      <p class="page-subtitle mb-0">
+        {% if totale_non_lette > 0 %}
+          <span class="badge" style="background:var(--honey);color:#fff;">{{ totale_non_lette }}</span>
+          non {{ totale_non_lette|pluralize:"letta,lette" }}
+        {% else %}
+          Tutto letto
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="card mb-4">
+  <div class="card-body d-flex flex-wrap gap-3 align-items-center justify-content-between">
+    <!-- Filtri tipo -->
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <a href="{% url 'centro_notifiche' %}"
+         class="btn btn-sm {% if not tipo_filtro and not solo_non_lette %}btn-honey{% else %}btn-outline-secondary{% endif %}">
+        Tutte
+      </a>
+      <a href="?non_lette=1"
+         class="btn btn-sm {% if solo_non_lette %}btn-honey{% else %}btn-outline-secondary{% endif %}">
+        <i class="bi bi-circle-fill me-1" style="font-size:.5rem;vertical-align:middle;"></i> Non lette
+      </a>
+      {% for tipo_val, tipo_label in tipi_disponibili %}
+      <a href="?tipo={{ tipo_val }}"
+         class="btn btn-sm {% if tipo_filtro == tipo_val %}btn-honey{% else %}btn-outline-secondary{% endif %}">
+        {{ tipo_label }}
+      </a>
+      {% endfor %}
+    </div>
+    <!-- Azioni -->
+    <form method="post" action="{% url 'segna_tutte_notifiche_lette' %}" class="d-inline">
+      {% csrf_token %}
+      <button class="btn btn-sm btn-outline-success" type="submit">
+        <i class="bi bi-check2-all me-1"></i> Segna tutte come lette
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Lista notifiche -->
+{% if notifiche %}
+<div class="notifiche-full-list">
+  {% for n in notifiche %}
+  <div class="card notifica-card mb-2 {% if not n.letta %}non-letta{% endif %} priorita-{{ n.priorita }}"
+       id="notifica-{{ n.id }}">
+    <div class="card-body d-flex align-items-start gap-3">
+
+      <!-- Icona tipo -->
+      <div class="notifica-full-icon">
+        {% if n.tipo == 'invito_gruppo' %}<i class="bi bi-person-plus-fill text-primary"></i>
+        {% elif n.tipo == 'invito_accettato' %}<i class="bi bi-check-circle-fill text-success"></i>
+        {% elif n.tipo == 'invito_rifiutato' %}<i class="bi bi-x-circle-fill text-danger"></i>
+        {% elif n.tipo == 'membro_aggiunto' %}<i class="bi bi-people-fill text-info"></i>
+        {% elif n.tipo == 'membro_rimosso' %}<i class="bi bi-person-dash-fill text-warning"></i>
+        {% elif n.tipo == 'fioritura_vicina' %}<i class="bi bi-flower1 text-warning"></i>
+        {% elif n.tipo == 'controllo_scaduto' %}<i class="bi bi-exclamation-triangle-fill text-warning"></i>
+        {% elif n.tipo == 'trattamento_scaduto' %}<i class="bi bi-capsule text-danger"></i>
+        {% elif n.tipo == 'trattamento_promemoria' %}<i class="bi bi-capsule text-primary"></i>
+        {% elif n.tipo == 'regina_assente' %}<i class="bi bi-crown-fill text-danger"></i>
+        {% else %}<i class="bi bi-info-circle-fill text-secondary"></i>{% endif %}
+      </div>
+
+      <!-- Contenuto -->
+      <div class="flex-grow-1">
+        <div class="d-flex justify-content-between align-items-start mb-1">
+          <h6 class="mb-0 fw-semibold {% if not n.letta %}text-dark{% else %}text-muted{% endif %}">
+            {% if not n.letta %}<span class="notifica-dot me-1"></span>{% endif %}
+            {{ n.titolo }}
+          </h6>
+          <span class="notifica-priorita-badge priorita-{{ n.priorita }}">
+            {{ n.get_priorita_display }}
+          </span>
+        </div>
+        <p class="mb-1 text-muted small">{{ n.messaggio }}</p>
+        <div class="d-flex gap-3 align-items-center">
+          <span class="text-muted" style="font-size:.75rem;">
+            <i class="bi bi-clock me-1"></i>{{ n.data_creazione|timesince }} fa
+          </span>
+          {% if n.mittente %}
+          <span class="text-muted" style="font-size:.75rem;">
+            <i class="bi bi-person me-1"></i>{{ n.mittente.get_full_name|default:n.mittente.username }}
+          </span>
+          {% endif %}
+          <span class="badge rounded-pill bg-light text-secondary border" style="font-size:.7rem;">
+            {{ n.get_tipo_display }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Azioni -->
+      <div class="d-flex flex-column gap-1 align-items-end">
+        {% if n.link %}
+        <a href="{{ n.link }}" class="btn btn-sm btn-outline-primary notifica-action-btn"
+           data-notifica-id="{{ n.id }}" title="Vai alla pagina">
+          <i class="bi bi-arrow-right"></i>
+        </a>
+        {% endif %}
+        {% if not n.letta %}
+        <form method="post" action="{% url 'segna_notifica_letta' n.id %}">
+          {% csrf_token %}
+          <button class="btn btn-sm btn-outline-success notifica-action-btn" title="Segna come letta">
+            <i class="bi bi-check2"></i>
+          </button>
+        </form>
+        {% endif %}
+        <form method="post" action="{% url 'elimina_notifica' n.id %}">
+          {% csrf_token %}
+          <button class="btn btn-sm btn-outline-danger notifica-action-btn" title="Elimina">
+            <i class="bi bi-trash"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i class="bi bi-bell-slash" style="font-size:3rem;color:var(--border-warm);"></i>
+    <h5 class="mt-3 text-muted">Nessuna notifica</h5>
+    <p class="text-muted">
+      {% if tipo_filtro or solo_non_lette %}
+        Nessuna notifica corrisponde ai filtri selezionati.
+        <a href="{% url 'centro_notifiche' %}">Mostra tutte</a>
+      {% else %}
+        Sei in pari! Non hai notifiche al momento.
+      {% endif %}
+    </p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Segna come letta e vai al link (per bottoni freccia)
+document.querySelectorAll('.notifica-action-btn[data-notifica-id]').forEach(function(btn) {
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    const id = this.dataset.notificaId;
+    const href = this.getAttribute('href');
+    fetch(`/notifiche/${id}/segna-letta/`, {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || ''
+      }
+    }).finally(() => { if (href) window.location.href = href; });
+  });
+});
+</script>
+{% endblock %}

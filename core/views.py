@@ -25,7 +25,7 @@ from .models import (
     Apiario, Arnia, ControlloArnia, Fioritura, Pagamento, QuotaUtente,
     TrattamentoSanitario, TipoTrattamento, Gruppo, MembroGruppo, InvitoGruppo, Melario, Smielatura, Regina, StoriaRegine,
     CategoriaAttrezzatura, Attrezzatura, ManutenzioneAttrezzatura, PrestitoAttrezzatura, SpesaAttrezzatura, InventarioAttrezzature,
-    ApiarioMapLayout, Cliente, Vendita, DettaglioVendita, Invasettamento, Nucleo, ControlloNucleo,
+    ApiarioMapLayout, Cliente, Vendita, DettaglioVendita, Invasettamento, Nucleo, ControlloNucleo, Notifica,
 )
 from .forms import (
     ApiarioForm, ArniaForm, ControlloArniaForm, FiorituraForm, PagamentoForm,
@@ -2290,14 +2290,21 @@ def invita_utente(request, user_id):
             data_scadenza=timezone.now() + timezone.timedelta(days=7)
         )
         invito.save()
-        
+
         # Invia l'email (se la funzione è disponibile)
         try:
             from .views import invia_email_invito
             invia_email_invito(invito)
         except:
             pass
-        
+
+        # Notifica in-app all'utente invitato
+        try:
+            from .notifications import notifica_invito_gruppo
+            notifica_invito_gruppo(invito)
+        except Exception:
+            pass
+
         messages.success(request, f"Invito inviato a {utente.username}.")
         return redirect('dettaglio_gruppo', gruppo_id=gruppo.id)
         
@@ -2459,19 +2466,33 @@ def gestisci_invito(request, invito_id, azione):
             gruppo=invito.gruppo,
             ruolo=invito.ruolo_proposto
         )
-        
+
         # Aggiorna lo stato dell'invito
         invito.stato = 'accettato'
         invito.save()
-        
+
+        # Notifica all'invitante
+        try:
+            from .notifications import notifica_invito_accettato
+            notifica_invito_accettato(invito)
+        except Exception:
+            pass
+
         messages.success(request, f"Hai accettato l'invito al gruppo '{invito.gruppo.nome}'.")
         return redirect('dettaglio_gruppo', gruppo_id=invito.gruppo.id)
-    
+
     elif azione == 'rifiuta':
         # Aggiorna lo stato dell'invito
         invito.stato = 'rifiutato'
         invito.save()
-        
+
+        # Notifica all'invitante
+        try:
+            from .notifications import notifica_invito_rifiutato
+            notifica_invito_rifiutato(invito)
+        except Exception:
+            pass
+
         messages.info(request, f"Hai rifiutato l'invito al gruppo '{invito.gruppo.nome}'.")
         return redirect('gestione_gruppi')
     
@@ -2586,19 +2607,33 @@ def attiva_invito(request, token):
                 gruppo=invito.gruppo,
                 ruolo=invito.ruolo_proposto
             )
-            
+
             # Aggiorna lo stato dell'invito
             invito.stato = 'accettato'
             invito.save()
-            
+
+            # Notifica all'invitante
+            try:
+                from .notifications import notifica_invito_accettato
+                notifica_invito_accettato(invito)
+            except Exception:
+                pass
+
             messages.success(request, f"Hai accettato l'invito al gruppo '{invito.gruppo.nome}'.")
             return redirect('dettaglio_gruppo', gruppo_id=invito.gruppo.id)
-        
+
         elif 'rifiuta' in request.POST:
             # Aggiorna lo stato dell'invito
             invito.stato = 'rifiutato'
             invito.save()
-            
+
+            # Notifica all'invitante
+            try:
+                from .notifications import notifica_invito_rifiutato
+                notifica_invito_rifiutato(invito)
+            except Exception:
+                pass
+
             messages.info(request, f"Hai rifiutato l'invito al gruppo '{invito.gruppo.nome}'.")
             return redirect('gestione_gruppi')
     
@@ -5480,3 +5515,89 @@ def converti_nucleo_in_arnia(request, pk):
         messages.success(request, f"Nucleo #{nucleo.numero} convertito in Arnia #{arnia.numero}!")
         return redirect('visualizza_apiario', apiario_id=nucleo.apiario_id)
     return render(request, 'nuclei/conferma_converti_nucleo.html', {'nucleo': nucleo})
+
+
+# ============================================================
+# CENTRO NOTIFICHE
+# ============================================================
+
+@login_required
+def centro_notifiche(request):
+    """Vista principale del centro notifiche"""
+    tipo_filtro = request.GET.get('tipo', '')
+    solo_non_lette = request.GET.get('non_lette', '') == '1'
+
+    notifiche_qs = Notifica.objects.filter(utente=request.user)
+    if tipo_filtro:
+        notifiche_qs = notifiche_qs.filter(tipo=tipo_filtro)
+    if solo_non_lette:
+        notifiche_qs = notifiche_qs.filter(letta=False)
+
+    tipi_disponibili = Notifica.TIPO_CHOICES
+    context = {
+        'notifiche': notifiche_qs,
+        'tipo_filtro': tipo_filtro,
+        'solo_non_lette': solo_non_lette,
+        'tipi_disponibili': tipi_disponibili,
+        'totale_non_lette': Notifica.objects.filter(utente=request.user, letta=False).count(),
+    }
+    return render(request, 'notifiche/centro_notifiche.html', context)
+
+
+@login_required
+def segna_notifica_letta(request, notifica_id):
+    """Segna una singola notifica come letta (AJAX o redirect)"""
+    if request.method == 'POST':
+        notifica = get_object_or_404(Notifica, pk=notifica_id, utente=request.user)
+        notifica.letta = True
+        notifica.save()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'ok': True, 'non_lette': Notifica.objects.filter(utente=request.user, letta=False).count()})
+        if notifica.link:
+            return redirect(notifica.link)
+        return redirect('centro_notifiche')
+    return JsonResponse({'ok': False}, status=405)
+
+
+@login_required
+def segna_tutte_notifiche_lette(request):
+    """Segna tutte le notifiche come lette"""
+    if request.method == 'POST':
+        Notifica.objects.filter(utente=request.user, letta=False).update(letta=True)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'ok': True, 'non_lette': 0})
+        messages.success(request, "Tutte le notifiche sono state segnate come lette.")
+    return redirect('centro_notifiche')
+
+
+@login_required
+def elimina_notifica(request, notifica_id):
+    """Elimina una notifica"""
+    if request.method == 'POST':
+        notifica = get_object_or_404(Notifica, pk=notifica_id, utente=request.user)
+        notifica.delete()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'ok': True, 'non_lette': Notifica.objects.filter(utente=request.user, letta=False).count()})
+        messages.success(request, "Notifica eliminata.")
+    return redirect('centro_notifiche')
+
+
+@login_required
+def get_notifiche_recenti(request):
+    """API JSON per polling notifiche recenti (usato dal frontend)"""
+    notifiche = Notifica.objects.filter(utente=request.user).order_by('-data_creazione')[:10]
+    data = []
+    for n in notifiche:
+        data.append({
+            'id': n.id,
+            'tipo': n.tipo,
+            'titolo': n.titolo,
+            'messaggio': n.messaggio,
+            'letta': n.letta,
+            'priorita': n.priorita,
+            'link': n.link or '',
+            'data': n.data_creazione.strftime('%d/%m/%Y %H:%M'),
+            'mittente': n.mittente.get_full_name() or n.mittente.username if n.mittente else '',
+        })
+    non_lette = Notifica.objects.filter(utente=request.user, letta=False).count()
+    return JsonResponse({'notifiche': data, 'non_lette': non_lette})

@@ -177,6 +177,15 @@
       Ricerca avanzata
     </a>
 
+    <a href="{% url 'centro_notifiche' %}"
+       class="sidebar-link {% if 'notifiche' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-bell nav-icon"></i>
+      Notifiche
+      {% if notifiche_non_lette > 0 %}
+      <span class="ms-auto badge rounded-pill" style="background:var(--honey);color:#fff;font-size:.65rem;">{{ notifiche_non_lette }}</span>
+      {% endif %}
+    </a>
+
   </nav>
 
   <!-- User info at bottom -->
@@ -222,6 +231,65 @@
     <a href="{% url 'crea_apiario' %}" class="topbar-icon-btn d-none d-md-flex" title="Nuovo Apiario">
       <i class="bi bi-plus-circle"></i>
     </a>
+
+    <!-- Notification Bell -->
+    <div class="dropdown notifiche-dropdown">
+      <button class="topbar-icon-btn position-relative notifiche-bell-btn"
+              data-bs-toggle="dropdown" aria-expanded="false"
+              title="Notifiche" id="notificheBell">
+        <i class="bi bi-bell"></i>
+        {% if notifiche_non_lette > 0 %}
+        <span class="notifiche-badge" id="notificheBadge">{{ notifiche_non_lette }}</span>
+        {% else %}
+        <span class="notifiche-badge d-none" id="notificheBadge">0</span>
+        {% endif %}
+      </button>
+      <div class="dropdown-menu dropdown-menu-end notifiche-panel" aria-labelledby="notificheBell">
+        <div class="notifiche-panel-header">
+          <span><i class="bi bi-bell-fill me-1"></i> Notifiche</span>
+          <button class="btn btn-link btn-sm p-0" id="segnaLetteTutte" title="Segna tutte come lette">
+            <i class="bi bi-check2-all"></i> Tutte lette
+          </button>
+        </div>
+        <div class="notifiche-list" id="notificheDropList">
+          {% if notifiche_recenti %}
+            {% for n in notifiche_recenti %}
+            <div class="notifica-item {% if not n.letta %}non-letta{% endif %} priorita-{{ n.priorita }}"
+                 data-id="{{ n.id }}" data-link="{{ n.link|default:'' }}">
+              <div class="notifica-icon">
+                {% if n.tipo == 'invito_gruppo' %}<i class="bi bi-person-plus-fill text-primary"></i>
+                {% elif n.tipo == 'invito_accettato' %}<i class="bi bi-check-circle-fill text-success"></i>
+                {% elif n.tipo == 'invito_rifiutato' %}<i class="bi bi-x-circle-fill text-danger"></i>
+                {% elif n.tipo == 'membro_aggiunto' %}<i class="bi bi-people-fill text-info"></i>
+                {% elif n.tipo == 'fioritura_vicina' %}<i class="bi bi-flower1 text-warning"></i>
+                {% elif n.tipo == 'controllo_scaduto' %}<i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                {% elif n.tipo == 'trattamento_scaduto' or n.tipo == 'trattamento_promemoria' %}<i class="bi bi-capsule text-danger"></i>
+                {% elif n.tipo == 'regina_assente' %}<i class="bi bi-crown-fill text-danger"></i>
+                {% else %}<i class="bi bi-info-circle-fill text-secondary"></i>{% endif %}
+              </div>
+              <div class="notifica-body">
+                <div class="notifica-titolo">{{ n.titolo }}</div>
+                <div class="notifica-meta">{{ n.data_creazione|timesince }} fa</div>
+              </div>
+              <button class="notifica-close" data-id="{{ n.id }}" title="Elimina">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+            {% endfor %}
+          {% else %}
+          <div class="notifiche-empty">
+            <i class="bi bi-bell-slash"></i>
+            <p>Nessuna notifica</p>
+          </div>
+          {% endif %}
+        </div>
+        <div class="notifiche-panel-footer">
+          <a href="{% url 'centro_notifiche' %}">
+            <i class="bi bi-grid me-1"></i> Vedi tutte le notifiche
+          </a>
+        </div>
+      </div>
+    </div>
 
     <!-- User dropdown -->
     <div class="dropdown">
@@ -361,6 +429,8 @@
 {% if user.is_authenticated %}
 <!-- AI Chat Widget -->
 <script src="{% static 'js/ai-chat.js' %}"></script>
+<!-- Notification Center -->
+<script src="{% static 'js/notifications.js' %}"></script>
 {% endif %}
 
 </body>
