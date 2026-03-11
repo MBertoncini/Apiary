@@ -4222,6 +4222,10 @@ class ApiarioCreateView(LoginRequiredMixin, CreateView):
     template_name = 'apiari/form_apiario.html'
     success_url = reverse_lazy('dashboard')
 
+    def form_valid(self, form):
+        form.instance.proprietario = self.request.user
+        return super().form_valid(form)
+
 class FiorituraUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Fioritura
     form_class = FiorituraForm

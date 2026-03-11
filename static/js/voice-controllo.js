@@ -423,6 +423,7 @@ class VoiceControllo {
 
     this.state = 'processing';
     const total = this.pendingTranscripts.length;
+    // Copia locale — la coda originale resta intatta finché non siamo sicuri del successo
     const toProcess = [...this.pendingTranscripts];
     this.pendingTranscripts = [];
     this._renderQueue();
@@ -430,7 +431,9 @@ class VoiceControllo {
 
     this._setStatus('processing', `Elaborazione con Gemini AI… (0/${total})`);
 
-    const newEntries = [];
+    const newEntries  = [];
+    const failedTexts = [];   // transcript che non si sono riusciti a processare
+
     for (let i = 0; i < toProcess.length; i++) {
       this._setStatus('processing', `Elaborazione con Gemini AI… (${i + 1}/${total})`);
       try {
@@ -441,22 +444,57 @@ class VoiceControllo {
         });
         const data = await resp.json();
         if (data.error) {
-          newEntries.push({ _error: data.error, _transcript: toProcess[i] });
+          // Errore Gemini: rimetti il transcript in coda per un eventuale nuovo tentativo
+          failedTexts.push(toProcess[i]);
+          console.warn('[VoiceControllo] Gemini error:', data.error, '| transcript:', toProcess[i]);
         } else {
           newEntries.push(data);
         }
       } catch (e) {
-        newEntries.push({ _error: e.message, _transcript: toProcess[i] });
+        // Errore di rete: il transcript non va perso
+        failedTexts.push(toProcess[i]);
+        console.warn('[VoiceControllo] Network error:', e.message, '| transcript:', toProcess[i]);
       }
 
       // Piccola pausa tra chiamate (come nell'app — evita rate limit)
       if (i < toProcess.length - 1) await sleep(600);
     }
 
+    // I transcript falliti tornano in coda — l'utente può riprovare
+    if (failedTexts.length > 0) {
+      this.pendingTranscripts.push(...failedTexts);
+      this._renderQueue();
+      if (this.ui.processBtn) this.ui.processBtn.disabled = false;
+      this._showToast(
+        `⚠️ ${failedTexts.length} trascrizione/i non elaborate (errore AI/rete) — rimesse in coda per riprovare.`,
+        'warning'
+      );
+    }
+
     this.entries.push(...newEntries);
     this._renderReview();
-    this._setStatus('idle', `Elaborazione completata — ${this.entries.length} arnie`);
-    this.state = 'review';
+
+    const status = newEntries.length > 0
+      ? `Elaborazione completata — ${newEntries.length} arnie ok${failedTexts.length ? `, ${failedTexts.length} in coda da riprovare` : ''}`
+      : 'Errore — trascrizioni rimesse in coda, riprova';
+    this._setStatus(failedTexts.length > 0 && newEntries.length === 0 ? 'error' : 'idle', status);
+    this.state = this.entries.length > 0 ? 'review' : 'idle';
+  }
+
+  // ── Toast notifica ────────────────────────────────────────────────────────
+  _showToast(message, type = 'info') {
+    const colors = { warning: '#F5A623', error: '#dc3545', success: '#198754', info: '#0dcaf0' };
+    const el = document.createElement('div');
+    el.style.cssText = `
+      position:fixed; bottom:24px; right:24px; z-index:9999;
+      background:#fff; border-left:4px solid ${colors[type] || colors.info};
+      border-radius:8px; padding:12px 16px; max-width:360px;
+      box-shadow:0 4px 16px rgba(0,0,0,.15); font-size:.88rem;
+      color:#2C1810; animation:fadeInUp .3s ease;
+    `;
+    el.textContent = message;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 6000);
   }
 
   // ── Review UI ─────────────────────────────────────────────────────────────

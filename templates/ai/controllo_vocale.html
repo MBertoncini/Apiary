@@ -84,6 +84,12 @@ mark.vc-mark {
 .vc-queue-text { word-break: break-word; }
 
 /* ── Trigger hint ─────────────────────────────────────── */
+/* ── Toast ────────────────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity:0; transform:translateY(12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
 .trigger-hint {
   background: #fff8e6; border: 1px solid #F5A623;
   border-radius: 8px; padding: 10px 14px;
