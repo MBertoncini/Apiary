@@ -19,21 +19,32 @@ from .models import Apiario, Arnia, ControlloArnia
 
 # Cache del modello YOLO (caricato una volta sola alla prima richiesta)
 _yolo_model = None
+_yolo_load_error = None  # memorizza l'errore di caricamento per debug
 
 def _get_yolo_model():
-    """Carica e cachea il modello YOLO segmentazione."""
-    global _yolo_model
+    """Carica e cachea il modello YOLO segmentazione. Ritorna (model, error_str)."""
+    global _yolo_model, _yolo_load_error
     if _yolo_model is not None:
-        return _yolo_model
+        return _yolo_model, None
+    if _yolo_load_error is not None:
+        return None, _yolo_load_error
     yolo_path = getattr(settings, 'YOLO_MODEL_PATH', '')
-    if not yolo_path or not os.path.exists(yolo_path):
-        return None
+    if not yolo_path:
+        _yolo_load_error = 'YOLO_MODEL_PATH non configurato'
+        return None, _yolo_load_error
+    if not os.path.exists(yolo_path):
+        _yolo_load_error = f'File modello non trovato: {yolo_path}'
+        return None, _yolo_load_error
     try:
         from ultralytics import YOLO
         _yolo_model = YOLO(yolo_path)
-        return _yolo_model
-    except Exception:
-        return None
+        return _yolo_model, None
+    except ImportError:
+        _yolo_load_error = 'ultralytics non installato'
+        return None, _yolo_load_error
+    except Exception as e:
+        _yolo_load_error = str(e)
+        return None, _yolo_load_error
 
 
 # ---------------------------------------------------------------------------
@@ -246,7 +257,9 @@ def analisi_telaino(request):
 
         # --- YOLO segmentazione ---
         yolo_result = None
-        yolo_model = _get_yolo_model()
+        yolo_model, yolo_load_err = _get_yolo_model()
+        if yolo_load_err:
+            yolo_result = {'error': yolo_load_err}
         if yolo_model is not None:
             try:
                 from PIL import Image as PILImage
