@@ -26,7 +26,6 @@
     object-fit: contain;
   }
 
-  /* Annotated image risultato YOLO */
   #annotatedImg {
     width: 100%;
     border-radius: 10px;
@@ -42,7 +41,7 @@
     color: #3a2a1a;
   }
 
-  .yolo-badge {
+  .det-badge {
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -55,7 +54,7 @@
     color: #2C1810;
     margin: 3px;
   }
-  .yolo-badge .count {
+  .det-badge .count {
     background: #F5A623;
     color: #fff;
     border-radius: 50%;
@@ -66,9 +65,7 @@
   }
 
   .class-icon { font-size: 1rem; }
-
   .model-badge { font-size: .72rem; color: #bbb; font-style: italic; }
-
   .result-card { animation: fadeIn .35s ease; }
   @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } }
 
@@ -101,6 +98,9 @@
   .step-list li.done::before { content: '✓'; color: #F5A623; }
   .step-list li.active { color: #F5A623; font-weight: 600; }
   .step-list li.active::before { content: '◉'; color: #F5A623; }
+
+  .conf-bar-wrap { height: 6px; background: #EAD9BF; border-radius: 3px; flex: 1; }
+  .conf-bar      { height: 6px; border-radius: 3px; background: #F5A623; }
 </style>
 {% endblock %}
 
@@ -108,7 +108,7 @@
 <div class="page-header">
   <div>
     <h1 class="page-title"><i class="bi bi-camera me-2"></i>Analisi Telaino</h1>
-    <p class="page-subtitle">Carica la foto di un telaino — YOLO rileva api/regine/celle reali, Gemini Vision analizza lo stato della covata</p>
+    <p class="page-subtitle">Carica la foto di un telaino — il modello locale rileva api, fuchi, regine e celle reali</p>
   </div>
 </div>
 
@@ -119,7 +119,6 @@
     <div class="card">
       <div class="card-body" style="position:relative;">
 
-        <!-- Drop zone -->
         <div class="drop-zone mb-3" id="dropZone">
           <img id="previewImg" alt="Anteprima">
           <div id="dropPlaceholder">
@@ -127,7 +126,6 @@
             <p class="mt-2 mb-1 fw-medium">Trascina qui la foto</p>
             <p class="small text-muted mb-0">oppure clicca per sceglierla</p>
           </div>
-          <!-- Loading overlay sul drop zone -->
           <div id="loadingOverlay">
             <div class="spinner-border text-amber" style="width:2.5rem;height:2.5rem;" role="status"></div>
             <div id="loadingMsg" class="small fw-semibold text-amber mt-1">Avvio…</div>
@@ -135,11 +133,10 @@
         </div>
         <input type="file" id="imageInput" accept="image/*" style="display:none">
 
-        <!-- Progress steps -->
         <ul class="step-list mb-3" id="stepList" style="display:none">
           <li id="step-upload">Caricamento immagine</li>
-          <li id="step-yolo">Segmentazione YOLO</li>
-          <li id="step-gemini">Analisi Gemini Vision</li>
+          <li id="step-detect">Rilevamento oggetti</li>
+          <li id="step-analysis">Analisi diagnostica</li>
         </ul>
 
         <div class="d-grid">
@@ -151,17 +148,17 @@
       </div>
     </div>
 
-    <!-- Classi YOLO info -->
+    <!-- Classi rilevate -->
     <div class="card mt-3">
       <div class="card-body">
         <h6 class="fw-semibold mb-2" style="font-size:.85rem;color:#888;text-transform:uppercase;letter-spacing:.05em;">
           Classi rilevate dal modello
         </h6>
         <div>
-          <span class="yolo-badge"><span class="class-icon">🐝</span> Operaia (bees)</span>
-          <span class="yolo-badge"><span class="class-icon">🐝</span> Fuco (drone)</span>
-          <span class="yolo-badge"><span class="class-icon">👑</span> Regina (queenbees)</span>
-          <span class="yolo-badge"><span class="class-icon">🔷</span> Cella reale (royal cell)</span>
+          <span class="det-badge"><span class="class-icon">🐝</span> Operaia</span>
+          <span class="det-badge"><span class="class-icon">🐝</span> Fuco</span>
+          <span class="det-badge"><span class="class-icon">👑</span> Regina</span>
+          <span class="det-badge"><span class="class-icon">🔷</span> Cella reale</span>
         </div>
       </div>
     </div>
@@ -170,34 +167,43 @@
   <!-- ===== Colonna risultati ===== -->
   <div class="col-lg-8" id="resultsCol" style="display:none">
 
-    <!-- Immagine annotata YOLO -->
-    <div class="card result-card mb-3" id="yoloImgCard" style="display:none">
+    <!-- Immagine annotata -->
+    <div class="card result-card mb-3" id="detImgCard" style="display:none">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <h6 class="fw-semibold mb-0">
-            <i class="bi bi-grid-3x3-gap me-2 text-amber"></i>Segmentazione YOLO
+            <i class="bi bi-grid-3x3-gap me-2 text-amber"></i>Rilevamento
           </h6>
-          <div id="yoloBadges"></div>
+          <div id="detBadges"></div>
         </div>
-        <img id="annotatedImg" alt="Immagine annotata con maschere YOLO">
-        <p class="small text-muted mt-2 mb-0" id="yoloSubtitle"></p>
+        <img id="annotatedImg" alt="Immagine annotata">
+        <div class="d-flex align-items-center gap-2 mt-2">
+          <p class="small text-muted mb-0" id="detSubtitle"></p>
+          <div class="ms-auto d-flex align-items-center gap-2" id="confRow" style="display:none!important">
+            <span class="small text-muted">Conf. media:</span>
+            <div class="conf-bar-wrap" style="width:80px">
+              <div class="conf-bar" id="confBar" style="width:0%"></div>
+            </div>
+            <span class="small fw-semibold" id="confVal"></span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Solo conteggi (se nessuna immagine annotata) -->
-    <div class="card result-card mb-3" id="yoloCountsCard" style="display:none">
+    <!-- Solo conteggi (fallback senza immagine) -->
+    <div class="card result-card mb-3" id="detCountsCard" style="display:none">
       <div class="card-body">
-        <h6 class="fw-semibold mb-2"><i class="bi bi-grid-3x3-gap me-2 text-amber"></i>Rilevamento YOLO</h6>
-        <div id="yoloCountsContent"></div>
+        <h6 class="fw-semibold mb-2"><i class="bi bi-grid-3x3-gap me-2 text-amber"></i>Rilevamento</h6>
+        <div id="detCountsContent"></div>
       </div>
     </div>
 
-    <!-- Analisi Gemini -->
-    <div class="card result-card" id="geminiCard" style="display:none">
+    <!-- Analisi diagnostica locale -->
+    <div class="card result-card" id="analysisCard" style="display:none">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-2">
           <h6 class="fw-semibold mb-0">
-            <i class="bi bi-stars me-2 text-amber"></i>Analisi Gemini Vision
+            <i class="bi bi-clipboard2-pulse me-2 text-amber"></i>Analisi diagnostica
           </h6>
           <span class="model-badge" id="modelUsed"></span>
         </div>
@@ -222,16 +228,20 @@
   const stepList      = document.getElementById('stepList');
   const resultsCol    = document.getElementById('resultsCol');
   const annotatedImg  = document.getElementById('annotatedImg');
-  const yoloImgCard   = document.getElementById('yoloImgCard');
-  const yoloBadges    = document.getElementById('yoloBadges');
-  const yoloSubtitle  = document.getElementById('yoloSubtitle');
-  const yoloCountsCard   = document.getElementById('yoloCountsCard');
-  const yoloCountsContent = document.getElementById('yoloCountsContent');
-  const geminiCard    = document.getElementById('geminiCard');
+  const detImgCard    = document.getElementById('detImgCard');
+  const detBadges     = document.getElementById('detBadges');
+  const detSubtitle   = document.getElementById('detSubtitle');
+  const confRow       = document.getElementById('confRow');
+  const confBar       = document.getElementById('confBar');
+  const confVal       = document.getElementById('confVal');
+  const detCountsCard    = document.getElementById('detCountsCard');
+  const detCountsContent = document.getElementById('detCountsContent');
+  const analysisCard  = document.getElementById('analysisCard');
   const analysisText  = document.getElementById('analysisText');
   const modelUsed     = document.getElementById('modelUsed');
 
   const CLASS_ICONS = { bees: '🐝', drone: '🐝', queenbees: '👑', 'royal cell': '🔷' };
+  const CLASS_LABELS = { bees: 'Operaie', drone: 'Fuchi', queenbees: 'Regine', 'royal cell': 'Celle reali' };
   let selectedFile = null;
 
   // ── File selection ──────────────────────────────────────────────────────
@@ -239,8 +249,7 @@
   dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
   dropZone.addEventListener('drop', e => {
-    e.preventDefault();
-    dropZone.classList.remove('dragover');
+    e.preventDefault(); dropZone.classList.remove('dragover');
     const f = e.dataTransfer.files[0];
     if (f && f.type.startsWith('image/')) setFile(f);
   });
@@ -256,14 +265,12 @@
     };
     reader.readAsDataURL(file);
     analyzeBtn.disabled = false;
-    // Reset results
     resultsCol.style.display = 'none';
-    yoloImgCard.style.display = 'none';
-    yoloCountsCard.style.display = 'none';
-    geminiCard.style.display = 'none';
+    detImgCard.style.display = 'none';
+    detCountsCard.style.display = 'none';
+    analysisCard.style.display = 'none';
   }
 
-  // ── Steps helper ────────────────────────────────────────────────────────
   function setStep(id, state) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -280,16 +287,16 @@
     loadingOvl.classList.add('show');
     stepList.style.display = 'block';
     setStep('step-upload', 'active');
-    setStep('step-yolo', '');
-    setStep('step-gemini', '');
+    setStep('step-detect', '');
+    setStep('step-analysis', '');
 
     try {
       const formData = new FormData();
       formData.append('image', selectedFile);
 
       setStep('step-upload', 'done');
-      setStep('step-yolo', 'active');
-      loadingMsg.textContent = 'Segmentazione YOLO…';
+      setStep('step-detect', 'active');
+      loadingMsg.textContent = 'Rilevamento in corso…';
 
       const resp = await fetch('{% url "analisi_telaino" %}', {
         method: 'POST',
@@ -297,68 +304,70 @@
         headers: { 'X-CSRFToken': getCsrf() },
       });
 
-      setStep('step-yolo', 'done');
-      setStep('step-gemini', 'active');
-      loadingMsg.textContent = 'Analisi Gemini…';
+      setStep('step-detect', 'done');
+      setStep('step-analysis', 'active');
+      loadingMsg.textContent = 'Analisi diagnostica…';
 
       const data = await resp.json();
 
-      setStep('step-gemini', 'done');
+      setStep('step-analysis', 'done');
       loadingOvl.classList.remove('show');
       analyzeBtn.disabled = false;
       resultsCol.style.display = 'block';
 
-      if (data.error) {
-        alert('Errore: ' + data.error);
-        return;
-      }
+      if (data.error) { alert('Errore: ' + data.error); return; }
 
-      // ── YOLO annotated image ──
-      const yolo = data.yolo || {};
-      if (yolo.annotated_image) {
-        annotatedImg.src = 'data:image/jpeg;base64,' + yolo.annotated_image;
-        // Badges
-        yoloBadges.innerHTML = '';
-        if (yolo.summary) {
-          for (const [cls, cnt] of Object.entries(yolo.summary)) {
-            const icon = CLASS_ICONS[cls] || '•';
-            yoloBadges.innerHTML += `
-              <span class="yolo-badge">
-                <span class="class-icon">${icon}</span> ${cls}
+      // ── Detection results ──
+      const det = data.yolo || {};
+
+      if (det.annotated_image) {
+        annotatedImg.src = 'data:image/jpeg;base64,' + det.annotated_image;
+        detBadges.innerHTML = '';
+        if (det.summary) {
+          for (const [cls, cnt] of Object.entries(det.summary)) {
+            const icon  = CLASS_ICONS[cls]  || '•';
+            const label = CLASS_LABELS[cls] || cls;
+            detBadges.innerHTML += `
+              <span class="det-badge">
+                <span class="class-icon">${icon}</span> ${label}
                 <span class="count">${cnt}</span>
               </span>`;
           }
         }
-        const tot = (yolo.detections || []).length;
-        yoloSubtitle.textContent = tot > 0
-          ? `${tot} oggetti rilevati con conf ≥ 0.5`
-          : 'Nessun oggetto rilevato con conf ≥ 0.5';
-        yoloImgCard.style.display = 'block';
+        const tot = (det.detections || []).length;
+        detSubtitle.textContent = tot > 0
+          ? `${tot} oggetti rilevati`
+          : 'Nessun oggetto rilevato';
 
-      } else if (yolo.summary && Object.keys(yolo.summary).length > 0) {
-        // Fallback: solo conteggi senza immagine
-        let html = '';
-        for (const [cls, cnt] of Object.entries(yolo.summary)) {
-          const icon = CLASS_ICONS[cls] || '•';
-          html += `<span class="yolo-badge"><span class="class-icon">${icon}</span> ${cls} <span class="count">${cnt}</span></span>`;
+        if (det.avg_confidence != null) {
+          const pct = Math.round(det.avg_confidence * 100);
+          confBar.style.width = pct + '%';
+          confVal.textContent = pct + '%';
+          confRow.style.removeProperty('display');
         }
-        yoloCountsContent.innerHTML = html;
-        yoloCountsCard.style.display = 'block';
 
-      } else if (yolo.nota) {
-        yoloCountsContent.innerHTML = `<p class="small text-muted mb-0">${yolo.nota}</p>`;
-        yoloCountsCard.style.display = 'block';
-      } else if (yolo.error) {
-        yoloCountsContent.innerHTML = `<p class="small text-danger mb-0">YOLO error: ${yolo.error}</p>`;
-        yoloCountsCard.style.display = 'block';
+        detImgCard.style.display = 'block';
+
+      } else if (det.summary && Object.values(det.summary).some(v => v > 0)) {
+        let html = '';
+        for (const [cls, cnt] of Object.entries(det.summary)) {
+          const icon  = CLASS_ICONS[cls]  || '•';
+          const label = CLASS_LABELS[cls] || cls;
+          html += `<span class="det-badge"><span class="class-icon">${icon}</span> ${label} <span class="count">${cnt}</span></span>`;
+        }
+        detCountsContent.innerHTML = html;
+        detCountsCard.style.display = 'block';
+
+      } else if (det.error) {
+        detCountsContent.innerHTML = `<p class="small text-danger mb-0">${det.error}</p>`;
+        detCountsCard.style.display = 'block';
       }
 
-      // ── Gemini analysis ──
+      // ── Analisi diagnostica ──
       analysisText.textContent = data.analysis || '';
-      modelUsed.textContent = data.model ? 'Modello: ' + data.model : '';
-      geminiCard.style.display = 'block';
+      if (data.model) modelUsed.textContent = data.model;
+      analysisCard.style.display = 'block';
 
-      // Scroll to results
       resultsCol.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     } catch (err) {
