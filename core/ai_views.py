@@ -229,6 +229,7 @@ def _extract_json(text: str) -> dict:
 
 BEE_SYSTEM_PROMPT = """Sei ApiarioAI, un assistente esperto in apicoltura integrato nell'app Apiary.
 Rispondi SEMPRE in italiano, in modo conciso e pratico.
+Hai accesso ai dati reali dell'apiario dell'utente (apiari propri e di gruppo), inclusi gli ultimi controlli, lo stato delle arnie, la presenza della regina, scorte, covata e alertes sanitari. Usa questi dati quando l'utente fa domande specifiche sulle sue arnie.
 Puoi aiutare con: gestione arnie, controlli sanitari, trattamenti varroa, produzione miele,
 identificazione problemi (nosema, covata calcificata, favi saccheggiati, ecc.),
 gestione calendario, regine e nuclei.
@@ -244,15 +245,98 @@ def _get_user_api_key(user):
         return ''
 
 
+def _get_accessible_apiari(user):
+    """
+    Ritorna tutti gli apiari accessibili all'utente:
+    - apiari di cui è proprietario
+    - apiari condivisi con un gruppo di cui l'utente è membro (ruolo admin/editor/viewer)
+    """
+    group_ids = list(
+        MembroGruppo.objects.filter(utente=user).values_list('gruppo_id', flat=True)
+    )
+    from django.db.models import Q
+    qs = Apiario.objects.filter(
+        Q(proprietario=user) |
+        Q(gruppo_id__in=group_ids, condiviso_con_gruppo=True)
+    ).distinct()
+    return qs
+
+
+def _get_user_role_for_apiario(user, apiario):
+    """Ritorna il ruolo dell'utente per un apiario: 'proprietario', 'admin', 'editor', 'viewer'."""
+    if apiario.proprietario_id == user.id:
+        return 'proprietario'
+    if apiario.gruppo_id:
+        membro = MembroGruppo.objects.filter(utente=user, gruppo_id=apiario.gruppo_id).first()
+        if membro:
+            return membro.ruolo
+    return None
+
+
 def _build_user_context(user):
-    """Costruisce il contesto dati apiario dell'utente per il prompt."""
+    """Costruisce il contesto dati apiario dell'utente per il prompt AI, includendo apiari di gruppo."""
     try:
-        apiari = list(Apiario.objects.filter(proprietario=user).values('id', 'nome')[:8])
-        total_arnie = Arnia.objects.filter(apiario__proprietario=user).count()
+        apiari = list(_get_accessible_apiari(user).order_by('nome')[:10])
         if not apiari:
             return ""
-        nomi = ", ".join(a['nome'] for a in apiari)
-        return f"Gestisce {len(apiari)} apiari ({nomi}) con {total_arnie} arnie totali."
+
+        lines = []
+        for apiario in apiari:
+            ruolo = _get_user_role_for_apiario(user, apiario)
+            arnie = list(apiario.arnie.filter(attiva=True).order_by('numero'))
+            n_arnie = len(arnie)
+
+            arnie_details = []
+            for arnia in arnie[:12]:  # max 12 arnie per apiario nel contesto
+                last_ctrl = (
+                    ControlloArnia.objects
+                    .filter(arnia=arnia)
+                    .order_by('-data')
+                    .first()
+                )
+                if last_ctrl:
+                    alerts = []
+                    if not last_ctrl.presenza_regina:
+                        alerts.append("REGINA ASSENTE")
+                    if last_ctrl.celle_reali:
+                        n_celle = last_ctrl.numero_celle_reali
+                        alerts.append(f"CELLE REALI ({n_celle})")
+                    if last_ctrl.sciamatura:
+                        alerts.append("SCIAMATURA")
+                    if last_ctrl.problemi_sanitari:
+                        problema = last_ctrl.note_problemi or 'sì'
+                        alerts.append(f"PROBLEMI SANITARI: {problema}")
+
+                    detail = (
+                        f"Arnia {arnia.numero}: "
+                        f"ultimo controllo {last_ctrl.data}, "
+                        f"covata {last_ctrl.telaini_covata} tel, "
+                        f"scorte {last_ctrl.telaini_scorte} tel, "
+                        f"regina {'presente' if last_ctrl.presenza_regina else 'ASSENTE'}"
+                    )
+                    if alerts:
+                        detail += f" | ALERT: {', '.join(alerts)}"
+                    if last_ctrl.note:
+                        detail += f" | Note: {last_ctrl.note[:100]}"
+                else:
+                    detail = f"Arnia {arnia.numero}: nessun controllo registrato"
+
+                arnie_details.append(detail)
+
+            # Indicazione se apiario è di gruppo
+            if ruolo and ruolo != 'proprietario':
+                proprietario_info = f" (gruppo '{apiario.gruppo.nome}', ruolo: {ruolo})"
+            elif apiario.gruppo and apiario.condiviso_con_gruppo:
+                proprietario_info = f" (condiviso con gruppo '{apiario.gruppo.nome}')"
+            else:
+                proprietario_info = " (proprietario)"
+
+            lines.append(
+                f"Apiario '{apiario.nome}'{proprietario_info}, {n_arnie} arnie attive:\n"
+                + "\n".join(f"  - {d}" for d in arnie_details)
+            )
+
+        return "\n\n".join(lines)
     except Exception:
         return ""
 
@@ -427,7 +511,7 @@ def analisi_telaino(request):
     """Pagina analisi telaino: GET mostra form, POST esegue detection e salva."""
     if request.method == 'GET':
         apiari = list(
-            Apiario.objects.filter(proprietario=request.user)
+            _get_accessible_apiari(request.user)
             .order_by('nome').values('id', 'nome')
         )
         # preseleziona arnia/apiario se passati in querystring
@@ -459,7 +543,7 @@ def analisi_telaino(request):
         if arnia_id and numero_telaino and 'error' not in det_result:
             arnia = Arnia.objects.filter(
                 id=arnia_id,
-                apiario__proprietario=request.user,
+                apiario__in=_get_accessible_apiari(request.user),
             ).first()
             if arnia:
                 summary = det_result.get('summary', {})
@@ -504,10 +588,12 @@ def get_arnie_per_apiario(request):
     apiario_id = request.GET.get('apiario_id')
     if not apiario_id:
         return JsonResponse({'arnie': []})
+    # Verifica che l'apiario sia accessibile all'utente (proprietario o membro del gruppo)
+    if not _get_accessible_apiari(request.user).filter(id=apiario_id).exists():
+        return JsonResponse({'arnie': [], 'error': 'Accesso non autorizzato'}, status=403)
     arnie = list(
         Arnia.objects.filter(
             apiario_id=apiario_id,
-            apiario__proprietario=request.user,
             attiva=True,
         ).order_by('numero').values('id', 'numero', 'colore', 'colore_hex')
     )
@@ -522,7 +608,7 @@ def get_telaini_per_arnia(request):
         return JsonResponse({'config': None})
     last = (
         ControlloArnia.objects
-        .filter(arnia_id=arnia_id, arnia__apiario__proprietario=request.user)
+        .filter(arnia_id=arnia_id, arnia__apiario__in=_get_accessible_apiari(request.user))
         .order_by('-data').first()
     )
     if last and last.telaini_config:
@@ -538,7 +624,7 @@ def get_telaini_per_arnia(request):
 def lista_analisi_telaino(request, arnia_id):
     """Lista storica analisi telaini per un'arnia."""
     arnia = Arnia.objects.filter(
-        id=arnia_id, apiario__proprietario=request.user
+        id=arnia_id, apiario__in=_get_accessible_apiari(request.user)
     ).select_related('apiario').first()
     if not arnia:
         from django.http import Http404
@@ -582,10 +668,16 @@ def crea_controllo_da_analisi(request, analisi_id):
     from django.shortcuts import redirect
     from django.contrib import messages
 
+    # Accesso consentito all'autore o a chi ha accesso all'arnia (proprietario/admin/editor del gruppo)
     analisi = AnalisiTelaino.objects.filter(
-        id=analisi_id, utente=request.user
-    ).select_related('arnia').first()
+        id=analisi_id,
+    ).select_related('arnia__apiario').first()
     if not analisi:
+        from django.http import Http404
+        raise Http404
+    # Verifica permessi sull'apiario dell'arnia
+    ruolo = _get_user_role_for_apiario(request.user, analisi.arnia.apiario)
+    if ruolo not in ('proprietario', 'admin', 'editor'):
         from django.http import Http404
         raise Http404
 
@@ -618,7 +710,7 @@ def crea_controllo_da_analisi(request, analisi_id):
 def voice_controllo_page(request):
     """Pagina batch inserimento vocale controlli."""
     apiari = list(
-        Apiario.objects.filter(proprietario=request.user).order_by('nome').values('id', 'nome')
+        _get_accessible_apiari(request.user).order_by('nome').values('id', 'nome')
     )
     return render(request, 'ai/controllo_vocale.html', {'apiari': apiari})
 
@@ -645,7 +737,7 @@ def voice_process(request):
         # Context sessione (come nell'app)
         context_info = "Nessun apiario selezionato come contesto sessione."
         if apiario_id:
-            apiario = Apiario.objects.filter(id=apiario_id, proprietario=request.user).first()
+            apiario = _get_accessible_apiari(request.user).filter(id=apiario_id).first()
             if apiario:
                 context_info = (
                     f'Contesto sessione: apiario "{apiario.nome}" (ID: {apiario.id}). '
@@ -723,9 +815,13 @@ def voice_save(request):
         if not apiario_id or not entries:
             return JsonResponse({'error': 'Dati mancanti'}, status=400)
 
-        apiario = Apiario.objects.filter(id=apiario_id, proprietario=request.user).first()
+        apiario = _get_accessible_apiari(request.user).filter(id=apiario_id).first()
         if not apiario:
-            return JsonResponse({'error': 'Apiario non trovato'}, status=404)
+            return JsonResponse({'error': 'Apiario non trovato o accesso non autorizzato'}, status=404)
+        # Solo proprietario, admin o editor possono salvare controlli
+        ruolo = _get_user_role_for_apiario(request.user, apiario)
+        if ruolo not in ('proprietario', 'admin', 'editor'):
+            return JsonResponse({'error': 'Permessi insufficienti per salvare controlli (ruolo: viewer)'}, status=403)
 
         results = []
         for entry in entries:
