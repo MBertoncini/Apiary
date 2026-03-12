@@ -5824,3 +5824,12 @@ def get_notifiche_recenti(request):
         })
     non_lette = Notifica.objects.filter(utente=request.user, letta=False).count()
     return JsonResponse({'notifiche': data, 'non_lette': non_lette})
+
+
+# ============================================================
+# DONAZIONE
+# ============================================================
+
+@login_required
+def donazione(request):
+    return render(request, 'donazione/donazione.html')

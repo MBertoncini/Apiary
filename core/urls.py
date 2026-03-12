@@ -176,4 +176,7 @@ urlpatterns = [
     path('ai/controllo-vocale/', ai_views.voice_controllo_page, name='controllo_vocale'),
     path('ai/voice-process/', ai_views.voice_process, name='voice_process'),
     path('ai/voice-save/', ai_views.voice_save, name='voice_save'),
+
+    # Donazione
+    path('donazione/', views.donazione, name='donazione'),
 ]
