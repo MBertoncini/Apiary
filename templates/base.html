@@ -179,6 +179,13 @@
 
   </nav>
 
+  <!-- Donazione link -->
+  <a href="{% url 'donazione' %}"
+     class="sidebar-link {% if request.resolver_match.url_name == 'donazione' %}active{% endif %}"
+     style="margin: .5rem 1rem; background: linear-gradient(90deg,rgba(245,166,35,.18),rgba(245,166,35,.06)); border-radius:10px; color:#F5A623; font-weight:600;">
+    ☕ Offrici un caffè
+  </a>
+
   <!-- User info at bottom -->
   <div class="sidebar-footer">
     <a href="{% url 'profilo' %}" class="sidebar-user" title="Il mio profilo">

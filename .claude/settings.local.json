@@ -28,7 +28,8 @@
       "Bash(ls \"I:\\\\Progetti Git\\\\Apiary\\\\core\\\\ai_models\\\\\" 2>/dev/null || echo \"Cartella non trovata\")",
       "Bash(echo -e \"\\\\n# Modelli AI \\(file grandi\\)\\\\ncore/ai_models/*.pt\\\\ncore/ai_models/*.tflite\\\\ncore/ai_models/*.onnx\" >> \"I:/Progetti Git/Apiary/.gitignore\" && echo OK)",
       "Bash(cd \"I:/Progetti Git/Apiary\" && python -c \"\nimport os, sys\nos.environ['DJANGO_SETTINGS_MODULE'] = 'apiario_manager.settings'\nsys.path.insert\\(0, '.'\\)\nimport django; django.setup\\(\\)\nfrom django.urls import reverse\nprint\\('analisi_telaino:', reverse\\('analisi_telaino'\\)\\)\nprint\\('get_arnie:', reverse\\('get_arnie_per_apiario'\\)\\)\nprint\\('get_telaini:', reverse\\('get_telaini_per_arnia'\\)\\)\nprint\\('lista_analisi:', reverse\\('lista_analisi_telaino', args=[1]\\)\\)\nprint\\('elimina:', reverse\\('elimina_analisi_telaino', args=[1]\\)\\)\nprint\\('crea_controllo:', reverse\\('crea_controllo_da_analisi', args=[1]\\)\\)\nprint\\('OK'\\)\n\" 2>&1 | grep -v \"^20\\\\|oneDNN\\\\|TF_ENABLE\\\\|UserWarning\\\\|warnings\\\\|TensorFlow\\\\|XNNPACK\\\\|INFO\")",
-      "Bash(find . -name \"*piantina*\" -o -name \"*canvas*\" 2>/dev/null | head -20)"
+      "Bash(find . -name \"*piantina*\" -o -name \"*canvas*\" 2>/dev/null | head -20)",
+      "Bash(echo \"\" >> \"I:\\\\Progetti Git\\\\Apiary\\\\core\\\\views.py\" && cat >> \"I:\\\\Progetti Git\\\\Apiary\\\\core\\\\views.py\" << 'EOF'\n\n# ============================================================\n# DONAZIONE\n# ============================================================\n\n@login_required\ndef donazione\\(request\\):\n    return render\\(request, 'donazione/donazione.html'\\)\nEOF)"
     ]
   }
 }
