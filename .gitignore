@@ -1,3 +1,7 @@
+#File android store
+android/app/*.jks
+android/key.properties
+
 db.sqlite3
 .env
 *.env
@@ -8,3 +12,7 @@ __pycache__/
 #File android store
 android/app/*.jks
 android/key.properties
+
+
+media/
+core/ai_models/best.pt
