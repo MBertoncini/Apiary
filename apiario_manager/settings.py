@@ -4,16 +4,15 @@ Django settings for apiario_manager project.
 
 import os
 from pathlib import Path
-
-# Carica variabili da .env (se esiste)
-try:
-    from dotenv import load_dotenv
-    load_dotenv(Path(__file__).resolve().parent.parent / '.env')
-except ImportError:
-    pass
+from dotenv import load_dotenv
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Diciamo a Django di pescare il .env esattamente dalla tua cartella utente su PythonAnywhere
+env_path = '/home/Cible99/.env'
+load_dotenv(dotenv_path=env_path)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-yourkey12345678901234567890')
@@ -21,7 +20,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-yourkey1234567
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-#ALLOWED_HOSTS = ['Cible99.pythonanywhere.com']
+# ALLOWED_HOSTS
 ALLOWED_HOSTS = ['Cible99.pythonanywhere.com', 'localhost', '127.0.0.1']
 
 # Application definition
@@ -65,7 +64,6 @@ REST_FRAMEWORK = {
 }
 
 # Impostazioni JWT
-from datetime import timedelta
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
@@ -100,8 +98,16 @@ WSGI_APPLICATION = 'apiario_manager.wsgi.application'
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT', '3306'), # Il '3306' agisce come valore di default se non trova la variabile
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
+        }
     }
 }
 
@@ -127,6 +133,7 @@ TIME_ZONE = 'Europe/Rome'
 USE_I18N = True
 USE_TZ = True
 
+# Static files & Media
 STATIC_URL = '/static/'
 STATIC_ROOT = '/home/Cible99/Apiary/static'
 MEDIA_URL = '/media/'
@@ -135,11 +142,8 @@ MEDIA_ROOT = '/home/Cible99/Apiary/media'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Email (feedback form donazione)
-EMAIL_BACKEND = os.environ.get(
-    'EMAIL_BACKEND',
-    'django.core.mail.backends.smtp.EmailBackend'
-)
+# Email (feedback form donazione) - Recuperato dal primo file
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
@@ -148,6 +152,7 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@gestioneapiario.it')
 FEEDBACK_RECIPIENT_EMAIL = os.environ.get('FEEDBACK_RECIPIENT_EMAIL', EMAIL_HOST_USER)
 
+# Variabili di progetto personalizzate
 METEO_DATA_RETENTION_DAYS = 120  # Mantieni dati meteo per 120 giorni
 OPENWEATHERMAP_API_KEY = os.environ.get('OPENWEATHERMAP_API_KEY', '')
 
