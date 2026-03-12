@@ -16,7 +16,7 @@ from django.conf import settings
 from datetime import date
 
 from .ai_services import gemini_service
-from .models import Apiario, Arnia, ControlloArnia, AnalisiTelaino
+from .models import Apiario, Arnia, ControlloArnia, AnalisiTelaino, MembroGruppo
 
 # ---------------------------------------------------------------------------
 # ONNX bee detector — modello YOLOv8-seg esportato da best.pt
