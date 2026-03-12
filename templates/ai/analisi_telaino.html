@@ -639,6 +639,24 @@
 
   // Avvio wizard
   setWizard(1);
+
+// Forza l'alert a rimanere visibile annullando eventuali timer o classi di chiusura
+  const coffeeAlert = document.querySelector('.alert-warning');
+  if (coffeeAlert) {
+      // 1. Fermiamo eventuali animazioni jQuery in corso (se presenti nel base.html)
+      if (typeof $ !== 'undefined') {
+          $(coffeeAlert).stop(true, true).show();
+      }
+      
+      // 2. Rimuoviamo classi Bootstrap che potrebbero attivare chiusure automatiche
+      coffeeAlert.classList.remove('fade');
+      
+      // 3. Sovrascriviamo lo stile per assicurarci che resti visibile
+      coffeeAlert.style.display = 'flex';
+      coffeeAlert.style.opacity = '1';
+      coffeeAlert.style.visibility = 'visible';
+  }
+
 })();
 </script>
 {% endblock %}
