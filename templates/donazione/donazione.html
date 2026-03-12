@@ -267,14 +267,6 @@
   <!-- HERO CARD -->
   <div class="donation-hero">
 
-    <!-- Decorative bees -->
-    <div style="position:absolute;top:18px;left:24px;z-index:1;">
-      <span class="bee-deco">🐝</span>
-    </div>
-    <div style="position:absolute;top:28px;right:32px;z-index:1;">
-      <span class="bee-deco" style="animation-delay:2s;">🐝</span>
-    </div>
-
     <!-- Animated cup -->
     <div class="coffee-wrapper">
       <div class="steam-container">
@@ -288,7 +280,7 @@
     <h1 class="hero-title">Offrici un caffè!</h1>
     <p class="hero-subtitle">
       Apiary è sviluppato con passione nel tempo libero da appassionati di apicoltura e tecnologia.
-      Nessun compenso, nessun finanziamento — solo amore per le api e il codice.<br>
+      Nessun compenso, nessun finanziamento - solo amore per le api e il codice.<br>
       Se ti è utile, un piccolo gesto fa la differenza!
     </p>
 
@@ -309,7 +301,7 @@
       </div>
       <div>
         <h6>100% Open Source</h6>
-        <p>Tutto il codice è scritto e mantenuto gratuitamente. Zero budget, massima dedizione.</p>
+        <p>Tutto il codice è scritto e mantenuto gratuitamente.</p>
       </div>
     </div>
 
@@ -339,7 +331,7 @@
       </div>
       <div>
         <h6>Sempre in crescita</h6>
-        <p>Nuove funzionalità ogni mese: AI, mappe, analisi dei telaini, app mobile e molto altro.</p>
+        <p>Nuove funzionalità: AI, mappe, analisi dei telaini, app mobile e molto altro.</p>
         <div class="tech-pills">
           <span class="tech-pill">Django</span>
           <span class="tech-pill">Flutter</span>
@@ -361,16 +353,43 @@
         Non puoi donare? Nessun problema! Puoi comunque supportarci condividendo l'app con altri apicoltori,
         segnalando bug o suggerendo nuove funzionalità.
       </p>
-      <div class="d-flex flex-wrap gap-2 justify-content-center">
-        <a href="{% url 'dashboard' %}" class="btn btn-sm"
-           style="background:#F5A623;color:#fff;border-radius:20px;font-weight:500;">
-          <i class="bi bi-speedometer2 me-1"></i> Torna alla Dashboard
-        </a>
-        <a href="mailto:info@apiary.app?subject=Feedback%20Apiary"
-           class="btn btn-sm btn-outline-secondary" style="border-radius:20px;">
-          <i class="bi bi-envelope me-1"></i> Manda un feedback
-        </a>
-      </div>
+      {% if messages %}
+        {% for msg in messages %}
+          <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show py-2 mt-3" role="alert" style="border-radius:12px;font-size:.9rem;">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="post" action="{% url 'donazione' %}" class="mt-3">
+        {% csrf_token %}
+        <div class="row g-2">
+          <div class="col-sm-6">
+            <input type="text" name="nome" class="form-control form-control-sm" placeholder="Il tuo nome *"
+                   style="border-radius:10px;border-color:#EAD9BF;background:#fff;" required maxlength="100">
+          </div>
+          <div class="col-sm-6">
+            <input type="email" name="email" class="form-control form-control-sm" placeholder="Email (opzionale, per risponderti)"
+                   style="border-radius:10px;border-color:#EAD9BF;background:#fff;" maxlength="254">
+          </div>
+          <div class="col-12">
+            <textarea name="messaggio" class="form-control form-control-sm" rows="3"
+                      placeholder="Messaggio, suggerimento o segnalazione bug... *"
+                      style="border-radius:10px;border-color:#EAD9BF;background:#fff;resize:vertical;"
+                      required maxlength="2000"></textarea>
+          </div>
+          <div class="col-12 d-flex flex-wrap gap-2 align-items-center justify-content-between mt-1">
+            <a href="{% url 'dashboard' %}" class="btn btn-sm"
+               style="background:#F5A623;color:#fff;border-radius:20px;font-weight:500;">
+              <i class="bi bi-speedometer2 me-1"></i> Torna alla Dashboard
+            </a>
+            <button type="submit" class="btn btn-sm btn-outline-secondary" style="border-radius:20px;">
+              <i class="bi bi-send me-1"></i> Invia feedback
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 
