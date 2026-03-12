@@ -5832,4 +5832,34 @@ def get_notifiche_recenti(request):
 
 @login_required
 def donazione(request):
+    if request.method == 'POST':
+        nome = request.POST.get('nome', '').strip()
+        email_mittente = request.POST.get('email', '').strip()
+        messaggio = request.POST.get('messaggio', '').strip()
+
+        if not nome or not messaggio:
+            messages.error(request, 'Compila almeno il nome e il messaggio.')
+            return redirect('donazione')
+
+        from django.conf import settings as django_settings
+        recipient = getattr(django_settings, 'FEEDBACK_RECIPIENT_EMAIL', '') or getattr(django_settings, 'EMAIL_HOST_USER', '')
+
+        if recipient:
+            try:
+                reply_to_line = f"\nRispondi a: {email_mittente}" if email_mittente else ""
+                send_mail(
+                    subject=f'[Apiary Feedback] da {nome}',
+                    message=f"Nome: {nome}{reply_to_line}\n\n{messaggio}",
+                    from_email=django_settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[recipient],
+                    fail_silently=False,
+                )
+                messages.success(request, 'Grazie! Il tuo messaggio è stato inviato.')
+            except Exception:
+                messages.error(request, 'Errore nell\'invio. Riprova più tardi.')
+        else:
+            messages.warning(request, 'Servizio email non configurato.')
+
+        return redirect('donazione')
+
     return render(request, 'donazione/donazione.html')

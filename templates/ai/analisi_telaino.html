@@ -99,6 +99,28 @@
   display: flex; align-items: center; gap: 10px;
   font-size: .88rem; font-weight: 500; color: #2e7d32;
 }
+
+/* ── Coffee Animation ── */
+@keyframes bounceCoffee {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-8px); }
+  60% { transform: translateY(-4px); }
+}
+.animated-coffee {
+  display: inline-block;
+  font-size: 1.8rem;
+  animation: bounceCoffee 2s infinite;
+}
+.coffee-link {
+  color: #c07a00;
+  font-weight: bold;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.coffee-link:hover {
+  color: #F5A623;
+  text-decoration: underline;
+}
 </style>
 {% endblock %}
 
@@ -110,21 +132,28 @@
   </div>
 </div>
 
+<div class="alert alert-warning d-flex align-items-center mb-4 shadow-sm" role="alert" style="border-left: 5px solid #F5A623; background-color: #FFFDF5; color: #4a3518;">
+  <div class="me-3">
+    <span class="animated-coffee">☕</span>
+  </div>
+  <div style="font-size: 0.9rem;">
+    <strong>Nota sull'utilizzo:</strong> L'attuale versione supporta un modello AI ancora molto <em>debole, impreciso ed embrionale</em>, ad ora inadatto a scopi pratici o professionali. Tuttavia, in futuro questa funzionalità potrebbe essere notevolmente migliorata! Se questa funzione ti interessa e vuoi vederla crescere, faccelo sapere supportandoci con una piccola donazione: 
+    <a href="https://buymeacoffee.com/apiary" target="_blank" class="coffee-link">buymeacoffee.com/apiary</a>.
+  </div>
+</div>
+
 <div class="row g-4">
 
-  <!-- ===== Colonna sinistra: form ===== -->
   <div class="col-lg-5">
     <div class="card">
       <div class="card-body" style="position:relative;">
 
-        <!-- Wizard steps -->
         <div class="step-wizard mb-3">
           <div class="step active" id="wz1"><span class="step-num">1</span>Arnia</div>
           <div class="step"        id="wz2"><span class="step-num">2</span>Telaino</div>
           <div class="step"        id="wz3"><span class="step-num">3</span>Foto</div>
         </div>
 
-        <!-- STEP 1: Apiario → Arnia -->
         <div id="panelArnia">
           {% if apiari %}
             <label class="form-label fw-semibold mb-1">Apiario</label>
@@ -146,7 +175,6 @@
           {% endif %}
         </div>
 
-        <!-- STEP 2: Telaino + Facciata -->
         <div id="panelTelaino" style="display:none">
           <div class="d-flex align-items-center justify-content-between mb-2">
             <span class="fw-semibold">Telaino</span>
@@ -176,7 +204,6 @@
           </div>
         </div>
 
-        <!-- STEP 3: Foto + Analizza -->
         <div id="panelFoto" style="display:none">
           <div class="d-flex align-items-center justify-content-between mb-2">
             <span class="fw-semibold" id="telainoLabel">Telaino</span>
@@ -214,7 +241,6 @@
       </div>
     </div>
 
-    <!-- Info classi -->
     <div class="card mt-3">
       <div class="card-body">
         <h6 class="fw-semibold mb-2" style="font-size:.8rem;color:#aaa;text-transform:uppercase;letter-spacing:.05em;">Classi rilevate dal modello</h6>
@@ -228,10 +254,8 @@
     </div>
   </div>
 
-  <!-- ===== Colonna destra: risultati ===== -->
   <div class="col-lg-7" id="resultsCol" style="display:none">
 
-    <!-- Saved banner -->
     <div id="savedBanner" class="saved-banner mb-3" style="display:none">
       <i class="bi bi-check-circle-fill fs-5"></i>
       <div>
@@ -248,7 +272,6 @@
       </div>
     </div>
 
-    <!-- Immagine annotata -->
     <div class="card result-card mb-3" id="detImgCard" style="display:none">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -269,7 +292,6 @@
       </div>
     </div>
 
-    <!-- Solo conteggi (no immagine) -->
     <div class="card result-card mb-3" id="detCountsCard" style="display:none">
       <div class="card-body">
         <h6 class="fw-semibold mb-2"><i class="bi bi-grid-3x3-gap me-2 text-amber"></i>Rilevamento</h6>
@@ -277,7 +299,6 @@
       </div>
     </div>
 
-    <!-- Analisi diagnostica -->
     <div class="card result-card" id="analysisCard" style="display:none">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -290,7 +311,6 @@
       </div>
     </div>
 
-    <!-- Nuova analisi -->
     <div class="text-end mt-3" id="btnNewWrap" style="display:none">
       <button class="btn btn-outline-secondary btn-sm" id="btnNewAnalysis">
         <i class="bi bi-plus-circle me-1"></i>Nuova analisi
