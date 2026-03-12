@@ -12,9 +12,17 @@ from .models import (
 
 # Serializzatore utente
 class UserSerializer(serializers.ModelSerializer):
+    gemini_api_key = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'gemini_api_key']
+
+    def get_gemini_api_key(self, obj):
+        try:
+            return obj.profilo.gemini_api_key or ''
+        except Exception:
+            return ''
 
 # Serializzatore Apiario
 class ApiarioSerializer(serializers.ModelSerializer):

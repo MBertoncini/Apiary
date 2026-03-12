@@ -1580,15 +1580,85 @@ def sync_data(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-@api_view(['GET'])
+@api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def current_user(request):
     """
-    Restituisce i dati dell'utente corrente.
+    GET: restituisce i dati dell'utente corrente (inclusa gemini_api_key).
+    PATCH: aggiorna first_name, last_name, email, gemini_api_key.
     """
-    serializer = UserSerializer(request.user)
+    user = request.user
+
+    if request.method == 'PATCH':
+        user_fields = ('first_name', 'last_name', 'email')
+        user_dirty = False
+        for field in user_fields:
+            if field in request.data:
+                setattr(user, field, request.data[field])
+                user_dirty = True
+        if user_dirty:
+            user.save(update_fields=[f for f in user_fields if f in request.data])
+
+        if 'gemini_api_key' in request.data:
+            try:
+                profilo = user.profilo
+                profilo.gemini_api_key = request.data['gemini_api_key']
+                profilo.save(update_fields=['gemini_api_key'])
+            except Exception:
+                pass
+
+    serializer = UserSerializer(user)
     return Response(serializer.data)
-    
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def chat_ai_api(request):
+    """
+    Endpoint AI chat compatibile con JWT (app mobile).
+    Payload: {"message": "...", "history": [{"role": "user|model", "text": "..."}]}
+    """
+    from .ai_views import _build_user_context, _get_user_api_key, BEE_SYSTEM_PROMPT, gemini_service
+
+    CHART_INSTRUCTIONS = """
+
+Capacità grafiche (usa solo se richiesto dall'utente):
+Puoi suggerire la generazione di grafici includendo nella risposta uno di questi tag:
+[GENERA_GRAFICO:popolazione:arniaId:mesi] — andamento telaini nel tempo
+[GENERA_GRAFICO:salute:apiarioId:0] — stato di salute comparativo arnie
+[GENERA_GRAFICO:trattamenti:apiarioId:0] — efficacia trattamenti
+[GENERA_GRAFICO:produzione:apiarioId:anni] — produzione miele
+Inserisci il tag UNA SOLA VOLTA nella risposta quando l'utente chiede esplicitamente un grafico."""
+
+    message = request.data.get('message', '').strip()
+    history = request.data.get('history', [])
+
+    if not message:
+        return Response({'error': 'Messaggio vuoto'}, status=400)
+
+    user_ctx = _build_user_context(user=request.user)
+    system = BEE_SYSTEM_PROMPT + CHART_INSTRUCTIONS
+    if user_ctx:
+        system += f"\n\nDati utente:\n{user_ctx}"
+
+    messages = []
+    for h in history[-12:]:
+        role = h.get('role', 'user')
+        text = h.get('text', '')
+        if role in ('user', 'model') and text:
+            messages.append({'role': role, 'text': text})
+    messages.append({'role': 'user', 'text': message})
+
+    try:
+        response_text, model_used = gemini_service.generate(
+            messages, system_prompt=system, temperature=0.7, max_tokens=800,
+            api_key=_get_user_api_key(request.user),
+        )
+        return Response({'response': response_text, 'model': model_used})
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+
 # Aggiungi queste funzioni di vista API per gestire gli inviti
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
