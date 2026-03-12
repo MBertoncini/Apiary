@@ -121,6 +121,19 @@
   color: #F5A623;
   text-decoration: underline;
 }
+
+/* Stile per l'alert fisso (copia lo stile dell'alert-warning di bootstrap) */
+.alert-fixed-coffee {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+  border-left: 5px solid #F5A623;
+  background-color: #FFFDF5;
+  color: #4a3518;
+}
 </style>
 {% endblock %}
 
@@ -132,7 +145,7 @@
   </div>
 </div>
 
-<div class="alert alert-warning d-flex align-items-center mb-4 shadow-sm" role="alert" style="border-left: 5px solid #F5A623; background-color: #FFFDF5; color: #4a3518;">
+<div class="alert-fixed-coffee d-flex align-items-center mb-4 shadow-sm" role="alert">
   <div class="me-3">
     <span class="animated-coffee">☕</span>
   </div>
@@ -639,23 +652,6 @@
 
   // Avvio wizard
   setWizard(1);
-
-// Forza l'alert a rimanere visibile annullando eventuali timer o classi di chiusura
-  const coffeeAlert = document.querySelector('.alert-warning');
-  if (coffeeAlert) {
-      // 1. Fermiamo eventuali animazioni jQuery in corso (se presenti nel base.html)
-      if (typeof $ !== 'undefined') {
-          $(coffeeAlert).stop(true, true).show();
-      }
-      
-      // 2. Rimuoviamo classi Bootstrap che potrebbero attivare chiusure automatiche
-      coffeeAlert.classList.remove('fade');
-      
-      // 3. Sovrascriviamo lo stile per assicurarci che resti visibile
-      coffeeAlert.style.display = 'flex';
-      coffeeAlert.style.opacity = '1';
-      coffeeAlert.style.visibility = 'visible';
-  }
 
 })();
 </script>
