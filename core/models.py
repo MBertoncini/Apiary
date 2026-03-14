@@ -834,6 +834,18 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 import sys
 import os
 
+class SystemAiQuota(models.Model):
+    """Quota giornaliera AI per la chiave di sistema (singleton con pk=1)."""
+    requests_today = models.IntegerField(default=0)
+    reset_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Quota AI di sistema'
+
+    def __str__(self):
+        return f"SystemAiQuota: {self.requests_today} richieste oggi"
+
+
 class Profilo(models.Model):
     """Modello per il profilo utente esteso"""
     utente = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profilo')
@@ -842,6 +854,10 @@ class Profilo(models.Model):
     bio = models.TextField(max_length=500, blank=True)
     gemini_api_key = models.CharField(max_length=200, blank=True, default='',
                                       verbose_name='Gemini API Key personale')
+    ai_requests_today = models.IntegerField(default=0,
+                                            verbose_name='Richieste AI oggi (chiave personale)')
+    ai_requests_reset_at = models.DateTimeField(null=True, blank=True,
+                                                verbose_name='Reset contatore AI personale')
     
     def __str__(self):
         return f"Profilo di {self.utente.username}"

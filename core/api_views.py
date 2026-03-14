@@ -24,7 +24,7 @@ from .models import (
     Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
     Invasettamento, Cliente, Vendita, DettaglioVendita,
-    AnalisiTelaino, ApiarioMapLayout
+    AnalisiTelaino, ApiarioMapLayout, SystemAiQuota
 )
 
 from .serializers import (
@@ -1649,14 +1649,103 @@ Inserisci il tag UNA SOLA VOLTA nella risposta quando l'utente chiede esplicitam
             messages.append({'role': role, 'text': text})
     messages.append({'role': 'user', 'text': message})
 
+    user_api_key = _get_user_api_key(request.user)
     try:
         response_text, model_used = gemini_service.generate(
             messages, system_prompt=system, temperature=0.7, max_tokens=800,
-            api_key=_get_user_api_key(request.user),
+            api_key=user_api_key,
         )
+        _increment_ai_quota(request.user, used_personal_key=bool(user_api_key))
         return Response({'response': response_text, 'model': model_used})
     except Exception as e:
         return Response({'error': str(e)}, status=500)
+
+
+# ── AI Quota helpers ──────────────────────────────────────────────────────────
+
+AI_DAILY_LIMIT = 1500  # Gemini free-tier daily limit
+
+
+def _next_midnight_utc():
+    """Returns tomorrow at 00:00:00 UTC."""
+    now = timezone.now()
+    return (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def _increment_ai_quota(user, used_personal_key: bool):
+    """Increment the daily request counter for the active key type.
+    Never raises — quota tracking must not break chat."""
+    try:
+        now = timezone.now()
+        if used_personal_key:
+            profilo = user.profilo
+            if profilo.ai_requests_reset_at is None or profilo.ai_requests_reset_at <= now:
+                profilo.ai_requests_today = 1
+                profilo.ai_requests_reset_at = _next_midnight_utc()
+            else:
+                profilo.ai_requests_today += 1
+            profilo.save(update_fields=['ai_requests_today', 'ai_requests_reset_at'])
+        else:
+            quota, _ = SystemAiQuota.objects.get_or_create(pk=1)
+            if quota.reset_at is None or quota.reset_at <= now:
+                quota.requests_today = 1
+                quota.reset_at = _next_midnight_utc()
+            else:
+                quota.requests_today += 1
+            quota.save(update_fields=['requests_today', 'reset_at'])
+    except Exception:
+        pass
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def ai_quota(request):
+    """
+    Restituisce le informazioni sulla quota AI giornaliera.
+    Risposta:
+      personal_key_set: bool
+      active_key: 'personal' | 'system'
+      daily_limit: int
+      personal: {requests_today, reset_at}
+      system: {requests_today, reset_at}
+    """
+    now = timezone.now()
+
+    personal_key_set = False
+    personal_requests = 0
+    personal_reset_at = None
+    try:
+        profilo = request.user.profilo
+        personal_key_set = bool(profilo.gemini_api_key)
+        if profilo.ai_requests_reset_at and profilo.ai_requests_reset_at > now:
+            personal_requests = profilo.ai_requests_today
+            personal_reset_at = profilo.ai_requests_reset_at.isoformat()
+    except Exception:
+        pass
+
+    system_requests = 0
+    system_reset_at = None
+    try:
+        quota = SystemAiQuota.objects.get(pk=1)
+        if quota.reset_at and quota.reset_at > now:
+            system_requests = quota.requests_today
+            system_reset_at = quota.reset_at.isoformat()
+    except SystemAiQuota.DoesNotExist:
+        pass
+
+    return Response({
+        'personal_key_set': personal_key_set,
+        'active_key': 'personal' if personal_key_set else 'system',
+        'daily_limit': AI_DAILY_LIMIT,
+        'personal': {
+            'requests_today': personal_requests,
+            'reset_at': personal_reset_at,
+        },
+        'system': {
+            'requests_today': system_requests,
+            'reset_at': system_reset_at,
+        },
+    })
 
 
 # Aggiungi queste funzioni di vista API per gestire gli inviti

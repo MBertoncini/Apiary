@@ -14,7 +14,7 @@ from .api_views import (
     CustomTokenObtainPairView, CustomTokenRefreshView,
     AttrezzaturaViewSet, SpesaAttrezzaturaViewSet, ManutenzioneAttrezzaturaViewSet,
     InvasettamentoViewSet, ClienteViewSet, VenditaViewSet,
-    AnalisiTelainoViewSet, NucleoViewSet, register_user, chat_ai_api
+    AnalisiTelainoViewSet, NucleoViewSet, register_user, chat_ai_api, ai_quota
 )
 
 # Crea un router e registra i viewsets
@@ -64,6 +64,7 @@ urlpatterns = [
     
     # Endpoint AI chat (JWT-compatible, per app mobile)
     path('ai/chat/', chat_ai_api, name='api-ai-chat'),
+    path('ai/quota/', ai_quota, name='api-ai-quota'),
 
     # Endpoint per il meteo
     path('meteo/', meteo_by_location, name='api-meteo'),
