@@ -14,7 +14,8 @@ from .api_views import (
     CustomTokenObtainPairView, CustomTokenRefreshView,
     AttrezzaturaViewSet, SpesaAttrezzaturaViewSet, ManutenzioneAttrezzaturaViewSet,
     InvasettamentoViewSet, ClienteViewSet, VenditaViewSet,
-    AnalisiTelainoViewSet, NucleoViewSet, register_user, chat_ai_api, ai_quota
+    AnalisiTelainoViewSet, NucleoViewSet, register_user, chat_ai_api, ai_quota,
+    password_reset_request, password_reset_confirm,
 )
 
 # Crea un router e registra i viewsets
@@ -71,4 +72,8 @@ urlpatterns = [
 
     # Endpoint registrazione utente (app mobile)
     path('register/', register_user, name='api-register'),
+
+    # Endpoint reset password (app mobile)
+    path('password-reset/', password_reset_request, name='api-password-reset'),
+    path('password-reset/confirm/', password_reset_confirm, name='api-password-reset-confirm'),
 ]

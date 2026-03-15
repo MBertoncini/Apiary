@@ -1893,3 +1893,88 @@ def register_user(request):
 
     user = User.objects.create_user(username=username, email=email, password=password1)
     return Response({'detail': 'Utente creato con successo.'}, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def password_reset_request(request):
+    """Invia un'email con il link per reimpostare la password."""
+    from django.contrib.auth import get_user_model
+    from django.contrib.auth.tokens import default_token_generator
+    from django.utils.http import urlsafe_base64_encode
+    from django.utils.encoding import force_bytes
+    from django.core.mail import send_mail
+    from django.conf import settings
+
+    User = get_user_model()
+    email = request.data.get('email', '').strip()
+
+    if not email:
+        return Response({'detail': 'Email obbligatoria.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Risponde sempre 200 per non rivelare se l'email esiste
+    try:
+        user = User.objects.get(email__iexact=email)
+    except User.DoesNotExist:
+        return Response({'detail': 'Se l\'email è registrata riceverai le istruzioni a breve.'})
+
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    reset_url = f"https://cible99.pythonanywhere.com/reset-password/{uid}/{token}/"
+
+    send_mail(
+        subject='Reimposta la tua password – Apiario Manager',
+        message=(
+            f"Ciao {user.username},\n\n"
+            f"Hai richiesto di reimpostare la password del tuo account Apiario Manager.\n\n"
+            f"Clicca sul link seguente per scegliere una nuova password:\n{reset_url}\n\n"
+            f"Il link è valido per 24 ore. Se non hai richiesto il reset, ignora questa email.\n\n"
+            f"– Il team di Apiario Manager"
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
+
+    return Response({'detail': 'Se l\'email è registrata riceverai le istruzioni a breve.'})
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def password_reset_confirm(request):
+    """Conferma il reset password via API (uid + token + new_password)."""
+    from django.contrib.auth import get_user_model
+    from django.contrib.auth.tokens import default_token_generator
+    from django.contrib.auth.password_validation import validate_password
+    from django.core.exceptions import ValidationError as DjangoValidationError
+    from django.utils.http import urlsafe_base64_decode
+    from django.utils.encoding import force_str
+
+    User = get_user_model()
+    uid = request.data.get('uid', '')
+    token = request.data.get('token', '')
+    new_password = request.data.get('new_password', '')
+
+    if not uid or not token or not new_password:
+        return Response(
+            {'detail': 'uid, token e new_password sono obbligatori.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        user_id = force_str(urlsafe_base64_decode(uid))
+        user = User.objects.get(pk=user_id)
+    except (User.DoesNotExist, ValueError, TypeError):
+        return Response({'detail': 'Link non valido.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not default_token_generator.check_token(user, token):
+        return Response({'detail': 'Link scaduto o non valido.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        validate_password(new_password, user)
+    except DjangoValidationError as e:
+        return Response({'new_password': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+    user.set_password(new_password)
+    user.save()
+    return Response({'detail': 'Password reimpostata con successo.'})

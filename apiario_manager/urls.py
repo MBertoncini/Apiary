@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from core.views import homepage  # Importa la vista homepage
-from core.auth_views import register_view, logout_view  # Importa la vista register
+from core.auth_views import register_view, logout_view, password_reset_confirm_web  # Importa la vista register
 
 # Swagger/OpenAPI per documentazione API
 from rest_framework import permissions
@@ -32,6 +32,7 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='auth/login.html'), name='login'),
     path('logout/', logout_view, name='logout'),  # Usa la tua vista personalizzata invece di LogoutView
     path('register/', register_view, name='register'),  # Aggiunge la URL per la registrazione
+    path('reset-password/<uidb64>/<token>/', password_reset_confirm_web, name='password_reset_confirm_web'),
     
     # Aggiungi le API REST
     path('api/v1/', include('core.api_urls')),
