@@ -6,6 +6,8 @@ import json
 import base64
 import requests
 from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
 
 GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
@@ -158,3 +160,41 @@ class GeminiService:
 
 # Singleton globale
 gemini_service = GeminiService()
+
+
+# ---------------------------------------------------------------------------
+# Quota tracking — condiviso tra api_views.py e ai_views.py
+# ---------------------------------------------------------------------------
+
+AI_DAILY_LIMIT = 1500  # Gemini free-tier daily limit
+
+
+def _next_midnight_utc():
+    now = timezone.now()
+    return (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def increment_ai_quota(user, used_personal_key: bool):
+    """Incrementa il contatore giornaliero richieste AI.
+    Non lancia mai eccezioni — il tracking non deve bloccare la chat."""
+    try:
+        from .models import SystemAiQuota
+        now = timezone.now()
+        if used_personal_key:
+            profilo = user.profilo
+            if profilo.ai_requests_reset_at is None or profilo.ai_requests_reset_at <= now:
+                profilo.ai_requests_today = 1
+                profilo.ai_requests_reset_at = _next_midnight_utc()
+            else:
+                profilo.ai_requests_today += 1
+            profilo.save(update_fields=['ai_requests_today', 'ai_requests_reset_at'])
+        else:
+            quota, _ = SystemAiQuota.objects.get_or_create(pk=1)
+            if quota.reset_at is None or quota.reset_at <= now:
+                quota.requests_today = 1
+                quota.reset_at = _next_midnight_utc()
+            else:
+                quota.requests_today += 1
+            quota.save(update_fields=['requests_today', 'reset_at'])
+    except Exception:
+        pass

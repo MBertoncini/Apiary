@@ -15,7 +15,7 @@ from django.conf import settings
 
 from datetime import date
 
-from .ai_services import gemini_service
+from .ai_services import gemini_service, increment_ai_quota
 from .models import Apiario, Arnia, ControlloArnia, AnalisiTelaino, MembroGruppo
 
 # ---------------------------------------------------------------------------
@@ -371,10 +371,12 @@ def chat_ai(request):
                 messages.append({'role': role, 'text': text})
         messages.append({'role': 'user', 'text': message})
 
+        user_api_key = _get_user_api_key(request.user)
         response_text, model_used = gemini_service.generate(
             messages, system_prompt=system, temperature=0.7, max_tokens=800,
-            api_key=_get_user_api_key(request.user)
+            api_key=user_api_key,
         )
+        increment_ai_quota(request.user, used_personal_key=bool(user_api_key))
         return JsonResponse({'response': response_text, 'model': model_used})
 
     except Exception as e:
@@ -416,12 +418,14 @@ Campi dati per chat: (vuoto, usa solo "risposta")
 
 Rispondi SOLO con il JSON grezzo, senza markdown."""
 
+        user_api_key = _get_user_api_key(request.user)
         response_text, model_used = gemini_service.generate(
             [{'role': 'user', 'text': prompt}],
             temperature=0.1, max_tokens=1024,
-            api_key=_get_user_api_key(request.user),
+            api_key=user_api_key,
             response_mime_type='application/json',
         )
+        increment_ai_quota(request.user, used_personal_key=bool(user_api_key))
 
         # Pulisci e parsa il JSON
         try:
@@ -778,12 +782,14 @@ Regole:
 - "problemi sanitari", "varroa", "nosema", "covata calcificata" → problemi_sanitari = true + tipo_problema
 - Le osservazioni non strutturate vanno in note"""
 
+        user_api_key = _get_user_api_key(request.user)
         response_text, model_used = gemini_service.generate(
             [{'role': 'user', 'text': prompt}],
             temperature=0, max_tokens=1024,
-            api_key=_get_user_api_key(request.user),
+            api_key=user_api_key,
             response_mime_type='application/json',
         )
+        increment_ai_quota(request.user, used_personal_key=bool(user_api_key))
 
         # Pulisci e parsa JSON
         result = _extract_json(response_text)

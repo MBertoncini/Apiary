@@ -1619,6 +1619,7 @@ def chat_ai_api(request):
     Payload: {"message": "...", "history": [{"role": "user|model", "text": "..."}]}
     """
     from .ai_views import _build_user_context, _get_user_api_key, BEE_SYSTEM_PROMPT, gemini_service
+    from .ai_services import increment_ai_quota
 
     CHART_INSTRUCTIONS = """
 
@@ -1655,46 +1656,15 @@ Inserisci il tag UNA SOLA VOLTA nella risposta quando l'utente chiede esplicitam
             messages, system_prompt=system, temperature=0.7, max_tokens=800,
             api_key=user_api_key,
         )
-        _increment_ai_quota(request.user, used_personal_key=bool(user_api_key))
+        increment_ai_quota(request.user, used_personal_key=bool(user_api_key))
         return Response({'response': response_text, 'model': model_used})
     except Exception as e:
         return Response({'error': str(e)}, status=500)
 
 
 # ── AI Quota helpers ──────────────────────────────────────────────────────────
-
-AI_DAILY_LIMIT = 1500  # Gemini free-tier daily limit
-
-
-def _next_midnight_utc():
-    """Returns tomorrow at 00:00:00 UTC."""
-    now = timezone.now()
-    return (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-
-
-def _increment_ai_quota(user, used_personal_key: bool):
-    """Increment the daily request counter for the active key type.
-    Never raises — quota tracking must not break chat."""
-    try:
-        now = timezone.now()
-        if used_personal_key:
-            profilo = user.profilo
-            if profilo.ai_requests_reset_at is None or profilo.ai_requests_reset_at <= now:
-                profilo.ai_requests_today = 1
-                profilo.ai_requests_reset_at = _next_midnight_utc()
-            else:
-                profilo.ai_requests_today += 1
-            profilo.save(update_fields=['ai_requests_today', 'ai_requests_reset_at'])
-        else:
-            quota, _ = SystemAiQuota.objects.get_or_create(pk=1)
-            if quota.reset_at is None or quota.reset_at <= now:
-                quota.requests_today = 1
-                quota.reset_at = _next_midnight_utc()
-            else:
-                quota.requests_today += 1
-            quota.save(update_fields=['requests_today', 'reset_at'])
-    except Exception:
-        pass
+# increment_ai_quota e AI_DAILY_LIMIT sono ora in ai_services.py
+from .ai_services import AI_DAILY_LIMIT
 
 
 @api_view(['GET'])
