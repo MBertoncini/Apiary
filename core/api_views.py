@@ -1127,8 +1127,10 @@ class PagamentoViewSet(viewsets.ModelViewSet):
         return (pagamenti_propri | pagamenti_gruppo).distinct()
     
     def perform_create(self, serializer):
-        """Aggiungi automaticamente l'utente corrente come proprietario"""
-        serializer.save(utente=self.request.user)
+        """Usa utente specificato nel payload (per pagamenti a nome di altri membri),
+        con fallback all'utente autenticato se non indicato."""
+        utente = serializer.validated_data.get('utente', self.request.user)
+        serializer.save(utente=utente)
 
 class QuotaUtenteViewSet(viewsets.ModelViewSet):
     """
