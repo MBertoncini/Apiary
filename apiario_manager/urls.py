@@ -36,6 +36,9 @@ urlpatterns = [
     
     # Aggiungi le API REST
     path('api/v1/', include('core.api_urls')),
+
+    # Modulo Statistiche & AI Analytics
+    path('api/stats/', include('statistiche.urls')),
     
     # Documenti Swagger/OpenAPI
     path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

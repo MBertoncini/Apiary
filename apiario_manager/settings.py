@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',  # La nostra app principale
+    'statistiche',  # Modulo Statistiche & AI Analytics
     'crispy_forms',
     'crispy_bootstrap5',
     'rest_framework',
@@ -158,6 +159,19 @@ OPENWEATHERMAP_API_KEY = os.environ.get('OPENWEATHERMAP_API_KEY', '')
 
 # Gemini AI
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+
+# Groq AI (per modulo Statistiche NL Query)
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+STATS_MAX_RESULT_ROWS = int(os.environ.get('STATS_MAX_RESULT_ROWS', 500))
+STATS_CACHE_WIDGETS_SECONDS = int(os.environ.get('STATS_CACHE_WIDGETS_SECONDS', 300))
+
+# Cache (locmem in sviluppo, Redis in produzione)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'apiary-stats-cache',
+    }
+}
 
 # ONNX bee detection model (esportato da best.pt con ultralytics)
 ONNX_MODEL_PATH = str(BASE_DIR / 'core' / 'ai_models' / 'best.onnx')
