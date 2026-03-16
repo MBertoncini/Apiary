@@ -27,9 +27,16 @@ class FiorituraConfermaAdmin(admin.ModelAdmin):
     readonly_fields = ['data']
 
 
+@admin.register(Arnia)
+class ArniaAdmin(admin.ModelAdmin):
+    list_display = ['numero', 'apiario', 'tipo_arnia', 'colore', 'attiva', 'data_installazione']
+    list_filter = ['tipo_arnia', 'attiva', 'colore']
+    search_fields = ['numero', 'apiario__nome', 'note']
+
+
 # Registrazioni semplici per il resto dei model
 for model in [
-    Apiario, Arnia, ControlloArnia, Regina, StoriaRegine,
+    Apiario, ControlloArnia, Regina, StoriaRegine,
     TrattamentoSanitario, TipoTrattamento,
     Melario, Smielatura, Gruppo, MembroGruppo, InvitoGruppo,
     Pagamento, QuotaUtente,

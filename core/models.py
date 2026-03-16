@@ -138,6 +138,20 @@ class Arnia(models.Model):
         ('altro', 'Altro'),
     ]
 
+    TIPO_ARNIA_CHOICES = [
+        ('dadant', 'Dadant-Blatt'),
+        ('langstroth', 'Langstroth'),
+        ('top_bar', 'Top Bar (Kenyana)'),
+        ('warre', 'Warré'),
+        ('osservazione', 'Arnia da Osservazione'),
+        ('pappa_reale', 'Arnia Pappa Reale / Allevamento Regine'),
+        ('nucleo_legno', 'Nucleo in Legno'),
+        ('nucleo_polistirolo', 'Nucleo in Polistirolo'),
+        ('portasciami', 'Portasciami / Prendisciame'),
+        ('apidea', 'Apidea / Kieler'),
+        ('mini_plus', 'Mini-Plus'),
+    ]
+
     # Mapping dei colori comuni a codici esadecimali
     COLORE_HEX = {
         'bianco': '#FFFFFF',
@@ -155,6 +169,10 @@ class Arnia(models.Model):
     numero = models.IntegerField()
     colore = models.CharField(max_length=20, choices=COLORE_CHOICES, default='bianco')
     colore_hex = models.CharField(max_length=7, default='#FFFFFF', help_text="Codice esadecimale del colore")
+    tipo_arnia = models.CharField(
+        max_length=25, choices=TIPO_ARNIA_CHOICES, default='dadant',
+        help_text="Modello / tipo costruttivo dell'arnia"
+    )
     data_installazione = models.DateField()
     note = models.TextField(blank=True, null=True)
     attiva = models.BooleanField(default=True)
