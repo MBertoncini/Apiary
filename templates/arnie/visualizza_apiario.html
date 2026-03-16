@@ -225,44 +225,54 @@
                         {% for arnia in arnie %}
                             <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
                                 <div class="card h-100 arnia-card" data-arnia-id="{{ arnia.id }}" data-arnia-numero="{{ arnia.numero }}">
-                                    <div class="card-header d-flex justify-content-between align-items-center"
-                                        {% if arnia.colore_hex %}
-                                            style="background-color: {{ arnia.colore_hex }}; color: {% if arnia.colore_hex == '#FFFFFF' or arnia.colore_hex == '#FFC107' %}#212529{% else %}white{% endif %};"
-                                        {% else %}
-                                            class="{% if arnia.colore == 'giallo' %}bg-warning text-dark{% elif arnia.colore == 'blu' %}bg-primary text-white{% elif arnia.colore == 'verde' %}bg-success text-white{% elif arnia.colore == 'rosso' %}bg-danger text-white{% elif arnia.colore == 'bianco' %}bg-light text-dark{% elif arnia.colore == 'nero' %}bg-dark text-white{% elif arnia.colore == 'arancione' %}bg-orange text-white{% elif arnia.colore == 'viola' %}bg-purple text-white{% else %}bg-secondary text-white{% endif %}"
-                                        {% endif %}>
-                                        <h6 class="mb-0">Arnia #{{ arnia.numero }}</h6>
-                                        <div class="small">
-                                            {% if arnia.colore_hex and arnia.colore == 'altro' %}
-                                                Personalizzato
-                                            {% else %}
-                                                {{ arnia.get_colore_display }}
-                                            {% endif %}
+
+                                    <!-- Striscia colorata superiore (stile Flutter) -->
+                                    <div class="arnia-top-strip" style="background:{{ arnia.colore_hex|default:'#F5A623' }};"></div>
+
+                                    <div class="card-body pb-2">
+                                        <!-- Header: badge numero + info + status -->
+                                        <div class="d-flex align-items-center gap-3 mb-3">
+                                            <div class="arnia-num-badge flex-shrink-0"
+                                                 style="background:{{ arnia.colore_hex|default:'#F5A623' }};
+                                                        color:{% if arnia.colore == 'bianco' or arnia.colore == 'giallo' %}#212529{% else %}#fff{% endif %};">
+                                                {{ arnia.numero }}
+                                            </div>
+                                            <div class="flex-grow-1 min-w-0">
+                                                <div class="d-flex align-items-center justify-content-between gap-1 flex-wrap">
+                                                    <span class="arnia-title">Arnia {{ arnia.numero }}</span>
+                                                    {% if arnia.attiva %}
+                                                    <span class="arnia-status-badge active">Attiva</span>
+                                                    {% else %}
+                                                    <span class="arnia-status-badge inactive">Inattiva</span>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="arnia-subtitle">
+                                                    {% if arnia.tipo_arnia and arnia.tipo_arnia != 'altro' %}{{ arnia.get_tipo_arnia_display }}{% if arnia.data_installazione %} · {% endif %}{% endif %}{% if arnia.data_installazione %}{{ arnia.data_installazione|date:"d/m/Y" }}{% endif %}
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="card-body">
+
+                                        <!-- Dati ispezione -->
                                         {% for controllo in ultimi_controlli %}
                                             {% if controllo.arnia.id == arnia.id %}
-                                                <div class="mb-3">
-                                                    <small class="text-muted">Ultimo controllo: {{ controllo.data|date:"d/m/Y" }}</small>
+                                                <div class="arnia-last-check mb-2">
+                                                    <i class="bi bi-clock me-1"></i>Controllo: {{ controllo.data|date:"d/m/Y" }}
                                                 </div>
-                                                
-                                                <!-- ══ ARNIA TOP-DOWN VIEW ══ -->
+
+                                                <!-- Barra telaini (stile Flutter) -->
                                                 <div class="mini-hive-wrap mb-3"
                                                      data-config="{{ controllo.telaini_config|escapejs }}"
                                                      data-covata="{{ controllo.telaini_covata }}"
                                                      data-scorte="{{ controllo.telaini_scorte }}">
-                                                  <div class="hive-topview">
-                                                    <div class="hive-topview-inner">
-                                                      <div class="mini-hive-row"></div>
+                                                    <div class="hive-frame-bar">
+                                                        <div class="mini-hive-row"></div>
+                                                        <div class="arnia-queen-dot {% if controllo.presenza_regina %}present{% else %}absent{% endif %}"
+                                                             title="{% if controllo.presenza_regina %}Regina presente{% else %}Regina assente{% endif %}">♛</div>
                                                     </div>
-                                                  </div>
-                                                  <div class="mini-hive-legend"></div>
+                                                    <div class="mini-hive-legend"></div>
                                                 </div>
-                                                <!-- ══ FINE ARNIA TOP-DOWN VIEW ══ -->
-                                                
-                                                <!-- ══ REGINA STATUS ══ -->
+
+                                                <!-- Status regina -->
                                                 <a href="{% url 'visualizza_regina' controllo.arnia.id %}" class="text-decoration-none d-block mb-2">
                                                   {% if controllo.presenza_regina %}
                                                   <div class="regina-status-row ok">
@@ -275,9 +285,7 @@
                                                         {% if controllo.arnia.regina and controllo.arnia.regina.marcata %}
                                                           <span class="regina-mark-dot" style="background:{{ controllo.arnia.regina.get_hex_colore_marcatura|default:'#F5A623' }};"></span>
                                                           marcata
-                                                        {% else %}
-                                                          &nbsp;
-                                                        {% endif %}
+                                                        {% else %}&nbsp;{% endif %}
                                                       </span>
                                                     </div>
                                                     <i class="bi bi-chevron-right regina-chevron"></i>
@@ -295,6 +303,7 @@
                                                   </div>
                                                   {% endif %}
                                                 </a>
+
                                                 {% if controllo.sciamatura or controllo.problemi_sanitari %}
                                                 <div class="d-flex gap-1 flex-wrap mb-2">
                                                   {% if controllo.sciamatura %}
@@ -305,32 +314,30 @@
                                                   {% endif %}
                                                 </div>
                                                 {% endif %}
-                                                
-                                                <!-- Badge per trattamenti attivi su questa arnia -->
+
                                                 {% for trattamento in trattamenti_per_arnia %}
                                                     {% if arnia in trattamento.arnie.all or not trattamento.arnie.exists %}
-                                                        <div class="mb-2">
-                                                            <span class="badge bg-warning text-dark">
-                                                                <i class="bi bi-capsule"></i> {{ trattamento.tipo_trattamento.nome }}
-                                                            </span>
+                                                        <div class="mb-1">
+                                                            <span class="badge bg-warning text-dark"><i class="bi bi-capsule"></i> {{ trattamento.tipo_trattamento.nome }}</span>
                                                         </div>
                                                     {% endif %}
                                                 {% endfor %}
                                             {% endif %}
                                         {% empty %}
-                                            <div class="alert alert-warning mb-0">
-                                                <i class="bi bi-exclamation-triangle"></i> Nessun controllo registrato
+                                            <div class="text-center py-3 arnia-no-data">
+                                                <i class="bi bi-clipboard2 d-block mb-1"></i>
+                                                Nessun controllo registrato
                                             </div>
                                         {% endfor %}
                                     </div>
-                                    
 
-                                    <div class="card-footer">
-                                        <div class="btn-group w-100">
-                                            <a href="{% url 'nuovo_controllo' arnia.id %}" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-clipboard-check"></i> Nuovo Controllo
-                                            </a>
-                                            <a href="{% url 'modifica_arnia' arnia.id %}" class="btn btn-sm btn-outline-secondary">
+                                    <!-- Footer azioni -->
+                                    <div class="arnia-card-footer">
+                                        <a href="{% url 'nuovo_controllo' arnia.id %}" class="btn btn-sm btn-primary arnia-btn-main">
+                                            <i class="bi bi-clipboard-check me-1"></i>Controllo
+                                        </a>
+                                        <div class="arnia-btn-group">
+                                            <a href="{% url 'modifica_arnia' arnia.id %}" class="btn btn-sm btn-outline-secondary" title="Modifica arnia">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                             {% if is_proprietario %}
@@ -340,14 +347,14 @@
                                             {% endif %}
                                             {% for controllo in ultimi_controlli %}
                                                 {% if controllo.arnia.id == arnia.id %}
-                                                    <a href="{% url 'copia_controllo' controllo.id %}" class="btn btn-sm btn-outline-success" title="Copia controllo su altre arnie">
+                                                    <a href="{% url 'copia_controllo' controllo.id %}" class="btn btn-sm btn-outline-success" title="Copia controllo">
                                                         <i class="bi bi-files"></i>
                                                     </a>
                                                     <a href="{% url 'modifica_controllo' controllo.id %}" class="btn btn-sm btn-outline-primary" title="Modifica controllo">
                                                         <i class="bi bi-pencil-square"></i>
                                                     </a>
                                                     <a href="{% url 'elimina_controllo' controllo.id %}?next=apiario" class="btn btn-sm btn-outline-danger" title="Elimina controllo">
-                                                        <i class="bi bi-trash"></i>
+                                                        <i class="bi bi-trash3"></i>
                                                     </a>
                                                 {% endif %}
                                             {% endfor %}
@@ -398,95 +405,153 @@
 </script>
 
 <style>
-/* ── Arnia top-down view ── */
+/* ══════════════════════════════════════
+   ARNIA CARD — stile ispirato a Flutter
+   ══════════════════════════════════════ */
+
+/* Striscia colorata in cima alla card */
+.arnia-top-strip {
+  height: 5px;
+  border-radius: var(--radius, 12px) var(--radius, 12px) 0 0;
+}
+
+/* Badge quadrato con numero arnia */
+.arnia-num-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-family: var(--font-display, 'Caveat', cursive);
+  box-shadow: 0 3px 8px rgba(0,0,0,.22);
+  border: 1px solid rgba(0,0,0,.09);
+  flex-shrink: 0;
+}
+
+/* Titolo e sottotitolo arnia */
+.arnia-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  font-family: var(--font-display, 'Caveat', cursive);
+  line-height: 1.2;
+}
+.arnia-subtitle {
+  font-size: 0.72rem;
+  color: var(--text-secondary, #6D5D4B);
+  margin-top: 2px;
+}
+.arnia-last-check {
+  font-size: 0.7rem;
+  color: var(--text-muted, #999);
+}
+
+/* Badge stato Attiva / Inattiva */
+.arnia-status-badge {
+  font-size: 0.62rem;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}
+.arnia-status-badge.active {
+  background: rgba(104,129,72,.14);
+  color: #3a5220;
+  border: 1px solid rgba(104,129,72,.3);
+}
+.arnia-status-badge.inactive {
+  background: rgba(173,59,35,.12);
+  color: #7a2010;
+  border: 1px solid rgba(173,59,35,.28);
+}
+
+/* ── Barra telaini (Flutter-inspired) ── */
 .mini-hive-wrap { font-size: 0; }
 
-/* Outer wooden frame (hive sides viewed from above) */
-.hive-topview {
-  background: linear-gradient(145deg, #7A4E2A 0%, #5C3518 40%, #7A4E2A 100%);
-  border-radius: 10px;
-  border: 2.5px solid #3D200A;
-  padding: 9px 11px 13px;
-  position: relative;
-  box-shadow: 0 3px 10px rgba(0,0,0,.28),
-              inset 0 1px 3px rgba(255,255,255,.12),
-              inset 0 -1px 3px rgba(0,0,0,.2);
-  overflow: visible;
-}
-
-/* Corner grain marks */
-.hive-topview::before {
-  content: '';
-  position: absolute;
-  inset: 3px;
-  border-radius: 7px;
-  border: 1px solid rgba(255,255,255,.06);
-  pointer-events: none;
-}
-
-/* Entrance notch at the bottom center */
-.hive-topview::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 24px;
-  height: 6px;
-  background: #2A1008;
-  border-radius: 0;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,.6);
-}
-
-/* Inner beige panel (lid/inner frame, where the telaini are visible) */
-.hive-topview-inner {
-  background: linear-gradient(180deg, #F8F0DC 0%, #EAD8B5 100%);
-  border-radius: 4px;
-  border: 1.5px solid #9B7020;
-  padding: 6px 5px;
-  box-shadow: inset 0 3px 6px rgba(0,0,0,.18),
-              inset 0 -1px 2px rgba(255,255,255,.5);
+.hive-frame-bar {
   display: flex;
-  justify-content: center;
-  overflow: hidden;
+  align-items: center;
+  gap: 7px;
+  background: #f9f5ec;
+  border: 1px solid #e5ddc8;
+  border-radius: 8px;
+  padding: 7px 9px;
 }
 
 .mini-hive-row {
-  display: inline-flex;
-  gap: 3px;
-  align-items: flex-end;
-  min-height: 60px;
+  display: flex;
+  gap: 2px;
+  align-items: stretch;
+  flex: 1;
+  min-height: 26px;
 }
+
 .mini-frame {
-  display: inline-block;
-  height: 56px;
-  width: 13px;
-  border-radius: 2px 2px 1px 1px;
-  border: 1px solid rgba(0,0,0,.22);
-  box-shadow: inset 0 2px 3px rgba(255,255,255,.18), inset 0 -2px 3px rgba(0,0,0,.12);
+  display: block;
+  height: 26px;
+  flex: 1;
+  min-width: 7px;
+  max-width: 20px;
+  border-radius: 3px;
+  border: 0.5px solid rgba(0,0,0,.14);
   flex-shrink: 0;
   transition: filter .15s, transform .15s;
   cursor: default;
 }
-.mini-frame:hover { filter: brightness(1.2); transform: scaleY(1.06); }
-.mini-frame.t-covata    { background: linear-gradient(180deg,#ef5350,#b71c1c); border-color:#b71c1c; }
-.mini-frame.t-scorte    { background: linear-gradient(180deg,#ffee58,#f9a825); border-color:#f9a825; }
-.mini-frame.t-misto     { background: linear-gradient(180deg,#ef5350 50%,#f9a825 50%); border-color:#b71c1c; }
-.mini-frame.t-diaframma { background: linear-gradient(180deg,#546e7a,#263238); border-color:#263238; width:5px; }
-.mini-frame.t-nutritore { background: linear-gradient(180deg,#e8d4b9,#a1887f); border-color:#a1887f; }
-.mini-frame.t-vuoto     { background: repeating-linear-gradient(45deg,#f5f5f5,#f5f5f5 2px,#e0e0e0 2px,#e0e0e0 4px); border:1px dashed #aaa; }
+.mini-frame:hover { filter: brightness(1.12); transform: scaleY(1.08); }
 
+/* Colori telaini — palette Flutter */
+.mini-frame.t-covata    { background: #FF8C42; }
+.mini-frame.t-scorte    { background: #FFD166; }
+.mini-frame.t-misto     { background: linear-gradient(180deg, #FF8C42 50%, #FFD166 50%); }
+.mini-frame.t-diaframma { background: #9E9E9E; flex: 0 0 5px; min-width: 5px; max-width: 5px; }
+.mini-frame.t-nutritore { background: #74B3CE; }
+.mini-frame.t-vuoto     { background: #EEEEEE; border: 0.5px solid rgba(0,0,0,.09); }
+
+/* Indicatore regina nella barra */
+.arnia-queen-dot {
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
+}
+.arnia-queen-dot.present { color: #2e7d32; }
+.arnia-queen-dot.absent  { color: #c62828; }
+
+/* Legenda telaini */
 .mini-hive-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   justify-content: center;
   margin-top: 5px;
-  font-size: .7rem;
-  color: #666;
+  font-size: .68rem;
+  color: #777;
 }
 .mini-hive-legend span { display:inline-flex; align-items:center; gap:3px; }
 .mini-hive-legend .dot { width:8px; height:8px; border-radius:2px; display:inline-block; }
+
+/* Placeholder nessun controllo */
+.arnia-no-data {
+  color: var(--text-muted, #aaa);
+  font-size: 0.82rem;
+}
+.arnia-no-data .bi { font-size: 1.8rem; display: block; opacity: 0.3; margin-bottom: 4px; }
+
+/* Footer azioni */
+.arnia-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--cream-border, #EAD9BF);
+}
+.arnia-btn-main { flex-shrink: 0; }
+.arnia-btn-group { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
 
 /* ── Regina status row ── */
 .regina-status-row {
@@ -518,13 +583,8 @@
   box-shadow: 0 2px 6px rgba(0,0,0,.15);
 }
 .regina-crown-icon:not(.absent) { background: #28A745; color: white; }
-.regina-crown-icon.absent        { background: #DC3545; color: white; }
-.regina-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
+.regina-crown-icon.absent       { background: #DC3545; color: white; }
+.regina-info { flex: 1; display: flex; flex-direction: column; gap: 1px; }
 .regina-label-ok     { font-weight: 700; font-size: .8rem; color: #155724; }
 .regina-label-absent { font-weight: 700; font-size: .8rem; color: #721C24; }
 .regina-meta         { font-size: .68rem; color: #777; }
@@ -543,11 +603,11 @@
 /* ── Mini Hive Renderer ── */
 (function () {
   const LABELS = {
-    covata:    ['Covata',    '#ef5350'],
-    scorte:    ['Scorte',    '#f9a825'],
-    misto:     ['Misto',     '#ef5350'],
-    diaframma: ['Diaframma', '#546e7a'],
-    nutritore: ['Nutritore', '#a1887f'],
+    covata:    ['Covata',    '#FF8C42'],
+    scorte:    ['Scorte',    '#FFD166'],
+    misto:     ['Misto',     '#FF8C42'],
+    diaframma: ['Diaframma', '#9E9E9E'],
+    nutritore: ['Nutritore', '#74B3CE'],
   };
 
   function buildFallback(nC, nS, total) {
