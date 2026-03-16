@@ -122,14 +122,22 @@ class ArniaForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'type': 'color', 'class': 'form-control form-control-color'}),
         label="Colore personalizzato"
     )
-    
+
     class Meta:
         model = Arnia
-        fields = ['apiario', 'numero', 'colore', 'colore_hex', 'data_installazione', 'note', 'attiva']
+        fields = ['apiario', 'numero', 'colore', 'colore_hex', 'tipo_arnia',
+                  'data_installazione', 'note', 'attiva']
         widgets = {
             'data_installazione': DateInput(),
             'note': forms.Textarea(attrs={'rows': 3}),
             'colore': ColoredSelect(attrs={'class': 'form-select color-select'}),
+            'tipo_arnia': forms.Select(attrs={'class': 'form-select'}),
+        }
+        labels = {
+            'tipo_arnia': 'Tipo arnia / cassetta',
+        }
+        help_texts = {
+            'tipo_arnia': 'Modello costruttivo della scatola. Può essere cambiato nel tempo mantenendo la stessa famiglia.',
         }
 
     def __init__(self, *args, **kwargs):

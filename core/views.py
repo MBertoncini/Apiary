@@ -198,6 +198,7 @@ def visualizza_apiario(request, apiario_id, data=None):
         str(a.id): {
             'numero': a.numero,
             'colore_hex': a.colore_hex or '#F5A623',
+            'tipo_arnia': a.tipo_arnia or 'dadant',
             'attiva': a.attiva,
             'ultimo_controllo': ctrl_by_arnia[a.id].data.strftime('%d/%m/%Y') if a.id in ctrl_by_arnia else None,
             'presenza_regina': ctrl_by_arnia[a.id].presenza_regina if a.id in ctrl_by_arnia else None,
