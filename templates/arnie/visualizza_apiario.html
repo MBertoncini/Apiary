@@ -261,7 +261,7 @@
 
                                                 <!-- Barra telaini (stile Flutter) -->
                                                 <div class="mini-hive-wrap mb-3"
-                                                     data-config="{{ controllo.telaini_config|escapejs }}"
+                                                     data-config="{{ controllo.telaini_config|escape }}"
                                                      data-covata="{{ controllo.telaini_covata }}"
                                                      data-scorte="{{ controllo.telaini_scorte }}">
                                                     <div class="hive-frame-bar">
@@ -618,7 +618,7 @@
     for (let i = 0; i < nC; i++) { const p = mid-hC+i; if(p>=0&&p<total) frames[p]='covata'; }
     let sL = Math.floor(nS/2), sR = nS-sL;
     for (let i = 0; i < sL; i++) { const p = mid-hC-1-i; if(p>=0) frames[p]='scorte'; }
-    for (let i = 0; i < sR; i++) { const p = mid+hC+i;   if(p<total) frames[p]='scorte'; }
+    for (let i = 0; i < sR; i++) { const p = mid-hC+nC+i; if(p<total) frames[p]='scorte'; }
     return frames;
   }
 
@@ -977,7 +977,7 @@ const PIANTINA = (() => {
     for(let i=0;i<nC;i++){const p=mid-hC+i;if(p>=0&&p<total)frames[p]='covata';}
     let sL=Math.floor(nS/2),sR=nS-sL;
     for(let i=0;i<sL;i++){const p=mid-hC-1-i;if(p>=0)frames[p]='scorte';}
-    for(let i=0;i<sR;i++){const p=mid+hC+i;if(p<total)frames[p]='scorte';}
+    for(let i=0;i<sR;i++){const p=mid-hC+nC+i;if(p<total)frames[p]='scorte';}
     return frames;
   }
 
@@ -1042,7 +1042,8 @@ const PIANTINA = (() => {
       const isSmall=TIPO_SMALL.has(ARNIE_DATA[id].tipo_arnia||'dadant');
       const sz=(isSmall?70:CELL)*s;
       const[sx,sy]=toS(pos.x,pos.y);
-      arnieBBs.push({x:sx-sz/2,y:sy-sz*0.9,w:sz,h:sz*1.1,fy:pos.y});
+      // Bounding box esatta: l'arnia si disegna centrata su (sx,sy) → da sy-sz/2 a sy+sz/2
+      arnieBBs.push({x:sx-sz/2,y:sy-sz/2,w:sz,h:sz,fy:pos.y});
     }
     function bbOverlap(ax,ay,aw,ah,bx,by,bw,bh){return ax<bx+bw&&ax+aw>bx&&ay<by+bh&&ay+ah>by;}
 
