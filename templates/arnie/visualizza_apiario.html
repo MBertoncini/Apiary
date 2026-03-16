@@ -957,11 +957,15 @@ const PIANTINA = (() => {
     const a=ARNIE_DATA[id];if(!a||!infoEl)return;
     const rB=a.presenza_regina===true?'<span class="badge bg-success" style="font-size:.7rem">Presente</span>':a.presenza_regina===false?'<span class="badge bg-danger" style="font-size:.7rem">Assente</span>':'<span class="badge bg-secondary" style="font-size:.7rem">—</span>';
     const w=(a.problemi_sanitari?'<span class="badge bg-danger ms-1" style="font-size:.68rem">Problemi</span>':'')+(a.sciamatura?'<span class="badge bg-warning text-dark ms-1" style="font-size:.68rem">Sciamatura</span>':'');
+    // Calcola i conteggi dalla telaini_config se disponibile
+    let nCovata=a.telaini_covata??null, nScorte=a.telaini_scorte??null, nDiaframma=null;
+    if(a.telaini_config){try{const cfg=JSON.parse(a.telaini_config);let c=0,s=0,d=0;cfg.forEach(t=>{if(t==='covata'||t==='misto')c++;else if(t==='scorte')s++;else if(t==='diaframma')d++;});nCovata=c;nScorte=s;if(d>0)nDiaframma=d;}catch(e){}}
     infoEl.innerHTML='<div style="background:'+a.colore_hex+';padding:8px 12px;display:flex;align-items:center;justify-content:space-between"><span style="font-weight:700;color:'+tcol(a.colore_hex)+';font-size:.95rem">Arnia #'+a.numero+'</span><button onclick="PIANTINA.hideInfo()" style="background:none;border:none;color:'+tcol(a.colore_hex)+';font-size:1.1rem;cursor:pointer">×</button></div>'
       +'<div style="padding:10px 12px;background:rgba(255,253,245,.97)">'
       +'<div class="d-flex justify-content-between align-items-center mb-1"><small class="text-muted">Regina</small>'+rB+'</div>'
-      +'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Covata</small><small class="fw-semibold">'+(a.telaini_covata??'—')+' tel.</small></div>'
-      +'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Scorte</small><small class="fw-semibold">'+(a.telaini_scorte??'—')+' tel.</small></div>'
+      +'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Covata</small><small class="fw-semibold">'+(nCovata??'—')+' tel.</small></div>'
+      +'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Scorte</small><small class="fw-semibold">'+(nScorte??'—')+' tel.</small></div>'
+      +(nDiaframma!==null?'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Diaframma</small><small class="fw-semibold">'+nDiaframma+' tel.</small></div>':'')
       +(a.ultimo_controllo?'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Controllo</small><small>'+a.ultimo_controllo+'</small></div>':'')
       +(w?'<div class="mt-1">'+w+'</div>':'')
       +(a.note?'<p class="mb-0 mt-2 fst-italic" style="font-size:.72rem;color:#666">"'+a.note+'"</p>':'')

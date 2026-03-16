@@ -161,7 +161,7 @@ def visualizza_apiario(request, apiario_id, data=None):
             controllo = ControlloArnia.objects.filter(
                 arnia=arnia,
                 data__lte=data_selezionata
-            ).order_by('-data').first()
+            ).order_by('-data', '-data_creazione').first()
             
             if controllo:
                 ultimi_controlli.append(controllo)
@@ -203,6 +203,7 @@ def visualizza_apiario(request, apiario_id, data=None):
             'presenza_regina': ctrl_by_arnia[a.id].presenza_regina if a.id in ctrl_by_arnia else None,
             'telaini_covata': ctrl_by_arnia[a.id].telaini_covata if a.id in ctrl_by_arnia else None,
             'telaini_scorte': ctrl_by_arnia[a.id].telaini_scorte if a.id in ctrl_by_arnia else None,
+            'telaini_config': ctrl_by_arnia[a.id].telaini_config if a.id in ctrl_by_arnia else None,
             'problemi_sanitari': ctrl_by_arnia[a.id].problemi_sanitari if a.id in ctrl_by_arnia else False,
             'sciamatura': ctrl_by_arnia[a.id].sciamatura if a.id in ctrl_by_arnia else False,
             'note': ((ctrl_by_arnia[a.id].note or '')[:80]) if a.id in ctrl_by_arnia else '',
