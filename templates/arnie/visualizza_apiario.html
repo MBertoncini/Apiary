@@ -212,8 +212,8 @@
 
 
 
-<!-- Arnie — i dettagli appaiono cliccando sulla piantina -->
-<div class="row" style="display:none">
+<!-- Riepilogo Arnie -->
+<div class="row">
     <div class="col-12 mb-4">
         <div class="card">
             <div class="card-header">
@@ -1254,7 +1254,7 @@ const PIANTINA = (() => {
       +(a.ultimo_controllo?'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Controllo</small><small>'+a.ultimo_controllo+'</small></div>':'')
       +(w?'<div class="mt-1">'+w+'</div>':'')
       +(a.note?'<p class="mb-0 mt-2 fst-italic" style="font-size:.72rem;color:#666">"'+a.note+'"</p>':'')
-      +'<a href="'+NUOVO_CONTROLLO_BASE+id+'/" class="btn btn-sm w-100 mt-2 fw-semibold" style="background:#F5A623;color:#2C1810;border:none"><i class="bi bi-clipboard-check me-1"></i>Nuovo Controllo</a></div>';
+      +'<button onclick="PIANTINA.scrollToArnia(\''+id+'\')" class="btn btn-sm w-100 mt-2 fw-semibold" style="background:#F5A623;color:#2C1810;border:none"><i class="bi bi-arrow-down-circle me-1"></i>Vedi dettagli</button></div>';
     infoEl.style.display='block';
   }
   function hideInfo(){if(infoEl)infoEl.style.display='none';}
