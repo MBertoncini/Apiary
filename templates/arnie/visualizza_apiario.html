@@ -212,8 +212,8 @@
 
 
 
-<!-- Riepilogo Arnie -->
-<div class="row">
+<!-- Arnie — i dettagli appaiono cliccando sulla piantina -->
+<div class="row" style="display:none">
     <div class="col-12 mb-4">
         <div class="card">
             <div class="card-header">
@@ -696,12 +696,13 @@
 </style>
 
 <script>
-const INITIAL_LAYOUT   = JSON.parse('{{ layout_json|escapejs }}');
-const ARNIE_DATA       = JSON.parse('{{ arnie_map_data|escapejs }}');
-const SAVE_URL         = '{% url "save_map_layout" apiario.id %}';
-const NUCLEO_CREA_URL  = '{% url "ajax_crea_nucleo" apiario.id %}';
-const NUCLEO_ELIM_BASE = '{% url "ajax_elimina_nucleo" 0 %}'.replace('/0/', '/');  // base URL per nucleo + pk + ajax-elimina/
-const CAN_EDIT         = {{ can_edit|yesno:"true,false" }};
+const INITIAL_LAYOUT       = JSON.parse('{{ layout_json|escapejs }}');
+const ARNIE_DATA           = JSON.parse('{{ arnie_map_data|escapejs }}');
+const SAVE_URL             = '{% url "save_map_layout" apiario.id %}';
+const NUCLEO_CREA_URL      = '{% url "ajax_crea_nucleo" apiario.id %}';
+const NUCLEO_ELIM_BASE     = '{% url "ajax_elimina_nucleo" 0 %}'.replace('/0/', '/');
+const NUOVO_CONTROLLO_BASE = '{% url "nuovo_controllo" 0 %}'.replace('/0/', '/');
+const CAN_EDIT             = {{ can_edit|yesno:"true,false" }};
 
 const PIANTINA = (() => {
   const CELL=90,SNAP=60,H_CSS=460,MIN_SC=0.003,MAX_SC=0.5,MIN_HIT=20;
@@ -965,14 +966,112 @@ const PIANTINA = (() => {
     ctx.restore();
   }
 
+  /* ─── Colori telaini (palette Flutter) ────────────────────── */
+  const FRAME_COLORS={covata:'#FF8C42',scorte:'#FFD166',misto:'#FF8C42',diaframma:'#9E9E9E',nutritore:'#74B3CE',vuoto:'#555'};
+
+  function _getArnieFrames(arnia){
+    const raw=arnia.telaini_config;
+    if(raw){try{const p=typeof raw==='string'?JSON.parse(raw):raw;if(Array.isArray(p)&&p.length)return p;}catch(e){}}
+    const nC=arnia.telaini_covata||0,nS=arnia.telaini_scorte||0,total=10;
+    const frames=Array(total).fill('vuoto'),mid=Math.floor(total/2),hC=Math.floor(nC/2);
+    for(let i=0;i<nC;i++){const p=mid-hC+i;if(p>=0&&p<total)frames[p]='covata';}
+    let sL=Math.floor(nS/2),sR=nS-sL;
+    for(let i=0;i<sL;i++){const p=mid-hC-1-i;if(p>=0)frames[p]='scorte';}
+    for(let i=0;i<sR;i++){const p=mid+hC+i;if(p<total)frames[p]='scorte';}
+    return frames;
+  }
+
+  function drawMiniFrameBar(sx,sy,arnia,isSmall){
+    const s=vp.scale;
+    if(s<0.007)return; // non disegnare a zoom troppo ridotto
+    const sz=(isSmall?70:CELL)*s;
+    const frames=_getArnieFrames(arnia);
+    const n=frames.length;
+    const slotH=Math.max(2,5*s);
+    const queenFs=Math.max(6,9*s);
+    const queenW=queenFs*0.85;
+    const barW=sz;
+    const totalW=barW+queenW+2*s;
+    const barX=sx-totalW/2;
+    const barY=sy+sz/2+2*s;
+    const pad=1.5*s;
+    // Sfondo semi-trasparente (contrasto anche su elementi scenici)
+    ctx.save();
+    ctx.fillStyle='rgba(0,0,0,0.55)';
+    ctx.beginPath();ctx.roundRect(barX-pad,barY-pad,totalW+pad*2,slotH+pad*2,[3*s]);ctx.fill();
+    // Slot telaini
+    if(n>0){
+      const gap=s*0.8,slotW=(barW-gap*(n-1))/n;
+      frames.forEach((type,i)=>{
+        ctx.fillStyle=FRAME_COLORS[type]||'#555';
+        ctx.beginPath();ctx.roundRect(barX+i*(slotW+gap),barY,Math.max(1,slotW),slotH,[1]);ctx.fill();
+      });
+    }
+    // Simbolo regina
+    ctx.font=queenFs+'px serif';ctx.textAlign='left';ctx.textBaseline='middle';
+    ctx.fillStyle=arnia.presenza_regina?'#69f0ae':'#ff6e6e';
+    ctx.fillText('♛',barX+barW+2*s,barY+slotH/2);
+    ctx.restore();
+  }
+
   function render(){
     const W=canvas.offsetWidth,dpr=window.devicePixelRatio||1;
     if(canvas.width!==W*dpr||canvas.height!==H_CSS*dpr){canvas.width=W*dpr;canvas.height=H_CSS*dpr;ctx.scale(dpr,dpr);}
     ctx.clearRect(0,0,W,H_CSS);drawBg();
+
+    // Vialetti sempre in fondo
     for(const el of elems())if(el.type==='vialetto')drawPath(el,sel?.id===el.id);
-    for(const el of elems())if(el.type==='albero')drawTree(el,sel?.id===el.id,hov?.id===el.id);
-    for(const el of elems())if(el.type==='nucleo')drawHive(...toS(el.x,el.y),'N'+(el.numero||'?'),el.colore_hex||'#8B6914',sel?.id===el.id,hov?.id===el.id,el.tipo_arnia||'nucleo_legno');
-    for(const[id,pos]of Object.entries(arniePos())){if(!ARNIE_DATA[id])continue;const a=ARNIE_DATA[id];drawHive(...toS(pos.x,pos.y),'#'+a.numero,a.colore_hex,sel?.kind==='arnia'&&sel.id===id,hov?.kind==='arnia'&&hov.id===id,a.tipo_arnia||'dadant');}
+
+    // Lista unificata alberi+nuclei+arnie, ordinata per Y (y-sorting rigoroso)
+    const items=[];
+    for(const el of elems()){
+      if(el.type==='albero')items.push({kind:'albero',el,fy:el.y});
+      else if(el.type==='nucleo')items.push({kind:'nucleo',el,fy:el.y});
+    }
+    for(const[id,pos]of Object.entries(arniePos())){
+      if(!ARNIE_DATA[id])continue;
+      items.push({kind:'arnia',id,pos,fy:pos.y});
+    }
+    items.sort((a,b)=>a.fy-b.fy);
+
+    // Pre-calcola bounding box di ogni arnia (in screen px) per l'overlap check
+    const s=vp.scale;
+    const arnieBBs=[];
+    for(const[id,pos]of Object.entries(arniePos())){
+      if(!ARNIE_DATA[id])continue;
+      const isSmall=TIPO_SMALL.has(ARNIE_DATA[id].tipo_arnia||'dadant');
+      const sz=(isSmall?70:CELL)*s;
+      const[sx,sy]=toS(pos.x,pos.y);
+      arnieBBs.push({x:sx-sz/2,y:sy-sz*0.9,w:sz,h:sz*1.1,fy:pos.y});
+    }
+    function bbOverlap(ax,ay,aw,ah,bx,by,bw,bh){return ax<bx+bw&&ax+aw>bx&&ay<by+bh&&ay+ah>by;}
+
+    for(const item of items){
+      if(item.kind==='albero'){
+        const el=item.el;
+        const[sx,sy]=toS(el.x,el.y);
+        // Bounding box albero (foliage + trunk)
+        const fw=44*s,fh=38*s;
+        const tbx=sx-fw*.5,tby=sy-fh-10*s,tbw=fw,tbh=fh+24*s;
+        // Diventa semi-trasparente se un'arnia con Y > albero si sovrappone
+        const overlap=arnieBBs.some(ab=>ab.fy>el.y&&bbOverlap(tbx,tby,tbw,tbh,ab.x,ab.y,ab.w,ab.h));
+        if(overlap){ctx.save();ctx.globalAlpha=0.42;}
+        drawTree(el,sel?.id===el.id,hov?.id===el.id);
+        if(overlap)ctx.restore();
+      }
+      else if(item.kind==='nucleo'){
+        const el=item.el;
+        drawHive(...toS(el.x,el.y),'N'+(el.numero||'?'),el.colore_hex||'#8B6914',sel?.id===el.id,hov?.id===el.id,el.tipo_arnia||'nucleo_legno');
+      }
+      else if(item.kind==='arnia'){
+        const{id,pos}=item;
+        const a=ARNIE_DATA[id];
+        drawHive(...toS(pos.x,pos.y),'#'+a.numero,a.colore_hex,sel?.kind==='arnia'&&sel.id===id,hov?.kind==='arnia'&&hov.id===id,a.tipo_arnia||'dadant');
+        // Mini frame bar + simbolo regina sotto l'arnia
+        const[sx,sy]=toS(pos.x,pos.y);
+        drawMiniFrameBar(sx,sy,a,TIPO_SMALL.has(a.tipo_arnia||'dadant'));
+      }
+    }
     drawVialettoPreview();
   }
 
@@ -1155,7 +1254,7 @@ const PIANTINA = (() => {
       +(a.ultimo_controllo?'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Controllo</small><small>'+a.ultimo_controllo+'</small></div>':'')
       +(w?'<div class="mt-1">'+w+'</div>':'')
       +(a.note?'<p class="mb-0 mt-2 fst-italic" style="font-size:.72rem;color:#666">"'+a.note+'"</p>':'')
-      +'<button onclick="PIANTINA.scrollToArnia(\''+id+'\')" class="btn btn-sm w-100 mt-2 fw-semibold" style="background:#F5A623;color:#2C1810;border:none"><i class="bi bi-arrow-down-circle me-1"></i>Vai all\'arnia</button></div>';
+      +'<a href="'+NUOVO_CONTROLLO_BASE+id+'/" class="btn btn-sm w-100 mt-2 fw-semibold" style="background:#F5A623;color:#2C1810;border:none"><i class="bi bi-clipboard-check me-1"></i>Nuovo Controllo</a></div>';
     infoEl.style.display='block';
   }
   function hideInfo(){if(infoEl)infoEl.style.display='none';}
