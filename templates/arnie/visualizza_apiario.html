@@ -504,12 +504,13 @@
 .mini-frame:hover { filter: brightness(1.12); transform: scaleY(1.08); }
 
 /* Colori telaini — palette Flutter */
-.mini-frame.t-covata    { background: #FF8C42; }
-.mini-frame.t-scorte    { background: #FFD166; }
-.mini-frame.t-misto     { background: linear-gradient(180deg, #FF8C42 50%, #FFD166 50%); }
-.mini-frame.t-diaframma { background: #9E9E9E; flex: 0 0 5px; min-width: 5px; max-width: 5px; }
-.mini-frame.t-nutritore { background: #74B3CE; }
-.mini-frame.t-vuoto     { background: #EEEEEE; border: 0.5px solid rgba(0,0,0,.09); }
+.mini-frame.t-covata       { background: #FF8C42; }
+.mini-frame.t-scorte       { background: #FFD166; }
+.mini-frame.t-misto        { background: linear-gradient(180deg, #FF8C42 50%, #FFD166 50%); }
+.mini-frame.t-foglio_cereo { background: #C5E0A0; }
+.mini-frame.t-diaframma    { background: #9E9E9E; flex: 0 0 5px; min-width: 5px; max-width: 5px; }
+.mini-frame.t-nutritore    { background: #74B3CE; }
+.mini-frame.t-vuoto        { background: #EEEEEE; border: 0.5px solid rgba(0,0,0,.09); }
 
 /* Indicatore regina nella barra */
 .arnia-queen-dot {
@@ -603,12 +604,31 @@
 /* ── Mini Hive Renderer ── */
 (function () {
   const LABELS = {
-    covata:    ['Covata',    '#FF8C42'],
-    scorte:    ['Scorte',    '#FFD166'],
-    misto:     ['Misto',     '#FF8C42'],
-    diaframma: ['Diaframma', '#9E9E9E'],
-    nutritore: ['Nutritore', '#74B3CE'],
+    covata:       ['Covata',       '#FF8C42'],
+    scorte:       ['Scorte',       '#FFD166'],
+    misto:        ['Misto',        '#FF8C42'],
+    foglio_cereo: ['Foglio Cereo', '#C5E0A0'],
+    diaframma:    ['Diaframma',    '#9E9E9E'],
+    nutritore:    ['Nutritore',    '#74B3CE'],
   };
+
+  // Ordina telaini: scorte(sx)|covata(sx)|foglio_cereo|covata(dx)|scorte(dx)|nutritore|diaframma|vuoto
+  function sortTelaini(frames) {
+    const vuoti      = frames.filter(f => f === 'vuoto');
+    const diaframmi  = frames.filter(f => f === 'diaframma');
+    const fogliCerei = frames.filter(f => f === 'foglio_cereo');
+    const covata     = frames.filter(f => f === 'covata' || f === 'misto');
+    const scorte     = frames.filter(f => f === 'scorte');
+    const nutritori  = frames.filter(f => f === 'nutritore');
+    const halfC = Math.ceil(covata.length / 2);
+    const halfS = Math.ceil(scorte.length / 2);
+    return [
+      ...scorte.slice(0, halfS), ...covata.slice(0, halfC),
+      ...fogliCerei,
+      ...covata.slice(halfC), ...scorte.slice(halfS),
+      ...nutritori, ...diaframmi, ...vuoti
+    ];
+  }
 
   function buildFallback(nC, nS, total) {
     total = total || 10;
@@ -635,9 +655,10 @@
     } catch(e) {
       frames = buildFallback(nC, nS);
     }
+    frames = sortTelaini(frames);
 
     // Render frames
-    const counts = { covata:0, scorte:0, diaframma:0, nutritore:0 };
+    const counts = { covata:0, scorte:0, foglio_cereo:0, diaframma:0, nutritore:0 };
     frames.forEach((type, i) => {
       const el = document.createElement('div');
       el.className = 'mini-frame t-' + type;
@@ -645,6 +666,7 @@
       row.appendChild(el);
       if (type === 'covata' || type === 'misto') counts.covata++;
       if (type === 'scorte' || type === 'misto') counts.scorte++;
+      if (type === 'foglio_cereo') counts.foglio_cereo++;
       if (type === 'diaframma') counts.diaframma++;
       if (type === 'nutritore') counts.nutritore++;
     });
@@ -967,18 +989,32 @@ const PIANTINA = (() => {
   }
 
   /* ─── Colori telaini (palette Flutter) ────────────────────── */
-  const FRAME_COLORS={covata:'#FF8C42',scorte:'#FFD166',misto:'#FF8C42',diaframma:'#9E9E9E',nutritore:'#74B3CE',vuoto:'#555'};
+  const FRAME_COLORS={covata:'#FF8C42',scorte:'#FFD166',misto:'#FF8C42',foglio_cereo:'#C5E0A0',diaframma:'#9E9E9E',nutritore:'#74B3CE',vuoto:'#555'};
+
+  // Ordina telaini: scorte(sx)|covata(sx)|foglio_cereo|covata(dx)|scorte(dx)|nutritore|diaframma|vuoto
+  function sortTelainiCanvas(frames){
+    const vuoti=[],diaframmi=[],fogliCerei=[],covata=[],scorte=[],nutritori=[];
+    frames.forEach(f=>{
+      if(f==='vuoto')vuoti.push(f);
+      else if(f==='diaframma')diaframmi.push(f);
+      else if(f==='foglio_cereo')fogliCerei.push(f);
+      else if(f==='covata'||f==='misto')covata.push(f);
+      else if(f==='scorte')scorte.push(f);
+      else if(f==='nutritore')nutritori.push(f);
+    });
+    const halfC=Math.ceil(covata.length/2),halfS=Math.ceil(scorte.length/2);
+    return [...scorte.slice(0,halfS),...covata.slice(0,halfC),...fogliCerei,...covata.slice(halfC),...scorte.slice(halfS),...nutritori,...diaframmi,...vuoti];
+  }
 
   function _getArnieFrames(arnia){
     const raw=arnia.telaini_config;
-    if(raw){try{const p=typeof raw==='string'?JSON.parse(raw):raw;if(Array.isArray(p)&&p.length)return p;}catch(e){}}
+    if(raw){try{const p=typeof raw==='string'?JSON.parse(raw):raw;if(Array.isArray(p)&&p.length)return sortTelainiCanvas(p);}catch(e){}}
     const nC=arnia.telaini_covata||0,nS=arnia.telaini_scorte||0,total=10;
-    const frames=Array(total).fill('vuoto'),mid=Math.floor(total/2),hC=Math.floor(nC/2);
-    for(let i=0;i<nC;i++){const p=mid-hC+i;if(p>=0&&p<total)frames[p]='covata';}
-    let sL=Math.floor(nS/2),sR=nS-sL;
-    for(let i=0;i<sL;i++){const p=mid-hC-1-i;if(p>=0)frames[p]='scorte';}
-    for(let i=0;i<sR;i++){const p=mid-hC+nC+i;if(p<total)frames[p]='scorte';}
-    return frames;
+    const base=[];
+    for(let i=0;i<nS;i++)base.push('scorte');
+    for(let i=0;i<nC;i++)base.push('covata');
+    while(base.length<total)base.push('vuoto');
+    return sortTelainiCanvas(base.slice(0,total));
   }
 
   function drawMiniFrameBar(sx,sy,arnia,isSmall){

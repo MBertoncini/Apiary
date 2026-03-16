@@ -91,6 +91,7 @@
                           <span id="frame-count-label" class="fw-bold" style="min-width:22px;text-align:center"></span>
                           <button type="button" class="btn btn-sm btn-outline-secondary frame-count-btn" id="btn-frame-plus" style="width:28px;padding:0">+</button>
                           <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="btn-reset-frames" title="Azzera tutto"><i class="bi bi-arrow-counterclockwise"></i></button>
+                          <button type="button" class="btn btn-sm btn-outline-success ms-1" id="btn-sort-frames" title="Auto-ordina telaini (scorte|covata|foglio cereo|diaframma|vuoto)"><i class="bi bi-sort-down-alt"></i></button>
                         </div>
                       </div>
 
@@ -103,6 +104,9 @@
                           </button>
                           <button type="button" class="frame-tool" data-tool="scorte"    title="Scorte  [S]">
                             <span class="frame-tool-dot" style="background:linear-gradient(135deg,#f9a825,#fff176)"></span>Scorte
+                          </button>
+                          <button type="button" class="frame-tool" data-tool="foglio_cereo" title="Foglio Cereo  [F]">
+                            <span class="frame-tool-dot" style="background:linear-gradient(135deg,#c5e0a0,#e8f5d0)"></span>Foglio Cereo
                           </button>
                           <button type="button" class="frame-tool" data-tool="misto"     title="Misto (covata+scorte)  [M]">
                             <span class="frame-tool-dot" style="background:linear-gradient(135deg,#e53935 50%,#f9a825 50%)"></span>Misto
@@ -132,28 +136,35 @@
 
                         <!-- Contatori -->
                         <div class="frame-counters row g-2 mb-1" id="frame-counters">
-                          <div class="col-6 col-sm-3">
+                          <div class="col-6 col-sm">
                             <div class="frame-counter-card" style="border-color:#e53935">
                               <span class="fc-dot" style="background:#e53935"></span>
                               <span class="fc-label">Covata</span>
                               <span class="fc-val" id="cnt-covata">0</span>
                             </div>
                           </div>
-                          <div class="col-6 col-sm-3">
+                          <div class="col-6 col-sm">
                             <div class="frame-counter-card" style="border-color:#f9a825">
                               <span class="fc-dot" style="background:#f9a825"></span>
                               <span class="fc-label">Scorte</span>
                               <span class="fc-val" id="cnt-scorte">0</span>
                             </div>
                           </div>
-                          <div class="col-6 col-sm-3">
+                          <div class="col-6 col-sm">
+                            <div class="frame-counter-card" style="border-color:#8fbc5a">
+                              <span class="fc-dot" style="background:#8fbc5a"></span>
+                              <span class="fc-label">F. Cerei</span>
+                              <span class="fc-val" id="cnt-foglio_cereo">0</span>
+                            </div>
+                          </div>
+                          <div class="col-6 col-sm">
                             <div class="frame-counter-card" style="border-color:#37474f">
                               <span class="fc-dot" style="background:#37474f"></span>
                               <span class="fc-label">Diaframmi</span>
                               <span class="fc-val" id="cnt-diaframma">0</span>
                             </div>
                           </div>
-                          <div class="col-6 col-sm-3">
+                          <div class="col-6 col-sm">
                             <div class="frame-counter-card" style="border-color:#a1887f">
                               <span class="fc-dot" style="background:#a1887f"></span>
                               <span class="fc-label">Nutritori</span>
@@ -372,6 +383,7 @@
 .hive-frame[data-type="misto"]     .frame-body { background: linear-gradient(180deg,#ef5350 50%,#f9a825 50%); border-color: #b71c1c; }
 .hive-frame[data-type="diaframma"] .frame-body { background: linear-gradient(180deg,#546e7a,#263238); border-color: #263238; }
 .hive-frame[data-type="nutritore"] .frame-body { background: linear-gradient(180deg,#e8d4b9,#a1887f); border-color: #a1887f; }
+.hive-frame[data-type="foglio_cereo"] .frame-body { background: linear-gradient(180deg,#e8f5d0,#c5e0a0); border-color: #8fbc5a; }
 .hive-frame[data-type="vuoto"]     .frame-body {
   background: repeating-linear-gradient(45deg, #f5f5f5, #f5f5f5 3px, #e0e0e0 3px, #e0e0e0 6px);
   border: 1.5px dashed #bbb;
@@ -419,14 +431,34 @@ document.addEventListener('DOMContentLoaded', function () {
   ══════════════════════════════════════════════ */
   const MIN_FRAMES = 5, MAX_FRAMES = 20, DEFAULT_FRAMES = 10;
 
+  // Ordina telaini secondo la regola canonica:
+  // scorte(sx) | covata(sx) | foglio_cereo(centro) | covata(dx) | scorte(dx) | nutritore | diaframma | vuoto
+  function sortTelaini(frames) {
+    const vuoti      = frames.filter(f => f === 'vuoto');
+    const diaframmi  = frames.filter(f => f === 'diaframma');
+    const fogliCerei = frames.filter(f => f === 'foglio_cereo');
+    const covata     = frames.filter(f => f === 'covata' || f === 'misto');
+    const scorte     = frames.filter(f => f === 'scorte');
+    const nutritori  = frames.filter(f => f === 'nutritore');
+    const halfC = Math.ceil(covata.length / 2);
+    const halfS = Math.ceil(scorte.length / 2);
+    return [
+      ...scorte.slice(0, halfS), ...covata.slice(0, halfC),
+      ...fogliCerei,
+      ...covata.slice(halfC), ...scorte.slice(halfS),
+      ...nutritori, ...diaframmi, ...vuoti
+    ];
+  }
+
   // Colori / stili per tipo
   const FRAME_META = {
-    covata:    { label: 'Covata',    countKey: 'covata'    },
-    scorte:    { label: 'Scorte',    countKey: 'scorte'    },
-    misto:     { label: 'Misto',     countKey: 'covata'    },  // conta come covata
-    diaframma: { label: 'Diaframma', countKey: 'diaframma' },
-    nutritore: { label: 'Nutritore', countKey: 'nutritore' },
-    vuoto:     { label: 'Vuoto',     countKey: null        },
+    covata:       { label: 'Covata',       countKey: 'covata'       },
+    scorte:       { label: 'Scorte',       countKey: 'scorte'       },
+    misto:        { label: 'Misto',        countKey: 'covata'       },  // conta come covata
+    foglio_cereo: { label: 'Foglio Cereo', countKey: 'foglio_cereo' },
+    diaframma:    { label: 'Diaframma',    countKey: 'diaframma'    },
+    nutritore:    { label: 'Nutritore',    countKey: 'nutritore'    },
+    vuoto:        { label: 'Vuoto',        countKey: null           },
   };
 
   let numFrames  = DEFAULT_FRAMES;
@@ -441,10 +473,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Contatori
   const cntEls = {
-    covata:    document.getElementById('cnt-covata'),
-    scorte:    document.getElementById('cnt-scorte'),
-    diaframma: document.getElementById('cnt-diaframma'),
-    nutritore: document.getElementById('cnt-nutritore'),
+    covata:       document.getElementById('cnt-covata'),
+    scorte:       document.getElementById('cnt-scorte'),
+    foglio_cereo: document.getElementById('cnt-foglio_cereo'),
+    diaframma:    document.getElementById('cnt-diaframma'),
+    nutritore:    document.getElementById('cnt-nutritore'),
   };
 
   /* --- Render ---- */
@@ -487,19 +520,11 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function syncCounters() {
-    const totals = { covata: 0, scorte: 0, diaframma: 0, nutritore: 0 };
-    frameTypes.forEach(t => {
-      const meta = FRAME_META[t];
-      if (meta && meta.countKey) totals[meta.countKey]++;
-      // "misto" conta come covata (già gestito nel countKey)
-      if (t === 'scorte') totals.scorte++;  // scorte pure
-      if (t === 'misto') { totals.covata++; } // già in covata via countKey
-    });
-    // Ricalcolo pulito
-    const counts = { covata: 0, scorte: 0, diaframma: 0, nutritore: 0 };
+    const counts = { covata: 0, scorte: 0, foglio_cereo: 0, diaframma: 0, nutritore: 0 };
     frameTypes.forEach(t => {
       if (t === 'covata' || t === 'misto') counts.covata++;
       if (t === 'scorte' || t === 'misto') counts.scorte++;
+      if (t === 'foglio_cereo') counts.foglio_cereo++;
       if (t === 'diaframma') counts.diaframma++;
       if (t === 'nutritore') counts.nutritore++;
     });
@@ -574,10 +599,16 @@ document.addEventListener('DOMContentLoaded', function () {
     renderFrames();
   });
 
+  /* --- Auto-ordina --- */
+  document.getElementById('btn-sort-frames').addEventListener('click', () => {
+    frameTypes = sortTelaini(frameTypes);
+    renderFrames();
+  });
+
   /* --- Keyboard shortcuts --- */
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    const map = { c:'covata', s:'scorte', m:'misto', d:'diaframma', n:'nutritore', v:'vuoto' };
+    const map = { c:'covata', s:'scorte', f:'foglio_cereo', m:'misto', d:'diaframma', n:'nutritore', v:'vuoto' };
     const tool = map[e.key.toLowerCase()];
     if (tool) {
       currentTool = tool;
@@ -595,8 +626,8 @@ document.addEventListener('DOMContentLoaded', function () {
       if (Array.isArray(saved) && saved.length >= MIN_FRAMES) {
         numFrames  = Math.min(Math.max(saved.length, MIN_FRAMES), MAX_FRAMES);
         frameTypes = saved.slice(0, numFrames);
-        // ensure length
         while (frameTypes.length < numFrames) frameTypes.push('vuoto');
+        frameTypes = sortTelaini(frameTypes);
       }
     } catch(e) { console.warn('telaini_config parse error', e); }
   })();
@@ -605,15 +636,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const nC = parseInt('{{ form.initial.telaini_covata|default:0 }}') || 0;
     const nS = parseInt('{{ form.initial.telaini_scorte|default:0 }}') || 0;
     if (nC + nS === 0) return;
-    const mid = Math.floor(numFrames / 2);
-    const hC  = Math.floor(nC / 2);
-    for (let i = 0; i < nC; i++) {
-      const p = mid - hC + i;
-      if (p >= 0 && p < numFrames) frameTypes[p] = 'covata';
-    }
-    let sL = Math.floor(nS / 2), sR = nS - sL;
-    for (let i = 0; i < sL; i++) { const p = mid-hC-1-i; if(p>=0) frameTypes[p]='scorte'; }
-    for (let i = 0; i < sR; i++) { const p = mid+hC+i;   if(p<numFrames) frameTypes[p]='scorte'; }
+    const raw = [];
+    for (let i = 0; i < nS; i++) raw.push('scorte');
+    for (let i = 0; i < nC; i++) raw.push('covata');
+    while (raw.length < numFrames) raw.push('vuoto');
+    frameTypes = sortTelaini(raw.slice(0, numFrames));
   })();
   {% endif %}
 

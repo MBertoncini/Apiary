@@ -44,10 +44,11 @@
 }
 .tel-btn:hover { border-color: #F5A623; }
 .tel-btn.selected { border-color: #F5A623; background: #FFF3D6; color: #c07a00; }
-.tel-btn.tipo-covata   { border-color: #e53935aa; }
-.tel-btn.tipo-scorte   { border-color: #f9a825aa; }
-.tel-btn.tipo-diaframma{ border-color: #78909caa; }
-.tel-btn.tipo-nutritore{ border-color: #a0785aaa; }
+.tel-btn.tipo-covata       { border-color: #e53935aa; }
+.tel-btn.tipo-scorte       { border-color: #f9a825aa; }
+.tel-btn.tipo-foglio_cereo { border-color: #8fbc5aaa; }
+.tel-btn.tipo-diaframma    { border-color: #78909caa; }
+.tel-btn.tipo-nutritore    { border-color: #a0785aaa; }
 .tel-tipo-badge { font-size: .6rem; display: block; color: #888; margin-top: 1px; }
 
 /* ── Drop zone ── */
@@ -337,8 +338,23 @@
 {% block extra_js %}
 <script>
 (function () {
-  const TIPO_LABEL = { covata: 'Covata', scorte: 'Scorte', diaframma: 'Diaframma', nutritore: 'Nutritore' };
-  const TIPO_COLOR = { covata: '#e53935', scorte: '#f9a825', diaframma: '#78909c', nutritore: '#a0785a' };
+  const TIPO_LABEL = { covata: 'Covata', scorte: 'Scorte', foglio_cereo: 'F.Cereo', diaframma: 'Diaframma', nutritore: 'Nutritore' };
+  const TIPO_COLOR = { covata: '#e53935', scorte: '#f9a825', foglio_cereo: '#8fbc5a', diaframma: '#78909c', nutritore: '#a0785a' };
+
+  // Ordina telaini: scorte(sx)|covata(sx)|foglio_cereo|covata(dx)|scorte(dx)|nutritore|diaframma|vuoto
+  function sortTelaini(frames) {
+    const vuoti=[],diaframmi=[],fogliCerei=[],covata=[],scorte=[],nutritori=[];
+    frames.forEach(f=>{
+      if(f==='vuoto')vuoti.push(f);
+      else if(f==='diaframma')diaframmi.push(f);
+      else if(f==='foglio_cereo')fogliCerei.push(f);
+      else if(f==='covata'||f==='misto')covata.push(f);
+      else if(f==='scorte')scorte.push(f);
+      else if(f==='nutritore')nutritori.push(f);
+    });
+    const halfC=Math.ceil(covata.length/2),halfS=Math.ceil(scorte.length/2);
+    return [...scorte.slice(0,halfS),...covata.slice(0,halfC),...fogliCerei,...covata.slice(halfC),...scorte.slice(halfS),...nutritori,...diaframmi,...vuoti];
+  }
   const CLASS_ICONS  = { bees: '🐝', drone: '🐝', queenbees: '👑', 'royal cell': '🔷' };
   const CLASS_LABELS = { bees: 'Operaie', drone: 'Fuchi', queenbees: 'Regine', 'royal cell': 'Celle reali' };
 
@@ -474,7 +490,7 @@
       telainoInfo.textContent = dataControllo
         ? `Configurazione dall'ultimo controllo (${dataControllo})`
         : '';
-      config.forEach((tipo, idx) => {
+      sortTelaini(config).forEach((tipo, idx) => {
         if (tipo === 'vuoto') return;
         const btn = document.createElement('div');
         btn.className = `tel-btn tipo-${tipo}`;
