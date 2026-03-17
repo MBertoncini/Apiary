@@ -673,6 +673,8 @@ class FiorituraConferma(models.Model):
 
 class Pagamento(models.Model):
     utente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pagamenti')
+    destinatario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='pagamenti_ricevuti',
+                                     help_text="Membro che riceve il pagamento (usato per saldare bilanci tra membri)")
     importo = models.DecimalField(max_digits=10, decimal_places=2)
     data = models.DateField()
     descrizione = models.CharField(max_length=200)

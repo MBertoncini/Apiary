@@ -367,16 +367,20 @@ class InvitoGruppoSerializer(serializers.ModelSerializer):
 
 class PagamentoSerializer(serializers.ModelSerializer):
     utente_username = serializers.SerializerMethodField()
+    destinatario_username = serializers.SerializerMethodField()
     gruppo_nome = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Pagamento
-        fields = ['id', 'utente', 'utente_username', 'importo', 'data', 
-                 'descrizione', 'gruppo', 'gruppo_nome']
-    
+        fields = ['id', 'utente', 'utente_username', 'destinatario', 'destinatario_username',
+                  'importo', 'data', 'descrizione', 'gruppo', 'gruppo_nome']
+
     def get_utente_username(self, obj):
         return obj.utente.username if obj.utente else None
-    
+
+    def get_destinatario_username(self, obj):
+        return obj.destinatario.username if obj.destinatario else None
+
     def get_gruppo_nome(self, obj):
         return obj.gruppo.nome if obj.gruppo else None
 
