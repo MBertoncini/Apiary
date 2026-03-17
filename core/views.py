@@ -4871,11 +4871,62 @@ def inventario_attrezzature(request, gruppo_id=None):
         attrezzature = Attrezzatura.objects.filter(
             gruppo=gruppo,
             condiviso_con_gruppo=True
-        ).exclude(stato='dismesso')
+        )
     else:
         attrezzature = Attrezzatura.objects.filter(
             proprietario=request.user
-        ).exclude(stato='dismesso')
+        )
+
+    # --- Filtri GET ---
+    f_categoria = request.GET.get('categoria', '')
+    f_stato = request.GET.get('stato', '')
+    f_condizione = request.GET.get('condizione', '')
+    f_apiario = request.GET.get('apiario', '')
+    f_marca = request.GET.get('marca', '').strip()
+    f_fornitore = request.GET.get('fornitore', '').strip()
+    f_prezzo_min = request.GET.get('prezzo_min', '').strip()
+    f_prezzo_max = request.GET.get('prezzo_max', '').strip()
+    f_data_da = request.GET.get('data_da', '').strip()
+    f_data_a = request.GET.get('data_a', '').strip()
+    f_includi_dismessi = request.GET.get('includi_dismessi', '')
+
+    if not f_includi_dismessi:
+        attrezzature = attrezzature.exclude(stato='dismesso')
+    if f_categoria:
+        attrezzature = attrezzature.filter(categoria_id=f_categoria)
+    if f_stato:
+        attrezzature = attrezzature.filter(stato=f_stato)
+    if f_condizione:
+        attrezzature = attrezzature.filter(condizione=f_condizione)
+    if f_apiario:
+        attrezzature = attrezzature.filter(apiario_id=f_apiario)
+    if f_marca:
+        attrezzature = attrezzature.filter(marca__icontains=f_marca)
+    if f_fornitore:
+        attrezzature = attrezzature.filter(fornitore__icontains=f_fornitore)
+    if f_prezzo_min:
+        try:
+            attrezzature = attrezzature.filter(prezzo_acquisto__gte=float(f_prezzo_min))
+        except ValueError:
+            pass
+    if f_prezzo_max:
+        try:
+            attrezzature = attrezzature.filter(prezzo_acquisto__lte=float(f_prezzo_max))
+        except ValueError:
+            pass
+    if f_data_da:
+        attrezzature = attrezzature.filter(data_acquisto__gte=f_data_da)
+    if f_data_a:
+        attrezzature = attrezzature.filter(data_acquisto__lte=f_data_a)
+
+    attrezzature = attrezzature.select_related('categoria', 'apiario')
+
+    # Conta filtri attivi (esclusi vuoti)
+    filtri_attivi = sum(bool(v) for v in [
+        f_categoria, f_stato, f_condizione, f_apiario,
+        f_marca, f_fornitore, f_prezzo_min, f_prezzo_max,
+        f_data_da, f_data_a, f_includi_dismessi
+    ])
 
     # Calcola statistiche per categoria
     stats_categoria = {}
@@ -4894,6 +4945,18 @@ def inventario_attrezzature(request, gruppo_id=None):
     # Totali
     totale_valore = sum(float(a.prezzo_acquisto or 0) for a in attrezzature)
     totale_residuo = sum(float(a.get_valore_residuo() or 0) for a in attrezzature)
+
+    # Opzioni per i filtri
+    if gruppo:
+        apiari_filtro = Apiario.objects.filter(
+            attrezzature__gruppo=gruppo
+        ).distinct()
+    else:
+        apiari_filtro = Apiario.objects.filter(
+            attrezzature__proprietario=request.user
+        ).distinct()
+
+    categorie_filtro = CategoriaAttrezzatura.objects.all()
 
     # Inventari precedenti
     if gruppo:
@@ -4925,6 +4988,23 @@ def inventario_attrezzature(request, gruppo_id=None):
         'totale_valore': totale_valore,
         'totale_residuo': totale_residuo,
         'inventari_precedenti': inventari_precedenti,
+        'categorie_filtro': categorie_filtro,
+        'apiari_filtro': apiari_filtro,
+        'stato_choices': Attrezzatura.STATO_CHOICES,
+        'condizione_choices': Attrezzatura.CONDIZIONE_CHOICES,
+        # valori correnti filtri per ripopolare il form
+        'f_categoria': f_categoria,
+        'f_stato': f_stato,
+        'f_condizione': f_condizione,
+        'f_apiario': f_apiario,
+        'f_marca': f_marca,
+        'f_fornitore': f_fornitore,
+        'f_prezzo_min': f_prezzo_min,
+        'f_prezzo_max': f_prezzo_max,
+        'f_data_da': f_data_da,
+        'f_data_a': f_data_a,
+        'f_includi_dismessi': f_includi_dismessi,
+        'filtri_attivi': filtri_attivi,
     }
 
     return render(request, 'attrezzature/inventario.html', context)

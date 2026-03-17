@@ -5,19 +5,186 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1>
+    <div class="col-12 mb-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h1 class="mb-0">
                 <i class="bi bi-clipboard-data"></i>
                 Inventario Attrezzature
-                {% if gruppo %} - {{ gruppo.nome }}{% endif %}
+                {% if gruppo %} — {{ gruppo.nome }}{% endif %}
             </h1>
-            <a href="{% url 'gestione_attrezzature' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Torna alle Attrezzature
-            </a>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary position-relative" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#pannelloFiltri"
+                        aria-expanded="{% if filtri_attivi %}true{% else %}false{% endif %}">
+                    <i class="bi bi-funnel"></i> Filtri
+                    {% if filtri_attivi %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
+                            {{ filtri_attivi }}
+                        </span>
+                    {% endif %}
+                </button>
+                <a href="{% url 'gestione_attrezzature' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Indietro
+                </a>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Pannello Filtri -->
+<div class="collapse {% if filtri_attivi %}show{% endif %} mb-4" id="pannelloFiltri">
+    <div class="card border-warning">
+        <div class="card-header bg-warning bg-opacity-10 d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-funnel-fill text-warning"></i> <strong>Filtra Inventario</strong></span>
+            {% if filtri_attivi %}
+                <a href="{% if gruppo %}{% url 'inventario_attrezzature' gruppo.id %}{% else %}{% url 'inventario_attrezzature' %}{% endif %}"
+                   class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-x-circle"></i> Rimuovi tutti i filtri
+                </a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <form method="get" id="filtriForm">
+                <div class="row g-3">
+                    <!-- Categoria -->
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-tag"></i> Categoria</label>
+                        <select name="categoria" class="form-select form-select-sm">
+                            <option value="">— Tutte —</option>
+                            {% for cat in categorie_filtro %}
+                                <option value="{{ cat.id }}" {% if f_categoria == cat.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ cat.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Stato -->
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-circle-half"></i> Stato</label>
+                        <select name="stato" class="form-select form-select-sm">
+                            <option value="">— Tutti —</option>
+                            {% for val, label in stato_choices %}
+                                <option value="{{ val }}" {% if f_stato == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Condizione -->
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-stars"></i> Condizione</label>
+                        <select name="condizione" class="form-select form-select-sm">
+                            <option value="">— Tutte —</option>
+                            {% for val, label in condizione_choices %}
+                                <option value="{{ val }}" {% if f_condizione == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Apiario -->
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-geo-alt"></i> Apiario</label>
+                        <select name="apiario" class="form-select form-select-sm">
+                            <option value="">— Tutti —</option>
+                            {% for ap in apiari_filtro %}
+                                <option value="{{ ap.id }}" {% if f_apiario == ap.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ ap.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Marca -->
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-shop"></i> Marca</label>
+                        <input type="text" name="marca" class="form-control form-control-sm"
+                               placeholder="Es. Mann Lake…" value="{{ f_marca }}">
+                    </div>
+
+                    <!-- Fornitore -->
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-truck"></i> Fornitore</label>
+                        <input type="text" name="fornitore" class="form-control form-control-sm"
+                               placeholder="Nome fornitore…" value="{{ f_fornitore }}">
+                    </div>
+
+                    <!-- Prezzo min/max -->
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-currency-euro"></i> Prezzo min (€)</label>
+                        <input type="number" name="prezzo_min" class="form-control form-control-sm"
+                               placeholder="0" step="0.01" min="0" value="{{ f_prezzo_min }}">
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-currency-euro"></i> Prezzo max (€)</label>
+                        <input type="number" name="prezzo_max" class="form-control form-control-sm"
+                               placeholder="Es. 500" step="0.01" min="0" value="{{ f_prezzo_max }}">
+                    </div>
+
+                    <!-- Data acquisto da/a -->
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-calendar-event"></i> Acquistato dal</label>
+                        <input type="date" name="data_da" class="form-control form-control-sm" value="{{ f_data_da }}">
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-calendar-event"></i> Acquistato fino al</label>
+                        <input type="date" name="data_a" class="form-control form-control-sm" value="{{ f_data_a }}">
+                    </div>
+
+                    <!-- Includi dismessi -->
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="includi_dismessi"
+                                   id="includiDismessi" value="1" {% if f_includi_dismessi %}checked{% endif %}>
+                            <label class="form-check-label" for="includiDismessi">
+                                Includi attrezzature dismesse
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-warning btn-sm">
+                        <i class="bi bi-funnel"></i> Applica filtri
+                    </button>
+                    <a href="{% if gruppo %}{% url 'inventario_attrezzature' gruppo.id %}{% else %}{% url 'inventario_attrezzature' %}{% endif %}"
+                       class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-x"></i> Azzera
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Badge filtri attivi -->
+{% if filtri_attivi %}
+<div class="mb-3 d-flex flex-wrap gap-1 align-items-center">
+    <small class="text-muted me-1"><i class="bi bi-funnel"></i> Filtri attivi:</small>
+    {% if f_categoria %}
+        <span class="badge bg-warning text-dark">
+            Categoria: {% for cat in categorie_filtro %}{% if cat.id|stringformat:"s" == f_categoria %}{{ cat.nome }}{% endif %}{% endfor %}
+        </span>
+    {% endif %}
+    {% if f_stato %}
+        <span class="badge bg-warning text-dark">Stato: {{ f_stato }}</span>
+    {% endif %}
+    {% if f_condizione %}
+        <span class="badge bg-warning text-dark">Condizione: {{ f_condizione }}</span>
+    {% endif %}
+    {% if f_apiario %}
+        <span class="badge bg-warning text-dark">
+            Apiario: {% for ap in apiari_filtro %}{% if ap.id|stringformat:"s" == f_apiario %}{{ ap.nome }}{% endif %}{% endfor %}
+        </span>
+    {% endif %}
+    {% if f_marca %}<span class="badge bg-warning text-dark">Marca: {{ f_marca }}</span>{% endif %}
+    {% if f_fornitore %}<span class="badge bg-warning text-dark">Fornitore: {{ f_fornitore }}</span>{% endif %}
+    {% if f_prezzo_min %}<span class="badge bg-warning text-dark">Prezzo ≥ €{{ f_prezzo_min }}</span>{% endif %}
+    {% if f_prezzo_max %}<span class="badge bg-warning text-dark">Prezzo ≤ €{{ f_prezzo_max }}</span>{% endif %}
+    {% if f_data_da %}<span class="badge bg-warning text-dark">Dal {{ f_data_da }}</span>{% endif %}
+    {% if f_data_a %}<span class="badge bg-warning text-dark">Al {{ f_data_a }}</span>{% endif %}
+    {% if f_includi_dismessi %}<span class="badge bg-secondary">Incl. dismessi</span>{% endif %}
+</div>
+{% endif %}
 
 <!-- Riepilogo Valori -->
 <div class="row mb-4">
@@ -25,7 +192,12 @@
         <div class="card bg-primary text-white">
             <div class="card-body text-center">
                 <h2>&euro;{{ totale_valore|floatformat:0 }}</h2>
-                <p class="mb-0">Valore Totale Acquisto</p>
+                <p class="mb-0">
+                    Valore Totale Acquisto
+                    <i class="bi bi-info-circle ms-1"
+                       data-bs-toggle="tooltip"
+                       title="Somma dei prezzi di acquisto originali di tutte le attrezzature filtrate, senza considerare l'usura nel tempo."></i>
+                </p>
             </div>
         </div>
     </div>
@@ -33,7 +205,12 @@
         <div class="card bg-success text-white">
             <div class="card-body text-center">
                 <h2>&euro;{{ totale_residuo|floatformat:0 }}</h2>
-                <p class="mb-0">Valore Residuo</p>
+                <p class="mb-0">
+                    Valore Residuo
+                    <i class="bi bi-info-circle ms-1"
+                       data-bs-toggle="tooltip"
+                       title="Stima di quanto valgono oggi le attrezzature, sottraendo l'ammortamento annuo maturato. Un attrezzo da €100 con vita utile 5 anni vale €20 in meno ogni anno."></i>
+                </p>
             </div>
         </div>
     </div>
@@ -41,7 +218,7 @@
         <div class="card bg-info text-white">
             <div class="card-body text-center">
                 <h2>{{ attrezzature|length }}</h2>
-                <p class="mb-0">Attrezzature Attive</p>
+                <p class="mb-0">Attrezzature {% if filtri_attivi %}filtrate{% else %}Attive{% endif %}</p>
             </div>
         </div>
     </div>
@@ -61,9 +238,24 @@
                             <thead>
                                 <tr>
                                     <th>Categoria</th>
-                                    <th class="text-center">Quantita</th>
-                                    <th class="text-end">Valore Acquisto</th>
-                                    <th class="text-end">Valore Residuo</th>
+                                    <th class="text-center">
+                                        Qtà
+                                        <i class="bi bi-info-circle text-muted small"
+                                           data-bs-toggle="tooltip"
+                                           title="Numero di attrezzature in questa categoria"></i>
+                                    </th>
+                                    <th class="text-end">
+                                        Valore Acquisto
+                                        <i class="bi bi-info-circle text-muted small"
+                                           data-bs-toggle="tooltip"
+                                           title="Prezzo pagato al momento dell'acquisto, sommato per categoria"></i>
+                                    </th>
+                                    <th class="text-end">
+                                        Valore Residuo
+                                        <i class="bi bi-info-circle text-muted small"
+                                           data-bs-toggle="tooltip"
+                                           title="Valore attuale stimato dopo ammortamento. Calcolato come: Prezzo acquisto − (Prezzo / Vita utile anni × Anni trascorsi)"></i>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -87,28 +279,65 @@
                         </table>
                     </div>
                 {% else %}
-                    <p class="text-muted">Nessuna attrezzatura presente.</p>
+                    <p class="text-muted">Nessuna attrezzatura trovata con i filtri selezionati.</p>
                 {% endif %}
             </div>
         </div>
 
         <!-- Elenco Attrezzature -->
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-list-ul"></i> Elenco Completo</h5>
+                <small class="text-muted">{{ attrezzature|length }} elementi</small>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 {% if attrezzature %}
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover">
-                            <thead>
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light">
                                 <tr>
-                                    <th>Nome</th>
-                                    <th>Categoria</th>
-                                    <th>Condizione</th>
-                                    <th class="text-end">Acquisto</th>
-                                    <th class="text-end">Residuo</th>
-                                    <th class="text-center">%</th>
+                                    <th>
+                                        Nome
+                                        <i class="bi bi-info-circle text-muted small"
+                                           data-bs-toggle="tooltip"
+                                           title="Nome dell'attrezzatura"></i>
+                                    </th>
+                                    <th>
+                                        Categoria
+                                        <i class="bi bi-info-circle text-muted small"
+                                           data-bs-toggle="tooltip"
+                                           title="Categoria a cui appartiene l'attrezzo"></i>
+                                    </th>
+                                    <th>
+                                        Stato
+                                        <i class="bi bi-info-circle text-muted small"
+                                           data-bs-toggle="tooltip"
+                                           title="Stato attuale: Disponibile, In Uso, In Manutenzione, Prestato, Dismesso"></i>
+                                    </th>
+                                    <th>
+                                        Condizione
+                                        <i class="bi bi-info-circle text-muted small"
+                                           data-bs-toggle="tooltip"
+                                           title="Condizione fisica dell'attrezzo: Nuovo → Ottimo → Buono → Discreto → Usurato → Da Riparare"></i>
+                                    </th>
+                                    <th class="text-end">
+                                        Acquisto
+                                        <i class="bi bi-info-circle text-muted small"
+                                           data-bs-toggle="tooltip"
+                                           title="Prezzo pagato al momento dell'acquisto"></i>
+                                    </th>
+                                    <th class="text-end">
+                                        Valore Residuo
+                                        <i class="bi bi-info-circle text-muted small"
+                                           data-bs-toggle="tooltip"
+                                           title="Valore attuale stimato tramite ammortamento lineare: Prezzo − (Prezzo ÷ Vita Utile × Anni Trascorsi). Scende a zero a fine vita utile."></i>
+                                    </th>
+                                    <th class="text-center">
+                                        Ammort. %
+                                        <i class="bi bi-info-circle text-muted small"
+                                           data-bs-toggle="tooltip"
+                                           title="Percentuale del valore già 'consumata' nel tempo. Es. 60% = l'attrezzo ha perso 3/5 del suo valore originale."></i>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -116,14 +345,25 @@
                                 <tr>
                                     <td>
                                         <a href="{% url 'dettaglio_attrezzatura' attr.id %}">{{ attr.nome }}</a>
+                                        {% if attr.marca %}<br><small class="text-muted">{{ attr.marca }}</small>{% endif %}
                                     </td>
-                                    <td>{{ attr.categoria.nome|default:"-" }}</td>
+                                    <td>{{ attr.categoria.nome|default:"—" }}</td>
                                     <td>
                                         <span class="badge
-                                            {% if attr.condizione == 'nuovo' %}bg-success
-                                            {% elif attr.condizione == 'ottimo' %}bg-success
+                                            {% if attr.stato == 'disponibile' %}bg-success
+                                            {% elif attr.stato == 'in_uso' %}bg-primary
+                                            {% elif attr.stato == 'manutenzione' %}bg-warning text-dark
+                                            {% elif attr.stato == 'prestato' %}bg-info text-dark
+                                            {% elif attr.stato == 'dismesso' %}bg-secondary
+                                            {% endif %}">
+                                            {{ attr.get_stato_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge
+                                            {% if attr.condizione == 'nuovo' or attr.condizione == 'ottimo' %}bg-success
                                             {% elif attr.condizione == 'buono' %}bg-primary
-                                            {% elif attr.condizione == 'discreto' %}bg-info
+                                            {% elif attr.condizione == 'discreto' %}bg-info text-dark
                                             {% elif attr.condizione == 'usurato' %}bg-warning text-dark
                                             {% elif attr.condizione == 'da_riparare' %}bg-danger
                                             {% endif %}">
@@ -133,17 +373,27 @@
                                     <td class="text-end">
                                         {% if attr.prezzo_acquisto %}
                                             &euro;{{ attr.prezzo_acquisto|floatformat:2 }}
-                                        {% else %}-{% endif %}
+                                        {% else %}&mdash;{% endif %}
                                     </td>
                                     <td class="text-end">
-                                        {% if attr.get_valore_residuo %}
+                                        {% if attr.get_valore_residuo is not None %}
                                             &euro;{{ attr.get_valore_residuo|floatformat:2 }}
-                                        {% else %}-{% endif %}
+                                        {% else %}&mdash;{% endif %}
                                     </td>
                                     <td class="text-center">
-                                        {% if attr.get_percentuale_ammortamento is not None %}
-                                            <small>{{ attr.get_percentuale_ammortamento }}%</small>
-                                        {% else %}-{% endif %}
+                                        {% with perc=attr.get_percentuale_ammortamento %}
+                                        {% if perc is not None %}
+                                            <div class="d-flex align-items-center gap-1 justify-content-center">
+                                                <div class="progress flex-grow-1" style="height:6px; min-width:40px;"
+                                                     data-bs-toggle="tooltip"
+                                                     title="{{ perc }}% ammortato — {{ attr.vita_utile_anni }} anni vita utile">
+                                                    <div class="progress-bar {% if perc >= 80 %}bg-danger{% elif perc >= 50 %}bg-warning{% else %}bg-success{% endif %}"
+                                                         style="width:{{ perc }}%"></div>
+                                                </div>
+                                                <small>{{ perc }}%</small>
+                                            </div>
+                                        {% else %}&mdash;{% endif %}
+                                        {% endwith %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -151,7 +401,14 @@
                         </table>
                     </div>
                 {% else %}
-                    <p class="text-muted">Nessuna attrezzatura attiva.</p>
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-search fs-2 d-block mb-2"></i>
+                        Nessuna attrezzatura trovata con i filtri selezionati.
+                        <br>
+                        <a href="{% if gruppo %}{% url 'inventario_attrezzature' gruppo.id %}{% else %}{% url 'inventario_attrezzature' %}{% endif %}">
+                            Rimuovi i filtri
+                        </a>
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -164,20 +421,30 @@
                 <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Genera Inventario</h5>
             </div>
             <div class="card-body">
-                <p>Genera un nuovo inventario per registrare i valori alla data odierna.</p>
+                <p class="text-muted small">
+                    Salva uno snapshot dei valori
+                    {% if filtri_attivi %}<strong>filtrati</strong>{% else %}attuali{% endif %}
+                    alla data odierna per confronti futuri.
+                </p>
                 <form method="post">
                     {% csrf_token %}
+                    <!-- Preserva i filtri attivi nell'inventario -->
+                    {% if f_categoria %}<input type="hidden" name="categoria" value="{{ f_categoria }}">{% endif %}
                     <div class="mb-3">
                         <label for="descrizione" class="form-label">Descrizione</label>
                         <input type="text" class="form-control" name="descrizione"
-                               placeholder="Es. Inventario annuale 2024">
+                               placeholder="Es. Inventario annuale 2025">
                     </div>
                     <div class="mb-3">
                         <label for="note" class="form-label">Note</label>
-                        <textarea class="form-control" name="note" rows="2"></textarea>
+                        <textarea class="form-control" name="note" rows="2"
+                                  placeholder="Note aggiuntive…"></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="bi bi-download"></i> Genera Inventario
+                        {% if filtri_attivi %}
+                            <span class="badge bg-light text-dark ms-1">{{ attrezzature|length }} el.</span>
+                        {% endif %}
                     </button>
                 </form>
             </div>
@@ -188,30 +455,43 @@
             <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-clock-history"></i> Inventari Precedenti</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 {% if inventari_precedenti %}
                     <ul class="list-group list-group-flush">
                         {% for inv in inventari_precedenti %}
                             <li class="list-group-item">
                                 <div class="d-flex justify-content-between">
                                     <strong>{{ inv.data|date:"d/m/Y" }}</strong>
-                                    <span class="text-muted">{{ inv.numero_attrezzature }} pz</span>
+                                    <span class="badge bg-secondary">{{ inv.numero_attrezzature }} pz</span>
                                 </div>
-                                <small>
-                                    Valore: &euro;{{ inv.valore_totale|floatformat:0 }} |
-                                    Residuo: &euro;{{ inv.valore_residuo_totale|floatformat:0 }}
+                                <small class="text-muted">
+                                    Acquisto: <strong>&euro;{{ inv.valore_totale|floatformat:0 }}</strong>
+                                    &bull;
+                                    Residuo: <strong>&euro;{{ inv.valore_residuo_totale|floatformat:0 }}</strong>
                                 </small>
                                 {% if inv.descrizione %}
-                                    <br><small class="text-muted">{{ inv.descrizione }}</small>
+                                    <br><small class="text-muted fst-italic">{{ inv.descrizione }}</small>
                                 {% endif %}
                             </li>
                         {% endfor %}
                     </ul>
                 {% else %}
-                    <p class="text-muted mb-0">Nessun inventario precedente.</p>
+                    <div class="p-3 text-muted text-center">
+                        <i class="bi bi-clock-history fs-4 d-block mb-1"></i>
+                        Nessun inventario precedente.
+                    </div>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<script>
+// Attiva tutti i tooltip Bootstrap
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+        new bootstrap.Tooltip(el, { placement: 'top', trigger: 'hover focus' });
+    });
+});
+</script>
 {% endblock %}
