@@ -7,7 +7,9 @@ from .models import (
     Gruppo, MembroGruppo, InvitoGruppo, Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
     Invasettamento, Cliente, Vendita, DettaglioVendita,
-    AnalisiTelaino, ApiarioMapLayout
+    AnalisiTelaino, ApiarioMapLayout,
+    PreferenzaMaturazione, Maturatore, ContenitoreStoccaggio,
+    GIORNI_MATURAZIONE_DEFAULTS,
 )
 
 # Serializzatore utente
@@ -513,6 +515,7 @@ class ManutenzioneAttrezzaturaSerializer(serializers.ModelSerializer):
 # Serializzatore Invasettamento
 class InvasettamentoSerializer(serializers.ModelSerializer):
     smielatura_info     = serializers.SerializerMethodField()
+    contenitore_info    = serializers.SerializerMethodField()
     apiario_gruppo_nome = serializers.SerializerMethodField()
     utente_username     = serializers.ReadOnlyField(source='utente.username')
     kg_totali           = serializers.SerializerMethodField()
@@ -521,24 +524,118 @@ class InvasettamentoSerializer(serializers.ModelSerializer):
         model = Invasettamento
         fields = [
             'id', 'data', 'smielatura', 'smielatura_info',
+            'contenitore', 'contenitore_info',
             'apiario_gruppo_nome',
             'tipo_miele', 'formato_vasetto', 'numero_vasetti',
             'lotto', 'utente', 'utente_username', 'note',
             'data_registrazione', 'kg_totali'
         ]
         read_only_fields = ['utente']
+        extra_kwargs = {
+            'smielatura': {'required': False, 'allow_null': True},
+            'contenitore': {'required': False, 'allow_null': True},
+        }
 
     def get_smielatura_info(self, obj):
-        return f"{obj.smielatura.data} - {obj.smielatura.apiario.nome}"
+        if obj.smielatura:
+            return f"{obj.smielatura.data} - {obj.smielatura.apiario.nome}"
+        return None
+
+    def get_contenitore_info(self, obj):
+        if obj.contenitore:
+            return f"{obj.contenitore.get_tipo_display()} {obj.contenitore.nome} - {obj.contenitore.tipo_miele}"
+        return None
 
     def get_apiario_gruppo_nome(self, obj):
         try:
-            return obj.smielatura.apiario.gruppo.nome if obj.smielatura.apiario.gruppo_id else None
+            if obj.smielatura:
+                return obj.smielatura.apiario.gruppo.nome if obj.smielatura.apiario.gruppo_id else None
         except Exception:
-            return None
+            pass
+        return None
 
     def get_kg_totali(self, obj):
         return obj.kg_totali
+
+    def validate(self, data):
+        if not data.get('smielatura') and not data.get('contenitore'):
+            raise serializers.ValidationError("Specificare almeno smielatura o contenitore.")
+        return data
+
+    def create(self, validated_data):
+        validated_data['utente'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+
+# Serializzatore PreferenzaMaturazione
+class PreferenzaMaturazionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PreferenzaMaturazione
+        fields = ['id', 'tipo_miele', 'giorni_maturazione']
+        read_only_fields = ['utente']
+
+    def create(self, validated_data):
+        validated_data['utente'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+# Serializzatore Maturatore
+class MatutatoreSerializer(serializers.ModelSerializer):
+    data_pronta       = serializers.ReadOnlyField()
+    giorni_rimanenti  = serializers.ReadOnlyField()
+    smielatura_info   = serializers.SerializerMethodField()
+    tipo_display      = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Maturatore
+        fields = [
+            'id', 'nome', 'capacita_kg', 'kg_attuali', 'tipo_miele',
+            'smielatura', 'smielatura_info', 'data_inizio', 'giorni_maturazione',
+            'stato', 'tipo_display', 'note', 'data_registrazione',
+            'data_pronta', 'giorni_rimanenti',
+        ]
+        read_only_fields = ['utente']
+
+    def get_smielatura_info(self, obj):
+        if obj.smielatura:
+            return f"{obj.smielatura.data} - {obj.smielatura.apiario.nome}"
+        return None
+
+    def get_tipo_display(self, obj):
+        return obj.get_stato_display()
+
+    def create(self, validated_data):
+        validated_data['utente'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+# Serializzatore ContenitoreStoccaggio
+class ContenitoreStoccaggioSerializer(serializers.ModelSerializer):
+    maturatore_info = serializers.SerializerMethodField()
+    tipo_display    = serializers.SerializerMethodField()
+    stato_display   = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ContenitoreStoccaggio
+        fields = [
+            'id', 'nome', 'tipo', 'tipo_display', 'capacita_kg', 'kg_attuali',
+            'tipo_miele', 'maturatore', 'maturatore_info',
+            'data_riempimento', 'stato', 'stato_display',
+            'note', 'data_registrazione',
+        ]
+        read_only_fields = ['utente']
+
+    def get_maturatore_info(self, obj):
+        if obj.maturatore:
+            return f"{obj.maturatore.nome} - {obj.maturatore.tipo_miele}"
+        return None
+
+    def get_tipo_display(self, obj):
+        return obj.get_tipo_display()
+
+    def get_stato_display(self, obj):
+        return obj.get_stato_display()
 
     def create(self, validated_data):
         validated_data['utente'] = self.context['request'].user

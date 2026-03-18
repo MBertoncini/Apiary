@@ -469,7 +469,8 @@ class Smielatura(models.Model):
 class Invasettamento(models.Model):
     """Modello per gestire le operazioni di invasettamento (confezionamento in vasetti)"""
     data = models.DateField()
-    smielatura = models.ForeignKey(Smielatura, on_delete=models.CASCADE, related_name='invasettamenti')
+    smielatura = models.ForeignKey(Smielatura, on_delete=models.SET_NULL, null=True, blank=True, related_name='invasettamenti')
+    contenitore = models.ForeignKey('ContenitoreStoccaggio', on_delete=models.SET_NULL, null=True, blank=True, related_name='invasettamenti')
     tipo_miele = models.CharField(max_length=100)
     formato_vasetto = models.IntegerField(help_text="Grammi per vasetto (250, 500, 1000)")
     numero_vasetti = models.IntegerField()
@@ -580,6 +581,117 @@ class DettaglioVendita(models.Model):
     class Meta:
         verbose_name = "Dettaglio Vendita"
         verbose_name_plural = "Dettagli Vendita"
+
+
+# ---- Cantina: maturatori e stoccaggio ----
+
+GIORNI_MATURAZIONE_DEFAULTS = {
+    'acacia': 14,
+    'millefiori': 21,
+    'castagno': 28,
+    'girasole': 14,
+    'tiglio': 21,
+    'eucalipto': 21,
+    'rododendro': 21,
+}
+
+
+class PreferenzaMaturazione(models.Model):
+    """Preferenze di maturazione per tipo di miele, personalizzabili per utente."""
+    utente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='preferenze_maturazione')
+    tipo_miele = models.CharField(max_length=100)
+    giorni_maturazione = models.IntegerField(default=21)
+
+    class Meta:
+        verbose_name = "Preferenza Maturazione"
+        verbose_name_plural = "Preferenze Maturazione"
+        unique_together = ['utente', 'tipo_miele']
+        ordering = ['tipo_miele']
+
+    def __str__(self):
+        return f"{self.utente.username} - {self.tipo_miele}: {self.giorni_maturazione}gg"
+
+
+class Maturatore(models.Model):
+    """Contenitore di maturazione del miele (serbatoio inox, maturatore, ecc.)"""
+    STATO_CHOICES = [
+        ('in_maturazione', 'In Maturazione'),
+        ('pronto', 'Pronto'),
+        ('svuotato', 'Svuotato'),
+    ]
+
+    utente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='maturatori')
+    nome = models.CharField(max_length=100)
+    capacita_kg = models.DecimalField(max_digits=7, decimal_places=2, help_text="Capacità in kg")
+    kg_attuali = models.DecimalField(max_digits=7, decimal_places=2, default=0)
+    tipo_miele = models.CharField(max_length=100)
+    smielatura = models.ForeignKey(Smielatura, on_delete=models.SET_NULL, null=True, blank=True, related_name='maturatori')
+    data_inizio = models.DateField()
+    giorni_maturazione = models.IntegerField(default=21)
+    stato = models.CharField(max_length=20, choices=STATO_CHOICES, default='in_maturazione')
+    note = models.TextField(blank=True, null=True)
+    data_registrazione = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def data_pronta(self):
+        from datetime import timedelta
+        return self.data_inizio + timedelta(days=self.giorni_maturazione)
+
+    @property
+    def giorni_rimanenti(self):
+        from datetime import date, timedelta
+        fine = self.data_inizio + timedelta(days=self.giorni_maturazione)
+        delta = fine - date.today()
+        return max(0, delta.days)
+
+    def save(self, *args, **kwargs):
+        if self.stato == 'in_maturazione' and self.giorni_rimanenti == 0:
+            self.stato = 'pronto'
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = "Maturatore"
+        verbose_name_plural = "Maturatori"
+        ordering = ['-data_inizio']
+
+    def __str__(self):
+        return f"{self.nome} - {self.tipo_miele} ({self.kg_attuali}kg)"
+
+
+class ContenitoreStoccaggio(models.Model):
+    """Contenitore di stoccaggio miele (secchio, bidone inox, fusto, ecc.)"""
+    TIPO_CHOICES = [
+        ('secchio', 'Secchio'),
+        ('bidone', 'Bidone inox'),
+        ('fusto', 'Fusto'),
+        ('altro', 'Altro'),
+    ]
+    STATO_CHOICES = [
+        ('pieno', 'Pieno'),
+        ('parziale', 'Parziale'),
+        ('vuoto', 'Vuoto'),
+    ]
+
+    utente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contenitori_stoccaggio')
+    nome = models.CharField(max_length=100, blank=True)
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='secchio')
+    capacita_kg = models.DecimalField(max_digits=7, decimal_places=2)
+    kg_attuali = models.DecimalField(max_digits=7, decimal_places=2, default=0)
+    tipo_miele = models.CharField(max_length=100)
+    maturatore = models.ForeignKey(Maturatore, on_delete=models.SET_NULL, null=True, blank=True, related_name='contenitori')
+    data_riempimento = models.DateField()
+    stato = models.CharField(max_length=20, choices=STATO_CHOICES, default='pieno')
+    note = models.TextField(blank=True, null=True)
+    data_registrazione = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Contenitore Stoccaggio"
+        verbose_name_plural = "Contenitori Stoccaggio"
+        ordering = ['-data_riempimento']
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} {self.nome} - {self.tipo_miele} ({self.kg_attuali}kg)"
+
 
 from django.db import models
 from django.contrib.auth.models import User

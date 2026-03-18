@@ -16,6 +16,7 @@ from .api_views import (
     InvasettamentoViewSet, ClienteViewSet, VenditaViewSet,
     AnalisiTelainoViewSet, NucleoViewSet, register_user, chat_ai_api, ai_quota,
     password_reset_request, password_reset_confirm,
+    PreferenzaMaturazionViewSet, MatutatoreViewSet, ContenitoreStoccaggioViewSet,
 )
 
 # Crea un router e registra i viewsets
@@ -42,6 +43,9 @@ router.register(r'clienti', ClienteViewSet, basename='api-cliente')
 router.register(r'vendite', VenditaViewSet, basename='api-vendita')
 router.register(r'analisi-telaini', AnalisiTelainoViewSet, basename='api-analisi-telaino')
 router.register(r'nuclei', NucleoViewSet, basename='api-nucleo')
+router.register(r'maturatori', MatutatoreViewSet, basename='api-maturatore')
+router.register(r'contenitori-stoccaggio', ContenitoreStoccaggioViewSet, basename='api-contenitore')
+router.register(r'preferenze-maturazione', PreferenzaMaturazionViewSet, basename='api-preferenza-maturazione')
 
 # URLs per le API
 urlpatterns = [

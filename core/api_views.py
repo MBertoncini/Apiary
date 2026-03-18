@@ -24,7 +24,9 @@ from .models import (
     Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
     Invasettamento, Cliente, Vendita, DettaglioVendita,
-    AnalisiTelaino, ApiarioMapLayout, SystemAiQuota
+    AnalisiTelaino, ApiarioMapLayout, SystemAiQuota,
+    PreferenzaMaturazione, Maturatore, ContenitoreStoccaggio,
+    GIORNI_MATURAZIONE_DEFAULTS,
 )
 
 from .serializers import (
@@ -40,7 +42,8 @@ from .serializers import (
     InvasettamentoSerializer, ClienteSerializer, VenditaSerializer,
     DettaglioVenditaSerializer,
     AnalisiTelainoSerializer, ApiarioMapLayoutSerializer,
-    NucleoSerializer, ControlloNucleoSerializer
+    NucleoSerializer, ControlloNucleoSerializer,
+    PreferenzaMaturazionSerializer, MatutatoreSerializer, ContenitoreStoccaggioSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -1289,13 +1292,148 @@ class InvasettamentoViewSet(viewsets.ModelViewSet):
     ordering = ['-data']
 
     def get_queryset(self):
+        from django.db.models import Q
         apiari_accessibili = get_apiari_accessibili(self.request.user)
         return Invasettamento.objects.filter(
-            smielatura__apiario__in=apiari_accessibili
-        )
+            Q(smielatura__apiario__in=apiari_accessibili) |
+            Q(contenitore__utente=self.request.user)
+        ).distinct()
 
     def perform_create(self, serializer):
         serializer.save(utente=self.request.user)
+
+
+class PreferenzaMaturazionViewSet(viewsets.ModelViewSet):
+    """Preferenze giorni maturazione per tipo miele, per utente."""
+    serializer_class = PreferenzaMaturazionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return PreferenzaMaturazione.objects.filter(utente=self.request.user)
+
+    @action(detail=False, methods=['get'])
+    def defaults(self, request):
+        """Restituisce i valori di default per tipo miele."""
+        return Response(GIORNI_MATURAZIONE_DEFAULTS)
+
+    @action(detail=False, methods=['get'])
+    def for_tipo(self, request):
+        """Ritorna i giorni per un tipo specifico (preferenza utente o default)."""
+        tipo = request.query_params.get('tipo_miele', '')
+        try:
+            pref = PreferenzaMaturazione.objects.get(utente=request.user, tipo_miele__iexact=tipo)
+            return Response({'tipo_miele': tipo, 'giorni': pref.giorni_maturazione, 'custom': True})
+        except PreferenzaMaturazione.DoesNotExist:
+            giorni = GIORNI_MATURAZIONE_DEFAULTS.get(tipo.lower(), 21)
+            return Response({'tipo_miele': tipo, 'giorni': giorni, 'custom': False})
+
+
+class MatutatoreViewSet(viewsets.ModelViewSet):
+    """Maturatori del miele."""
+    serializer_class = MatutatoreSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['nome', 'tipo_miele']
+    ordering_fields = ['data_inizio', 'kg_attuali']
+    ordering = ['-data_inizio']
+
+    def get_queryset(self):
+        return Maturatore.objects.filter(utente=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def trasferisci(self, request, pk=None):
+        """Trasferisci miele dal maturatore a N contenitori di stoccaggio."""
+        maturatore = self.get_object()
+        contenitori_data = request.data.get('contenitori', [])
+        if not contenitori_data:
+            return Response({'error': 'Nessun contenitore specificato.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        kg_totale = sum(float(c.get('kg_attuali', c.get('capacita_kg', 0))) for c in contenitori_data)
+        if kg_totale > float(maturatore.kg_attuali):
+            return Response(
+                {'error': f'Quantità ({kg_totale}kg) supera il disponibile ({maturatore.kg_attuali}kg).'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        from datetime import date
+        creati = []
+        for c in contenitori_data:
+            kg = float(c.get('kg_attuali', c.get('capacita_kg', 0)))
+            cap = float(c.get('capacita_kg', kg))
+            contenitore = ContenitoreStoccaggio.objects.create(
+                utente=request.user,
+                nome=c.get('nome', ''),
+                tipo=c.get('tipo', 'secchio'),
+                capacita_kg=cap,
+                kg_attuali=kg,
+                tipo_miele=maturatore.tipo_miele,
+                maturatore=maturatore,
+                data_riempimento=date.today(),
+                stato='pieno' if kg >= cap else 'parziale',
+            )
+            creati.append(contenitore.id)
+
+        maturatore.kg_attuali = max(0, float(maturatore.kg_attuali) - kg_totale)
+        if maturatore.kg_attuali == 0:
+            maturatore.stato = 'svuotato'
+        maturatore.save()
+
+        return Response({
+            'contenitori_creati': len(creati),
+            'kg_trasferiti': kg_totale,
+            'maturatore_kg_rimanenti': float(maturatore.kg_attuali),
+        })
+
+
+class ContenitoreStoccaggioViewSet(viewsets.ModelViewSet):
+    """Contenitori di stoccaggio miele (secchi, bidoni, fusti)."""
+    serializer_class = ContenitoreStoccaggioSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['nome', 'tipo_miele', 'tipo']
+    ordering_fields = ['data_riempimento', 'kg_attuali']
+    ordering = ['-data_riempimento']
+
+    def get_queryset(self):
+        return ContenitoreStoccaggio.objects.filter(utente=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def invasetta(self, request, pk=None):
+        """Crea un invasettamento da questo contenitore, scalando i kg."""
+        contenitore = self.get_object()
+        formato = int(request.data.get('formato_vasetto', 500))
+        numero = int(request.data.get('numero_vasetti', 0))
+        if numero <= 0:
+            return Response({'error': 'Numero vasetti non valido.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        kg_usati = round((formato * numero) / 1000, 3)
+        if kg_usati > float(contenitore.kg_attuali):
+            return Response(
+                {'error': f'Quantità ({kg_usati}kg) supera il disponibile ({contenitore.kg_attuali}kg).'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        from datetime import date
+        invasettamento = Invasettamento.objects.create(
+            utente=request.user,
+            data=request.data.get('data', date.today()),
+            smielatura=None,
+            contenitore=contenitore,
+            tipo_miele=contenitore.tipo_miele,
+            formato_vasetto=formato,
+            numero_vasetti=numero,
+            lotto=request.data.get('lotto') or '',
+            note=request.data.get('note', ''),
+        )
+
+        contenitore.kg_attuali = max(0, float(contenitore.kg_attuali) - kg_usati)
+        if contenitore.kg_attuali == 0:
+            contenitore.stato = 'vuoto'
+        elif contenitore.kg_attuali < float(contenitore.capacita_kg):
+            contenitore.stato = 'parziale'
+        contenitore.save()
+
+        return Response(InvasettamentoSerializer(invasettamento, context={'request': request}).data, status=status.HTTP_201_CREATED)
 
 
 class ClienteViewSet(viewsets.ModelViewSet):
