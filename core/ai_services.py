@@ -7,6 +7,7 @@ import base64
 import requests
 from django.conf import settings
 from django.utils import timezone
+from django.db import transaction
 from datetime import timedelta
 
 GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
@@ -176,25 +177,31 @@ def _next_midnight_utc():
 
 def increment_ai_quota(user, used_personal_key: bool):
     """Incrementa il contatore giornaliero richieste AI.
-    Non lancia mai eccezioni — il tracking non deve bloccare la chat."""
+    Non lancia mai eccezioni — il tracking non deve bloccare la chat.
+    Usa select_for_update per evitare race condition con utenti concorrenti."""
     try:
         from .models import SystemAiQuota
         now = timezone.now()
         if used_personal_key:
-            profilo = user.profilo
-            if profilo.ai_requests_reset_at is None or profilo.ai_requests_reset_at <= now:
-                profilo.ai_requests_today = 1
-                profilo.ai_requests_reset_at = _next_midnight_utc()
-            else:
-                profilo.ai_requests_today += 1
-            profilo.save(update_fields=['ai_requests_today', 'ai_requests_reset_at'])
+            # Profilo è per-utente: lock sulla riga specifica
+            with transaction.atomic():
+                from .models import Profilo
+                profilo = Profilo.objects.select_for_update().get(user=user)
+                if profilo.ai_requests_reset_at is None or profilo.ai_requests_reset_at <= now:
+                    profilo.ai_requests_today = 1
+                    profilo.ai_requests_reset_at = _next_midnight_utc()
+                else:
+                    profilo.ai_requests_today += 1
+                profilo.save(update_fields=['ai_requests_today', 'ai_requests_reset_at'])
         else:
-            quota, _ = SystemAiQuota.objects.get_or_create(pk=1)
-            if quota.reset_at is None or quota.reset_at <= now:
-                quota.requests_today = 1
-                quota.reset_at = _next_midnight_utc()
-            else:
-                quota.requests_today += 1
-            quota.save(update_fields=['requests_today', 'reset_at'])
+            # Quota condivisa: lock sulla riga singleton pk=1
+            with transaction.atomic():
+                quota, created = SystemAiQuota.objects.select_for_update().get_or_create(pk=1)
+                if quota.reset_at is None or quota.reset_at <= now:
+                    quota.requests_today = 1
+                    quota.reset_at = _next_midnight_utc()
+                else:
+                    quota.requests_today += 1
+                quota.save(update_fields=['requests_today', 'reset_at'])
     except Exception:
         pass
