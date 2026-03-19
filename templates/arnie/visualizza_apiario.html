@@ -855,25 +855,49 @@ const PIANTINA = (() => {
   };
   const TIPO_SMALL=new Set(['nucleo_legno','nucleo_polistirolo','portasciami','apidea','mini_plus']);
 
+  /* ─── Helper honeycomb ───────────────────────────────────────── */
+  function hexRgba(hex,a){const{r,g,b}=hexRgb(hex);return`rgba(${r},${g},${b},${a})`;}
+  function _drawSingleHex(hx,hy,r){ctx.beginPath();for(let i=0;i<6;i++){const ang=(60*i-30)*Math.PI/180,x=hx+r*Math.cos(ang),y=hy+r*Math.sin(ang);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.closePath();}
+  function _drawHoneycomb(x,y,w,h,hexR,color){ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();const hexW=hexR*Math.sqrt(3),hexH=hexR*2;ctx.strokeStyle=color;ctx.lineWidth=0.7;for(let row=y-hexH;row<y+h+hexH;row+=hexH*0.75){const rowN=Math.round((row-y)/(hexH*0.75)),xOff=(rowN%2===1)?hexW/2:0;for(let col=x-hexW;col<x+w+hexW;col+=hexW){_drawSingleHex(col+xOff,row,hexR);ctx.stroke();}}ctx.restore();}
+
   /* ─── Funzioni di disegno per tipo ──────────────────────────── */
   function _hiveLabel(cx,cy,sz,s,lbl,col,isSmall){
     const fs=Math.max(7,sz*(isSmall?.24:.28));ctx.font='bold '+fs+'px Poppins,system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
     const lw=ctx.measureText(lbl).width+5*s,lcy=cy+sz*.70;ctx.fillStyle='rgba(0,0,0,.38)';ctx.beginPath();ctx.roundRect(cx+sz/2-lw/2,lcy-fs*.6,lw,fs*1.2,[2*s]);ctx.fill();ctx.fillStyle=tcol(col);ctx.fillText(lbl,cx+sz/2,lcy);
   }
   function _drawDadant(cx,cy,sz,s,c,col){
-    ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(cx,cy+sz*.22,sz,sz*.72,[4*s]);ctx.fill();
-    ctx.beginPath();ctx.moveTo(cx-sz*.05,cy+sz*.22);ctx.lineTo(cx+sz*1.05,cy+sz*.22);ctx.lineTo(cx+sz*.88,cy+sz*.05);ctx.lineTo(cx+sz*.12,cy+sz*.05);ctx.closePath();ctx.fillStyle=shade(col,-18);ctx.fill();
-    ctx.beginPath();ctx.moveTo(cx+sz*.12,cy+sz*.05);ctx.lineTo(cx+sz*.5,cy);ctx.lineTo(cx+sz*.88,cy+sz*.05);ctx.closePath();ctx.fillStyle=shade(col,-32);ctx.fill();
-    ctx.strokeStyle='rgba(0,0,0,.1)';ctx.lineWidth=s;ctx.beginPath();ctx.moveTo(cx+sz*.08,cy+sz*.55);ctx.lineTo(cx+sz*.92,cy+sz*.55);ctx.stroke();
-    ctx.fillStyle='rgba(0,0,0,.32)';ctx.beginPath();ctx.roundRect(cx+sz*.25,cy+sz*.86,sz*.5,sz*.08,[2*s]);ctx.fill();
-    const hg=ctx.createLinearGradient(cx,cy+sz*.22,cx+sz*.25,cy+sz*.22);hg.addColorStop(0,'rgba(255,255,255,.15)');hg.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=hg;ctx.beginPath();ctx.roundRect(cx,cy+sz*.22,sz*.25,sz*.72,[4*s,0,0,4*s]);ctx.fill();
+    // ── Tetto in lamiera metallica ──
+    ctx.fillStyle='#A2B8C2';ctx.beginPath();ctx.roundRect(cx-sz*.02,cy,sz*1.04,sz*.15,[2*s]);ctx.fill();
+    const mg=ctx.createLinearGradient(cx,cy,cx,cy+sz*.07);mg.addColorStop(0,'rgba(255,255,255,.28)');mg.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=mg;ctx.beginPath();ctx.roundRect(cx-sz*.02,cy,sz*1.04,sz*.07,[2*s,2*s,0,0]);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(cx-sz*.02,cy+sz*.065);ctx.lineTo(cx+sz*1.02,cy+sz*.065);ctx.stroke();
+    ctx.strokeStyle='rgba(0,0,0,.20)';ctx.lineWidth=s*.8;ctx.beginPath();ctx.moveTo(cx-sz*.02,cy+sz*.15);ctx.lineTo(cx+sz*1.02,cy+sz*.15);ctx.stroke();
+    // ── Melario ──
+    ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(cx+sz*.05,cy+sz*.15,sz*.9,sz*.35,[2*s]);ctx.fill();
+    ctx.strokeStyle=shade(col,-22);ctx.lineWidth=s*1.4;ctx.beginPath();ctx.roundRect(cx+sz*.05,cy+sz*.15,sz*.9,sz*.35,[2*s]);ctx.stroke();
+    _drawHoneycomb(cx+sz*.08,cy+sz*.17,sz*.84,sz*.31,sz*.07,hexRgba(shade(col,-20),.22));
+    // ── Corpo nido ──
+    ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(cx+sz*.05,cy+sz*.50,sz*.9,sz*.30,[2*s]);ctx.fill();
+    ctx.strokeStyle=shade(col,-22);ctx.lineWidth=s*1.4;ctx.beginPath();ctx.roundRect(cx+sz*.05,cy+sz*.50,sz*.9,sz*.30,[2*s]);ctx.stroke();
+    _drawHoneycomb(cx+sz*.08,cy+sz*.52,sz*.84,sz*.26,sz*.07,hexRgba(shade(col,-20),.22));
+    // ── Predellino ──
+    ctx.fillStyle=shade(col,-30);ctx.fillRect(cx+sz*.03,cy+sz*.80,sz*.94,sz*.05);
+    // ── Porticina ──
+    const pw=sz*.80;ctx.fillStyle='rgba(0,0,0,.85)';ctx.beginPath();ctx.roundRect(cx+(sz-pw)/2,cy+sz*.80,pw,sz*.062,[s]);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.09)';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(cx+(sz-pw)/2,cy+sz*.811);ctx.lineTo(cx+(sz-pw)/2+pw,cy+sz*.811);ctx.stroke();
   }
   function _drawLangstroth(cx,cy,sz,s,c,col){
-    const rc=shade(col,-8);ctx.fillStyle=rc;ctx.beginPath();ctx.roundRect(cx-sz*.02,cy+sz*.02,sz*1.04,sz*.12,[2*s]);ctx.fill();
-    ctx.strokeStyle='rgba(0,0,0,.12)';ctx.lineWidth=s*.8;ctx.beginPath();ctx.roundRect(cx-sz*.02,cy+sz*.02,sz*1.04,sz*.12,[2*s]);ctx.stroke();
-    const bh=(sz*.74)/3;for(let i=0;i<3;i++){const bt=cy+sz*.14+i*bh;ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(cx+sz*.04,bt,sz*.92,bh-1,[2*s]);ctx.fill();ctx.strokeStyle='rgba(0,0,0,.1)';ctx.lineWidth=s*.6;ctx.beginPath();ctx.roundRect(cx+sz*.04,bt,sz*.92,bh-1,[2*s]);ctx.stroke();}
-    ctx.fillStyle=shade(col,-28);ctx.fillRect(cx+sz*.04,cy+sz*.88,sz*.92,sz*.04);
-    ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.roundRect(cx+sz*.12,cy+sz*.88,sz*.76,sz*.06,[2*s]);ctx.fill();
+    // ── Tetto in lamiera metallica ──
+    ctx.fillStyle='#A2B8C2';ctx.beginPath();ctx.roundRect(cx-sz*.02,cy,sz*1.04,sz*.12,[2*s]);ctx.fill();
+    const mg=ctx.createLinearGradient(cx,cy,cx,cy+sz*.06);mg.addColorStop(0,'rgba(255,255,255,.28)');mg.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=mg;ctx.beginPath();ctx.roundRect(cx-sz*.02,cy,sz*1.04,sz*.06,[2*s,2*s,0,0]);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(cx-sz*.02,cy+sz*.06);ctx.lineTo(cx+sz*1.02,cy+sz*.06);ctx.stroke();
+    ctx.strokeStyle='rgba(0,0,0,.20)';ctx.lineWidth=s*.8;ctx.beginPath();ctx.moveTo(cx-sz*.02,cy+sz*.12);ctx.lineTo(cx+sz*1.02,cy+sz*.12);ctx.stroke();
+    // ── 3 casse modulari con honeycomb ──
+    const bh=(sz*.68)/3;for(let i=0;i<3;i++){const bt=cy+sz*.12+i*bh;ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(cx+sz*.04,bt,sz*.92,bh-1,[2*s]);ctx.fill();ctx.strokeStyle=shade(col,-22);ctx.lineWidth=s*1.4;ctx.beginPath();ctx.roundRect(cx+sz*.04,bt,sz*.92,bh-1,[2*s]);ctx.stroke();_drawHoneycomb(cx+sz*.06,bt+sz*.01,sz*.88,bh-sz*.02-1,sz*.065,hexRgba(shade(col,-20),.22));}
+    // ── Predellino ──
+    ctx.fillStyle=shade(col,-28);ctx.fillRect(cx+sz*.04,cy+sz*.80,sz*.92,sz*.05);
+    // ── Porticina ──
+    const pw=sz*.76;ctx.fillStyle='rgba(0,0,0,.85)';ctx.beginPath();ctx.roundRect(cx+(sz-pw)/2,cy+sz*.80,pw,sz*.062,[s]);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.09)';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(cx+(sz-pw)/2,cy+sz*.811);ctx.lineTo(cx+(sz-pw)/2+pw,cy+sz*.811);ctx.stroke();
   }
   function _drawTopBar(cx,cy,sz,s,c,col){
     ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(cx,cy+sz*.18);ctx.lineTo(cx+sz,cy+sz*.18);ctx.lineTo(cx+sz*.88,cy+sz*.82);ctx.lineTo(cx+sz*.12,cy+sz*.82);ctx.closePath();ctx.fill();
@@ -890,29 +914,54 @@ const PIANTINA = (() => {
     ctx.fillStyle='rgba(0,0,0,.32)';ctx.beginPath();ctx.roundRect(cx+sz*.30,cy+sz*.79,sz*.40,sz*.026,[2*s]);ctx.fill();
   }
   function _drawOsservazione(cx,cy,sz,s,c,col){
-    ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(cx,cy+sz*.22,sz,sz*.72,[4*s]);ctx.fill();
-    ctx.beginPath();ctx.moveTo(cx-sz*.05,cy+sz*.22);ctx.lineTo(cx+sz*1.05,cy+sz*.22);ctx.lineTo(cx+sz*.88,cy+sz*.05);ctx.lineTo(cx+sz*.12,cy+sz*.05);ctx.closePath();ctx.fillStyle=shade(col,-18);ctx.fill();
-    ctx.beginPath();ctx.moveTo(cx+sz*.12,cy+sz*.05);ctx.lineTo(cx+sz*.5,cy);ctx.lineTo(cx+sz*.88,cy+sz*.05);ctx.closePath();ctx.fillStyle=shade(col,-32);ctx.fill();
-    ctx.fillStyle='rgba(173,216,230,.38)';ctx.beginPath();ctx.roundRect(cx+sz*.16,cy+sz*.27,sz*.68,sz*.52,[2*s]);ctx.fill();
-    ctx.strokeStyle='rgba(100,180,220,.7)';ctx.lineWidth=s*.8;ctx.beginPath();ctx.roundRect(cx+sz*.16,cy+sz*.27,sz*.68,sz*.52,[2*s]);ctx.stroke();
-    ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(cx+sz*.5,cy+sz*.52,sz*.07,sz*.05,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(0,0,0,.32)';ctx.beginPath();ctx.roundRect(cx+sz*.25,cy+sz*.86,sz*.5,sz*.08,[2*s]);ctx.fill();
+    // ── Tetto metallico ──
+    ctx.fillStyle='#A2B8C2';ctx.beginPath();ctx.roundRect(cx-sz*.02,cy,sz*1.04,sz*.15,[2*s]);ctx.fill();
+    const mg=ctx.createLinearGradient(cx,cy,cx,cy+sz*.07);mg.addColorStop(0,'rgba(255,255,255,.28)');mg.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=mg;ctx.beginPath();ctx.roundRect(cx-sz*.02,cy,sz*1.04,sz*.07,[2*s,2*s,0,0]);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(cx-sz*.02,cy+sz*.065);ctx.lineTo(cx+sz*1.02,cy+sz*.065);ctx.stroke();
+    ctx.strokeStyle='rgba(0,0,0,.20)';ctx.lineWidth=s*.8;ctx.beginPath();ctx.moveTo(cx-sz*.02,cy+sz*.15);ctx.lineTo(cx+sz*1.02,cy+sz*.15);ctx.stroke();
+    // ── Corpo con cornice ──
+    ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(cx+sz*.05,cy+sz*.15,sz*.9,sz*.65,[4*s]);ctx.fill();
+    ctx.strokeStyle=shade(col,-22);ctx.lineWidth=s*1.4;ctx.beginPath();ctx.roundRect(cx+sz*.05,cy+sz*.15,sz*.9,sz*.65,[4*s]);ctx.stroke();
+    // ── Pannello vetro ──
+    ctx.fillStyle='rgba(173,216,230,.38)';ctx.beginPath();ctx.roundRect(cx+sz*.14,cy+sz*.22,sz*.72,sz*.48,[2*s]);ctx.fill();
+    ctx.strokeStyle='rgba(100,180,220,.70)';ctx.lineWidth=s*.8;ctx.beginPath();ctx.roundRect(cx+sz*.14,cy+sz*.22,sz*.72,sz*.48,[2*s]);ctx.stroke();
+    ctx.fillStyle='rgba(0,0,0,.18)';ctx.beginPath();ctx.ellipse(cx+sz*.5,cy+sz*.46,sz*.07,sz*.05,0,0,Math.PI*2);ctx.fill();
+    // ── Predellino + porta ──
+    ctx.fillStyle=shade(col,-30);ctx.fillRect(cx+sz*.03,cy+sz*.80,sz*.94,sz*.05);
+    const pw=sz*.60;ctx.fillStyle='rgba(0,0,0,.85)';ctx.beginPath();ctx.roundRect(cx+(sz-pw)/2,cy+sz*.80,pw,sz*.055,[s]);ctx.fill();
   }
   function _drawPappaReale(cx,cy,sz,s,c,col){
-    ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(cx,cy+sz*.22,sz,sz*.72,[4*s]);ctx.fill();
-    ctx.beginPath();ctx.moveTo(cx-sz*.05,cy+sz*.22);ctx.lineTo(cx+sz*1.05,cy+sz*.22);ctx.lineTo(cx+sz*.88,cy+sz*.05);ctx.lineTo(cx+sz*.12,cy+sz*.05);ctx.closePath();ctx.fillStyle=shade(col,-18);ctx.fill();
-    ctx.beginPath();ctx.moveTo(cx+sz*.12,cy+sz*.05);ctx.lineTo(cx+sz*.5,cy);ctx.lineTo(cx+sz*.88,cy+sz*.05);ctx.closePath();ctx.fillStyle=shade(col,-32);ctx.fill();
-    const dX=cx+sz*.53;ctx.strokeStyle='rgba(0,0,0,.45)';ctx.lineWidth=s*.9;ctx.setLineDash([3*s,3*s]);ctx.beginPath();ctx.moveTo(dX,cy+sz*.24);ctx.lineTo(dX,cy+sz*.90);ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle='rgba(255,215,0,.22)';ctx.beginPath();ctx.arc(cx+sz*.26,cy+sz*.53,sz*.08,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(0,0,0,.32)';ctx.beginPath();ctx.roundRect(cx+sz*.08,cy+sz*.86,sz*.38,sz*.08,[2*s]);ctx.fill();
+    // ── Tetto metallico ──
+    ctx.fillStyle='#A2B8C2';ctx.beginPath();ctx.roundRect(cx-sz*.02,cy,sz*1.04,sz*.15,[2*s]);ctx.fill();
+    const mg=ctx.createLinearGradient(cx,cy,cx,cy+sz*.07);mg.addColorStop(0,'rgba(255,255,255,.28)');mg.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=mg;ctx.beginPath();ctx.roundRect(cx-sz*.02,cy,sz*1.04,sz*.07,[2*s,2*s,0,0]);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(cx-sz*.02,cy+sz*.065);ctx.lineTo(cx+sz*1.02,cy+sz*.065);ctx.stroke();
+    ctx.strokeStyle='rgba(0,0,0,.20)';ctx.lineWidth=s*.8;ctx.beginPath();ctx.moveTo(cx-sz*.02,cy+sz*.15);ctx.lineTo(cx+sz*1.02,cy+sz*.15);ctx.stroke();
+    // ── Corpo ──
+    ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(cx+sz*.05,cy+sz*.15,sz*.9,sz*.65,[2*s]);ctx.fill();
+    ctx.strokeStyle=shade(col,-22);ctx.lineWidth=s*1.4;ctx.beginPath();ctx.roundRect(cx+sz*.05,cy+sz*.15,sz*.9,sz*.65,[2*s]);ctx.stroke();
+    _drawHoneycomb(cx+sz*.08,cy+sz*.17,sz*.84,sz*.61,sz*.07,hexRgba(shade(col,-20),.22));
+    // ── Divisore verticale tratteggiato ──
+    const dX=cx+sz*.53;ctx.strokeStyle='rgba(0,0,0,.45)';ctx.lineWidth=s*.9;ctx.setLineDash([3*s,3*s]);ctx.beginPath();ctx.moveTo(dX,cy+sz*.17);ctx.lineTo(dX,cy+sz*.76);ctx.stroke();ctx.setLineDash([]);
+    // ── Simbolo regina (cerchio oro) ──
+    ctx.fillStyle='rgba(255,215,0,.22)';ctx.beginPath();ctx.arc(cx+sz*.26,cy+sz*.46,sz*.08,0,Math.PI*2);ctx.fill();
+    // ── Predellino + porta ──
+    ctx.fillStyle=shade(col,-30);ctx.fillRect(cx+sz*.03,cy+sz*.80,sz*.94,sz*.05);
+    const pw=sz*.44;ctx.fillStyle='rgba(0,0,0,.85)';ctx.beginPath();ctx.roundRect(cx+sz*.06,cy+sz*.80,pw,sz*.055,[s]);ctx.fill();
   }
   function _drawNucleoLegno(cx,cy,sz,s,c,col){
-    ctx.fillStyle=shade(col,-18);ctx.beginPath();ctx.roundRect(cx+sz*.04,cy+sz*.10,sz*.92,sz*.14,[3*s]);ctx.fill();
-    ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(cx+sz*.08,cy+sz*.23,sz*.84,sz*.57,[2*s]);ctx.fill();
-    ctx.strokeStyle='rgba(0,0,0,.1)';ctx.lineWidth=s*.7;ctx.beginPath();ctx.roundRect(cx+sz*.08,cy+sz*.23,sz*.84,sz*.57,[2*s]);ctx.stroke();
-    ctx.strokeStyle='rgba(0,0,0,.12)';ctx.lineWidth=s*.8;ctx.beginPath();ctx.moveTo(cx+sz*.10,cy+sz*.515);ctx.lineTo(cx+sz*.90,cy+sz*.515);ctx.stroke();
-    ctx.fillStyle=shade(col,-28);ctx.fillRect(cx+sz*.04,cy+sz*.80,sz*.92,sz*.055);
-    ctx.fillStyle='rgba(0,0,0,.50)';ctx.beginPath();ctx.roundRect(cx+sz*.38,cy+sz*.80,sz*.24,sz*.055,[1.5*s]);ctx.fill();
+    // ── Tetto metallico piccolo ──
+    ctx.fillStyle='#A2B8C2';ctx.beginPath();ctx.roundRect(cx+sz*.02,cy+sz*.05,sz*.96,sz*.14,[2*s]);ctx.fill();
+    const mg=ctx.createLinearGradient(cx,cy+sz*.05,cx,cy+sz*.10);mg.addColorStop(0,'rgba(255,255,255,.28)');mg.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=mg;ctx.beginPath();ctx.roundRect(cx+sz*.02,cy+sz*.05,sz*.96,sz*.07,[2*s,2*s,0,0]);ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,.20)';ctx.lineWidth=s*.7;ctx.beginPath();ctx.moveTo(cx+sz*.02,cy+sz*.19);ctx.lineTo(cx+sz*.98,cy+sz*.19);ctx.stroke();
+    // ── Corpo ──
+    ctx.fillStyle=c;ctx.beginPath();ctx.roundRect(cx+sz*.08,cy+sz*.19,sz*.84,sz*.60,[2*s]);ctx.fill();
+    ctx.strokeStyle=shade(col,-22);ctx.lineWidth=s*1.2;ctx.beginPath();ctx.roundRect(cx+sz*.08,cy+sz*.19,sz*.84,sz*.60,[2*s]);ctx.stroke();
+    _drawHoneycomb(cx+sz*.10,cy+sz*.21,sz*.80,sz*.56,sz*.06,hexRgba(shade(col,-20),.22));
+    // ── Linea divisione telaini ──
+    ctx.strokeStyle='rgba(0,0,0,.20)';ctx.lineWidth=s*.8;ctx.beginPath();ctx.moveTo(cx+sz*.10,cy+sz*.49);ctx.lineTo(cx+sz*.90,cy+sz*.49);ctx.stroke();
+    // ── Predellino + porta ──
+    ctx.fillStyle=shade(col,-28);ctx.fillRect(cx+sz*.04,cy+sz*.79,sz*.92,sz*.05);
+    const pw=sz*.30;ctx.fillStyle='rgba(0,0,0,.85)';ctx.beginPath();ctx.roundRect(cx+(sz-pw)/2,cy+sz*.79,pw,sz*.05,[s]);ctx.fill();
   }
   function _drawNucleoPolistirolo(cx,cy,sz,s,c,col){
     const lc=shade(col,38);
