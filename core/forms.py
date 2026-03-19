@@ -6,7 +6,7 @@ from .models import (
     TipoTrattamento, TrattamentoSanitario, Melario, Smielatura, Gruppo, MembroGruppo, InvitoGruppo,
     Regina, CategoriaAttrezzatura, Attrezzatura, ManutenzioneAttrezzatura,
     PrestitoAttrezzatura, SpesaAttrezzatura, Cliente, Vendita, DettaglioVendita,
-    Invasettamento, Nucleo, ControlloNucleo,
+    Invasettamento, Nucleo, ControlloNucleo, Maturatore, ContenitoreStoccaggio,
 )
 
 from django.utils  import timezone
@@ -900,6 +900,85 @@ class ControlloNucleoForm(forms.ModelForm):
         self.fields['n_telaini'].required = False
         self.fields['forza_colonia'].required = False
         self.fields['presenza_regina'].required = False
+        self.fields['note'].required = False
+        if not self.instance.pk:
+            self.fields['data'].initial = timezone.now().date()
+
+# ─── CANTINA FORMS ────────────────────────────────────────────────────────────
+
+class MaturatoreForm(forms.ModelForm):
+    class Meta:
+        model = Maturatore
+        fields = ['nome', 'tipo_miele', 'capacita_kg', 'kg_attuali', 'smielatura', 'data_inizio', 'giorni_maturazione', 'note']
+        widgets = {
+            'nome':              forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'es. Maturatore 200L'}),
+            'tipo_miele':        forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'es. Millefiori, Acacia'}),
+            'capacita_kg':       forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': '0.1'}),
+            'kg_attuali':        forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': '0.1'}),
+            'smielatura':        forms.Select(attrs={'class': 'form-control form-select'}),
+            'data_inizio':       forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'giorni_maturazione':forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 365}),
+            'note':              forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['smielatura'].required = False
+        self.fields['note'].required = False
+        if user:
+            self.fields['smielatura'].queryset = Smielatura.objects.filter(utente=user).order_by('-data')
+            self.fields['smielatura'].label_from_instance = lambda s: f"{s.data.strftime('%d/%m/%Y')} – {s.tipo_miele} ({s.quantita_miele} kg)"
+        if not self.instance.pk:
+            self.fields['data_inizio'].initial = timezone.now().date()
+            self.fields['giorni_maturazione'].initial = 21
+            self.fields['kg_attuali'].initial = 0
+
+
+class ContenitoreStoccaggioForm(forms.ModelForm):
+    class Meta:
+        model = ContenitoreStoccaggio
+        fields = ['nome', 'tipo', 'capacita_kg', 'kg_attuali', 'tipo_miele', 'maturatore', 'data_riempimento', 'stato', 'note']
+        widgets = {
+            'nome':             forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'es. Secchio 25kg #1'}),
+            'tipo':             forms.Select(attrs={'class': 'form-control form-select'}),
+            'capacita_kg':      forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': '0.1'}),
+            'kg_attuali':       forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': '0.1'}),
+            'tipo_miele':       forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'es. Millefiori, Acacia'}),
+            'maturatore':       forms.Select(attrs={'class': 'form-control form-select'}),
+            'data_riempimento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'stato':            forms.Select(attrs={'class': 'form-control form-select'}),
+            'note':             forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['nome'].required = False
+        self.fields['maturatore'].required = False
+        self.fields['note'].required = False
+        if user:
+            self.fields['maturatore'].queryset = Maturatore.objects.filter(utente=user).exclude(stato='svuotato')
+            self.fields['maturatore'].label_from_instance = lambda m: f"{m.nome} – {m.tipo_miele} ({m.kg_attuali} kg)"
+        if not self.instance.pk:
+            self.fields['data_riempimento'].initial = timezone.now().date()
+
+
+class InvasettaDaContenitoreForm(forms.ModelForm):
+    class Meta:
+        model = Invasettamento
+        fields = ['data', 'tipo_miele', 'formato_vasetto', 'numero_vasetti', 'lotto', 'note']
+        widgets = {
+            'data':           forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'tipo_miele':     forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'es. Acacia, Millefiori'}),
+            'formato_vasetto':forms.Select(attrs={'class': 'form-control form-select'},
+                                           choices=[(250,'250g'),(500,'500g'),(1000,'1 kg')]),
+            'numero_vasetti': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'lotto':          forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'es. LOT-2025-001'}),
+            'note':           forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['lotto'].required = False
         self.fields['note'].required = False
         if not self.instance.pk:
             self.fields['data'].initial = timezone.now().date()

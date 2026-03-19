@@ -26,6 +26,7 @@ from .models import (
     TrattamentoSanitario, TipoTrattamento, Gruppo, MembroGruppo, InvitoGruppo, Melario, Smielatura, Regina, StoriaRegine,
     CategoriaAttrezzatura, Attrezzatura, ManutenzioneAttrezzatura, PrestitoAttrezzatura, SpesaAttrezzatura, InventarioAttrezzature,
     ApiarioMapLayout, Cliente, Vendita, DettaglioVendita, Invasettamento, Nucleo, ControlloNucleo, Notifica,
+    Maturatore, ContenitoreStoccaggio,
 )
 from .forms import (
     ApiarioForm, ArniaForm, ControlloArniaForm, FiorituraForm, PagamentoForm,
@@ -34,6 +35,7 @@ from .forms import (
     SostituzioneReginaForm, CategoriaAttrezzaturaForm, AttrezzaturaForm, AttrezzaturaFiltroForm, ManutenzioneAttrezzaturaForm,
     PrestitoAttrezzaturaForm, RestituzioneAttrezzaturaForm, SpesaAttrezzaturaForm, RicercaReginaForm,
     ClienteForm, VenditaForm, DettaglioVenditaFormSet, InvasettamentoForm, NucleoForm, ControlloNucleoForm,
+    MaturatoreForm, ContenitoreStoccaggioForm, InvasettaDaContenitoreForm,
 )
 from .decorators import (
     richiedi_proprietario_o_gruppo, richiedi_appartenenza_gruppo, 
@@ -4308,6 +4310,7 @@ class ArniaCreateView(LoginRequiredMixin, CreateView):
         apiario_id = self.request.GET.get('apiario_id')
         if apiario_id:
             initial['apiario'] = apiario_id
+        initial['attiva'] = True
         return initial
 
     def get_form(self, form_class=None):
@@ -5690,6 +5693,181 @@ def elimina_invasettamento(request, pk):
         inv.delete()
         messages.success(request, "Invasettamento eliminato.")
     return redirect('dettaglio_smielatura', smielatura_id=smielatura_id)
+
+
+# ─── CANTINA VIEWS ────────────────────────────────────────────────────────────
+
+@login_required
+def gestione_cantina(request):
+    """Dashboard principale della cantina: maturatori, stoccaggio, invasettati."""
+    from django.db.models import Sum
+    maturatori_attivi = Maturatore.objects.filter(
+        utente=request.user
+    ).exclude(stato='svuotato').order_by('-data_inizio')
+
+    tutti_maturatori = Maturatore.objects.filter(
+        utente=request.user
+    ).order_by('-data_inizio')
+
+    contenitori_attivi = ContenitoreStoccaggio.objects.filter(
+        utente=request.user
+    ).exclude(stato='vuoto').order_by('tipo_miele', '-data_riempimento')
+
+    tutti_contenitori = ContenitoreStoccaggio.objects.filter(
+        utente=request.user
+    ).order_by('-data_riempimento')
+
+    invasettamenti = Invasettamento.objects.filter(
+        utente=request.user
+    ).order_by('-data')
+
+    # Stats
+    kg_in_maturazione = maturatori_attivi.filter(stato='in_maturazione').aggregate(
+        tot=Sum('kg_attuali'))['tot'] or 0
+    kg_stoccati = contenitori_attivi.aggregate(tot=Sum('kg_attuali'))['tot'] or 0
+    totale_vasetti = invasettamenti.aggregate(tot=Sum('numero_vasetti'))['tot'] or 0
+
+    # Raggruppa contenitori per tipo_miele
+    contenitori_per_tipo = {}
+    for c in contenitori_attivi:
+        contenitori_per_tipo.setdefault(c.tipo_miele, []).append(c)
+
+    # Raggruppa invasettamenti per tipo_miele con totali per formato
+    invasettamenti_per_tipo = {}
+    for inv in invasettamenti:
+        t = inv.tipo_miele
+        if t not in invasettamenti_per_tipo:
+            invasettamenti_per_tipo[t] = {'lista': [], 'tot_250': 0, 'tot_500': 0, 'tot_1000': 0, 'totale': 0}
+        invasettamenti_per_tipo[t]['lista'].append(inv)
+        invasettamenti_per_tipo[t]['totale'] += inv.numero_vasetti
+        if inv.formato_vasetto == 250:
+            invasettamenti_per_tipo[t]['tot_250'] += inv.numero_vasetti
+        elif inv.formato_vasetto == 500:
+            invasettamenti_per_tipo[t]['tot_500'] += inv.numero_vasetti
+        elif inv.formato_vasetto == 1000:
+            invasettamenti_per_tipo[t]['tot_1000'] += inv.numero_vasetti
+
+    smielature_disponibili = Smielatura.objects.filter(
+        utente=request.user
+    ).order_by('-data')[:30]
+
+    maturatori_con_miele = Maturatore.objects.filter(
+        utente=request.user, kg_attuali__gt=0
+    ).exclude(stato='svuotato')
+
+    context = {
+        'maturatori_attivi': maturatori_attivi,
+        'tutti_maturatori': tutti_maturatori,
+        'contenitori_attivi': contenitori_attivi,
+        'tutti_contenitori': tutti_contenitori,
+        'invasettamenti': invasettamenti,
+        'contenitori_per_tipo': contenitori_per_tipo,
+        'invasettamenti_per_tipo': invasettamenti_per_tipo,
+        'kg_in_maturazione': kg_in_maturazione,
+        'kg_stoccati': kg_stoccati,
+        'totale_vasetti': totale_vasetti,
+        'smielature_disponibili': smielature_disponibili,
+        'maturatori_con_miele': maturatori_con_miele,
+    }
+    return render(request, 'cantina/cantina.html', context)
+
+
+@login_required
+def crea_maturatore(request):
+    if request.method == 'POST':
+        form = MaturatoreForm(request.POST, user=request.user)
+        if form.is_valid():
+            mat = form.save(commit=False)
+            mat.utente = request.user
+            mat.save()
+            messages.success(request, f"Maturatore «{mat.nome}» creato.")
+        else:
+            messages.error(request, "Errore nel modulo maturatore.")
+    return redirect('gestione_cantina')
+
+
+@login_required
+def modifica_maturatore(request, pk):
+    mat = get_object_or_404(Maturatore, pk=pk, utente=request.user)
+    if request.method == 'POST':
+        form = MaturatoreForm(request.POST, instance=mat, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Maturatore «{mat.nome}» aggiornato.")
+        else:
+            messages.error(request, "Errore nel modulo maturatore.")
+    return redirect('gestione_cantina')
+
+
+@login_required
+def elimina_maturatore(request, pk):
+    mat = get_object_or_404(Maturatore, pk=pk, utente=request.user)
+    if request.method == 'POST':
+        nome = mat.nome
+        mat.delete()
+        messages.success(request, f"Maturatore «{nome}» eliminato.")
+    return redirect('gestione_cantina')
+
+
+@login_required
+def crea_contenitore_stoccaggio(request):
+    if request.method == 'POST':
+        form = ContenitoreStoccaggioForm(request.POST, user=request.user)
+        if form.is_valid():
+            c = form.save(commit=False)
+            c.utente = request.user
+            c.save()
+            messages.success(request, f"Contenitore «{c.nome or c.get_tipo_display()}» creato.")
+        else:
+            messages.error(request, "Errore nel modulo contenitore.")
+    return redirect('gestione_cantina')
+
+
+@login_required
+def modifica_contenitore_stoccaggio(request, pk):
+    c = get_object_or_404(ContenitoreStoccaggio, pk=pk, utente=request.user)
+    if request.method == 'POST':
+        form = ContenitoreStoccaggioForm(request.POST, instance=c, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Contenitore aggiornato.")
+        else:
+            messages.error(request, "Errore nel modulo contenitore.")
+    return redirect('gestione_cantina')
+
+
+@login_required
+def elimina_contenitore_stoccaggio(request, pk):
+    c = get_object_or_404(ContenitoreStoccaggio, pk=pk, utente=request.user)
+    if request.method == 'POST':
+        c.delete()
+        messages.success(request, "Contenitore eliminato.")
+    return redirect('gestione_cantina')
+
+
+@login_required
+def invasetta_da_contenitore(request, contenitore_id):
+    """Crea un invasettamento partendo da un contenitore di stoccaggio."""
+    contenitore = get_object_or_404(ContenitoreStoccaggio, pk=contenitore_id, utente=request.user)
+    if request.method == 'POST':
+        form = InvasettaDaContenitoreForm(request.POST)
+        if form.is_valid():
+            inv = form.save(commit=False)
+            inv.contenitore = contenitore
+            inv.utente = request.user
+            # Scala i kg dal contenitore
+            kg_usati = round((inv.numero_vasetti * inv.formato_vasetto) / 1000, 3)
+            contenitore.kg_attuali = max(0, float(contenitore.kg_attuali) - kg_usati)
+            if contenitore.kg_attuali == 0:
+                contenitore.stato = 'vuoto'
+            elif float(contenitore.kg_attuali) < float(contenitore.capacita_kg):
+                contenitore.stato = 'parziale'
+            contenitore.save()
+            inv.save()
+            messages.success(request, f"Invasettati {inv.numero_vasetti}×{inv.formato_vasetto}g ({kg_usati} kg) da {contenitore.nome or contenitore.get_tipo_display()}.")
+        else:
+            messages.error(request, "Errore nel modulo invasettamento.")
+    return redirect('gestione_cantina')
 
 
 # ─── NUCLEI VIEWS ─────────────────────────────────────────────────────────────

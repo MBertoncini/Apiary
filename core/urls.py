@@ -146,6 +146,16 @@ urlpatterns = [
     path('smielatura/<int:smielatura_id>/invasetta/', views.crea_invasettamento, name='crea_invasettamento'),
     path('invasettamento/<int:pk>/elimina/', views.elimina_invasettamento, name='elimina_invasettamento'),
 
+    # Cantina
+    path('cantina/', views.gestione_cantina, name='gestione_cantina'),
+    path('cantina/maturatore/nuovo/', views.crea_maturatore, name='crea_maturatore'),
+    path('cantina/maturatore/<int:pk>/modifica/', views.modifica_maturatore, name='modifica_maturatore'),
+    path('cantina/maturatore/<int:pk>/elimina/', views.elimina_maturatore, name='elimina_maturatore'),
+    path('cantina/contenitore/nuovo/', views.crea_contenitore_stoccaggio, name='crea_contenitore_stoccaggio'),
+    path('cantina/contenitore/<int:pk>/modifica/', views.modifica_contenitore_stoccaggio, name='modifica_contenitore_stoccaggio'),
+    path('cantina/contenitore/<int:pk>/elimina/', views.elimina_contenitore_stoccaggio, name='elimina_contenitore_stoccaggio'),
+    path('cantina/contenitore/<int:contenitore_id>/invasetta/', views.invasetta_da_contenitore, name='invasetta_da_contenitore'),
+
     # Nuclei
     path('nuclei/', views.gestione_nuclei, name='gestione_nuclei'),
     path('nucleo/nuovo/', views.crea_nucleo, name='crea_nucleo'),

@@ -118,9 +118,15 @@
     </a>
 
     <a href="{% url 'gestione_melari_globale' %}"
-       class="sidebar-link {% if 'melari' in request.resolver_match.url_name %}active{% endif %}">
+       class="sidebar-link {% if 'melari' in request.resolver_match.url_name or 'smielatura' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-layers nav-icon"></i>
       Melari
+    </a>
+
+    <a href="{% url 'gestione_cantina' %}"
+       class="sidebar-link {% if 'cantina' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-jar nav-icon"></i>
+      Cantina
     </a>
 
     <!-- INVENTARIO -->

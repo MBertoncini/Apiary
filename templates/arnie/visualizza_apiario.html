@@ -1430,7 +1430,7 @@ const PIANTINA = (() => {
     saveStatEl=document.getElementById('save-status');
     canvas.style.height=H_CSS+'px';
     ensureInit();const n=Object.keys(ARNIE_DATA).length;if(cntBadge)cntBadge.textContent=n+(n===1?' arnia':' arnie');
-    requestAnimationFrame(()=>{fitAll();needDraw=true;});updStatus();updTray();
+    requestAnimationFrame(()=>{fitAll();needDraw=true;updTray();});updStatus();updTray();
 
     /* Color picker buttons */
     document.querySelectorAll('.nucleo-color-btn').forEach(btn=>{

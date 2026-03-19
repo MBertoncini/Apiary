@@ -1,0 +1,1024 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cantina{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   CANTINA — design system
+   ============================================================ */
+
+/* ── Stats chips ── */
+.cantina-stats {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+.cantina-chip {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .7rem 1.25rem;
+  border-radius: 40px;
+  font-size: .88rem;
+  font-weight: 600;
+  flex: 1 1 140px;
+  min-width: 130px;
+}
+.cantina-chip .chip-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+.cantina-chip .chip-body { display: flex; flex-direction: column; line-height: 1.25; }
+.cantina-chip .chip-val  { font-family: 'Caveat', cursive; font-size: 1.55rem; font-weight: 700; line-height: 1; }
+.cantina-chip .chip-lbl  { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; opacity: .75; }
+.chip-orange { background: #FFF3E0; border: 1.5px solid #FFCC80; color: #E65100; }
+.chip-blue   { background: #E3F2FD; border: 1.5px solid #90CAF9; color: #1565C0; }
+.chip-green  { background: #E8F5E9; border: 1.5px solid #A5D6A7; color: #2E7D32; }
+
+/* ── Section ── */
+.cantina-section { margin-bottom: 2.5rem; }
+.section-hdr {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1.2rem;
+  padding-bottom: .6rem;
+  border-bottom: 2px solid var(--border-color, #EAD9BF);
+}
+.section-hdr-title {
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  color: var(--brown-dark, #2C1810);
+  margin: 0;
+}
+.section-hdr-badge {
+  background: var(--honey, #F5A623);
+  color: white;
+  font-size: .72rem;
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-weight: 600;
+}
+
+/* ── Maturatore card ── */
+.maturatore-card {
+  background: white;
+  border: 1.5px solid var(--border-color, #EAD9BF);
+  border-radius: 14px;
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  position: relative;
+}
+.maturatore-card.stato-pronto { border-color: #4CAF50; }
+.maturatore-card.stato-in_maturazione { border-color: #FF9800; }
+.mat-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .8rem;
+}
+.mat-nome {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--brown-dark, #2C1810);
+}
+.mat-tipo {
+  font-size: .78rem;
+  color: #888;
+  margin-top: 1px;
+}
+.mat-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: .75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.badge-pronto      { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
+.badge-maturazione { background: #FFF3E0; color: #E65100; border: 1px solid #FFCC80; }
+.badge-svuotato    { background: #F5F5F5; color: #757575; border: 1px solid #E0E0E0; }
+
+.mat-kg-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .45rem;
+}
+.mat-kg-label { font-size: .8rem; color: #666; }
+.mat-kg-pct   { font-size: .8rem; font-weight: 700; color: var(--honey, #F5A623); }
+.mat-progress {
+  height: 8px;
+  border-radius: 4px;
+  background: #F0E8D8;
+  overflow: hidden;
+  margin-bottom: .9rem;
+}
+.mat-progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width .4s ease;
+}
+.bar-pronto      { background: linear-gradient(90deg, #66BB6A, #43A047); }
+.bar-maturazione { background: linear-gradient(90deg, #FFA726, #EF6C00); }
+
+.mat-action-row {
+  display: flex;
+  gap: .6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ── Tipo group label ── */
+.tipo-group-label {
+  font-size: .78rem;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin: .6rem 0 .5rem;
+}
+
+/* ── Contenitori row (horizontal scroll) ── */
+.contenitori-scroll {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: .5rem;
+}
+
+/* ── Contenitore card ── */
+.contenitore-card {
+  background: white;
+  border: 1.5px solid var(--border-color, #EAD9BF);
+  border-radius: 12px;
+  padding: 1rem;
+  width: 170px;
+  flex: 0 0 170px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.04);
+  position: relative;
+}
+.con-icon  { font-size: 1.5rem; margin-bottom: .3rem; }
+.con-nome  { font-size: .82rem; font-weight: 700; color: var(--brown-dark, #2C1810); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.con-kg    { font-size: .78rem; color: #555; margin: 2px 0 5px; }
+.con-progress {
+  height: 5px;
+  border-radius: 3px;
+  background: #F0E8D8;
+  overflow: hidden;
+  margin-bottom: .7rem;
+}
+.con-progress-bar { height: 100%; border-radius: 3px; }
+.con-bar-secchio { background: #F5A623; }
+.con-bar-bidone  { background: #42A5F5; }
+.con-bar-fusto   { background: #8D6E63; }
+.con-bar-altro   { background: #78909C; }
+.con-actions {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+}
+
+/* ── Invasettato cards ── */
+.invasettato-card {
+  background: #FFFDF0;
+  border: 1.5px solid #F5E8B0;
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  margin-bottom: .85rem;
+}
+.inv-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .65rem;
+}
+.inv-tipo { font-weight: 700; color: var(--brown-dark, #2C1810); font-size: .95rem; }
+.inv-totale { font-size: .8rem; color: #888; }
+.inv-formati {
+  display: flex;
+  gap: .8rem;
+  flex-wrap: wrap;
+}
+.formato-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  border: 1px solid #EAD9BF;
+  border-radius: 8px;
+  padding: .5rem .9rem;
+  min-width: 70px;
+  text-align: center;
+}
+.formato-chip .fc-count { font-family: 'Caveat', cursive; font-size: 1.6rem; font-weight: 700; color: var(--honey, #F5A623); line-height: 1; }
+.formato-chip .fc-label { font-size: .68rem; color: #999; margin-top: 1px; }
+
+/* ── Empty state ── */
+.cantina-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #AAA;
+  font-size: .88rem;
+}
+
+/* ── Popup menu ── */
+.card-menu-btn {
+  background: none;
+  border: none;
+  padding: 2px 6px;
+  color: #AAA;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+.card-menu-btn:hover { background: #F5F5F5; color: #555; }
+
+/* responsive */
+@media (max-width: 576px) {
+  .contenitori-scroll { flex-wrap: nowrap; overflow-x: auto; }
+  .cantina-chip { flex: 1 1 100%; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-cantina">
+
+  <!-- ── Page header ── -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">🍯 Cantina</h1>
+      <p class="text-muted mb-0">Maturazione, stoccaggio e invasettamento del miele</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalNuovoContenitore">
+        <i class="bi bi-bucket me-1"></i>Nuovo contenitore
+      </button>
+      <button class="btn btn-sm" style="background:var(--honey,#F5A623);color:white;border:none;" data-bs-toggle="modal" data-bs-target="#modalNuovoMaturatore">
+        <i class="bi bi-plus-circle me-1"></i>Nuovo maturatore
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Stats chips ── -->
+  <div class="cantina-stats">
+    <div class="cantina-chip chip-orange">
+      <div class="chip-icon">⏳</div>
+      <div class="chip-body">
+        <span class="chip-val">{{ kg_in_maturazione|floatformat:1 }}</span>
+        <span class="chip-lbl">kg in maturazione</span>
+      </div>
+    </div>
+    <div class="cantina-chip chip-blue">
+      <div class="chip-icon">🪣</div>
+      <div class="chip-body">
+        <span class="chip-val">{{ kg_stoccati|floatformat:1 }}</span>
+        <span class="chip-lbl">kg stoccati</span>
+      </div>
+    </div>
+    <div class="cantina-chip chip-green">
+      <div class="chip-icon">🫙</div>
+      <div class="chip-body">
+        <span class="chip-val">{{ totale_vasetti }}</span>
+        <span class="chip-lbl">vasetti totali</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       SEZIONE 1 — MATURATORI
+       ════════════════════════════════ -->
+  <div class="cantina-section">
+    <div class="section-hdr">
+      <h2 class="section-hdr-title">🥛 Maturatori</h2>
+      {% if maturatori_attivi %}
+      <span class="section-hdr-badge">{{ maturatori_attivi|length }} attiv{% if maturatori_attivi|length == 1 %}o{% else %}i{% endif %}</span>
+      {% endif %}
+      <button class="btn btn-sm btn-outline-secondary ms-auto" data-bs-toggle="modal" data-bs-target="#modalNuovoMaturatore">
+        <i class="bi bi-plus-lg me-1"></i>Aggiungi
+      </button>
+    </div>
+
+    {% if maturatori_attivi %}
+      {% for mat in maturatori_attivi %}
+      {% with pct=mat.kg_attuali|floatformat:0 %}
+      <div class="maturatore-card stato-{{ mat.stato }}">
+        <div class="mat-card-head">
+          <div>
+            <div class="mat-nome">{{ mat.nome }}</div>
+            <div class="mat-tipo">{{ mat.tipo_miele }}</div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            {% if mat.stato == 'pronto' %}
+            <span class="mat-status-badge badge-pronto">✅ Pronto</span>
+            {% elif mat.stato == 'in_maturazione' %}
+            <span class="mat-status-badge badge-maturazione">
+              ⏳ {% if mat.giorni_rimanenti > 0 %}{{ mat.giorni_rimanenti }}gg{% else %}Pronto oggi{% endif %}
+            </span>
+            {% endif %}
+            <!-- Menu -->
+            <div class="dropdown">
+              <button class="card-menu-btn" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                <li>
+                  <button class="dropdown-item" onclick="apriModificaMaturatore({{ mat.id }}, '{{ mat.nome|escapejs }}', '{{ mat.tipo_miele|escapejs }}', {{ mat.capacita_kg }}, {{ mat.kg_attuali }}, '{{ mat.data_inizio|date:'Y-m-d' }}', {{ mat.giorni_maturazione }}, '{{ mat.note|default:''|escapejs }}')">
+                    <i class="bi bi-pencil me-2"></i>Modifica
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item text-danger" onclick="confermaEliminaMaturatore({{ mat.id }}, '{{ mat.nome|escapejs }}')">
+                    <i class="bi bi-trash me-2"></i>Elimina
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kg row -->
+        <div class="mat-kg-row">
+          <span class="mat-kg-label">{{ mat.kg_attuali|floatformat:1 }} kg / {{ mat.capacita_kg|floatformat:1 }} kg</span>
+          {% if mat.capacita_kg > 0 %}
+          <span class="mat-kg-pct">{% widthratio mat.kg_attuali mat.capacita_kg 100 %}%</span>
+          {% endif %}
+        </div>
+
+        <!-- Progress bar -->
+        <div class="mat-progress">
+          {% if mat.capacita_kg > 0 %}
+          <div class="mat-progress-bar {% if mat.stato == 'pronto' %}bar-pronto{% else %}bar-maturazione{% endif %}"
+               style="width: {% widthratio mat.kg_attuali mat.capacita_kg 100 %}%"></div>
+          {% endif %}
+        </div>
+
+        <!-- Action row -->
+        <div class="mat-action-row">
+          {% if mat.stato == 'pronto' %}
+          <button class="btn btn-sm btn-success"
+                  onclick="apriTrasferisci({{ mat.id }}, '{{ mat.nome|escapejs }}', '{{ mat.tipo_miele|escapejs }}', {{ mat.kg_attuali }})">
+            <i class="bi bi-arrow-right-circle me-1"></i>Trasferisci in contenitori
+          </button>
+          {% elif mat.stato == 'in_maturazione' and mat.giorni_rimanenti > 0 %}
+          <span class="text-muted small"><i class="bi bi-hourglass-split me-1"></i>Pronto tra {{ mat.giorni_rimanenti }} giorni · {{ mat.data_pronta|date:"d/m/Y" }}</span>
+          <button class="btn btn-sm btn-outline-success btn-sm"
+                  onclick="apriTrasferisci({{ mat.id }}, '{{ mat.nome|escapejs }}', '{{ mat.tipo_miele|escapejs }}', {{ mat.kg_attuali }})">
+            Trasferisci ora
+          </button>
+          {% endif %}
+          {% if mat.smielatura %}
+          <a href="{% url 'dettaglio_smielatura' mat.smielatura.id %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-info-circle me-1"></i>Smielatura
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endwith %}
+      {% endfor %}
+    {% else %}
+    <div class="cantina-empty">
+      <i class="bi bi-droplet" style="font-size:2.5rem;opacity:.25;display:block;margin-bottom:.5rem;"></i>
+      Nessun maturatore attivo.<br>
+      <button class="btn btn-sm btn-outline-secondary mt-2" data-bs-toggle="modal" data-bs-target="#modalNuovoMaturatore">
+        Aggiungi uno dopo una smielatura
+      </button>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ════════════════════════════════
+       SEZIONE 2 — STOCCAGGIO
+       ════════════════════════════════ -->
+  <div class="cantina-section">
+    <div class="section-hdr">
+      <h2 class="section-hdr-title">🪣 Stoccaggio</h2>
+      {% if contenitori_attivi %}
+      <span class="section-hdr-badge">{{ contenitori_attivi|length }} contenitor{% if contenitori_attivi|length == 1 %}e{% else %}i{% endif %}</span>
+      {% endif %}
+      <button class="btn btn-sm btn-outline-secondary ms-auto" data-bs-toggle="modal" data-bs-target="#modalNuovoContenitore">
+        <i class="bi bi-plus-lg me-1"></i>Aggiungi
+      </button>
+    </div>
+
+    {% if contenitori_per_tipo %}
+      {% for tipo_miele, contenitori in contenitori_per_tipo.items %}
+      <div class="tipo-group-label">{{ tipo_miele }}</div>
+      <div class="contenitori-scroll">
+        {% for c in contenitori %}
+        <div class="contenitore-card">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="con-icon">
+              {% if c.tipo == 'bidone' %}🛢️
+              {% elif c.tipo == 'fusto' %}🧴
+              {% else %}🪣{% endif %}
+            </div>
+            <div class="dropdown">
+              <button class="card-menu-btn" data-bs-toggle="dropdown" style="font-size:.8rem;"><i class="bi bi-three-dots-vertical"></i></button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                <li>
+                  <button class="dropdown-item" onclick="apriModificaContenitore({{ c.id }}, '{{ c.nome|escapejs }}', '{{ c.tipo }}', {{ c.capacita_kg }}, {{ c.kg_attuali }}, '{{ c.tipo_miele|escapejs }}', '{{ c.data_riempimento|date:'Y-m-d' }}', '{{ c.stato }}', '{{ c.note|default:''|escapejs }}')">
+                    <i class="bi bi-pencil me-2"></i>Modifica
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item text-danger" onclick="confermaEliminaContenitore({{ c.id }})">
+                    <i class="bi bi-trash me-2"></i>Elimina
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="con-nome">{{ c.nome|default:c.get_tipo_display }}</div>
+          <div class="con-kg">{{ c.kg_attuali|floatformat:1 }} / {{ c.capacita_kg|floatformat:1 }} kg</div>
+          <div class="con-progress">
+            {% if c.capacita_kg > 0 %}
+            <div class="con-progress-bar con-bar-{{ c.tipo }}"
+                 style="width:{% widthratio c.kg_attuali c.capacita_kg 100 %}%"></div>
+            {% endif %}
+          </div>
+          <div class="con-actions">
+            {% if c.kg_attuali > 0 %}
+            <button class="btn btn-sm btn-outline-warning w-100"
+                    onclick="apriInvasetta({{ c.id }}, '{{ c.nome|default:c.get_tipo_display|escapejs }}', '{{ c.tipo_miele|escapejs }}', {{ c.kg_attuali }})">
+              🫙 Invasetta
+            </button>
+            {% else %}
+            <span class="text-muted small">Vuoto</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    {% else %}
+    <div class="cantina-empty">
+      <i class="bi bi-bucket" style="font-size:2.5rem;opacity:.25;display:block;margin-bottom:.5rem;"></i>
+      Nessun contenitore con miele.<br>
+      <span class="text-muted small">Trasferisci da un maturatore o aggiungi manualmente.</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ════════════════════════════════
+       SEZIONE 3 — INVASETTATO
+       ════════════════════════════════ -->
+  <div class="cantina-section">
+    <div class="section-hdr">
+      <h2 class="section-hdr-title">🫙 Invasettato</h2>
+      {% if totale_vasetti %}
+      <span class="section-hdr-badge">{{ totale_vasetti }} vaset{% if totale_vasetti == 1 %}to{% else %}ti{% endif %}</span>
+      {% endif %}
+    </div>
+
+    {% if invasettamenti_per_tipo %}
+      {% for tipo_miele, dati in invasettamenti_per_tipo.items %}
+      <div class="invasettato-card">
+        <div class="inv-card-head">
+          <span class="inv-tipo">🍯 {{ tipo_miele }}</span>
+          <span class="inv-totale">{{ dati.totale }} vasett{% if dati.totale == 1 %}o{% else %}i{% endif %} totali</span>
+        </div>
+        <div class="inv-formati">
+          {% if dati.tot_250 %}
+          <div class="formato-chip">
+            <span class="fc-count">{{ dati.tot_250 }}</span>
+            <span class="fc-label">250g</span>
+          </div>
+          {% endif %}
+          {% if dati.tot_500 %}
+          <div class="formato-chip">
+            <span class="fc-count">{{ dati.tot_500 }}</span>
+            <span class="fc-label">500g</span>
+          </div>
+          {% endif %}
+          {% if dati.tot_1000 %}
+          <div class="formato-chip">
+            <span class="fc-count">{{ dati.tot_1000 }}</span>
+            <span class="fc-label">1 kg</span>
+          </div>
+          {% endif %}
+        </div>
+        <!-- Ultimi invasettamenti -->
+        <details class="mt-2">
+          <summary class="text-muted small" style="cursor:pointer;">Dettaglio ({{ dati.lista|length }} record)</summary>
+          <div class="table-responsive mt-2">
+            <table class="table table-sm table-hover mb-0" style="font-size:.8rem;">
+              <thead><tr><th>Data</th><th>Formato</th><th>N°</th><th>Lotto</th></tr></thead>
+              <tbody>
+                {% for inv in dati.lista %}
+                <tr>
+                  <td>{{ inv.data|date:"d/m/Y" }}</td>
+                  <td>{{ inv.formato_vasetto }}g</td>
+                  <td>{{ inv.numero_vasetti }}</td>
+                  <td>{{ inv.lotto|default:"—" }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+      {% endfor %}
+    {% else %}
+    <div class="cantina-empty">
+      <i class="bi bi-jar" style="font-size:2.5rem;opacity:.25;display:block;margin-bottom:.5rem;"></i>
+      Nessun vasetto registrato.<br>
+      <span class="text-muted small">Invasetta da un contenitore di stoccaggio.</span>
+    </div>
+    {% endif %}
+  </div>
+
+</div>{# /page-cantina #}
+
+
+{# ============================================================
+   MODALS
+   ============================================================ #}
+
+<!-- Modal: Nuovo Maturatore -->
+<div class="modal fade" id="modalNuovoMaturatore" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--honey,#F5A623);color:white;">
+        <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Nuovo Maturatore</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="{% url 'crea_maturatore' %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Nome *</label>
+              <input type="text" class="form-control" name="nome" placeholder="es. Maturatore 200L" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Tipo miele *</label>
+              <input type="text" class="form-control" name="tipo_miele" placeholder="es. Millefiori, Acacia" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Capacità (kg) *</label>
+              <input type="number" class="form-control" name="capacita_kg" step="0.1" min="0.1" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Kg attuali</label>
+              <input type="number" class="form-control" name="kg_attuali" step="0.1" min="0" value="0">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Data inizio *</label>
+              <input type="date" class="form-control" name="data_inizio" value="{{ today|date:'Y-m-d' }}" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Giorni maturazione</label>
+              <input type="number" class="form-control" name="giorni_maturazione" min="1" value="21">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Smielatura collegata</label>
+              <select class="form-select" name="smielatura">
+                <option value="">— Nessuna —</option>
+                {% for s in smielature_disponibili %}
+                <option value="{{ s.id }}">{{ s.data|date:"d/m/Y" }} – {{ s.tipo_miele }} ({{ s.quantita_miele }} kg)</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Note</label>
+              <textarea class="form-control" name="note" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+          <button type="submit" class="btn" style="background:var(--honey,#F5A623);color:white;border:none;">
+            <i class="bi bi-plus-circle me-1"></i>Crea maturatore
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Modifica Maturatore (riempita via JS) -->
+<div class="modal fade" id="modalModificaMaturatore" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--honey,#F5A623);color:white;">
+        <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Modifica Maturatore</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" id="formModificaMaturatore" action="">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Nome *</label>
+              <input type="text" class="form-control" name="nome" id="editMatNome" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Tipo miele *</label>
+              <input type="text" class="form-control" name="tipo_miele" id="editMatTipo" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Capacità (kg) *</label>
+              <input type="number" class="form-control" name="capacita_kg" id="editMatCap" step="0.1" min="0.1" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Kg attuali</label>
+              <input type="number" class="form-control" name="kg_attuali" id="editMatKg" step="0.1" min="0">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Data inizio *</label>
+              <input type="date" class="form-control" name="data_inizio" id="editMatData" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Giorni maturazione</label>
+              <input type="number" class="form-control" name="giorni_maturazione" id="editMatGiorni" min="1">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Note</label>
+              <textarea class="form-control" name="note" id="editMatNote" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+          <button type="submit" class="btn" style="background:var(--honey,#F5A623);color:white;border:none;">
+            <i class="bi bi-check2 me-1"></i>Salva
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Elimina Maturatore -->
+<form method="post" id="formEliminaMaturatore" action="">
+  {% csrf_token %}
+</form>
+
+<!-- Modal: Nuovo Contenitore -->
+<div class="modal fade" id="modalNuovoContenitore" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background:#1565C0;">
+        <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Nuovo Contenitore di Stoccaggio</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="{% url 'crea_contenitore_stoccaggio' %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-7">
+              <label class="form-label fw-semibold">Nome</label>
+              <input type="text" class="form-control" name="nome" placeholder="es. Secchio 25kg #1">
+            </div>
+            <div class="col-5">
+              <label class="form-label fw-semibold">Tipo *</label>
+              <select class="form-select" name="tipo">
+                <option value="secchio">Secchio</option>
+                <option value="bidone">Bidone inox</option>
+                <option value="fusto">Fusto</option>
+                <option value="altro">Altro</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Tipo miele *</label>
+              <input type="text" class="form-control" name="tipo_miele" placeholder="es. Millefiori, Acacia" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Capacità (kg) *</label>
+              <input type="number" class="form-control" name="capacita_kg" step="0.1" min="0.1" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Kg attuali *</label>
+              <input type="number" class="form-control" name="kg_attuali" step="0.1" min="0" value="0" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Data riempimento *</label>
+              <input type="date" class="form-control" name="data_riempimento" value="{{ today|date:'Y-m-d' }}" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Stato</label>
+              <select class="form-select" name="stato">
+                <option value="pieno">Pieno</option>
+                <option value="parziale">Parziale</option>
+                <option value="vuoto">Vuoto</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Maturatore collegato</label>
+              <select class="form-select" name="maturatore">
+                <option value="">— Nessuno —</option>
+                {% for m in maturatori_con_miele %}
+                <option value="{{ m.id }}">{{ m.nome }} – {{ m.tipo_miele }} ({{ m.kg_attuali }} kg)</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Note</label>
+              <textarea class="form-control" name="note" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Crea contenitore
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Modifica Contenitore (riempita via JS) -->
+<div class="modal fade" id="modalModificaContenitore" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background:#1565C0;">
+        <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Modifica Contenitore</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" id="formModificaContenitore" action="">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-7">
+              <label class="form-label fw-semibold">Nome</label>
+              <input type="text" class="form-control" name="nome" id="editConNome">
+            </div>
+            <div class="col-5">
+              <label class="form-label fw-semibold">Tipo</label>
+              <select class="form-select" name="tipo" id="editConTipo">
+                <option value="secchio">Secchio</option>
+                <option value="bidone">Bidone inox</option>
+                <option value="fusto">Fusto</option>
+                <option value="altro">Altro</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Tipo miele *</label>
+              <input type="text" class="form-control" name="tipo_miele" id="editConTipoMiele" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Capacità (kg)</label>
+              <input type="number" class="form-control" name="capacita_kg" id="editConCap" step="0.1" min="0">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Kg attuali</label>
+              <input type="number" class="form-control" name="kg_attuali" id="editConKg" step="0.1" min="0">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Data riempimento</label>
+              <input type="date" class="form-control" name="data_riempimento" id="editConData">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Stato</label>
+              <select class="form-select" name="stato" id="editConStato">
+                <option value="pieno">Pieno</option>
+                <option value="parziale">Parziale</option>
+                <option value="vuoto">Vuoto</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Note</label>
+              <textarea class="form-control" name="note" id="editConNote" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check2 me-1"></i>Salva
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden form elimina contenitore -->
+<form method="post" id="formEliminaContenitore" action="">
+  {% csrf_token %}
+</form>
+
+<!-- Modal: Trasferisci da Maturatore -->
+<div class="modal fade" id="modalTrasferisci" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title"><i class="bi bi-arrow-right-circle me-2"></i>Trasferisci in contenitori</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p id="trasferisciInfo" class="text-muted small mb-3"></p>
+        <form method="post" action="{% url 'crea_contenitore_stoccaggio' %}" id="formTrasferisci">
+          {% csrf_token %}
+          <input type="hidden" name="maturatore" id="trasferisciMatId">
+          <div class="row g-3">
+            <div class="col-7">
+              <label class="form-label fw-semibold">Nome contenitore</label>
+              <input type="text" class="form-control" name="nome" placeholder="es. Secchio 25kg #1">
+            </div>
+            <div class="col-5">
+              <label class="form-label fw-semibold">Tipo *</label>
+              <select class="form-select" name="tipo">
+                <option value="secchio">Secchio</option>
+                <option value="bidone">Bidone inox</option>
+                <option value="fusto">Fusto</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Tipo miele</label>
+              <input type="text" class="form-control" name="tipo_miele" id="trasferisciTipoMiele" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Kg da trasferire *</label>
+              <input type="number" class="form-control" name="kg_attuali" id="trasferisciKg" step="0.1" min="0.1" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Capacità contenitore</label>
+              <input type="number" class="form-control" name="capacita_kg" step="0.1" min="0.1" required>
+            </div>
+            <input type="hidden" name="data_riempimento" value="{{ today|date:'Y-m-d' }}">
+            <input type="hidden" name="stato" value="pieno">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+        <button type="submit" form="formTrasferisci" class="btn btn-success">
+          <i class="bi bi-arrow-right-circle me-1"></i>Crea contenitore
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Invasetta da Contenitore -->
+<div class="modal fade" id="modalInvasetta" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:#F9A825;color:white;">
+        <h5 class="modal-title">🫙 Invasetta</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p id="invasettaInfo" class="mb-3 fw-semibold text-muted small"></p>
+        <form method="post" id="formInvasetta" action="">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Tipo miele</label>
+              <input type="text" class="form-control" name="tipo_miele" id="invasettaTipoMiele" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Formato vasetto</label>
+              <div class="btn-group w-100" role="group">
+                <input type="radio" class="btn-check" name="formato_vasetto" value="250" id="fmt250" autocomplete="off" checked>
+                <label class="btn btn-outline-warning" for="fmt250">🫙 250g</label>
+                <input type="radio" class="btn-check" name="formato_vasetto" value="500" id="fmt500" autocomplete="off">
+                <label class="btn btn-outline-warning" for="fmt500">🫙 500g</label>
+                <input type="radio" class="btn-check" name="formato_vasetto" value="1000" id="fmt1000" autocomplete="off">
+                <label class="btn btn-outline-warning" for="fmt1000">🫙 1 kg</label>
+              </div>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Numero vasetti *</label>
+              <div class="input-group">
+                <button type="button" class="btn btn-outline-secondary" onclick="cambiaVasetti(-1)">−</button>
+                <input type="number" class="form-control text-center" name="numero_vasetti" id="invasettaNumero" value="1" min="1" required>
+                <button type="button" class="btn btn-outline-secondary" onclick="cambiaVasetti(1)">+</button>
+              </div>
+            </div>
+            <div class="col-6 d-flex align-items-end">
+              <div class="alert alert-warning mb-0 w-100 py-2 px-2 text-center" id="invasettaPreview" style="font-size:.82rem;">
+                <span id="invasettaKg">0.25</span> kg usati
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Lotto</label>
+              <input type="text" class="form-control" name="lotto" placeholder="es. LOT-2025-001">
+            </div>
+            <div class="col-12">
+              <input type="hidden" name="data" value="{{ today|date:'Y-m-d' }}">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+        <button type="submit" form="formInvasetta" class="btn" style="background:#F9A825;color:white;border:none;">
+          🫙 Invasetta
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  'use strict';
+
+  // ── Maturatore: apri modifica ──
+  window.apriModificaMaturatore = function(id, nome, tipo, cap, kg, data, giorni, note) {
+    document.getElementById('formModificaMaturatore').action = '/cantina/maturatore/' + id + '/modifica/';
+    document.getElementById('editMatNome').value   = nome;
+    document.getElementById('editMatTipo').value   = tipo;
+    document.getElementById('editMatCap').value    = cap;
+    document.getElementById('editMatKg').value     = kg;
+    document.getElementById('editMatData').value   = data;
+    document.getElementById('editMatGiorni').value = giorni;
+    document.getElementById('editMatNote').value   = note;
+    new bootstrap.Modal(document.getElementById('modalModificaMaturatore')).show();
+  };
+
+  // ── Maturatore: conferma elimina ──
+  window.confermaEliminaMaturatore = function(id, nome) {
+    if (confirm('Eliminare il maturatore «' + nome + '»? L\'operazione non può essere annullata.')) {
+      var form = document.getElementById('formEliminaMaturatore');
+      form.action = '/cantina/maturatore/' + id + '/elimina/';
+      form.submit();
+    }
+  };
+
+  // ── Contenitore: apri modifica ──
+  window.apriModificaContenitore = function(id, nome, tipo, cap, kg, tipoMiele, data, stato, note) {
+    document.getElementById('formModificaContenitore').action = '/cantina/contenitore/' + id + '/modifica/';
+    document.getElementById('editConNome').value      = nome;
+    document.getElementById('editConTipo').value      = tipo;
+    document.getElementById('editConCap').value       = cap;
+    document.getElementById('editConKg').value        = kg;
+    document.getElementById('editConTipoMiele').value = tipoMiele;
+    document.getElementById('editConData').value      = data;
+    document.getElementById('editConStato').value     = stato;
+    document.getElementById('editConNote').value      = note;
+    new bootstrap.Modal(document.getElementById('modalModificaContenitore')).show();
+  };
+
+  // ── Contenitore: conferma elimina ──
+  window.confermaEliminaContenitore = function(id) {
+    if (confirm('Eliminare questo contenitore? L\'operazione non può essere annullata.')) {
+      var form = document.getElementById('formEliminaContenitore');
+      form.action = '/cantina/contenitore/' + id + '/elimina/';
+      form.submit();
+    }
+  };
+
+  // ── Maturatore: apri trasferisci ──
+  window.apriTrasferisci = function(id, nome, tipo, kg) {
+    document.getElementById('trasferisciMatId').value     = id;
+    document.getElementById('trasferisciTipoMiele').value = tipo;
+    document.getElementById('trasferisciKg').value        = kg;
+    document.getElementById('trasferisciInfo').textContent =
+      'Da «' + nome + '» · ' + tipo + ' · ' + kg + ' kg disponibili';
+    new bootstrap.Modal(document.getElementById('modalTrasferisci')).show();
+  };
+
+  // ── Contenitore: apri invasetta ──
+  window.apriInvasetta = function(id, nome, tipo, kg) {
+    document.getElementById('formInvasetta').action =
+      '/cantina/contenitore/' + id + '/invasetta/';
+    document.getElementById('invasettaTipoMiele').value = tipo;
+    document.getElementById('invasettaInfo').textContent =
+      'Da «' + nome + '» · ' + tipo + ' · ' + kg + ' kg disponibili';
+    aggiornaPreview();
+    new bootstrap.Modal(document.getElementById('modalInvasetta')).show();
+  };
+
+  // ── Preview kg invasettamento ──
+  function getFormato() {
+    var sel = document.querySelector('input[name="formato_vasetto"]:checked');
+    return sel ? parseInt(sel.value) : 250;
+  }
+  function aggiornaPreview() {
+    var n = parseInt(document.getElementById('invasettaNumero').value) || 0;
+    var f = getFormato();
+    var kg = (n * f / 1000).toFixed(3).replace(/\.?0+$/, '') || '0';
+    document.getElementById('invasettaKg').textContent = kg;
+  }
+  window.cambiaVasetti = function(delta) {
+    var el = document.getElementById('invasettaNumero');
+    el.value = Math.max(1, (parseInt(el.value) || 0) + delta);
+    aggiornaPreview();
+  };
+  document.addEventListener('DOMContentLoaded', function() {
+    var numEl = document.getElementById('invasettaNumero');
+    if (numEl) numEl.addEventListener('input', aggiornaPreview);
+    document.querySelectorAll('input[name="formato_vasetto"]').forEach(function(r) {
+      r.addEventListener('change', aggiornaPreview);
+    });
+  });
+
+})();
+</script>
+{% endblock %}
