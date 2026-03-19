@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Guida — Apiary{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <span style="font-size:2rem;">📖</span>
+                <div>
+                    <h1 class="mb-0" style="font-family:'Caveat',cursive; font-size:2.2rem; color:#2C1810;">Guida Completa</h1>
+                    <p class="text-muted mb-0" style="font-size:0.9rem;">Tutto quello che devi sapere per usare Apiary al meglio</p>
+                </div>
+            </div>
+
+            <div class="accordion" id="guidaAccordion">
+
+                <!-- 1. Primi Passi -->
+                <div class="accordion-item" style="border:1px solid #EAD9BF; border-radius:12px; margin-bottom:12px; overflow:hidden;">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#step1" style="font-family:'Poppins',sans-serif; font-weight:600; background:#fff;">
+                            🌱 Primi Passi — Creare il primo apiario
+                        </button>
+                    </h2>
+                    <div id="step1" class="accordion-collapse collapse show" data-bs-parent="#guidaAccordion">
+                        <div class="accordion-body">
+                            <ol style="font-family:'Poppins',sans-serif; line-height:1.9; color:#3a2a1a;">
+                                <li>Clicca su <strong>Nuovo Apiario</strong> nella barra laterale o dal pulsante in alto a destra</li>
+                                <li>Inserisci un nome (es: "Apiario Collina"), seleziona la posizione sulla mappa e scegli il tipo</li>
+                                <li>Salva — il tuo apiario è pronto</li>
+                                <li>Dall'interno dell'apiario, clicca <strong>Nuova Arnia</strong> per aggiungere le tue arnie</li>
+                            </ol>
+                            <div class="alert" style="background:#FFF8E7; border:1px solid #F5A623; border-radius:8px; font-size:0.88rem;">
+                                💡 <strong>Consiglio:</strong> Dai un nome descrittivo alle arnie (es: "Arnia 1 — Ligustica", "Arnia Nucleo Primavera") per ritrovarle facilmente.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Arnie & Controlli -->
+                <div class="accordion-item" style="border:1px solid #EAD9BF; border-radius:12px; margin-bottom:12px; overflow:hidden;">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step2" style="font-family:'Poppins',sans-serif; font-weight:600; background:#fff;">
+                            🏠 Arnie &amp; Controlli — Registrare un'ispezione
+                        </button>
+                    </h2>
+                    <div id="step2" class="accordion-collapse collapse" data-bs-parent="#guidaAccordion">
+                        <div class="accordion-body">
+                            <ol style="font-family:'Poppins',sans-serif; line-height:1.9; color:#3a2a1a;">
+                                <li>Entra nell'arnia che vuoi controllare</li>
+                                <li>Clicca su <strong>Nuovo Controllo</strong></li>
+                                <li>Compila i campi principali: <em>data, forza della colonia (1–10), presenza della regina, stato sanitario</em></li>
+                                <li>Aggiungi note libere per qualsiasi osservazione specifica</li>
+                                <li>Salva — il controllo appare nella cronologia dell'arnia</li>
+                            </ol>
+                            <div class="alert" style="background:#FFF8E7; border:1px solid #F5A623; border-radius:8px; font-size:0.88rem;">
+                                💡 <strong>Forza colonia:</strong> 1 = colonia debolissima, 5 = colonia media, 10 = colonia fortissima che occupa tutti i favi.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Regine -->
+                <div class="accordion-item" style="border:1px solid #EAD9BF; border-radius:12px; margin-bottom:12px; overflow:hidden;">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step3" style="font-family:'Poppins',sans-serif; font-weight:600; background:#fff;">
+                            👑 Regine — Gestire e tracciare le regine
+                        </button>
+                    </h2>
+                    <div id="step3" class="accordion-collapse collapse" data-bs-parent="#guidaAccordion">
+                        <div class="accordion-body">
+                            <ol style="font-family:'Poppins',sans-serif; line-height:1.9; color:#3a2a1a;">
+                                <li>Ogni arnia può avere una regina associata — aggiungila dalla scheda dell'arnia</li>
+                                <li>Registra: data di nascita, razza, colore di marcatura, origine (allevata, acquistata, sciamatura)</li>
+                                <li>Visualizza l'<strong>albero genealogico</strong> per tracciare discendenze e selezione genetica</li>
+                                <li>Usa <strong>Confronta Regine</strong> per valutare le prestazioni side-by-side</li>
+                            </ol>
+                            <div class="alert" style="background:#FFF8E7; border:1px solid #F5A623; border-radius:8px; font-size:0.88rem;">
+                                💡 <strong>Colori di marcatura internazionali:</strong> Bianco (anni che finiscono in 1/6), Giallo (2/7), Rosso (3/8), Verde (4/9), Blu (5/0).
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Melari & Raccolti -->
+                <div class="accordion-item" style="border:1px solid #EAD9BF; border-radius:12px; margin-bottom:12px; overflow:hidden;">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step4" style="font-family:'Poppins',sans-serif; font-weight:600; background:#fff;">
+                            🍯 Melari &amp; Raccolti — Dal melario alla cantina
+                        </button>
+                    </h2>
+                    <div id="step4" class="accordion-collapse collapse" data-bs-parent="#guidaAccordion">
+                        <div class="accordion-body">
+                            <ol style="font-family:'Poppins',sans-serif; line-height:1.9; color:#3a2a1a;">
+                                <li>Aggiungi un <strong>melario</strong> all'arnia quando è il momento della raccolta</li>
+                                <li>Quando è pronto, registra la <strong>smielatura</strong>: data, peso grezzo, qualità, note</li>
+                                <li>Il miele estratto va in <strong>Cantina</strong>: maturatori e contenitori di stoccaggio</li>
+                                <li>Dall'invasettamento, tracccia i vasetti prodotti e il peso finale</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. Funzioni AI -->
+                <div class="accordion-item" style="border:1px solid #EAD9BF; border-radius:12px; margin-bottom:12px; overflow:hidden;">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step5" style="font-family:'Poppins',sans-serif; font-weight:600; background:#fff;">
+                            🤖 Funzioni AI — Chat, voce, analisi telaino
+                        </button>
+                    </h2>
+                    <div id="step5" class="accordion-collapse collapse" data-bs-parent="#guidaAccordion">
+                        <div class="accordion-body" style="font-family:'Poppins',sans-serif; line-height:1.9; color:#3a2a1a;">
+                            <p><strong>🗨️ Chat AI</strong> — Clicca sul widget chat in basso a destra per fare domande sull'apicoltura all'assistente Gemini. Puoi chiedere consigli su trattamenti, interpretare i tuoi dati o avere supporto decisionale.</p>
+                            <p><strong>🎤 Controllo Vocale</strong> — Vai su <em>Intelligenza Artificiale → Controllo Vocale</em> nella sidebar. Parla e l'app trascrive e struttura automaticamente un'ispezione completa.</p>
+                            <p><strong>📷 Analisi Telaino</strong> — Vai su <em>Analisi Telaino</em>, carica o scatta una foto di un telaio. Il modello YOLO rileva automaticamente api adulte, covata, celle reali e fuchi.</p>
+                            <div class="alert" style="background:#FFF8E7; border:1px solid #F5A623; border-radius:8px; font-size:0.88rem;">
+                                💡 Per l'analisi telaino usa luce naturale diffusa e tieni il telaio parallelo alla fotocamera per risultati ottimali.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. Collaborazione -->
+                <div class="accordion-item" style="border:1px solid #EAD9BF; border-radius:12px; margin-bottom:12px; overflow:hidden;">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step6" style="font-family:'Poppins',sans-serif; font-weight:600; background:#fff;">
+                            👥 Collaborazione — Condividere con altri apicoltori
+                        </button>
+                    </h2>
+                    <div id="step6" class="accordion-collapse collapse" data-bs-parent="#guidaAccordion">
+                        <div class="accordion-body">
+                            <ol style="font-family:'Poppins',sans-serif; line-height:1.9; color:#3a2a1a;">
+                                <li>Vai su <strong>Collaborazione → Gruppi</strong> nella sidebar</li>
+                                <li>Crea un gruppo e invita altri apicoltori via email o link</li>
+                                <li>Assegna ruoli: <em>Proprietario</em> (controllo totale), <em>Collaboratore</em> (può modificare), <em>Visualizzatore</em> (solo lettura)</li>
+                                <li>Condividi uno o più apiari con il gruppo dall'interno dell'apiario → <em>Condividi</em></li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. Esportazioni -->
+                <div class="accordion-item" style="border:1px solid #EAD9BF; border-radius:12px; margin-bottom:12px; overflow:hidden;">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step7" style="font-family:'Poppins',sans-serif; font-weight:600; background:#fff;">
+                            📤 Esportazioni — PDF e CSV
+                        </button>
+                    </h2>
+                    <div id="step7" class="accordion-collapse collapse" data-bs-parent="#guidaAccordion">
+                        <div class="accordion-body" style="font-family:'Poppins',sans-serif; line-height:1.9; color:#3a2a1a;">
+                            <ul>
+                                <li><strong>Ispezioni PDF</strong>: dall'interno di un apiario → pulsante <em>Esporta PDF</em></li>
+                                <li><strong>Trattamenti CSV</strong>: da <em>Gestione → Trattamenti</em> → pulsante <em>Esporta CSV</em></li>
+                                <li><strong>Vendite CSV</strong>: da <em>Gestione → Vendite</em> → pulsante <em>Esporta CSV</em></li>
+                                <li><strong>Produzione CSV</strong>: da <em>Gestione → Melari</em> → pulsante <em>Esporta CSV</em></li>
+                            </ul>
+                            <div class="alert" style="background:#FFF8E7; border:1px solid #F5A623; border-radius:8px; font-size:0.88rem;">
+                                💡 I CSV sono compatibili con Excel e Google Sheets per la tua contabilità o tracciabilità biologica.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Back to dashboard -->
+            <div class="text-center mt-4">
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-arrow-left me-1"></i>Torna alla dashboard
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

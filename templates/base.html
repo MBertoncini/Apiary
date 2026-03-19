@@ -183,6 +183,15 @@
       Gruppi
     </a>
 
+    <!-- AIUTO -->
+    <div class="sidebar-section-label">Aiuto</div>
+
+    <a href="{% url 'guida' %}"
+       class="sidebar-link {% if request.resolver_match.url_name == 'guida' %}active{% endif %}">
+      <i class="bi bi-question-circle nav-icon"></i>
+      Guida
+    </a>
+
   </nav>
 
   <!-- Donazione link -->
@@ -435,6 +444,8 @@
 <script src="{% static 'js/ai-chat.js' %}"></script>
 <!-- Notification Center -->
 <script src="{% static 'js/notifications.js' %}"></script>
+<!-- Contextual Tooltips -->
+<script src="{% static 'js/tooltips.js' %}"></script>
 {% endif %}
 
 </body>

@@ -20,6 +20,7 @@ import csv
 import io
 from functools import wraps
 from dateutil.relativedelta import relativedelta
+from django.views.decorators.http import require_POST
 
 from .models import (
     Apiario, Arnia, ControlloArnia, Fioritura, Pagamento, QuotaUtente,
@@ -52,6 +53,9 @@ def logout_view(request):
 @login_required
 def dashboard(request):
     """Vista principale della dashboard"""
+    # Redirect to onboarding if not completed
+    if not request.user.profilo.onboarding_completato:
+        return redirect('onboarding')
     # Ottieni apiari a cui l'utente ha accesso (propri o condivisi tramite gruppi)
     apiari_propri = Apiario.objects.filter(proprietario=request.user)
     
@@ -5753,8 +5757,9 @@ def gestione_cantina(request):
         utente=request.user
     ).order_by('-data_riempimento')
 
+    # Solo lotti disponibili (non segnati come venduti)
     invasettamenti = Invasettamento.objects.filter(
-        utente=request.user
+        utente=request.user, stato='disponibile'
     ).order_by('-data')
 
     # Stats
@@ -5763,17 +5768,27 @@ def gestione_cantina(request):
     kg_stoccati = contenitori_attivi.aggregate(tot=Sum('kg_attuali'))['tot'] or 0
     totale_vasetti = invasettamenti.aggregate(tot=Sum('numero_vasetti'))['tot'] or 0
 
+    # Vasetti venduti dal registro vendite (per tipo_miele + formato)
+    venduti_qs = DettaglioVendita.objects.filter(
+        vendita__utente=request.user,
+        categoria='miele',
+    ).values('tipo_miele', 'formato_vasetto').annotate(tot=Sum('quantita'))
+    venduti_map = {(r['tipo_miele'], r['formato_vasetto']): r['tot'] for r in venduti_qs}
+
     # Raggruppa contenitori per tipo_miele
     contenitori_per_tipo = {}
     for c in contenitori_attivi:
         contenitori_per_tipo.setdefault(c.tipo_miele, []).append(c)
 
-    # Raggruppa invasettamenti per tipo_miele con totali per formato
+    # Raggruppa invasettamenti per tipo_miele con totali per formato + dati venduto
     invasettamenti_per_tipo = {}
     for inv in invasettamenti:
         t = inv.tipo_miele
         if t not in invasettamenti_per_tipo:
-            invasettamenti_per_tipo[t] = {'lista': [], 'tot_250': 0, 'tot_500': 0, 'tot_1000': 0, 'totale': 0}
+            invasettamenti_per_tipo[t] = {
+                'lista': [],
+                'tot_250': 0, 'tot_500': 0, 'tot_1000': 0, 'totale': 0,
+            }
         invasettamenti_per_tipo[t]['lista'].append(inv)
         invasettamenti_per_tipo[t]['totale'] += inv.numero_vasetti
         if inv.formato_vasetto == 250:
@@ -5782,6 +5797,19 @@ def gestione_cantina(request):
             invasettamenti_per_tipo[t]['tot_500'] += inv.numero_vasetti
         elif inv.formato_vasetto == 1000:
             invasettamenti_per_tipo[t]['tot_1000'] += inv.numero_vasetti
+
+    # Arricchisci ogni gruppo con dati venduto/disponibile
+    totale_vasetti_disponibili = 0
+    for t, d in invasettamenti_per_tipo.items():
+        d['venduti_250']  = venduti_map.get((t, 250),  0)
+        d['venduti_500']  = venduti_map.get((t, 500),  0)
+        d['venduti_1000'] = venduti_map.get((t, 1000), 0)
+        d['venduti_totale'] = d['venduti_250'] + d['venduti_500'] + d['venduti_1000']
+        d['disp_250']  = max(0, d['tot_250']  - d['venduti_250'])
+        d['disp_500']  = max(0, d['tot_500']  - d['venduti_500'])
+        d['disp_1000'] = max(0, d['tot_1000'] - d['venduti_1000'])
+        d['disponibili'] = d['disp_250'] + d['disp_500'] + d['disp_1000']
+        totale_vasetti_disponibili += d['disponibili']
 
     smielature_disponibili = Smielatura.objects.filter(
         utente=request.user
@@ -5802,10 +5830,33 @@ def gestione_cantina(request):
         'kg_in_maturazione': kg_in_maturazione,
         'kg_stoccati': kg_stoccati,
         'totale_vasetti': totale_vasetti,
+        'totale_vasetti_disponibili': totale_vasetti_disponibili,
         'smielature_disponibili': smielature_disponibili,
         'maturatori_con_miele': maturatori_con_miele,
     }
     return render(request, 'cantina/cantina.html', context)
+
+
+@login_required
+def segna_vasetti_venduti(request, pk):
+    """Segna un lotto di invasettamento come venduto (nascondendolo dalla cantina)."""
+    inv = get_object_or_404(Invasettamento, pk=pk, utente=request.user)
+    if request.method == 'POST':
+        inv.stato = 'venduto'
+        inv.save()
+        messages.success(request, f"Lotto {inv.numero_vasetti}×{inv.formato_vasetto}g di {inv.tipo_miele} segnato come venduto.")
+    return redirect('gestione_cantina')
+
+
+@login_required
+def elimina_invasettamento_cantina(request, pk):
+    """Elimina un lotto di invasettamento dalla cantina."""
+    inv = get_object_or_404(Invasettamento, pk=pk, utente=request.user)
+    if request.method == 'POST':
+        desc = f"{inv.numero_vasetti}×{inv.formato_vasetto}g di {inv.tipo_miele}"
+        inv.delete()
+        messages.success(request, f"Lotto {desc} eliminato.")
+    return redirect('gestione_cantina')
 
 
 @login_required
@@ -6180,3 +6231,23 @@ def donazione(request):
         return redirect('donazione')
 
     return render(request, 'donazione/donazione.html')
+
+
+@login_required
+def onboarding(request):
+    """First-time onboarding wizard — always shown (no redirect if already completed)."""
+    return render(request, 'tutorial/onboarding.html')
+
+
+@login_required
+@require_POST
+def segna_onboarding_completato(request):
+    """Mark onboarding as completed via AJAX."""
+    request.user.profilo.onboarding_completato = True
+    request.user.profilo.save()
+    return JsonResponse({'status': 'ok'})
+
+
+def guida(request):
+    """Help & guide page."""
+    return render(request, 'tutorial/guida.html')

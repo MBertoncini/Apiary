@@ -288,8 +288,8 @@
     <div class="cantina-chip chip-green">
       <div class="chip-icon">🫙</div>
       <div class="chip-body">
-        <span class="chip-val">{{ totale_vasetti }}</span>
-        <span class="chip-lbl">vasetti totali</span>
+        <span class="chip-val">{{ totale_vasetti_disponibili }}</span>
+        <span class="chip-lbl">vasetti disponibili</span>
       </div>
     </div>
   </div>
@@ -483,34 +483,42 @@
       <div class="invasettato-card">
         <div class="inv-card-head">
           <span class="inv-tipo">🍯 {{ tipo_miele }}</span>
-          <span class="inv-totale">{{ dati.totale }} vasett{% if dati.totale == 1 %}o{% else %}i{% endif %} totali</span>
+          <div class="d-flex align-items-center gap-2">
+            <span class="inv-totale">{{ dati.disponibili }} disponibil{% if dati.disponibili == 1 %}e{% else %}i{% endif %}</span>
+            {% if dati.venduti_totale %}
+            <span class="badge rounded-pill" style="background:#E8F5E9;color:#2E7D32;border:1px solid #A5D6A7;font-size:.68rem;">{{ dati.venduti_totale }} venduti</span>
+            {% endif %}
+          </div>
         </div>
         <div class="inv-formati">
           {% if dati.tot_250 %}
           <div class="formato-chip">
-            <span class="fc-count">{{ dati.tot_250 }}</span>
+            <span class="fc-count">{{ dati.disp_250 }}</span>
             <span class="fc-label">250g</span>
+            {% if dati.venduti_250 %}<span class="fc-label" style="color:#4CAF50;">-{{ dati.venduti_250 }} vend.</span>{% endif %}
           </div>
           {% endif %}
           {% if dati.tot_500 %}
           <div class="formato-chip">
-            <span class="fc-count">{{ dati.tot_500 }}</span>
+            <span class="fc-count">{{ dati.disp_500 }}</span>
             <span class="fc-label">500g</span>
+            {% if dati.venduti_500 %}<span class="fc-label" style="color:#4CAF50;">-{{ dati.venduti_500 }} vend.</span>{% endif %}
           </div>
           {% endif %}
           {% if dati.tot_1000 %}
           <div class="formato-chip">
-            <span class="fc-count">{{ dati.tot_1000 }}</span>
+            <span class="fc-count">{{ dati.disp_1000 }}</span>
             <span class="fc-label">1 kg</span>
+            {% if dati.venduti_1000 %}<span class="fc-label" style="color:#4CAF50;">-{{ dati.venduti_1000 }} vend.</span>{% endif %}
           </div>
           {% endif %}
         </div>
-        <!-- Ultimi invasettamenti -->
+        <!-- Dettaglio lotti con azioni -->
         <details class="mt-2">
-          <summary class="text-muted small" style="cursor:pointer;">Dettaglio ({{ dati.lista|length }} record)</summary>
+          <summary class="text-muted small" style="cursor:pointer;">Lotti ({{ dati.lista|length }})</summary>
           <div class="table-responsive mt-2">
             <table class="table table-sm table-hover mb-0" style="font-size:.8rem;">
-              <thead><tr><th>Data</th><th>Formato</th><th>N°</th><th>Lotto</th></tr></thead>
+              <thead><tr><th>Data</th><th>Formato</th><th>N°</th><th>Lotto</th><th></th></tr></thead>
               <tbody>
                 {% for inv in dati.lista %}
                 <tr>
@@ -518,6 +526,33 @@
                   <td>{{ inv.formato_vasetto }}g</td>
                   <td>{{ inv.numero_vasetti }}</td>
                   <td>{{ inv.lotto|default:"—" }}</td>
+                  <td>
+                    <div class="dropdown">
+                      <button class="btn btn-sm btn-outline-secondary py-0 px-1" data-bs-toggle="dropdown" style="font-size:.75rem;line-height:1.4;">
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <li>
+                          <form method="post" action="{% url 'segna_vasetti_venduti' inv.pk %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item text-success">
+                              <i class="bi bi-check2-circle me-2"></i>Segna venduto
+                            </button>
+                          </form>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                          <form method="post" action="{% url 'elimina_invasettamento_cantina' inv.pk %}"
+                                onsubmit="return confirm('Eliminare questo lotto? L\'operazione non può essere annullata.')">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item text-danger">
+                              <i class="bi bi-trash me-2"></i>Elimina lotto
+                            </button>
+                          </form>
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
                 </tr>
                 {% endfor %}
               </tbody>

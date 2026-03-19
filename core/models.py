@@ -467,6 +467,11 @@ class Smielatura(models.Model):
             melario.stato = 'smielato'
             melario.save()
 
+STATO_VASETTI_CHOICES = [
+    ('disponibile', 'Disponibile'),
+    ('venduto',     'Venduto'),
+]
+
 class Invasettamento(models.Model):
     """Modello per gestire le operazioni di invasettamento (confezionamento in vasetti)"""
     data = models.DateField()
@@ -476,6 +481,7 @@ class Invasettamento(models.Model):
     formato_vasetto = models.IntegerField(help_text="Grammi per vasetto (250, 500, 1000)")
     numero_vasetti = models.IntegerField()
     lotto = models.CharField(max_length=50, blank=True, null=True)
+    stato = models.CharField(max_length=20, choices=STATO_VASETTI_CHOICES, default='disponibile')
     utente = models.ForeignKey(User, on_delete=models.CASCADE)
     note = models.TextField(blank=True, null=True)
     data_registrazione = models.DateTimeField(auto_now_add=True)
@@ -985,6 +991,7 @@ class Profilo(models.Model):
     immagine = models.ImageField(upload_to='profili/', default='profili/default.png')
     data_nascita = models.DateField(null=True, blank=True)
     bio = models.TextField(max_length=500, blank=True)
+    onboarding_completato = models.BooleanField(default=False)
     gemini_api_key = models.CharField(max_length=200, blank=True, default='',
                                       verbose_name='Gemini API Key personale')
     ai_requests_today = models.IntegerField(default=0,

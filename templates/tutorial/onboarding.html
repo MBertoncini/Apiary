@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Benvenuto in Apiary{% endblock %}
+
+{% block content %}
+<div class="onboarding-overlay">
+    <div class="onboarding-container">
+
+        <!-- Progress dots -->
+        <div class="onboarding-dots">
+            <span class="dot active" data-step="1"></span>
+            <span class="dot" data-step="2"></span>
+            <span class="dot" data-step="3"></span>
+            <span class="dot" data-step="4"></span>
+            <span class="dot" data-step="5"></span>
+        </div>
+
+        <!-- Skip button -->
+        <button class="onboarding-skip" id="skipBtn">Salta</button>
+
+        <!-- Steps -->
+        <div class="onboarding-steps">
+
+            <!-- Step 1 -->
+            <div class="onboarding-step active" data-step="1">
+                <div class="step-icon">🐝</div>
+                <h1 class="step-title">Benvenuto in Apiary</h1>
+                <p class="step-text">Il tuo diario digitale da apicoltore. Registra, monitora e gestisci tutto ciò che riguarda le tue api — dai controlli alle vendite, dalla genealogia delle regine all'analisi AI dei telai.</p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="onboarding-step" data-step="2">
+                <div class="step-icon">📍</div>
+                <h2 class="step-title">I tuoi Apiari</h2>
+                <p class="step-text">Un apiario è la tua postazione fisica — un campo, un bosco, un terreno. Dentro ogni apiario trovi le tue arnie. Puoi avere più apiari in luoghi diversi e gestirli tutti da qui.</p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="onboarding-step" data-step="3">
+                <div class="step-icon">🏠</div>
+                <h2 class="step-title">Arnie &amp; Controlli</h2>
+                <p class="step-text">Ogni arnia ha la sua storia: regina, trattamenti, melari, raccolti. Registra i controlli periodici per tenere traccia della forza della colonia, della presenza della regina e dello stato sanitario.</p>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="onboarding-step" data-step="4">
+                <div class="step-icon">✨</div>
+                <h2 class="step-title">Funzioni Avanzate</h2>
+                <ul class="step-features">
+                    <li><span class="feature-icon">🎤</span> <strong>Controllo Vocale</strong> — Registra un'ispezione completa semplicemente parlando</li>
+                    <li><span class="feature-icon">🤖</span> <strong>Analisi AI</strong> — Fotografa un telaio e scopri subito api, covata e celle reali</li>
+                    <li><span class="feature-icon">📊</span> <strong>Statistiche</strong> — Grafici di produzione, salute e andamento nel tempo</li>
+                    <li><span class="feature-icon">👥</span> <strong>Collaborazione</strong> — Condividi gli apiari con soci o collaboratori</li>
+                </ul>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="onboarding-step" data-step="5">
+                <div class="step-icon">🚀</div>
+                <h2 class="step-title">Sei pronto!</h2>
+                <p class="step-text">Inizia creando il tuo primo apiario. Ci vorranno meno di un minuto. Potrai sempre rivedere questa guida dalla pagina del tuo profilo.</p>
+                <div class="step-actions">
+                    <a href="{% url 'crea_apiario' %}" class="btn btn-primary btn-lg" id="createApiarioBtn">
+                        <i class="bi bi-plus-circle me-2"></i>Crea il mio primo apiario
+                    </a>
+                    <button class="btn btn-link" id="explorFirstBtn">Esplora prima</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="onboarding-nav">
+            <button class="btn btn-outline-secondary" id="prevBtn" style="display:none;">
+                <i class="bi bi-arrow-left"></i> Indietro
+            </button>
+            <button class="btn btn-primary" id="nextBtn">
+                Avanti <i class="bi bi-arrow-right"></i>
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<style>
+.onboarding-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(44, 24, 16, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.onboarding-container {
+    background: #FFFDF5;
+    border-radius: 20px;
+    padding: 48px 40px 36px;
+    max-width: 520px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(44,24,16,0.3);
+    position: relative;
+    text-align: center;
+}
+
+.onboarding-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #EAD9BF;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.dot.active {
+    background: #F5A623;
+    width: 28px;
+    border-radius: 5px;
+}
+
+.onboarding-skip {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: #999;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.onboarding-skip:hover { color: #F5A623; }
+
+.onboarding-step { display: none; animation: fadeIn 0.4s ease; }
+.onboarding-step.active { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.step-icon {
+    font-size: 3.5rem;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.step-title {
+    font-family: 'Caveat', cursive;
+    font-size: 2rem;
+    color: #2C1810;
+    margin-bottom: 16px;
+}
+
+.step-text {
+    font-family: 'Poppins', sans-serif;
+    color: #5a4030;
+    line-height: 1.7;
+    font-size: 0.95rem;
+}
+
+.step-features {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+    margin: 0 auto;
+    max-width: 380px;
+}
+
+.step-features li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    color: #3a2a1a;
+    border-bottom: 1px solid #EAD9BF;
+}
+
+.step-features li:last-child { border-bottom: none; }
+.feature-icon { font-size: 1.2rem; flex-shrink: 0; }
+
+.step-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.onboarding-nav {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 28px;
+    min-height: 44px;
+}
+</style>
+
+<script>
+const CSRF_TOKEN = '{{ csrf_token }}';
+const COMPLETE_URL = '{% url "segna_onboarding_completato" %}';
+const DASHBOARD_URL = '{% url "dashboard" %}';
+let currentStep = 1;
+const totalSteps = 5;
+
+function showStep(step) {
+    document.querySelectorAll('.onboarding-step').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
+    document.querySelector(`.onboarding-step[data-step="${step}"]`).classList.add('active');
+    document.querySelector(`.dot[data-step="${step}"]`).classList.add('active');
+
+    document.getElementById('prevBtn').style.display = step > 1 ? 'inline-flex' : 'none';
+    document.getElementById('nextBtn').style.display = step < totalSteps ? 'inline-flex' : 'none';
+}
+
+function completeOnboarding() {
+    fetch(COMPLETE_URL, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF_TOKEN, 'Content-Type': 'application/json'}
+    }).then(() => { window.location.href = DASHBOARD_URL; });
+}
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+    if (currentStep < totalSteps) { currentStep++; showStep(currentStep); }
+});
+
+document.getElementById('prevBtn').addEventListener('click', () => {
+    if (currentStep > 1) { currentStep--; showStep(currentStep); }
+});
+
+document.getElementById('skipBtn').addEventListener('click', completeOnboarding);
+
+document.getElementById('explorFirstBtn')?.addEventListener('click', completeOnboarding);
+
+document.getElementById('createApiarioBtn')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    const href = this.href;
+    fetch(COMPLETE_URL, {
+        method: 'POST',
+        headers: {'X-CSRFToken': CSRF_TOKEN, 'Content-Type': 'application/json'}
+    }).then(() => { window.location.href = href; });
+});
+
+document.querySelectorAll('.dot').forEach(dot => {
+    dot.addEventListener('click', () => {
+        currentStep = parseInt(dot.dataset.step);
+        showStep(currentStep);
+    });
+});
+
+showStep(1);
+</script>
+{% endblock %}

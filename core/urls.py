@@ -156,6 +156,8 @@ urlpatterns = [
     path('cantina/contenitore/<int:pk>/modifica/', views.modifica_contenitore_stoccaggio, name='modifica_contenitore_stoccaggio'),
     path('cantina/contenitore/<int:pk>/elimina/', views.elimina_contenitore_stoccaggio, name='elimina_contenitore_stoccaggio'),
     path('cantina/contenitore/<int:contenitore_id>/invasetta/', views.invasetta_da_contenitore, name='invasetta_da_contenitore'),
+    path('cantina/invasettamento/<int:pk>/venduto/', views.segna_vasetti_venduti, name='segna_vasetti_venduti'),
+    path('cantina/invasettamento/<int:pk>/elimina/', views.elimina_invasettamento_cantina, name='elimina_invasettamento_cantina'),
 
     # Nuclei
     path('nuclei/', views.gestione_nuclei, name='gestione_nuclei'),
@@ -190,4 +192,9 @@ urlpatterns = [
 
     # Donazione
     path('donazione/', views.donazione, name='donazione'),
+
+    # Tutorial & Guida
+    path('onboarding/', views.onboarding, name='onboarding'),
+    path('onboarding/completa/', views.segna_onboarding_completato, name='segna_onboarding_completato'),
+    path('guida/', views.guida, name='guida'),
 ]
