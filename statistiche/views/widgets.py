@@ -416,15 +416,26 @@ class BilancioEconomicoView(APIView):
         )
         entrate_map = {r['mese']: float(r['totale'] or 0) for r in entrate_qs}
 
-        # Uscite: SpesaAttrezzatura aggregato per mese
-        uscite_qs = (
+        # Uscite: SpesaAttrezzatura + Pagamento personali (senza destinatario) per mese
+        spese_qs = (
             SpesaAttrezzatura.objects.filter(utente=request.user, data__year=anno)
             .annotate(mese=ExtractMonth('data'))
             .values('mese')
             .annotate(totale=Sum('importo'))
             .order_by('mese')
         )
-        uscite_map = {r['mese']: float(r['totale'] or 0) for r in uscite_qs}
+        pagamenti_qs = (
+            Pagamento.objects.filter(utente=request.user, destinatario__isnull=True, data__year=anno)
+            .annotate(mese=ExtractMonth('data'))
+            .values('mese')
+            .annotate(totale=Sum('importo'))
+            .order_by('mese')
+        )
+        uscite_map: dict[int, float] = {}
+        for r in spese_qs:
+            uscite_map[r['mese']] = uscite_map.get(r['mese'], 0) + float(r['totale'] or 0)
+        for r in pagamenti_qs:
+            uscite_map[r['mese']] = uscite_map.get(r['mese'], 0) + float(r['totale'] or 0)
 
         mesi_nomi = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic']
         mesi = list(range(1, 13))
