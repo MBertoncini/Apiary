@@ -888,7 +888,6 @@ def gestione_melari_globale(request):
         arnie = Arnia.objects.filter(apiario=apiario, attiva=True).order_by('numero')
         arnie_data = []
         for arnia in arnie:
-            # Melari attivi ordinati per posizione decrescente (top = alta posizione)
             melari_attivi = list(
                 Melario.objects.filter(
                     arnia=arnia,
@@ -912,18 +911,55 @@ def gestione_melari_globale(request):
             'arnie': arnie_data,
         })
 
-    smielature_recenti = Smielatura.objects.filter(
+    # Tutte le smielature accessibili, ordinate per data
+    smielature = Smielatura.objects.filter(
         apiario__in=apiari
-    ).order_by('-data')[:10]
+    ).select_related('apiario', 'utente').order_by('-data')
+
+    # Filtro per apiario se passato in querystring
+    filtro_apiario = request.GET.get('apiario')
+    if filtro_apiario:
+        smielature = smielature.filter(apiario_id=filtro_apiario)
 
     context = {
         'apiari_data': apiari_data,
-        'smielature_recenti': smielature_recenti,
+        'smielature': smielature,
+        'apiari': apiari,
+        'filtro_apiario': filtro_apiario,
         'total_posizionati': total_posizionati,
         'total_in_smielatura': total_in_smielatura,
+        'total_smielature': smielature.count(),
         'today': timezone.now().date(),
     }
     return render(request, 'melari/gestione_melari_globale.html', context)
+
+
+@login_required
+def ajax_melari_disponibili(request, apiario_id):
+    """AJAX: restituisce i melari in_smielatura di un apiario per il modal Nuova Smielatura."""
+    apiario = get_object_or_404(Apiario, pk=apiario_id)
+    gruppi_utente = Gruppo.objects.filter(membri=request.user)
+    # Verifica accesso
+    ha_accesso = (
+        apiario.proprietario == request.user or
+        (apiario.gruppo and apiario.gruppo in gruppi_utente and apiario.condiviso_con_gruppo)
+    )
+    if not ha_accesso:
+        return JsonResponse({'melari': []})
+
+    melari = Melario.objects.filter(
+        arnia__apiario=apiario,
+        stato='in_smielatura'
+    ).select_related('arnia').order_by('arnia__numero', 'posizione')
+
+    data = [
+        {
+            'id': m.id,
+            'label': f"Arnia #{m.arnia.numero} — Pos. {m.posizione} ({m.numero_telaini} telaini)",
+        }
+        for m in melari
+    ]
+    return JsonResponse({'melari': data})
 
 
 @login_required

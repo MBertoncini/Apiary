@@ -40,6 +40,7 @@ urlpatterns = [
     path('melario/<int:melario_id>/smielatura/', views.invia_in_smielatura, name='invia_in_smielatura'),
     path('apiario/<int:apiario_id>/smielatura/registra/', views.registra_smielatura, name='registra_smielatura'),
     path('smielatura/<int:smielatura_id>/', views.dettaglio_smielatura, name='dettaglio_smielatura'),
+    path('apiario/<int:apiario_id>/ajax-melari-disponibili/', views.ajax_melari_disponibili, name='ajax_melari_disponibili'),
 
     # Fioriture
     path('fioriture/', views.gestione_fioriture, name='gestione_fioriture'),
