@@ -7,13 +7,24 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">💧 Dettaglio Smielatura</h1>
-    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'gestione_melari' apiario.id %}">Melari</a> › Smielatura</p>
+    <nav aria-label="breadcrumb" class="mt-1">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'gestione_melari_globale' %}#smielature">Melari</a></li>
+        <li class="breadcrumb-item active">{{ smielatura.data|date:"d/m/Y" }} — {{ smielatura.tipo_miele }}</li>
+      </ol>
+    </nav>
   </div>
-  <div class="d-flex gap-2">
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{% url 'gestione_cantina' %}?smielatura={{ smielatura.id }}"
+       class="btn btn-sm btn-outline-secondary"
+       title="Crea un maturatore per questa smielatura">
+      <i class="bi bi-hourglass-split me-1"></i>→ Cantina
+    </a>
     <a href="{% url 'crea_invasettamento' smielatura.id %}" class="btn btn-warning btn-sm">
       <i class="bi bi-jar me-1"></i>Invasetta
     </a>
-    <a href="{% url 'gestione_melari' apiario.id %}" class="btn btn-outline-secondary">
+    <a href="{% url 'gestione_melari_globale' %}#smielature" class="btn btn-outline-secondary btn-sm">
       <i class="bi bi-arrow-left me-1"></i>Torna ai Melari
     </a>
   </div>
@@ -188,13 +199,18 @@
 
 <div class="row mt-3">
     <div class="col-12">
-        <div class="d-flex justify-content-between">
-            <a href="{% url 'gestione_melari' apiario.id %}#smielature" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Torna alle smielature
+        <div class="d-flex justify-content-between flex-wrap gap-2">
+            <a href="{% url 'gestione_melari_globale' %}#smielature" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Torna alle smielature
             </a>
-            <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-primary">
-                <i class="bi bi-grid"></i> Torna all'apiario
-            </a>
+            <div class="d-flex gap-2">
+                <a href="{% url 'gestione_cantina' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-hourglass-split me-1"></i>Apri Cantina
+                </a>
+                <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-primary">
+                    <i class="bi bi-grid me-1"></i>Torna all'apiario
+                </a>
+            </div>
         </div>
     </div>
 </div>
