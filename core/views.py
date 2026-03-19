@@ -4303,6 +4303,27 @@ class ArniaCreateView(LoginRequiredMixin, CreateView):
         
         return super().dispatch(request, *args, **kwargs)
     
+    def get_initial(self):
+        initial = super().get_initial()
+        apiario_id = self.request.GET.get('apiario_id')
+        if apiario_id:
+            initial['apiario'] = apiario_id
+        return initial
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        user = self.request.user
+        # Apiari di proprietà
+        apiari_propri = Apiario.objects.filter(proprietario=user)
+        # Apiari condivisi con gruppo dove l'utente ha ruolo admin o editor
+        apiari_gruppo = Apiario.objects.filter(
+            condiviso_con_gruppo=True,
+            gruppo__membrogruppo__utente=user,
+            gruppo__membrogruppo__ruolo__in=['admin', 'editor'],
+        ).exclude(proprietario=user)
+        form.fields['apiario'].queryset = (apiari_propri | apiari_gruppo).distinct()
+        return form
+
     def get_success_url(self):
         return reverse_lazy('visualizza_apiario', kwargs={'apiario_id': self.object.apiario.id})
 
@@ -4312,7 +4333,7 @@ class ArniaCreateView(LoginRequiredMixin, CreateView):
         if apiario and not hasattr(apiario, 'proprietario'):
             apiario.proprietario = self.request.user
             apiario.save()
-            
+
         return super().form_valid(form)
 
 class ArniaUpdateView(LoginRequiredMixin, UpdateView):

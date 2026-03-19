@@ -447,7 +447,26 @@ class ArniaViewSet(viewsets.ModelViewSet):
         """
         apiari_accessibili = get_apiari_accessibili(self.request.user)
         return Arnia.objects.filter(apiario__in=apiari_accessibili)
-    
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        apiario = serializer.validated_data.get('apiario')
+        if apiario is None:
+            raise PermissionDenied("Devi specificare un apiario.")
+        if apiario.proprietario == user:
+            serializer.save()
+            return
+        if apiario.condiviso_con_gruppo and apiario.gruppo:
+            try:
+                membro = MembroGruppo.objects.get(utente=user, gruppo=apiario.gruppo)
+                if membro.ruolo in ['admin', 'editor']:
+                    serializer.save()
+                    return
+                raise PermissionDenied("Non hai i permessi per aggiungere arnie in questo gruppo.")
+            except MembroGruppo.DoesNotExist:
+                raise PermissionDenied("Non sei membro del gruppo che ha accesso a questo apiario.")
+        raise PermissionDenied("Non hai accesso a questo apiario.")
+
     @action(detail=True, methods=['get'])
     def controlli(self, request, pk=None):
         """
