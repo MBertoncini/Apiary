@@ -35,7 +35,10 @@
       "Bash(ls \"I:\\\\Progetti Git\\\\Apiary\"/*.py)",
       "Bash(python -m py_compile core/views.py)",
       "Bash(python -m py_compile core/forms.py)",
-      "Bash(python -m py_compile core/urls.py)"
+      "Bash(python -m py_compile core/urls.py)",
+      "Bash(for dir:*)",
+      "Bash(do echo:*)",
+      "Read(//i/Progetti Git/Apiary_app/lib/screens/**)"
     ]
   }
 }
