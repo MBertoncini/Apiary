@@ -671,4 +671,50 @@
 
 })();
 </script>
+
+<script>
+// ── Help icon analisi telaino ──
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.addHelpIcon) {
+        // Trova il titolo della sezione upload
+        const dropZone = document.querySelector('.drop-zone');
+        if (dropZone) {
+            const helpSpan = document.createElement('span');
+            helpSpan.className = 'field-help-icon ms-2';
+            helpSpan.setAttribute('tabindex', '0');
+            helpSpan.setAttribute('role', 'button');
+            helpSpan.innerHTML = '?';
+            helpSpan.dataset.helpText = 'Consigli per una foto ottimale:<br>' +
+                '• Usa <strong>luce naturale diffusa</strong> (non diretta)<br>' +
+                '• Tieni il telaio <strong>parallelo</strong> alla fotocamera<br>' +
+                '• Distanza ideale: <strong>30–50 cm</strong> dal telaio<br>' +
+                '• Evita ombre sul telaio';
+
+            // Trova un titolo vicino alla drop zone
+            const heading = dropZone.closest('.card')?.querySelector('.card-header h5, .card-header');
+            if (heading) {
+                heading.appendChild(helpSpan);
+                helpSpan.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    let pop = heading.querySelector('.field-help-popover');
+                    if (pop) { pop.remove(); return; }
+                    pop = document.createElement('div');
+                    pop.className = 'field-help-popover';
+                    pop.style.position = 'absolute';
+                    pop.innerHTML = helpSpan.dataset.helpText;
+                    heading.style.position = 'relative';
+                    heading.appendChild(pop);
+                    setTimeout(() => {
+                        document.addEventListener('click', function h() {
+                            const p = heading.querySelector('.field-help-popover');
+                            if (p) p.remove();
+                            document.removeEventListener('click', h);
+                        });
+                    }, 10);
+                });
+            }
+        }
+    }
+});
+</script>
 {% endblock %}

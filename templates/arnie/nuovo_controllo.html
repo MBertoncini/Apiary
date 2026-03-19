@@ -660,4 +660,26 @@ document.addEventListener('DOMContentLoaded', function () {
   const VOICE_SAVE_URL    = "{% url 'voice_save' %}";
 </script>
 <script src="{% static 'js/voice-controllo.js' %}"></script>
+
+<script>
+// ── Help icons ──
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.addHelpIcon) {
+        addHelpIcon('id_presenza_regina',
+            '<strong>Presenza regina:</strong> Seleziona "Sì" se hai visto fisicamente la regina, ' +
+            '"Indiretto" se vedi segni della sua attività (uova fresche &lt; 3 giorni, larve giovani), ' +
+            '"No" se non ci sono segni di covata fresca.'
+        );
+        addHelpIcon('id_telaini_covata',
+            '<strong>Telaini covata:</strong> Numero di telaini con uova, larve o pupe. ' +
+            'In primavera una colonia forte ne ha 6–8 su 10. ' +
+            'Usa il configuratore visivo sopra per un conteggio preciso.'
+        );
+        addHelpIcon('id_telaini_scorte',
+            '<strong>Telaini scorte:</strong> Telaini con miele e polline immagazzinati. ' +
+            'Una colonia deve avere almeno 2–3 telaini di scorte in inverno per sopravvivere.'
+        );
+    }
+});
+</script>
 {% endblock %}

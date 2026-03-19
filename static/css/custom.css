@@ -1171,61 +1171,85 @@ body.modal-open {
 .btn-honey:hover { background: #d4891a; color: #fff; }
 
 /* =====================
-   Contextual Tooltips
+   Section Tooltip (one-time, inserted after element)
    ===================== */
-
-.apiary-contextual-tooltip {
-    position: absolute;
-    bottom: calc(100% + 10px);
-    left: 50%;
-    transform: translateX(-50%);
+.apiary-section-tooltip {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
     background: #2C1810;
     color: #fff;
     padding: 10px 14px;
     border-radius: 10px;
     font-family: 'Poppins', sans-serif;
-    font-size: 0.82rem;
+    font-size: 0.83rem;
     line-height: 1.5;
-    max-width: 280px;
-    z-index: 1080;
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    box-shadow: 0 4px 16px rgba(44,24,16,0.3);
-    animation: tooltipFadeIn 0.3s ease;
+    margin: 8px 0 12px 0;
+    box-shadow: 0 4px 16px rgba(44,24,16,0.2);
+    animation: astFadeIn 0.35s ease;
 }
+@keyframes astFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.apiary-section-tooltip .ast-text { flex: 1; }
+.apiary-section-tooltip .ast-close {
+    background: none; border: none;
+    color: rgba(255,255,255,0.6); cursor: pointer;
+    font-size: 1rem; padding: 0; line-height: 1;
+    flex-shrink: 0;
+}
+.apiary-section-tooltip .ast-close:hover { color: #fff; }
 
-.apiary-contextual-tooltip::after {
+/* =====================
+   Inline Field Help Icon "?"
+   ===================== */
+.field-help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #EAD9BF;
+    color: #2C1810;
+    font-size: 0.65rem;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    margin-left: 6px;
+    vertical-align: middle;
+    transition: background 0.2s;
+    position: relative;
+    top: -1px;
+    flex-shrink: 0;
+}
+.field-help-icon:hover, .field-help-icon:focus {
+    background: #F5A623;
+    color: #fff;
+    outline: none;
+}
+.field-help-popover {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 6px);
+    background: #2C1810;
+    color: #fff;
+    padding: 9px 13px;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    min-width: 220px;
+    max-width: 300px;
+    z-index: 1090;
+    box-shadow: 0 4px 16px rgba(44,24,16,0.25);
+}
+.field-help-popover::before {
     content: '';
     position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 100%;
+    left: 16px;
     border: 6px solid transparent;
-    border-top-color: #2C1810;
-}
-
-.apiary-contextual-tooltip .tooltip-text {
-    flex: 1;
-}
-
-.apiary-contextual-tooltip .tooltip-close {
-    background: none;
-    border: none;
-    color: rgba(255,255,255,0.7);
-    cursor: pointer;
-    font-size: 0.75rem;
-    padding: 0;
-    line-height: 1;
-    flex-shrink: 0;
-    margin-top: 2px;
-}
-
-.apiary-contextual-tooltip .tooltip-close:hover {
-    color: #fff;
-}
-
-@keyframes tooltipFadeIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(6px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    border-bottom-color: #2C1810;
 }

@@ -193,13 +193,29 @@
         if (document.getElementById('id_apiario').value) {
             document.getElementById('id_numero').focus();
         }
-        
+
         // Imposta la data di installazione al giorno corrente se è un nuovo record
         var dataInstallazione = document.getElementById('id_data_installazione');
         if (!dataInstallazione.value) {
             const oggi = new Date();
             const formatoData = oggi.toISOString().split('T')[0];
             dataInstallazione.value = formatoData;
+        }
+    });
+
+    // ── Help icons ──
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.addHelpIcon) {
+            addHelpIcon('id_tipo_arnia',
+                'Il tipo strutturale dell\'arnia: <strong>Bugnola</strong> (tradizionale orizzontale), ' +
+                '<strong>Langstroth</strong> (verticale standard, la più diffusa), ' +
+                '<strong>Warré</strong> (verticale a nido d\'ape naturale). ' +
+                'Influenza le dimensioni dei telai e i melari compatibili.'
+            );
+            addHelpIcon('id_numero',
+                'Numero identificativo dell\'arnia all\'interno dell\'apiario. ' +
+                'Deve essere unico per ogni apiario. Usato in tutte le registrazioni e report.'
+            );
         }
     });
 </script>
