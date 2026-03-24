@@ -67,7 +67,7 @@ REST_FRAMEWORK = {
 # Impostazioni JWT
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=3650),  # ~10 anni: login permanente fino a logout manuale
     'ROTATE_REFRESH_TOKENS': True,
 }
 

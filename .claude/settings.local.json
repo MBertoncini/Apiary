@@ -38,7 +38,11 @@
       "Bash(python -m py_compile core/urls.py)",
       "Bash(for dir:*)",
       "Bash(do echo:*)",
-      "Read(//i/Progetti Git/Apiary_app/lib/screens/**)"
+      "Read(//i/Progetti Git/Apiary_app/lib/screens/**)",
+      "Bash(pip install:*)",
+      "Bash(mkdir -p \"I:/Progetti Git/Apiary_app/lib/screens/onboarding\")",
+      "Bash(mkdir -p \"I:/Progetti Git/Apiary_app/lib/screens/help\")",
+      "Bash(ls:*)"
     ]
   }
 }
