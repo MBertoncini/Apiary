@@ -72,6 +72,29 @@ def password_reset_confirm_web(request, uidb64, token):
     return render(request, 'auth/reset_password.html', {})
 
 
+def delete_data_view(request):
+    """Pagina pubblica per richiedere l'eliminazione dei dati utente.
+    Se autenticato può eliminare tutti i dati di apicoltura mantenendo l'account."""
+    if request.method == 'POST' and request.user.is_authenticated:
+        from django.contrib.auth import authenticate as auth_authenticate
+        from core.models import Apiario, Attrezzatura, Cliente, Pagamento, Maturatore, ContenitoreStoccaggio
+        password = request.POST.get('password', '')
+        user = auth_authenticate(username=request.user.username, password=password)
+        if user is not None:
+            Apiario.objects.filter(proprietario=user).delete()
+            Attrezzatura.objects.filter(proprietario=user).delete()
+            Cliente.objects.filter(utente=user).delete()
+            Pagamento.objects.filter(utente=user).delete()
+            Maturatore.objects.filter(utente=user).delete()
+            ContenitoreStoccaggio.objects.filter(utente=user).delete()
+            messages.success(request, 'Tutti i tuoi dati sono stati eliminati. L\'account è ancora attivo.')
+            return redirect('delete_data')
+        else:
+            messages.error(request, 'Password non corretta. Riprova.')
+            return redirect('delete_data')
+    return render(request, 'auth/delete_data.html')
+
+
 def delete_account_view(request):
     """Pagina pubblica per richiedere l'eliminazione dell'account.
     Se l'utente è autenticato può eliminare direttamente inserendo la password."""

@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from core.views import homepage  # Importa la vista homepage
-from core.auth_views import register_view, logout_view, password_reset_confirm_web, delete_account_view
+from core.auth_views import register_view, logout_view, password_reset_confirm_web, delete_account_view, delete_data_view
 
 # Swagger/OpenAPI per documentazione API
 from rest_framework import permissions
@@ -34,6 +34,7 @@ urlpatterns = [
     path('register/', register_view, name='register'),  # Aggiunge la URL per la registrazione
     path('reset-password/<uidb64>/<token>/', password_reset_confirm_web, name='password_reset_confirm_web'),
     path('delete-account/', delete_account_view, name='delete_account'),
+    path('delete-data/', delete_data_view, name='delete_data'),
     
     # Aggiungi le API REST
     path('api/v1/', include('core.api_urls')),
