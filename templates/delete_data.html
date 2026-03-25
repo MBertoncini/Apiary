@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Richiesta eliminazione dati – Apiary Manager</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+      color: #222;
+      line-height: 1.7;
+      background: #fafafa;
+    }
+    h1 { font-size: 1.8rem; color: #2e7d32; border-bottom: 2px solid #2e7d32; padding-bottom: 8px; }
+    h2 { font-size: 1.2rem; color: #1b5e20; margin-top: 2rem; }
+    p, li { font-size: 0.97rem; }
+    ul { padding-left: 1.4rem; }
+    .updated { color: #666; font-size: 0.88rem; margin-top: -10px; margin-bottom: 24px; }
+    .highlight { background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 10px 16px; border-radius: 4px; }
+    .warning { background: #fff3e0; border-left: 4px solid #e65100; padding: 10px 16px; border-radius: 4px; margin-top: 16px; }
+    .steps { counter-reset: step-counter; list-style: none; padding-left: 0; }
+    .steps li { counter-increment: step-counter; padding: 10px 10px 10px 48px; margin-bottom: 8px;
+                background: #f1f8e9; border-radius: 6px; position: relative; }
+    .steps li::before { content: counter(step-counter); position: absolute; left: 12px; top: 10px;
+                        background: #2e7d32; color: #fff; border-radius: 50%; width: 24px; height: 24px;
+                        text-align: center; line-height: 24px; font-weight: bold; font-size: 0.85rem; }
+    .email-box { background: #fff; border: 1px solid #c8e6c9; border-radius: 6px; padding: 14px 18px;
+                 margin-top: 12px; font-size: 0.95rem; }
+    .email-box strong { color: #1b5e20; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.93rem; }
+    th { background: #e8f5e9; color: #1b5e20; text-align: left; padding: 8px 12px; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e0e0e0; }
+    footer { margin-top: 48px; font-size: 0.85rem; color: #888; border-top: 1px solid #ddd; padding-top: 16px; }
+  </style>
+</head>
+<body>
+
+<h1>Eliminazione dati – Apiary Manager</h1>
+<p class="updated">Sviluppatore: Michele Bertoncini &nbsp;|&nbsp; App: Apiary Manager</p>
+
+<div class="highlight">
+  <p>Questa pagina descrive come gli utenti di <strong>Apiary Manager</strong> possono richiedere la cancellazione parziale o totale dei propri dati <strong>senza eliminare l'account</strong>.</p>
+</div>
+
+<h2>Tipologie di dati eliminabili</h2>
+<table>
+  <tr>
+    <th>Categoria dati</th>
+    <th>Eliminazione parziale</th>
+    <th>Eliminazione totale</th>
+  </tr>
+  <tr>
+    <td>Apiari e arnie</td>
+    <td>Sì (dall'app, uno per uno)</td>
+    <td>Sì (via richiesta email)</td>
+  </tr>
+  <tr>
+    <td>Controlli periodici</td>
+    <td>Sì (dall'app)</td>
+    <td>Sì (via richiesta email)</td>
+  </tr>
+  <tr>
+    <td>Regine e genealogie</td>
+    <td>Sì (dall'app)</td>
+    <td>Sì (via richiesta email)</td>
+  </tr>
+  <tr>
+    <td>Trattamenti sanitari</td>
+    <td>Sì (dall'app)</td>
+    <td>Sì (via richiesta email)</td>
+  </tr>
+  <tr>
+    <td>Produzioni e smielature</td>
+    <td>Sì (dall'app)</td>
+    <td>Sì (via richiesta email)</td>
+  </tr>
+  <tr>
+    <td>Immagini analisi telaini (AI)</td>
+    <td>Sì (dall'app)</td>
+    <td>Sì (via richiesta email)</td>
+  </tr>
+  <tr>
+    <td>Cache locale (dispositivo)</td>
+    <td>Sì (Impostazioni → Cancella cache)</td>
+    <td>Sì (disinstallazione app)</td>
+  </tr>
+</table>
+
+<h2>Come eliminare i dati dall'app</h2>
+<p>La maggior parte dei dati può essere eliminata direttamente dall'applicazione:</p>
+<ol class="steps">
+  <li>Apri <strong>Apiary Manager</strong> e accedi al tuo account.</li>
+  <li>Naviga alla sezione contenente i dati da eliminare (es. un apiario, un'arnia, un controllo).</li>
+  <li>Usa il pulsante <strong>Elimina</strong> o l'icona cestino presente su ogni elemento.</li>
+  <li>Per eliminare la cache locale: vai su <strong>Impostazioni → Cancella cache</strong>.</li>
+</ol>
+
+<h2>Come richiedere l'eliminazione totale dei dati via email</h2>
+<p>Per richiedere la cancellazione di tutti i dati senza eliminare l'account, invia una email a:</p>
+<div class="email-box">
+  <strong>Indirizzo:</strong> michele.bertoncini@gmail.com<br>
+  <strong>Oggetto:</strong> Richiesta eliminazione dati Apiary Manager<br>
+  <strong>Contenuto:</strong> Nome utente (username) e specifica dei dati da eliminare (es. "tutti i dati apicoltura", oppure "solo i controlli dal 2024").
+</div>
+<p>La richiesta verrà elaborata entro <strong>30 giorni lavorativi</strong>.</p>
+
+<h2>Dati conservati dopo la richiesta</h2>
+<div class="warning">
+  <p>I dati eliminati dal server vengono conservati per un ulteriore periodo di <strong>30 giorni</strong> nei backup di sicurezza prima della rimozione definitiva. L'account rimane attivo e funzionante. I dati salvati localmente sul dispositivo (cache SQLite, SharedPreferences) rimangono fino alla cancellazione manuale o alla disinstallazione dell'app.</p>
+</div>
+
+<h2>Eliminazione completa dell'account</h2>
+<p>Se desideri eliminare l'account e tutti i dati associati in modo definitivo, visita la pagina dedicata:</p>
+<p><a href="/delete-account/">→ Richiesta eliminazione account</a></p>
+
+<h2>Contatti</h2>
+<p>Per qualsiasi domanda relativa ai tuoi dati:<br>
+  <strong>E-mail:</strong> michele.bertoncini@gmail.com<br>
+  <strong>App:</strong> Apiary Manager
+</p>
+
+<footer>
+  &copy; 2026 Apiary Manager – Tutti i diritti riservati. |
+  <a href="/privacy-policy">Informativa sulla Privacy</a>
+</footer>
+
+</body>
+</html>

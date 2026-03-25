@@ -98,6 +98,8 @@ urlpatterns = [
     path('profilo/modifica/', views.modifica_profilo, name='modifica_profilo'),  # Metti questo prima
     path('profilo/', views.profilo, name='profilo'),
     path('profilo/<str:username>/', views.profilo, name='profilo_utente'),
+    path('delete-account/', views.delete_account_page, name='delete_account_page'),
+    path('delete-data/', views.delete_data_page, name='delete_data_page'),
     path('gruppi/<int:gruppo_id>/modifica-immagine/', views.modifica_immagine_gruppo, name='modifica_immagine_gruppo'),
 
     # Meteo

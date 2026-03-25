@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Richiesta eliminazione account – Apiary Manager</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+      color: #222;
+      line-height: 1.7;
+      background: #fafafa;
+    }
+    h1 { font-size: 1.8rem; color: #2e7d32; border-bottom: 2px solid #2e7d32; padding-bottom: 8px; }
+    h2 { font-size: 1.2rem; color: #1b5e20; margin-top: 2rem; }
+    p, li { font-size: 0.97rem; }
+    ul { padding-left: 1.4rem; }
+    .updated { color: #666; font-size: 0.88rem; margin-top: -10px; margin-bottom: 24px; }
+    .highlight { background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 10px 16px; border-radius: 4px; }
+    .warning { background: #fff3e0; border-left: 4px solid #e65100; padding: 10px 16px; border-radius: 4px; margin-top: 16px; }
+    .steps { counter-reset: step-counter; list-style: none; padding-left: 0; }
+    .steps li { counter-increment: step-counter; padding: 10px 10px 10px 48px; margin-bottom: 8px;
+                background: #f1f8e9; border-radius: 6px; position: relative; }
+    .steps li::before { content: counter(step-counter); position: absolute; left: 12px; top: 10px;
+                        background: #2e7d32; color: #fff; border-radius: 50%; width: 24px; height: 24px;
+                        text-align: center; line-height: 24px; font-weight: bold; font-size: 0.85rem; }
+    .email-box { background: #fff; border: 1px solid #c8e6c9; border-radius: 6px; padding: 14px 18px;
+                 margin-top: 12px; font-size: 0.95rem; }
+    .email-box strong { color: #1b5e20; }
+    footer { margin-top: 48px; font-size: 0.85rem; color: #888; border-top: 1px solid #ddd; padding-top: 16px; }
+  </style>
+</head>
+<body>
+
+<h1>Eliminazione account – Apiary Manager</h1>
+<p class="updated">Sviluppatore: Michele Bertoncini &nbsp;|&nbsp; App: Apiary Manager</p>
+
+<div class="highlight">
+  <p>Questa pagina descrive come gli utenti di <strong>Apiary Manager</strong> possono richiedere la cancellazione del proprio account e di tutti i dati associati.</p>
+</div>
+
+<h2>Come richiedere l'eliminazione dell'account</h2>
+<p>Puoi eliminare il tuo account direttamente dall'app oppure inviando una richiesta via e-mail.</p>
+
+<h2>Metodo 1 – Dall'app (consigliato)</h2>
+<ol class="steps">
+  <li>Apri <strong>Apiary Manager</strong> e accedi al tuo account.</li>
+  <li>Vai su <strong>Impostazioni</strong> (icona ingranaggio nel menu laterale).</li>
+  <li>Nella sezione <strong>Profilo</strong>, scorri fino al pulsante <strong>"Elimina account"</strong>.</li>
+  <li>Conferma la scelta nel dialogo di conferma.</li>
+  <li>L'account verrà eliminato immediatamente e verrai disconnesso.</li>
+</ol>
+
+<h2>Metodo 2 – Via e-mail</h2>
+<p>Se non riesci ad accedere all'app, puoi inviare una richiesta di eliminazione via e-mail:</p>
+<div class="email-box">
+  <strong>Indirizzo:</strong> michele.bertoncini@gmail.com<br>
+  <strong>Oggetto:</strong> Richiesta eliminazione account Apiary Manager<br>
+  <strong>Contenuto:</strong> Nome utente (username) dell'account da eliminare.
+</div>
+<p>La richiesta verrà elaborata entro <strong>30 giorni lavorativi</strong>.</p>
+
+<h2>Dati eliminati</h2>
+<p>Alla cancellazione dell'account vengono eliminati:</p>
+<ul>
+  <li>Credenziali di accesso (username e password)</li>
+  <li>Dati apicoltura: apiari, arnie, regine, controlli, trattamenti, produzioni e tutti i dati associati</li>
+  <li>Immagini caricate per l'analisi AI dei telaini</li>
+  <li>Chiave API personale Gemini (se impostata)</li>
+  <li>Dati di utilizzo dell'app associati all'account</li>
+</ul>
+
+<h2>Dati conservati dopo la cancellazione</h2>
+<div class="warning">
+  <p>I dati del server vengono conservati per un ulteriore periodo di <strong>30 giorni</strong> dopo la cancellazione dell'account prima della rimozione definitiva, per finalità di backup e sicurezza. I dati salvati localmente sul dispositivo (cache, SharedPreferences) rimangono fino alla disinstallazione dell'app o alla cancellazione manuale dall'utente.</p>
+</div>
+
+<h2>Contatti</h2>
+<p>Per qualsiasi domanda relativa all'eliminazione dell'account o dei dati:<br>
+  <strong>E-mail:</strong> michele.bertoncini@gmail.com<br>
+  <strong>App:</strong> Apiary Manager
+</p>
+
+<footer>
+  &copy; 2026 Apiary Manager – Tutti i diritti riservati. |
+  <a href="/privacy-policy">Informativa sulla Privacy</a>
+</footer>
+
+</body>
+</html>

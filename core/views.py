@@ -6251,3 +6251,11 @@ def segna_onboarding_completato(request):
 def guida(request):
     """Help & guide page."""
     return render(request, 'tutorial/guida.html')
+
+
+def delete_account_page(request):
+    return render(request, 'delete_account.html')
+
+
+def delete_data_page(request):
+    return render(request, 'delete_data.html')

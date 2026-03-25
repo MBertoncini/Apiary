@@ -17,6 +17,7 @@ from .api_views import (
     AnalisiTelainoViewSet, NucleoViewSet, register_user, chat_ai_api, ai_quota,
     password_reset_request, password_reset_confirm,
     PreferenzaMaturazionViewSet, MatutatoreViewSet, ContenitoreStoccaggioViewSet,
+    DeleteAccountView,
 )
 
 # Crea un router e registra i viewsets
@@ -66,6 +67,7 @@ urlpatterns = [
     
     # Endpoint per il profilo utente
     path('users/me/', current_user, name='api-current-user'),
+    path('users/me/delete/', DeleteAccountView.as_view(), name='delete_account_api'),
     
     # Endpoint AI chat (JWT-compatible, per app mobile)
     path('ai/chat/', chat_ai_api, name='api-ai-chat'),

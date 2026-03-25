@@ -4,6 +4,7 @@ from rest_framework import viewsets, permissions, filters, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 from django.core.exceptions import ValidationError
 from rest_framework.exceptions import PermissionDenied
 from django.db.models import Q
@@ -2137,3 +2138,12 @@ def password_reset_confirm(request):
     user.set_password(new_password)
     user.save()
     return Response({'detail': 'Password reimpostata con successo.'})
+
+
+class DeleteAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
