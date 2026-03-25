@@ -1,6 +1,6 @@
 # auth_views.py
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -70,3 +70,20 @@ def password_reset_confirm_web(request, uidb64, token):
         return render(request, 'auth/reset_password.html', {'success': True})
 
     return render(request, 'auth/reset_password.html', {})
+
+
+def delete_account_view(request):
+    """Pagina pubblica per richiedere l'eliminazione dell'account.
+    Se l'utente è autenticato può eliminare direttamente inserendo la password."""
+    if request.method == 'POST' and request.user.is_authenticated:
+        password = request.POST.get('password', '')
+        user = authenticate(username=request.user.username, password=password)
+        if user is not None:
+            logout(request)
+            user.delete()
+            messages.success(request, 'Il tuo account è stato eliminato definitivamente.')
+            return redirect('homepage')
+        else:
+            messages.error(request, 'Password non corretta. Riprova.')
+            return redirect('delete_account')
+    return render(request, 'auth/delete_account.html')
