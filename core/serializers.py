@@ -15,16 +15,30 @@ from .models import (
 # Serializzatore utente
 class UserSerializer(serializers.ModelSerializer):
     gemini_api_key = serializers.SerializerMethodField()
+    profile_image = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'gemini_api_key']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'gemini_api_key', 'profile_image']
 
     def get_gemini_api_key(self, obj):
         try:
             return obj.profilo.gemini_api_key or ''
         except Exception:
             return ''
+
+    def get_profile_image(self, obj):
+        try:
+            immagine = obj.profilo.immagine
+            if not immagine:
+                return None
+            request = self.context.get('request')
+            url = immagine.url
+            if request:
+                return request.build_absolute_uri(url)
+            return url
+        except Exception:
+            return None
 
 # Serializzatore Apiario
 class ApiarioSerializer(serializers.ModelSerializer):
@@ -317,12 +331,14 @@ class GruppoSerializer(serializers.ModelSerializer):
     creatore_username = serializers.ReadOnlyField(source='creatore.username')
     membri_count = serializers.SerializerMethodField()
     apiari_count = serializers.SerializerMethodField()
+    immagine_profilo = serializers.SerializerMethodField()
 
     class Meta:
         model = Gruppo
         fields = [
             'id', 'nome', 'descrizione', 'data_creazione',
-            'creatore', 'creatore_username', 'membri_count', 'apiari_count'
+            'creatore', 'creatore_username', 'membri_count', 'apiari_count',
+            'immagine_profilo'
         ]
         read_only_fields = ['creatore']
 
@@ -332,6 +348,19 @@ class GruppoSerializer(serializers.ModelSerializer):
     def get_apiari_count(self, obj):
         return obj.apiari.filter(condiviso_con_gruppo=True).count()
 
+    def get_immagine_profilo(self, obj):
+        try:
+            immagine = obj.immagine_profilo.immagine
+            if not immagine:
+                return None
+            request = self.context.get('request')
+            url = immagine.url
+            if request:
+                return request.build_absolute_uri(url)
+            return url
+        except Exception:
+            return None
+
     # FIX #2 - Il metodo create è stato rimosso dal serializer.
     # La logica di creazione (creatore + auto-aggiunta come admin)
     # è ora gestita interamente in GruppoViewSet.perform_create()
@@ -340,13 +369,27 @@ class GruppoSerializer(serializers.ModelSerializer):
 class MembroGruppoSerializer(serializers.ModelSerializer):
     utente_username = serializers.ReadOnlyField(source='utente.username')
     gruppo_nome = serializers.ReadOnlyField(source='gruppo.nome')
-    
+    immagine_profilo = serializers.SerializerMethodField()
+
     class Meta:
         model = MembroGruppo
         fields = [
-            'id', 'utente', 'utente_username', 'gruppo', 
-            'gruppo_nome', 'ruolo', 'data_aggiunta'
+            'id', 'utente', 'utente_username', 'gruppo',
+            'gruppo_nome', 'ruolo', 'data_aggiunta', 'immagine_profilo'
         ]
+
+    def get_immagine_profilo(self, obj):
+        try:
+            immagine = obj.utente.profilo.immagine
+            if not immagine:
+                return None
+            request = self.context.get('request')
+            url = immagine.url
+            if request:
+                return request.build_absolute_uri(url)
+            return url
+        except Exception:
+            return None
 
 # Serializzatore InvitoGruppo
 class InvitoGruppoSerializer(serializers.ModelSerializer):

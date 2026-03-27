@@ -1,7 +1,7 @@
 import logging
 import uuid
 from rest_framework import viewsets, permissions, filters, status
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import action, api_view, parser_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ValidationError
@@ -858,6 +858,41 @@ class GruppoViewSet(viewsets.ModelViewSet):
             )
         return super().destroy(request, *args, **kwargs)
 
+    @action(detail=True, methods=['patch'], url_path='immagine',
+            parser_classes=[MultiPartParser, FormParser])
+    def immagine(self, request, pk=None):
+        """
+        PATCH /api/v1/gruppi/{id}/immagine/ — aggiorna l'immagine del gruppo.
+        Solo admin o editor del gruppo possono modificarla.
+        """
+        gruppo = self.get_object()
+        try:
+            membro = MembroGruppo.objects.get(utente=request.user, gruppo=gruppo)
+            if membro.ruolo not in ('admin', 'editor'):
+                return Response(
+                    {"detail": "Solo admin e editor possono modificare l'immagine del gruppo."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        except MembroGruppo.DoesNotExist:
+            return Response(
+                {"detail": "Non sei membro di questo gruppo."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        if 'immagine' not in request.FILES:
+            return Response(
+                {"detail": "Nessun file immagine fornito."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            immagine_profilo = gruppo.immagine_profilo
+        except Exception:
+            from .models import ImmagineProfilo
+            immagine_profilo = ImmagineProfilo.objects.create(gruppo=gruppo)
+        immagine_profilo.immagine = request.FILES['immagine']
+        immagine_profilo.save()
+        serializer = GruppoSerializer(gruppo, context={'request': request})
+        return Response(serializer.data)
+
     @action(detail=True, methods=['get'])
     def membri(self, request, pk=None):
         """
@@ -872,9 +907,9 @@ class GruppoViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
         membri = MembroGruppo.objects.filter(gruppo=gruppo)
-        serializer = MembroGruppoSerializer(membri, many=True)
+        serializer = MembroGruppoSerializer(membri, many=True, context={'request': request})
         return Response(serializer.data)
-    
+
     @action(detail=True, methods=['get'])
     def inviti(self, request, pk=None):
         """
@@ -1083,7 +1118,7 @@ class GruppoViewSet(viewsets.ModelViewSet):
             membro.ruolo = ruolo
             membro.save()
 
-            serializer = MembroGruppoSerializer(membro)
+            serializer = MembroGruppoSerializer(membro, context={'request': request})
             return Response(serializer.data)
         
         # Gestione DELETE (rimozione membro)
@@ -1790,10 +1825,11 @@ def sync_data(request):
 
 @api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser, JSONParser])
 def current_user(request):
     """
-    GET: restituisce i dati dell'utente corrente (inclusa gemini_api_key).
-    PATCH: aggiorna first_name, last_name, email, gemini_api_key.
+    GET: restituisce i dati dell'utente corrente (inclusa gemini_api_key e profile_image).
+    PATCH: aggiorna first_name, last_name, email, gemini_api_key, immagine (multipart).
     """
     user = request.user
 
@@ -1815,7 +1851,15 @@ def current_user(request):
             except Exception:
                 pass
 
-    serializer = UserSerializer(user)
+        if 'immagine' in request.FILES:
+            try:
+                profilo = user.profilo
+                profilo.immagine = request.FILES['immagine']
+                profilo.save()
+            except Exception:
+                pass
+
+    serializer = UserSerializer(user, context={'request': request})
     return Response(serializer.data)
 
 
