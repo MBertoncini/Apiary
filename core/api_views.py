@@ -336,6 +336,22 @@ class ApiarioViewSet(viewsets.ModelViewSet):
         serializer = ApiarioMapLayoutSerializer(layout)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'])
+    def community(self, request):
+        """
+        Restituisce gli apiari pubblici (visibilita_mappa='pubblico') di altri utenti,
+        con coordinate valide, per la visualizzazione sulla mappa community.
+        Esclude gli apiari già accessibili all'utente (propri o di gruppo).
+        """
+        accessibili_ids = get_apiari_accessibili(request.user).values_list('id', flat=True)
+        apiari = Apiario.objects.filter(
+            visibilita_mappa='pubblico',
+            latitudine__isnull=False,
+            longitudine__isnull=False,
+        ).exclude(id__in=accessibili_ids)
+        serializer = self.get_serializer(apiari, many=True)
+        return Response(serializer.data)
+
 
 class NucleoViewSet(viewsets.ModelViewSet):
     """API endpoint per gestire i nuclei (mini-arnie convertibili)."""
@@ -1561,8 +1577,23 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
-    Custom token serializer che aggiunge informazioni dell'utente
+    Custom token serializer che aggiunge informazioni dell'utente.
+    Supporta login sia con username che con email.
     """
+    def validate(self, attrs):
+        username_or_email = attrs.get(self.username_field, '')
+        if '@' in username_or_email:
+            from django.contrib.auth import get_user_model
+            UserModel = get_user_model()
+            try:
+                user = UserModel.objects.get(email__iexact=username_or_email)
+                attrs[self.username_field] = user.username
+            except UserModel.DoesNotExist:
+                pass  # la validazione standard restituirà l'errore corretto
+            except UserModel.MultipleObjectsReturned:
+                pass  # caso raro: email duplicata, la validazione standard gestirà
+        return super().validate(attrs)
+
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
