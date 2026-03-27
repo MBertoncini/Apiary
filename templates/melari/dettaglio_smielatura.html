@@ -110,21 +110,15 @@
                 <h5 class="mb-0"><i class="bi bi-calculator"></i> Statistiche</h5>
             </div>
             <div class="card-body">
-                <p><strong>Media per melario:</strong> {{ smielatura.quantita_miele|floatformat:2 }} kg / {{ smielatura.melari.count }} = {{ smielatura.quantita_miele|floatformat:2|divisibleby:smielatura.melari.count|floatformat:2 }} kg</p>
-                
-                <p><strong>Media per telaino:</strong> 
-                {% with total_telaini=0 %}
-                    {% for melario in smielatura.melari.all %}
-                        {% with total_telaini=total_telaini|add:melario.numero_telaini %}{% endwith %}
-                    {% endfor %}
-                    {{ smielatura.quantita_miele|floatformat:2 }} kg / {{ total_telaini }} = {{ smielatura.quantita_miele|floatformat:2|divisibleby:total_telaini|floatformat:2 }} kg
-                {% endwith %}
+                <p><strong>Media per melario:</strong>
+                    {% if media_per_melario %}{{ media_per_melario }} kg{% else %}—{% endif %}
                 </p>
-                
-                <!-- Calcolo del produttività media per arnia -->
-                {% with arnie_coinvolte=melari_per_arnia.keys|length %}
-                    <p><strong>Media per arnia:</strong> {{ smielatura.quantita_miele|floatformat:2 }} kg / {{ arnie_coinvolte }} = {{ smielatura.quantita_miele|floatformat:2|divisibleby:arnie_coinvolte|floatformat:2 }} kg</p>
-                {% endwith %}
+                <p><strong>Media per telaino:</strong>
+                    {% if media_per_telaino %}{{ media_per_telaino }} kg{% else %}—{% endif %}
+                </p>
+                <p><strong>Media per arnia:</strong>
+                    {% if media_per_arnia %}{{ media_per_arnia }} kg{% else %}—{% endif %}
+                </p>
                 
                 <div class="alert alert-warning mt-3">
                     <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong> 

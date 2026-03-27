@@ -1210,6 +1210,7 @@ def dettaglio_smielatura(request, smielatura_id):
     
     # Raggruppa i melari per arnia
     melari_per_arnia = {}
+    total_telaini = 0
     for melario in smielatura.melari.all().select_related('arnia'):
         arnia_id = melario.arnia.id
         if arnia_id not in melari_per_arnia:
@@ -1218,11 +1219,24 @@ def dettaglio_smielatura(request, smielatura_id):
                 'melari': []
             }
         melari_per_arnia[arnia_id]['melari'].append(melario)
-    
+        total_telaini += melario.numero_telaini
+
+    n_melari = smielatura.melari.count()
+    arnie_coinvolte = len(melari_per_arnia)
+    quantita = smielatura.quantita_miele
+    media_per_melario = round(quantita / n_melari, 2) if n_melari else None
+    media_per_telaino = round(quantita / total_telaini, 2) if total_telaini else None
+    media_per_arnia = round(quantita / arnie_coinvolte, 2) if arnie_coinvolte else None
+
     context = {
         'smielatura': smielatura,
         'apiario': apiario,
         'melari_per_arnia': melari_per_arnia,
+        'total_telaini': total_telaini,
+        'arnie_coinvolte': arnie_coinvolte,
+        'media_per_melario': media_per_melario,
+        'media_per_telaino': media_per_telaino,
+        'media_per_arnia': media_per_arnia,
     }
     
     return render(request, 'melari/dettaglio_smielatura.html', context)
