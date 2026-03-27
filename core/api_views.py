@@ -1573,26 +1573,44 @@ class AnalisiTelainoViewSet(viewsets.ModelViewSet):
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError, AuthenticationFailed as JWTAuthFailed
+from rest_framework.exceptions import APIException
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
     Custom token serializer che aggiunge informazioni dell'utente.
     Supporta login sia con username che con email.
+    Restituisce codici di errore distinti per utente non trovato vs password errata.
     """
     def validate(self, attrs):
+        from django.contrib.auth import get_user_model
+        UserModel = get_user_model()
         username_or_email = attrs.get(self.username_field, '')
+
+        # Risolvi email → username, con errore specifico se non trovata
         if '@' in username_or_email:
-            from django.contrib.auth import get_user_model
-            UserModel = get_user_model()
             try:
                 user = UserModel.objects.get(email__iexact=username_or_email)
                 attrs[self.username_field] = user.username
             except UserModel.DoesNotExist:
-                pass  # la validazione standard restituirà l'errore corretto
+                raise JWTAuthFailed(
+                    detail={'detail': 'Nessun account trovato con questa email.', 'code': 'user_not_found'}
+                )
             except UserModel.MultipleObjectsReturned:
-                pass  # caso raro: email duplicata, la validazione standard gestirà
-        return super().validate(attrs)
+                pass  # email duplicata: la validazione standard gestirà
+        else:
+            if not UserModel.objects.filter(username=username_or_email).exists():
+                raise JWTAuthFailed(
+                    detail={'detail': 'Nessun account trovato con questo username.', 'code': 'user_not_found'}
+                )
+
+        # Utente trovato: se super() fallisce, la password è errata
+        try:
+            return super().validate(attrs)
+        except Exception:
+            raise JWTAuthFailed(
+                detail={'detail': 'Password errata.', 'code': 'wrong_password'}
+            )
 
     @classmethod
     def get_token(cls, user):
@@ -1611,15 +1629,15 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         try:
             return super().post(request, *args, **kwargs)
+        except APIException:
+            # Errori HTTP normali (401, 400, ecc.) — DRF li gestisce da solo
+            raise
         except Exception as e:
-            # Log dell'errore per il debug
             import traceback
             print(f"Error in token endpoint: {str(e)}")
             print(traceback.format_exc())
-            
-            # Restituisci una risposta più utile
             return Response(
-                {"detail": "Si è verificato un errore durante l'autenticazione. Riprova più tardi."},
+                {"detail": "Errore interno del server. Riprova più tardi."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
