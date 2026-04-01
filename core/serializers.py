@@ -43,18 +43,32 @@ class UserSerializer(serializers.ModelSerializer):
 # Serializzatore Apiario
 class ApiarioSerializer(serializers.ModelSerializer):
     proprietario_username = serializers.ReadOnlyField(source='proprietario.username')
-    
+    proprietario_immagine_profilo = serializers.SerializerMethodField()
+
     class Meta:
         model = Apiario
         fields = [
-            'id', 'nome', 'posizione', 'latitudine', 'longitudine', 
+            'id', 'nome', 'posizione', 'latitudine', 'longitudine',
             'note', 'monitoraggio_meteo', 'proprietario', 'proprietario_username',
+            'proprietario_immagine_profilo',
             'gruppo', 'condiviso_con_gruppo', 'visibilita_mappa'
         ]
         read_only_fields = ['proprietario']
-    
+
+    def get_proprietario_immagine_profilo(self, obj):
+        try:
+            immagine = obj.proprietario.profilo.immagine
+            if not immagine:
+                return None
+            request = self.context.get('request')
+            url = immagine.url
+            if request:
+                return request.build_absolute_uri(url)
+            return url
+        except Exception:
+            return None
+
     def create(self, validated_data):
-        # Imposta automaticamente l'utente corrente come proprietario
         validated_data['proprietario'] = self.context['request'].user
         return super().create(validated_data)
 
