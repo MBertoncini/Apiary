@@ -15,7 +15,7 @@ PRESET_MIELE = {
     'acacia': {
         'nome': 'Acacia (Robinia)',
         'pianta': 'Robinia pseudoacacia',
-        'taxonKey': 5356173,
+        'taxonKey': 5352251,
         'emoji': '🌸',
         'colore': '#FFF9C4',
         'colore_bordo': '#F5C518',
@@ -27,7 +27,7 @@ PRESET_MIELE = {
     'castagno': {
         'nome': 'Castagno',
         'pianta': 'Castanea sativa',
-        'taxonKey': 2880441,
+        'taxonKey': 5333294,
         'emoji': '🌰',
         'colore': '#EFEBE9',
         'colore_bordo': '#795548',
@@ -38,7 +38,7 @@ PRESET_MIELE = {
     'tiglio': {
         'nome': 'Tiglio',
         'pianta': 'Tilia',
-        'taxonKey': 3189866,
+        'taxonKey': 3152041,
         'emoji': '🍃',
         'colore': '#C8E6C9',
         'colore_bordo': '#388E3C',
@@ -49,7 +49,7 @@ PRESET_MIELE = {
     'lavanda': {
         'nome': 'Lavanda',
         'pianta': 'Lavandula',
-        'taxonKey': 2927390,
+        'taxonKey': 2927302,
         'emoji': '💜',
         'colore': '#E1BEE7',
         'colore_bordo': '#7B1FA2',
@@ -60,7 +60,7 @@ PRESET_MIELE = {
     'sulla': {
         'nome': 'Sulla',
         'pianta': 'Hedysarum coronarium',
-        'taxonKey': 5360330,
+        'taxonKey': 2960919,
         'emoji': '🌺',
         'colore': '#FFCDD2',
         'colore_bordo': '#C62828',
@@ -71,7 +71,7 @@ PRESET_MIELE = {
     'corbezzolo': {
         'nome': 'Corbezzolo',
         'pianta': 'Arbutus unedo',
-        'taxonKey': 2878484,
+        'taxonKey': 2882803,
         'emoji': '🍓',
         'colore': '#FFCCBC',
         'colore_bordo': '#BF360C',
@@ -82,7 +82,7 @@ PRESET_MIELE = {
     'eucalipto': {
         'nome': 'Eucalipto',
         'pianta': 'Eucalyptus',
-        'taxonKey': 3180490,
+        'taxonKey': 7493935,
         'emoji': '🌿',
         'colore': '#B2DFDB',
         'colore_bordo': '#00695C',
@@ -93,7 +93,7 @@ PRESET_MIELE = {
     'girasole': {
         'nome': 'Girasole',
         'pianta': 'Helianthus annuus',
-        'taxonKey': 3119234,
+        'taxonKey': 9206251,
         'emoji': '🌻',
         'colore': '#FFF9C4',
         'colore_bordo': '#F9A825',
@@ -104,7 +104,7 @@ PRESET_MIELE = {
     'trifoglio': {
         'nome': 'Trifoglio',
         'pianta': 'Trifolium',
-        'taxonKey': 2973484,
+        'taxonKey': 2973363,
         'emoji': '🍀',
         'colore': '#DCEDC8',
         'colore_bordo': '#558B2F',
@@ -115,7 +115,7 @@ PRESET_MIELE = {
     'agrumi': {
         'nome': 'Agrumi',
         'pianta': 'Citrus',
-        'taxonKey': 8022234,
+        'taxonKey': 3190155,
         'emoji': '🍊',
         'colore': '#FFE0B2',
         'colore_bordo': '#E65100',
