@@ -522,6 +522,40 @@ class ArniaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+    @action(detail=True, methods=['post'])
+    def converti_in_nucleo(self, request, pk=None):
+        """Converte l'arnia in un nucleo, disattivando l'arnia originale."""
+        arnia = self.get_object()
+
+        # Controlla che non sia già stata convertita
+        if hasattr(arnia, 'nucleo_originale') and arnia.nucleo_originale is not None:
+            return Response(
+                {'detail': 'Questa arnia è già stata convertita in nucleo.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            nucleo = Nucleo.objects.create(
+                apiario=arnia.apiario,
+                numero=arnia.numero,
+                colore_hex=arnia.colore_hex,
+                data_installazione=arnia.data_installazione,
+                note=arnia.note or '',
+                attiva=True,
+                arnia=arnia,
+                data_conversione=timezone.now().date(),
+            )
+        except Exception as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        arnia.attiva = False
+        arnia.save()
+
+        return Response(
+            NucleoSerializer(nucleo, context={'request': request}).data,
+            status=status.HTTP_201_CREATED,
+        )
+
 class ControlloArniaViewSet(viewsets.ModelViewSet):
     """
     API endpoint per gestire i controlli delle arnie.

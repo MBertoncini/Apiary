@@ -13,6 +13,9 @@
     <a href="{% url 'gestione_fioriture' %}" class="btn btn-outline-secondary btn-sm">
       <i class="bi bi-flower1 me-1"></i>Fioriture
     </a>
+    <a href="{% url 'mappa_nomadismo' %}" class="btn btn-outline-success btn-sm">
+      <i class="bi bi-compass me-1"></i>Nomadismo
+    </a>
     <a href="{% url 'crea_apiario' %}" class="btn btn-primary">
       <i class="bi bi-plus-circle me-1"></i>Nuovo Apiario
     </a>
@@ -308,11 +311,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Popup
     var popupHtml = `
-      <div style="min-width:220px;">
+      <div style="min-width:240px;">
         <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">${el.querySelector('.fw-semibold').textContent}</div>
         <div style="color:#7B6E5D;font-size:.85rem;margin-bottom:8px;">${el.querySelector('.text-muted').textContent.trim()}</div>
         <hr style="margin:6px 0;border-color:#EAD9BF;">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
           <a href="/app/apiario/${id}/" class="btn btn-sm btn-primary" style="font-size:.8rem;">
             <i class="bi bi-grid"></i> Dettagli
           </a>
@@ -323,6 +326,11 @@ document.addEventListener('DOMContentLoaded', function () {
             <i class="bi bi-circle"></i> Raggio volo
           </button>
         </div>
+        <button class="btn btn-sm btn-outline-success w-100 flora-btn"
+                data-lat="${lat}" data-lng="${lng}" style="font-size:.8rem;">
+          <i class="bi bi-tree"></i> Flora locale (GBIF)
+        </button>
+        <div class="flora-risultati mt-2" style="display:none;max-height:200px;overflow-y:auto;"></div>
       </div>`;
     marker.bindPopup(popupHtml, { maxWidth: 280 });
 
@@ -491,6 +499,55 @@ document.addEventListener('DOMContentLoaded', function () {
     var el = document.querySelector('.apiario-item[data-id="' + focusId + '"]');
     if (el) el.click();
   }
+
+  // ── Flora locale GBIF ──────────────────────────────────────────────
+  map.on('popupopen', function () {
+    document.querySelectorAll('.flora-btn').forEach(function (btn) {
+      if (btn.dataset.bound) return;
+      btn.dataset.bound = '1';
+      btn.addEventListener('click', function () {
+        var lat = btn.dataset.lat;
+        var lng = btn.dataset.lng;
+        var box = btn.nextElementSibling; // .flora-risultati
+        if (box.style.display === 'block') { box.style.display = 'none'; return; }
+        box.style.display = 'block';
+        box.innerHTML = '<div class="text-center py-2"><div class="spinner-border spinner-border-sm text-success"></div> Carico dati GBIF…</div>';
+        fetch('/app/gbif/specie-vicine/?lat=' + lat + '&lng=' + lng + '&raggio_km=3')
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.specie || data.specie.length === 0) {
+              box.innerHTML = '<p class="text-muted small text-center py-2">Nessuna specie trovata nel raggio di 3 km.</p>';
+              return;
+            }
+            var mellifere = data.specie.filter(function (s) { return s.mellifera; });
+            var altre = data.specie.filter(function (s) { return !s.mellifera; }).slice(0, 5);
+            var html = '';
+            if (mellifere.length) {
+              html += '<div class="fw-semibold small mb-1" style="color:#2e7d32;"><i class="bi bi-tree"></i> Mellifere (' + mellifere.length + ')</div>';
+              mellifere.slice(0, 10).forEach(function (s) {
+                html += '<div class="d-flex justify-content-between align-items-center py-1 border-bottom" style="font-size:.78rem;">'
+                  + '<span><em>' + s.nomeLatino + '</em>'
+                  + (s.famiglia ? ' <span class="text-muted">(' + s.famiglia + ')</span>' : '')
+                  + '</span>'
+                  + '<a href="' + s.gbif_url + '" target="_blank" class="text-muted ms-1" title="GBIF"><i class="bi bi-box-arrow-up-right"></i></a>'
+                  + '</div>';
+              });
+            }
+            if (altre.length) {
+              html += '<div class="fw-semibold small mt-2 mb-1 text-muted"><i class="bi bi-flower1"></i> Altre piante</div>';
+              altre.forEach(function (s) {
+                html += '<div style="font-size:.75rem;color:#888;"><em>' + s.nomeLatino + '</em></div>';
+              });
+            }
+            html += '<div class="text-end mt-1"><a href="/app/mappa/nomadismo/" class="small text-success">Mappa Nomadismo →</a></div>';
+            box.innerHTML = html;
+          })
+          .catch(function () {
+            box.innerHTML = '<p class="text-danger small text-center py-2">Errore nel caricamento dati GBIF.</p>';
+          });
+      });
+    });
+  });
 });
 </script>
 {% endblock %}

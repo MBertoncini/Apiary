@@ -78,6 +78,12 @@
       Mappa
     </a>
 
+    <a href="{% url 'mappa_nomadismo' %}"
+       class="sidebar-link {% if request.resolver_match.url_name == 'mappa_nomadismo' %}active{% endif %}">
+      <i class="bi bi-compass nav-icon"></i>
+      Nomadismo
+    </a>
+
     <!-- GESTIONE -->
     <div class="sidebar-section-label">Gestione</div>
 

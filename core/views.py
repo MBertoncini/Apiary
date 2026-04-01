@@ -6262,6 +6262,41 @@ def segna_onboarding_completato(request):
     return JsonResponse({'status': 'ok'})
 
 
+@login_required
+def mappa_nomadismo(request):
+    """Vista per la pianificazione del nomadismo con layer GBIF per specie mellifere."""
+    from .gbif_utils import PRESET_MIELE
+    import json as _json
+    apiari_propri = list(Apiario.objects.filter(proprietario=request.user).values(
+        'id', 'nome', 'latitudine', 'longitudine', 'posizione'
+    ))
+    return render(request, 'maps/mappa_nomadismo.html', {
+        'preset_miele': PRESET_MIELE,
+        'preset_miele_json': _json.dumps(PRESET_MIELE),
+        'apiari_json': _json.dumps(apiari_propri, default=str),
+    })
+
+
+@login_required
+def gbif_specie_vicine(request):
+    """
+    API JSON: specie vegetali mellifere vicine a un punto.
+    Query params: lat, lng, raggio_km (default 5)
+    Usata dal popup apiario in mappa_apiari e dalla mappa nomadismo.
+    """
+    from .gbif_utils import get_specie_mellifere_vicine
+    try:
+        lat = float(request.GET.get('lat', 0))
+        lng = float(request.GET.get('lng', 0))
+        raggio_km = float(request.GET.get('raggio_km', 5))
+        raggio_km = min(max(raggio_km, 1), 20)  # limita 1–20 km
+    except (ValueError, TypeError):
+        return JsonResponse({'error': 'Parametri non validi'}, status=400)
+
+    specie = get_specie_mellifere_vicine(lat, lng, raggio_km)
+    return JsonResponse({'specie': specie, 'totale': len(specie)})
+
+
 def guida(request):
     """Help & guide page."""
     return render(request, 'tutorial/guida.html')

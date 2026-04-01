@@ -78,7 +78,9 @@ urlpatterns = [
 
     # Mappe
     path('mappa/', views.mappa_apiari, name='mappa_apiari'),
+    path('mappa/nomadismo/', views.mappa_nomadismo, name='mappa_nomadismo'),
     path('mappa/seleziona-posizione/', views.seleziona_posizione, name='seleziona_posizione'),
+    path('gbif/specie-vicine/', views.gbif_specie_vicine, name='gbif_specie_vicine'),
     
     # Gestione Gruppi
     path('gruppi/', views.gestione_gruppi, name='gestione_gruppi'),
