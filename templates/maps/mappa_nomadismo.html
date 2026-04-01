@@ -238,11 +238,17 @@
       <span><span class="badge me-1" style="background:#F5A623;">🍯</span>Tuo apiario</span>
       <span class="vr"></span>
       <span>
-        <span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:rgba(80,120,200,.5);border:1px solid #3060cc;vertical-align:middle;margin-right:4px;"></span>
-        Densità occorrenze GBIF
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#4caf50;border:1.5px solid #2e7d32;vertical-align:middle;margin-right:4px;"></span>
+        Osservazione GBIF (punto reale)
       </span>
       <span class="vr"></span>
-      <span><i class="bi bi-info-circle me-1"></i>I dati GBIF coprono osservazioni reali degli ultimi anni</span>
+      <span>
+        <span style="display:inline-block;width:14px;height:8px;border-radius:2px;background:rgba(80,160,80,.3);border:1px solid #388e3c;vertical-align:middle;margin-right:4px;"></span>
+        Densità aggregata (zoom-out)
+      </span>
+      <span class="vr"></span>
+      <span id="cnt-occurrenze" class="fw-semibold" style="color:#2e7d32;"></span>
+      <span class="ms-auto"><i class="bi bi-info-circle me-1"></i>Zoom in per vedere i punti individuali · max 300/vista</span>
     </div>
   </div>
 </div>
@@ -255,43 +261,153 @@
 var _nomadismoMap;
 
 (function () {
-  // ── Dati dal backend ────────────────────────────────────────────
   var PRESET = {{ preset_miele_json|safe }};
   var APIARI = {{ apiari_json|safe }};
 
   // ── Init mappa ──────────────────────────────────────────────────
   var map = _nomadismoMap = L.map('map');
-  var baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19,
   }).addTo(map);
-
-  // Vista iniziale: Italia
   map.setView([42.0, 12.5], 6);
 
-  // ── Layer GBIF (density tiles) ─────────────────────────────────
-  var gbifLayer = null;
+  var spinner    = document.getElementById('map-spinner');
+  var presetInfo = document.getElementById('preset-info');
+  var presetAttivo = null;
 
-  function rimuoviGbifLayer() {
-    if (gbifLayer) { map.removeLayer(gbifLayer); gbifLayer = null; }
-  }
+  // ── Layer density GBIF (sfondo, zoom-out) ─────────────────────
+  // Mostra densità aggregata a basso zoom come sfondo orientativo
+  var gbifDensityLayer = null;
 
-  function impostaGbifLayer(taxonKey) {
-    rimuoviGbifLayer();
-    gbifLayer = L.tileLayer(
+  function impostaDensityLayer(taxonKey) {
+    if (gbifDensityLayer) map.removeLayer(gbifDensityLayer);
+    gbifDensityLayer = L.tileLayer(
       'https://api.gbif.org/v2/map/occurrence/density/{z}/{x}/{y}@1x.png' +
       '?taxonKey=' + taxonKey + '&style=classic.poly&bin=hex',
-      {
-        opacity: 0.65,
-        attribution: '&copy; <a href="https://www.gbif.org" target="_blank">GBIF</a>',
-        maxZoom: 14,
-      }
+      { opacity: 0.35, maxZoom: 14,
+        attribution: '&copy; <a href="https://www.gbif.org" target="_blank">GBIF</a>' }
     ).addTo(map);
   }
 
+  function rimuoviDensityLayer() {
+    if (gbifDensityLayer) { map.removeLayer(gbifDensityLayer); gbifDensityLayer = null; }
+  }
+
+  // ── Cluster marker occurrenze puntuali ─────────────────────────
+  var occCluster = L.markerClusterGroup({
+    maxClusterRadius: 40,
+    iconCreateFunction: function (cluster) {
+      var c = presetAttivo ? presetAttivo.colore_bordo : '#388e3c';
+      var n = cluster.getChildCount();
+      return L.divIcon({
+        html: '<div style="background:' + c + ';color:#fff;font-weight:700;border-radius:50%;'
+            + 'width:32px;height:32px;display:flex;align-items:center;justify-content:center;'
+            + 'border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25);font-size:.8rem;">'
+            + n + '</div>',
+        className: '', iconSize: [32, 32],
+      });
+    },
+  }).addTo(map);
+
+  var fetchController = null;   // AbortController corrente
+  var debounceTimer   = null;
+
+  // ── Fetch occurrenze GBIF per il bbox visibile ─────────────────
+  function caricaOccurrenze() {
+    if (!presetAttivo) return;
+    var zoom = map.getZoom();
+    // Sotto zoom 7: solo density tile, troppi punti per mostrare singolarmente
+    if (zoom < 7) {
+      occCluster.clearLayers();
+      return;
+    }
+
+    // Limita il bbox per non scaricare l'intero pianeta
+    var b = map.getBounds().pad(0.05);
+    var latMin = Math.max(b.getSouth(), -85).toFixed(3);
+    var latMax = Math.min(b.getNorth(),  85).toFixed(3);
+    var lngMin = Math.max(b.getWest(),  -180).toFixed(3);
+    var lngMax = Math.min(b.getEast(),   180).toFixed(3);
+
+    if (fetchController) fetchController.abort();
+    fetchController = new AbortController();
+    spinner.style.display = 'block';
+
+    var url = 'https://api.gbif.org/v1/occurrence/search'
+      + '?taxonKey=' + presetAttivo.taxonKey
+      + '&decimalLatitude='  + latMin + ',' + latMax
+      + '&decimalLongitude=' + lngMin + ',' + lngMax
+      + '&hasCoordinate=true&hasGeospatialIssue=false'
+      + '&year=2000,2025&limit=300';
+
+    fetch(url, { signal: fetchController.signal })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        spinner.style.display = 'none';
+        occCluster.clearLayers();
+        var colore = presetAttivo.colore_bordo || '#388e3c';
+        var coloreFill = presetAttivo.colore || '#c8e6c9';
+        var risultato = data.results || [];
+
+        risultato.forEach(function (occ) {
+          var lat = occ.decimalLatitude;
+          var lng = occ.decimalLongitude;
+          if (lat == null || lng == null) return;
+
+          var m = L.circleMarker([lat, lng], {
+            radius: 6,
+            color: colore,
+            weight: 1.5,
+            fillColor: coloreFill,
+            fillOpacity: 0.75,
+          });
+
+          var anno  = occ.year || '—';
+          var sp    = occ.species || occ.scientificName || presetAttivo.pianta;
+          var paese = occ.countryCode || '';
+          var link  = 'https://www.gbif.org/occurrence/' + occ.key;
+          m.bindPopup(
+            '<div style="min-width:180px;">'
+            + '<div style="font-weight:700;font-size:.9rem;">' + presetAttivo.emoji + ' ' + presetAttivo.nome + '</div>'
+            + '<div style="font-style:italic;font-size:.82rem;color:#555;margin-bottom:4px;">' + sp + '</div>'
+            + '<div style="font-size:.8rem;color:#7B6E5D;">'
+            + '<i class="bi bi-calendar3 me-1"></i>' + anno
+            + (paese ? ' &nbsp;·&nbsp; ' + paese : '')
+            + '</div>'
+            + '<hr style="margin:6px 0;border-color:#EAD9BF;">'
+            + '<a href="' + link + '" target="_blank" class="btn btn-sm btn-outline-secondary" style="font-size:.75rem;">'
+            + '<i class="bi bi-box-arrow-up-right me-1"></i>Scheda GBIF</a>'
+            + '</div>',
+            { maxWidth: 220 }
+          );
+          occCluster.addLayer(m);
+        });
+
+        // Aggiorna contatore nel pannello
+        var tot = data.count || 0;
+        aggiornaCnt(risultato.length, tot);
+      })
+      .catch(function (err) {
+        if (err.name !== 'AbortError') {
+          spinner.style.display = 'none';
+        }
+      });
+  }
+
+  function aggiornaCnt(mostrati, totale) {
+    var el = document.getElementById('cnt-occurrenze');
+    if (el) el.textContent = mostrati + (totale > mostrati ? ' / ~' + totale : '') + ' osservazioni';
+  }
+
+  // Debounce su pan/zoom
+  map.on('moveend zoomend', function () {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(caricaOccurrenze, 400);
+  });
+
   // ── Marker apiari propri ───────────────────────────────────────
-  var apiariLayer = L.layerGroup().addTo(map);
-  var bounds = L.latLngBounds();
+  var apiariBounds = L.latLngBounds();
   var hasApiari = false;
 
   APIARI.forEach(function (a) {
@@ -299,89 +415,85 @@ var _nomadismoMap;
     var lng = parseFloat(a.longitudine);
     if (isNaN(lat) || isNaN(lng)) return;
     hasApiari = true;
-    bounds.extend([lat, lng]);
+    apiariBounds.extend([lat, lng]);
 
     var icon = L.divIcon({
-      className: '',
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
-      popupAnchor: [0, -14],
-      html: '<div style="width:28px;height:28px;border-radius:50%;background:#F5A623;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;">'
+      className: '', iconSize: [28,28], iconAnchor: [14,14], popupAnchor: [0,-14],
+      html: '<div style="width:28px;height:28px;border-radius:50%;background:#F5A623;border:3px solid #fff;'
+          + 'box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;">'
           + '<span style="font-size:13px;">🍯</span></div>'
     });
-
     var marker = L.marker([lat, lng], { icon: icon, zIndexOffset: 1000 });
-    var popup = '<div style="min-width:180px;">'
-      + '<div style="font-weight:700;">' + a.nome + '</div>'
+    marker.bindPopup(
+      '<div style="min-width:180px;"><div style="font-weight:700;">' + a.nome + '</div>'
       + (a.posizione ? '<div style="color:#7B6E5D;font-size:.82rem;"><i class="bi bi-geo-alt"></i> ' + a.posizione + '</div>' : '')
       + '<hr style="margin:6px 0;border-color:#EAD9BF;">'
       + '<a href="/app/apiario/' + a.id + '/" class="btn btn-sm btn-primary" style="font-size:.8rem;">'
-      + '<i class="bi bi-grid"></i> Dettagli</a></div>';
-    marker.bindPopup(popup);
-    marker.bindTooltip(a.nome, { direction: 'top', offset: [0, -10] });
-    apiariLayer.addLayer(marker);
+      + '<i class="bi bi-grid"></i> Dettagli</a></div>'
+    );
+    marker.bindTooltip(a.nome, { direction: 'top', offset: [0,-10] });
+    marker.addTo(map);
 
-    // Aggiungi alla lista pannello laterale
     var item = document.createElement('div');
     item.className = 'apiario-riferimento d-flex justify-content-between align-items-center';
     item.innerHTML = '<span class="fw-semibold" style="font-size:.82rem;">🍯 ' + a.nome + '</span>'
-      + '<button class="btn btn-link btn-sm p-0 text-honey" onclick="_nomadismoMap.setView([' + lat + ',' + lng + '],12);">'
+      + '<button class="btn btn-link btn-sm p-0" style="color:var(--honey);" '
+      + 'onclick="_nomadismoMap.setView([' + lat + ',' + lng + '],12);">'
       + '<i class="bi bi-geo-alt"></i></button>';
-    document.getElementById('lista-apiari-pannello').appendChild(item);
+    var cont = document.getElementById('lista-apiari-pannello');
+    if (cont) cont.appendChild(item);
   });
 
-  if (hasApiari && bounds.isValid()) {
-    map.fitBounds(bounds, { padding: [80, 80] });
+  if (hasApiari && apiariBounds.isValid()) {
+    map.fitBounds(apiariBounds, { padding: [80,80] });
   }
 
   // ── Selezione preset miele ─────────────────────────────────────
-  var presetsBar = document.getElementById('presetBar');
-  var presetInfo = document.getElementById('preset-info');
-  var presetAttivo = null;
-
-  presetsBar.addEventListener('click', function (e) {
+  document.getElementById('presetBar').addEventListener('click', function (e) {
     var btn = e.target.closest('.preset-btn');
     if (!btn) return;
-
-    // Deseleziona tutti
     document.querySelectorAll('.preset-btn').forEach(function (b) { b.classList.remove('active'); });
     btn.classList.add('active');
 
     var key = btn.dataset.preset;
+    occCluster.clearLayers();
+    rimuoviDensityLayer();
+    document.getElementById('cnt-occurrenze').textContent = '';
+
     if (key === 'nessuno' || !PRESET[key]) {
-      rimuoviGbifLayer();
       presetInfo.style.display = 'none';
       presetAttivo = null;
       return;
     }
 
     presetAttivo = PRESET[key];
-    impostaGbifLayer(presetAttivo.taxonKey);
+
+    // Density tile come sfondo orientativo
+    impostaDensityLayer(presetAttivo.taxonKey);
+    // Marker puntuali per il bbox corrente
+    caricaOccurrenze();
 
     // Aggiorna scheda info
-    document.getElementById('preset-emoji').textContent = presetAttivo.emoji;
-    document.getElementById('preset-nome').textContent = presetAttivo.nome;
-    document.getElementById('preset-pianta').textContent = presetAttivo.pianta;
-    document.getElementById('preset-periodo').textContent = presetAttivo.periodo;
-    document.getElementById('preset-regioni').textContent = presetAttivo.regioni;
-    document.getElementById('preset-descrizione').textContent = presetAttivo.descrizione;
+    document.getElementById('preset-emoji').textContent        = presetAttivo.emoji;
+    document.getElementById('preset-nome').textContent         = presetAttivo.nome;
+    document.getElementById('preset-pianta').textContent       = presetAttivo.pianta;
+    document.getElementById('preset-periodo').textContent      = presetAttivo.periodo;
+    document.getElementById('preset-regioni').textContent      = presetAttivo.regioni;
+    document.getElementById('preset-descrizione').textContent  = presetAttivo.descrizione;
     presetInfo.style.display = 'block';
-    presetInfo.style.borderLeftColor = presetAttivo.colore_bordo;
-    presetInfo.style.borderLeftWidth = '4px';
-    presetInfo.style.borderLeftStyle = 'solid';
+    presetInfo.style.borderLeft = '4px solid ' + presetAttivo.colore_bordo;
   });
 
-  // ── Click su mappa: analizza specie in quel punto ──────────────
+  // ── Click su mappa: analizza specie (tutti i generi) ──────────
   var analizzaAttivo = false;
-  var clickMarker = null;
-  var spinner = document.getElementById('map-spinner');
+  var clickMarker    = null;
 
   document.getElementById('btnAnalizzaPunto').addEventListener('click', function () {
     analizzaAttivo = !analizzaAttivo;
     this.classList.toggle('btn-outline-success', !analizzaAttivo);
-    this.classList.toggle('btn-success', analizzaAttivo);
+    this.classList.toggle('btn-success',          analizzaAttivo);
     this.innerHTML = analizzaAttivo
-      ? '<i class="bi bi-x-circle me-1"></i>Annulla selezione'
+      ? '<i class="bi bi-x-circle me-1"></i>Annulla'
       : '<i class="bi bi-search me-1"></i>Analizza punto';
     map.getContainer().classList.toggle('map-picking', analizzaAttivo);
   });
@@ -394,9 +506,9 @@ var _nomadismoMap;
   map.on('click', function (e) {
     if (!analizzaAttivo) return;
     analizzaAttivo = false;
-    document.getElementById('btnAnalizzaPunto').classList.remove('btn-success');
-    document.getElementById('btnAnalizzaPunto').classList.add('btn-outline-success');
-    document.getElementById('btnAnalizzaPunto').innerHTML = '<i class="bi bi-search me-1"></i>Analizza punto';
+    var btnA = document.getElementById('btnAnalizzaPunto');
+    btnA.classList.remove('btn-success'); btnA.classList.add('btn-outline-success');
+    btnA.innerHTML = '<i class="bi bi-search me-1"></i>Analizza punto';
     map.getContainer().classList.remove('map-picking');
 
     var lat = e.latlng.lat.toFixed(4);
@@ -404,13 +516,12 @@ var _nomadismoMap;
 
     if (clickMarker) map.removeLayer(clickMarker);
     clickMarker = L.circleMarker([lat, lng], {
-      radius: 10, color: '#2e7d32', weight: 2,
-      fillColor: '#4caf50', fillOpacity: 0.35,
+      radius: 12, color: '#1565c0', weight: 2, fillColor: '#42a5f5', fillOpacity: 0.3,
     }).addTo(map);
 
     document.getElementById('click-coords').textContent = '(' + lat + ', ' + lng + ')';
     document.getElementById('click-specie-list').innerHTML =
-      '<div class="text-center py-2"><span class="spinner-border spinner-border-sm text-success"></span> Ricerca in corso…</div>';
+      '<div class="text-center py-2"><span class="spinner-border spinner-border-sm text-success"></span> Ricerca…</div>';
     document.getElementById('risultato-click').style.display = 'block';
     spinner.style.display = 'block';
 
@@ -430,61 +541,48 @@ var _nomadismoMap;
   function renderSpecie(specie) {
     if (!specie.length) {
       document.getElementById('click-specie-list').innerHTML =
-        '<p class="text-muted small text-center py-2">Nessuna specie trovata in questo raggio (5 km).</p>';
+        '<p class="text-muted small text-center py-2">Nessuna specie trovata (raggio 5 km).</p>';
       return;
     }
     var mellifere = specie.filter(function (s) { return s.mellifera; });
-    var altre = specie.filter(function (s) { return !s.mellifera; }).slice(0, 6);
+    var altre     = specie.filter(function (s) { return !s.mellifera; }).slice(0, 5);
     var html = '';
-
     if (mellifere.length) {
       html += '<div class="fw-semibold small mb-1" style="color:#2e7d32;">'
-        + '<i class="bi bi-tree me-1"></i>Mellifere trovate (' + mellifere.length + ')'
-        + '</div>';
+        + '<i class="bi bi-tree me-1"></i>Mellifere (' + mellifere.length + ')</div>';
       mellifere.slice(0, 12).forEach(function (s) {
-        html += '<div class="specie-row">'
-          + '<div><em>' + s.nomeLatino + '</em>'
+        html += '<div class="specie-row"><div><em>' + s.nomeLatino + '</em>'
           + (s.famiglia ? ' <span class="famiglia">(' + s.famiglia + ')</span>' : '')
-          + '</div>'
-          + '<div class="d-flex align-items-center gap-1">'
+          + '</div><div class="d-flex align-items-center gap-1">'
           + '<span class="specie-mel-badge">mellifera</span>'
-          + '<a href="' + s.gbif_url + '" target="_blank" class="text-muted" title="Scheda GBIF">'
+          + '<a href="' + s.gbif_url + '" target="_blank" class="text-muted">'
           + '<i class="bi bi-box-arrow-up-right" style="font-size:.7rem;"></i></a>'
           + '</div></div>';
       });
     }
-
     if (altre.length) {
       html += '<div class="fw-semibold small mt-2 mb-1 text-muted">'
-        + '<i class="bi bi-flower1 me-1"></i>Altre piante (' + altre.length + ')'
-        + '</div>';
+        + '<i class="bi bi-flower1 me-1"></i>Altre piante</div>';
       altre.forEach(function (s) {
-        html += '<div class="specie-row">'
-          + '<div><em>' + s.nomeLatino + '</em>'
+        html += '<div class="specie-row"><div><em>' + s.nomeLatino + '</em>'
           + (s.famiglia ? ' <span class="famiglia">(' + s.famiglia + ')</span>' : '')
-          + '</div>'
-          + '<a href="' + s.gbif_url + '" target="_blank" class="text-muted" title="Scheda GBIF">'
-          + '<i class="bi bi-box-arrow-up-right" style="font-size:.7rem;"></i></a>'
-          + '</div>';
+          + '</div><a href="' + s.gbif_url + '" target="_blank" class="text-muted">'
+          + '<i class="bi bi-box-arrow-up-right" style="font-size:.7rem;"></i></a></div>';
       });
     }
-
     html += '<div class="text-muted mt-2" style="font-size:.72rem;">'
-      + '<i class="bi bi-info-circle me-1"></i>'
-      + 'Dati GBIF, raggio 5 km — occorrenze 2010–2025'
-      + '</div>';
-
+      + '<i class="bi bi-info-circle me-1"></i>Dati GBIF, raggio 5 km — 2000–2025</div>';
     document.getElementById('click-specie-list').innerHTML = html;
   }
 
   // ── Toggle pannello laterale ───────────────────────────────────
   document.getElementById('pannello-toggle').addEventListener('click', function () {
     var pannello = document.getElementById('pannello-info');
-    var body = document.getElementById('pannello-body');
-    var chevron = document.getElementById('pannello-chevron');
+    var body     = document.getElementById('pannello-body');
+    var chevron  = document.getElementById('pannello-chevron');
     var nascosto = pannello.classList.toggle('nascosto');
-    body.style.display = nascosto ? 'none' : '';
-    chevron.className = nascosto ? 'bi bi-chevron-left' : 'bi bi-chevron-right';
+    body.style.display  = nascosto ? 'none' : '';
+    chevron.className   = nascosto ? 'bi bi-chevron-left' : 'bi bi-chevron-right';
   });
 
 })();
