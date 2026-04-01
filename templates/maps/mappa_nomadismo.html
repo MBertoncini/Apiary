@@ -257,6 +257,31 @@
 <script>
 var _nomadismoMap;
 
+// ── Geometria: punto nel poligono (ray casting) ──────────────────────────────
+function puntoInPoligono(lat, lng, latlngs) {
+  var inside = false;
+  var n = latlngs.length;
+  for (var i = 0, j = n - 1; i < n; j = i++) {
+    var xi = latlngs[i].lng, yi = latlngs[i].lat;
+    var xj = latlngs[j].lng, yj = latlngs[j].lat;
+    var intersect = ((yi > lat) !== (yj > lat))
+      && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+// ── Geometria: punto nel cerchio (distanza haversine) ───────────────────────
+function puntoInCerchio(lat, lng, cLat, cLng, radiusM) {
+  var R = 6371000;
+  var dLat = (lat - cLat) * Math.PI / 180;
+  var dLng = (lng - cLng) * Math.PI / 180;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2)
+        + Math.cos(cLat*Math.PI/180) * Math.cos(lat*Math.PI/180)
+        * Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) <= radiusM;
+}
+
 (function () {
   var PRESET = {{ preset_miele_json|safe }};
   var APIARI = {{ apiari_json|safe }};
@@ -317,41 +342,36 @@ var _nomadismoMap;
     return occCluster;
   }
 
-  // ── Conversioni WKT ─────────────────────────────────────────────
-  // NOTA: GBIF WKT usa ordine lng lat (standard GIS)
-  function latlngsToWkt(latlngs) {
-    var pts = latlngs.map(function (ll) {
-      return ll.lng.toFixed(5) + ' ' + ll.lat.toFixed(5);
-    });
-    pts.push(pts[0]); // chiudi l'anello
-    return 'POLYGON((' + pts.join(',') + '))';
+  // ── Bounding box da layer Leaflet ───────────────────────────────
+  // Usato per costruire la query GBIF (decimalLatitude/Longitude range).
+  // Funziona con L.Circle, L.Polygon, L.Rectangle — tutti hanno getBounds().
+  function layerToBbox(layer) {
+    var b = layer.getBounds();
+    return {
+      latMin: b.getSouth(), latMax: b.getNorth(),
+      lngMin: b.getWest(),  lngMax: b.getEast(),
+    };
   }
 
-  function circleToWkt(center, radiusM, nPts) {
-    nPts = nPts || 32;
-    var pts = [];
-    for (var i = 0; i <= nPts; i++) {
-      var angle = (i / nPts) * 2 * Math.PI;
-      var dLat  = (radiusM / 111111) * Math.cos(angle);
-      var dLng  = (radiusM / (111111 * Math.cos(center.lat * Math.PI / 180))) * Math.sin(angle);
-      pts.push((center.lng + dLng).toFixed(5) + ' ' + (center.lat + dLat).toFixed(5));
-    }
-    return 'POLYGON((' + pts.join(',') + '))';
+  // Bounding box per cerchio 5 km da punto click (nessun layer Geoman)
+  function circleBbox(lat, lng, radiusM) {
+    var dLat = radiusM / 111111;
+    var dLng = radiusM / (111111 * Math.cos(lat * Math.PI / 180));
+    return { latMin: lat-dLat, latMax: lat+dLat, lngMin: lng-dLng, lngMax: lng+dLng };
   }
 
-  // ── Fetch GBIF con WKT geometry ──────────────────────────────────
-  function cercaInArea(wkt, labelTesto) {
-    if (!presetAttivo) {
-      alert('Seleziona prima un tipo di miele!');
-      return;
-    }
+  // ── Fetch GBIF con bounding box ───────────────────────────────────
+  // filterFn: funzione(lat, lng) → bool  usata per scartare punti fuori forma
+  function cercaInArea(bbox, labelTesto, filterFn) {
+    if (!presetAttivo) { alert('Seleziona prima un tipo di miele!'); return; }
     spinner.style.display = 'block';
     document.getElementById('cnt-occurrenze').textContent = '';
     nuovoCluster();
 
     var url = 'https://api.gbif.org/v1/occurrence/search'
       + '?taxonKey=' + presetAttivo.taxonKey
-      + '&geometry=' + encodeURIComponent(wkt)
+      + '&decimalLatitude='  + bbox.latMin.toFixed(4) + ',' + bbox.latMax.toFixed(4)
+      + '&decimalLongitude=' + bbox.lngMin.toFixed(4) + ',' + bbox.lngMax.toFixed(4)
       + '&hasCoordinate=true&hasGeospatialIssue=false'
       + '&year=2000,2025&limit=300';
 
@@ -359,17 +379,20 @@ var _nomadismoMap;
       .then(function (r) { return r.json(); })
       .then(function (data) {
         spinner.style.display = 'none';
-        var results = data.results || [];
-        var col     = presetAttivo.colore_bordo;
-        var fill    = presetAttivo.colore;
+        var allResults = data.results || [];
+        // Filtro client-side: scarta punti fuori dalla forma esatta
+        var results = filterFn
+          ? allResults.filter(function (o) {
+              return o.decimalLatitude != null && filterFn(o.decimalLatitude, o.decimalLongitude);
+            })
+          : allResults.filter(function (o) { return o.decimalLatitude != null; });
+
+        var col  = presetAttivo.colore_bordo;
+        var fill = presetAttivo.colore;
 
         results.forEach(function (occ) {
-          var lat = occ.decimalLatitude;
-          var lng = occ.decimalLongitude;
-          if (lat == null || lng == null) return;
-          var m = L.circleMarker([lat, lng], {
-            radius: 7, color: col, weight: 1.5,
-            fillColor: fill, fillOpacity: 0.8,
+          var m = L.circleMarker([occ.decimalLatitude, occ.decimalLongitude], {
+            radius: 7, color: col, weight: 1.5, fillColor: fill, fillOpacity: 0.82,
           });
           var sp   = occ.species || occ.scientificName || presetAttivo.pianta;
           var anno = occ.year || '—';
@@ -391,15 +414,14 @@ var _nomadismoMap;
 
         var tot = data.count || 0;
         document.getElementById('cnt-occurrenze').textContent =
-          results.length + (tot > results.length ? ' / ~' + tot.toLocaleString('it') : '') + ' osservazioni';
+          results.length + (tot > 300 ? ' / ~' + tot.toLocaleString('it') + ' tot.' : '') + ' osservazioni';
 
-        // Mostra pannello specie laterale
         mostraRisultatoArea(results, labelTesto);
         btnCancella.style.display = '';
       })
       .catch(function () {
         spinner.style.display = 'none';
-        document.getElementById('cnt-occurrenze').textContent = 'Errore GBIF';
+        document.getElementById('cnt-occurrenze').textContent = 'Errore GBIF — riprova';
       });
   }
 
@@ -493,17 +515,20 @@ var _nomadismoMap;
 
     var lat = e.latlng.lat;
     var lng = e.latlng.lng;
+    var RAGGIO = 5000; // metri
 
-    // Cerchio geografico fisso 5 km (non sparisce zoomando)
+    // L.circle: raggio geografico fisso in metri (non sparisce zoomando)
     areaLayer = L.circle([lat, lng], {
-      radius: 5000,
+      radius: RAGGIO,
       color: '#1565c0', weight: 2, dashArray: '6 4',
       fillColor: '#42a5f5', fillOpacity: 0.12,
     }).addTo(map);
 
-    var wkt   = circleToWkt(e.latlng, 5000);
-    var label = lat.toFixed(3) + ', ' + lng.toFixed(3) + ' (5 km)';
-    cercaInArea(wkt, label);
+    var bbox   = circleBbox(lat, lng, RAGGIO);
+    var label  = lat.toFixed(3) + ', ' + lng.toFixed(3) + ' (5 km)';
+    // FilterFn: scarta punti fuori dal cerchio geografico
+    var filterFn = function (pLat, pLng) { return puntoInCerchio(pLat, pLng, lat, lng, RAGGIO); };
+    cercaInArea(bbox, label, filterFn);
   });
 
   // ── Strumenti disegno (Geoman) ───────────────────────────────────
@@ -539,27 +564,32 @@ var _nomadismoMap;
 
     var layer = e.layer;
     var shape = e.shape;
-    var wkt, label;
+    var bbox, label, filterFn;
 
     if (shape === 'Circle') {
-      var center   = layer.getLatLng();
-      var radiusM  = Math.round(layer.getRadius());
-      wkt   = circleToWkt(center, radiusM);
+      var center  = layer.getLatLng();
+      var radiusM = Math.round(layer.getRadius());
+      bbox  = circleBbox(center.lat, center.lng, radiusM);
       label = 'Cerchio ' + (radiusM >= 1000 ? (radiusM/1000).toFixed(1) + ' km' : radiusM + ' m');
-      // Sostituisce il layer Geoman con il nostro (stile coerente)
+      filterFn = (function (cLat, cLng, r) {
+        return function (pLat, pLng) { return puntoInCerchio(pLat, pLng, cLat, cLng, r); };
+      }(center.lat, center.lng, radiusM));
+      // Sostituiamo il layer Geoman con L.circle (stile coerente)
       map.removeLayer(layer);
       areaLayer = L.circle([center.lat, center.lng], {
         radius: radiusM,
         color: '#2e7d32', weight: 2, dashArray: '6 4',
         fillColor: '#a5d6a7', fillOpacity: 0.15,
       }).addTo(map);
+
     } else {
-      var latlngs = (shape === 'Rectangle')
-        ? layer.getLatLngs()[0]
-        : layer.getLatLngs()[0];
-      wkt   = latlngsToWkt(latlngs);
+      // Polygon o Rectangle
+      var latlngs = layer.getLatLngs()[0];
+      bbox  = layerToBbox(layer);
       label = shape === 'Rectangle' ? 'Rettangolo' : 'Poligono';
-      // Stilizza il layer Geoman
+      // Filtro point-in-polygon (ray casting) — snapshot dei vertici
+      var pts = latlngs.slice();
+      filterFn = function (pLat, pLng) { return puntoInPoligono(pLat, pLng, pts); };
       layer.setStyle({
         color: '#2e7d32', weight: 2, dashArray: '6 4',
         fillColor: '#a5d6a7', fillOpacity: 0.15,
@@ -567,7 +597,7 @@ var _nomadismoMap;
       areaLayer = layer;
     }
 
-    cercaInArea(wkt, label);
+    cercaInArea(bbox, label, filterFn);
   });
 
   // ── Cancella area ────────────────────────────────────────────────
