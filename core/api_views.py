@@ -17,8 +17,8 @@ from django.urls import reverse
 
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .models import (
-    Apiario, Arnia, Nucleo, ControlloNucleo, ControlloArnia, Regina, StoriaRegine, Fioritura,
-    FiorituraConferma,
+    Apiario, Arnia, Colonia, Nucleo, ControlloNucleo, ControlloArnia,
+    Regina, StoriaRegine, Fioritura, FiorituraConferma,
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
     Gruppo, MembroGruppo, InvitoGruppo, DatiMeteo, PrevisioneMeteo,
     Pagamento, QuotaUtente,
@@ -30,9 +30,12 @@ from .models import (
 )
 
 from .serializers import (
-    ApiarioSerializer, ArniaSerializer, ControlloArniaDetailSerializer,
-    ControlloArniaListSerializer, ReginaSerializer, StoriaRegineSerializer,
-    ReginaGenealogySerializer, FiorituraSerializer, FiorituraConfermaSerializer,
+    ApiarioSerializer, ArniaSerializer,
+    ColoniaListSerializer, ColoniaDetailSerializer,
+    ColoniaChiudiSerializer, ColoniaSpostaSerializer,
+    ControlloArniaDetailSerializer, ControlloArniaListSerializer,
+    ReginaSerializer, StoriaRegineSerializer, ReginaGenealogySerializer,
+    FiorituraSerializer, FiorituraConfermaSerializer,
     TrattamentoSanitarioSerializer, TipoTrattamentoSerializer,
     MelarioSerializer, SmielaturaSerializer, GruppoSerializer,
     MembroGruppoSerializer, InvitoGruppoSerializer, UserSerializer,
@@ -365,7 +368,11 @@ class NucleoViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def converti_in_arnia(self, request, pk=None):
-        """Converte il nucleo in un'arnia completa."""
+        """
+        Converte il nucleo in un'arnia completa.
+        Se il nucleo ha una Colonia attiva, la sposta nell'arnia appena creata
+        (aggiorna colonia.arnia e azzera colonia.nucleo).
+        """
         nucleo = self.get_object()
         if nucleo.arnia is not None:
             return Response(
@@ -394,6 +401,15 @@ class NucleoViewSet(viewsets.ModelViewSet):
         nucleo.data_conversione = timezone.now().date()
         nucleo.attiva = False
         nucleo.save()
+
+        # Sposta la colonia attiva del nucleo nella nuova arnia
+        colonia_attiva = Colonia.objects.filter(
+            nucleo=nucleo, stato='attiva', data_fine__isnull=True
+        ).first()
+        if colonia_attiva:
+            colonia_attiva.arnia  = arnia
+            colonia_attiva.nucleo = None
+            colonia_attiva.save(update_fields=['arnia', 'nucleo'])
 
         return Response(
             ArniaSerializer(arnia, context={'request': request}).data,
@@ -522,12 +538,35 @@ class ArniaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+    @action(detail=True, methods=['get'], url_path='colonia_attiva')
+    def colonia_attiva(self, request, pk=None):
+        """Restituisce la colonia attualmente attiva in questa arnia (se esiste)."""
+        arnia = self.get_object()
+        colonia = Colonia.objects.filter(
+            arnia=arnia, stato='attiva', data_fine__isnull=True
+        ).first()
+        if not colonia:
+            return Response(
+                {'detail': 'Nessuna colonia attiva in questa arnia.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response(ColoniaDetailSerializer(colonia, context={'request': request}).data)
+
+    @action(detail=True, methods=['get'], url_path='storia_colonie')
+    def storia_colonie(self, request, pk=None):
+        """Restituisce tutte le colonie che hanno abitato questa arnia, ordinate per data."""
+        arnia = self.get_object()
+        colonie = Colonia.objects.filter(arnia=arnia).order_by('-data_inizio')
+        return Response(ColoniaListSerializer(colonie, many=True, context={'request': request}).data)
+
     @action(detail=True, methods=['post'])
     def converti_in_nucleo(self, request, pk=None):
-        """Converte l'arnia in un nucleo, disattivando l'arnia originale."""
+        """
+        Converte l'arnia in un nucleo, disattivando l'arnia originale.
+        Se l'arnia ha una colonia attiva, la sposta nel nucleo creato.
+        """
         arnia = self.get_object()
 
-        # Controlla che l'arnia non sia già inattiva (già convertita in nucleo)
         if not arnia.attiva:
             return Response(
                 {'detail': 'Questa arnia è già stata convertita in nucleo.'},
@@ -550,18 +589,25 @@ class ArniaViewSet(viewsets.ModelViewSet):
         arnia.attiva = False
         arnia.save()
 
+        # Sposta la colonia attiva nell'arnia verso il nuovo nucleo
+        colonia_attiva = Colonia.objects.filter(
+            arnia=arnia, stato='attiva', data_fine__isnull=True
+        ).first()
+        if colonia_attiva:
+            colonia_attiva.nucleo = nucleo
+            colonia_attiva.arnia  = None
+            colonia_attiva.save(update_fields=['arnia', 'nucleo'])
+
         return Response(
             NucleoSerializer(nucleo, context={'request': request}).data,
             status=status.HTTP_201_CREATED,
         )
 
 class ControlloArniaViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint per gestire i controlli delle arnie.
-    """
+    """API endpoint per gestire i controlli delle arnie/colonie."""
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter]
-    search_fields = ['arnia__numero', 'arnia__apiario__nome']
+    search_fields = ['arnia__numero', 'colonia__apiario__nome']
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -569,36 +615,31 @@ class ControlloArniaViewSet(viewsets.ModelViewSet):
         return ControlloArniaDetailSerializer
 
     def get_queryset(self):
-        """
-        Filtra i controlli in base alle arnie accessibili all'utente.
-        """
         apiari_accessibili = get_apiari_accessibili(self.request.user)
-        arnie_accessibili = Arnia.objects.filter(apiario__in=apiari_accessibili)
-        return ControlloArnia.objects.filter(arnia__in=arnie_accessibili)
+        # Filtra per colonia.apiario (nuovo) con fallback su arnia.apiario (legacy)
+        return ControlloArnia.objects.filter(
+            Q(colonia__apiario__in=apiari_accessibili) |
+            Q(colonia__isnull=True, arnia__apiario__in=apiari_accessibili)
+        ).distinct()
+
 
 class ReginaViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint per gestire le regine.
-    """
+    """API endpoint per gestire le regine."""
     serializer_class = ReginaSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter]
-    search_fields = ['arnia__numero', 'arnia__apiario__nome', 'razza']
+    search_fields = ['colonia__apiario__nome', 'arnia__numero', 'razza']
 
     def get_queryset(self):
-        """
-        Filtra le regine in base alle arnie accessibili all'utente.
-        """
         apiari_accessibili = get_apiari_accessibili(self.request.user)
-        arnie_accessibili = Arnia.objects.filter(apiario__in=apiari_accessibili)
-        return Regina.objects.filter(arnia__in=arnie_accessibili)
+        return Regina.objects.filter(
+            Q(colonia__apiario__in=apiari_accessibili) |
+            Q(colonia__isnull=True, arnia__apiario__in=apiari_accessibili)
+        ).distinct()
 
     @action(detail=True, methods=['get'])
     def genealogy(self, request, pk=None):
-        """
-        Restituisce la genealogia completa di una regina:
-        madre, figlie e storia nell'arnia corrente.
-        """
+        """Restituisce la genealogia completa di una regina."""
         regina = self.get_object()
         serializer = ReginaGenealogySerializer(regina)
         return Response(serializer.data)
@@ -606,8 +647,8 @@ class ReginaViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def sostituisci(self, request, pk=None):
         """
-        Chiude la StoriaRegine attiva della regina (imposta data_fine e motivo_fine)
-        e rimuove il record Regina dall'arnia, pronto per inserirne una nuova.
+        Chiude la StoriaRegine attiva della regina e la rimuove dalla colonia,
+        pronto per inserirne una nuova.
         Payload: { motivo_fine: str, data_fine: str (YYYY-MM-DD, optional) }
         """
         from datetime import date as date_class
@@ -619,33 +660,181 @@ class ReginaViewSet(viewsets.ModelViewSet):
         except ValueError:
             data_fine = timezone.now().date()
 
-        storia_attiva = StoriaRegine.objects.filter(
-            arnia=regina.arnia, data_fine__isnull=True
-        ).first()
+        # Chiudi StoriaRegine attiva cercando prima per colonia, poi per arnia (legacy)
+        storia_attiva = None
+        if regina.colonia_id:
+            storia_attiva = StoriaRegine.objects.filter(
+                colonia=regina.colonia, data_fine__isnull=True
+            ).first()
+        if not storia_attiva and regina.arnia_id:
+            storia_attiva = StoriaRegine.objects.filter(
+                arnia=regina.arnia, data_fine__isnull=True
+            ).first()
         if storia_attiva:
-            storia_attiva.data_fine = data_fine
+            storia_attiva.data_fine   = data_fine
             storia_attiva.motivo_fine = motivo_fine
             storia_attiva.save()
 
-        arnia_id = regina.arnia_id
+        colonia_id = regina.colonia_id
+        arnia_id   = regina.arnia_id
         regina.delete()
         return Response(
-            {'detail': 'Regina sostituita con successo.', 'arnia': arnia_id},
-            status=status.HTTP_200_OK
+            {'detail': 'Regina sostituita con successo.', 'colonia': colonia_id, 'arnia': arnia_id},
+            status=status.HTTP_200_OK,
         )
 
 
 class StoriaRegineViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint per gestire la storia delle regine nelle arnie.
-    """
+    """API endpoint per gestire la storia delle regine nelle colonie."""
     serializer_class = StoriaRegineSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
 
     def get_queryset(self):
         apiari_accessibili = get_apiari_accessibili(self.request.user)
-        arnie_accessibili = Arnia.objects.filter(apiario__in=apiari_accessibili)
-        return StoriaRegine.objects.filter(arnia__in=arnie_accessibili)
+        return StoriaRegine.objects.filter(
+            Q(colonia__apiario__in=apiari_accessibili) |
+            Q(colonia__isnull=True, arnia__apiario__in=apiari_accessibili)
+        ).distinct()
+
+
+class ColoniaViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint per gestire le colonie (ciclo di vita delle popolazioni di api).
+    Endpoint principali:
+      GET  /api/v1/colonie/                     — lista colonie dell'utente
+      POST /api/v1/colonie/                     — crea nuova colonia per un'arnia/nucleo
+      GET  /api/v1/colonie/{id}/                — dettaglio colonia
+      GET  /api/v1/colonie/{id}/controlli/      — controlli della colonia
+      GET  /api/v1/colonie/{id}/regina/         — regina attiva
+      POST /api/v1/colonie/{id}/chiudi/         — chiude il ciclo di vita
+      POST /api/v1/colonie/{id}/sposta_contenitore/ — sposta in altra arnia/nucleo
+    """
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['apiario__nome', 'arnia__numero', 'nucleo__numero', 'stato']
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ColoniaListSerializer
+        if self.action == 'chiudi':
+            return ColoniaChiudiSerializer
+        if self.action == 'sposta_contenitore':
+            return ColoniaSpostaSerializer
+        return ColoniaDetailSerializer
+
+    def get_queryset(self):
+        apiari_accessibili = get_apiari_accessibili(self.request.user)
+        return Colonia.objects.filter(apiario__in=apiari_accessibili)
+
+    def perform_create(self, serializer):
+        from rest_framework.exceptions import ValidationError as DRFValidationError
+        arnia  = serializer.validated_data.get('arnia')
+        nucleo = serializer.validated_data.get('nucleo')
+        if arnia:
+            apiario = arnia.apiario
+        elif nucleo:
+            apiario = nucleo.apiario
+        else:
+            raise DRFValidationError("Specificare 'arnia' o 'nucleo'.")
+        serializer.save(utente=self.request.user, apiario=apiario)
+
+    @action(detail=True, methods=['get'], url_path='controlli')
+    def controlli(self, request, pk=None):
+        """Lista i controlli di questa colonia."""
+        colonia = self.get_object()
+        days = request.query_params.get('days', 0)
+        qs = ControlloArnia.objects.filter(colonia=colonia)
+        try:
+            days = int(days)
+        except (ValueError, TypeError):
+            days = 0
+        if days > 0:
+            since = timezone.now().date() - timedelta(days=days)
+            qs = qs.filter(data__gte=since)
+        qs = qs.order_by('-data')
+        return Response(ControlloArniaDetailSerializer(qs, many=True, context={'request': request}).data)
+
+    @action(detail=True, methods=['get'], url_path='regina')
+    def regina(self, request, pk=None):
+        """Restituisce la regina attiva della colonia."""
+        colonia = self.get_object()
+        try:
+            r = colonia.regina
+            return Response(ReginaSerializer(r, context={'request': request}).data)
+        except Regina.DoesNotExist:
+            return Response(
+                {'detail': 'Nessuna regina associata a questa colonia.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    @action(detail=True, methods=['post'], url_path='chiudi')
+    def chiudi(self, request, pk=None):
+        """
+        Chiude il ciclo di vita della colonia.
+        Payload (ColoniaChiudiSerializer):
+          stato              — motivo di fine (morta, venduta, unita, ecc.)
+          data_fine          — data di fine (default: oggi)
+          motivo_fine        — testo libero
+          note_fine
+          colonia_successore — id Colonia ricevente (se stato='unita')
+        """
+        from datetime import date as date_class
+        colonia = self.get_object()
+        if not colonia.is_attiva():
+            return Response(
+                {'detail': 'La colonia è già chiusa.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer = ColoniaChiudiSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        d = serializer.validated_data
+
+        colonia.stato              = d['stato']
+        colonia.data_fine          = d.get('data_fine') or timezone.now().date()
+        colonia.motivo_fine        = d.get('motivo_fine', '')
+        colonia.note_fine          = d.get('note_fine', '')
+        colonia.colonia_successore = d.get('colonia_successore')
+        # Libera il contenitore fisico (l'arnia/nucleo torna disponibile)
+        colonia.arnia  = None
+        colonia.nucleo = None
+        colonia.save()
+
+        return Response(
+            ColoniaDetailSerializer(colonia, context={'request': request}).data,
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=['post'], url_path='sposta_contenitore')
+    def sposta_contenitore(self, request, pk=None):
+        """
+        Sposta la colonia in un nuovo contenitore fisico (arnia o nucleo).
+        Usato per nomadismo, riunificazione su box diverso, ecc.
+        Payload (ColoniaSpostaSerializer):
+          arnia  — id Arnia destinazione (mutualmente esclusivo con nucleo)
+          nucleo — id Nucleo destinazione
+          data_spostamento
+          note
+        """
+        colonia = self.get_object()
+        if not colonia.is_attiva():
+            return Response(
+                {'detail': 'Solo le colonie attive possono essere spostate.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer = ColoniaSpostaSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        d = serializer.validated_data
+
+        colonia.arnia  = d.get('arnia')
+        colonia.nucleo = d.get('nucleo')
+        if d.get('note'):
+            colonia.note = ((colonia.note or '') + '\n' + d['note']).strip()
+        colonia.save(update_fields=['arnia', 'nucleo', 'note'])
+
+        return Response(
+            ColoniaDetailSerializer(colonia, context={'request': request}).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class FiorituraViewSet(viewsets.ModelViewSet):

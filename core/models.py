@@ -223,9 +223,110 @@ class Nucleo(models.Model):
         ordering = ['apiario', 'numero']
 
 
+class Colonia(models.Model):
+    """
+    Rappresenta una popolazione di api (colonia) con il proprio ciclo di vita.
+    Una colonia vive fisicamente in un'Arnia completa o in un Nucleo; il contenitore
+    può cambiare nel tempo (es. conversione nucleo→arnia, spostamento nomadismo),
+    ma tutta la storia biologica (controlli, regine, melari, trattamenti) rimane
+    agganciata alla colonia e non al box fisico.
+
+    Vincolo applicativo: arnia e nucleo sono mutualmente esclusivi
+    (al massimo uno dei due è non-null in ogni istante).
+    """
+    STATO_CHOICES = [
+        ('attiva',    'Attiva'),
+        ('inattiva',  'Temporaneamente inattiva'),
+        ('morta',     'Colonia morta'),
+        ('venduta',   'Ceduta / Venduta'),
+        ('sciamata',  'Sciamata e non recuperata'),
+        ('unita',     'Unita ad altra colonia'),
+        ('nucleo',    'Ridotta a nucleo'),
+        ('eliminata', 'Eliminata'),
+    ]
+
+    # ── Contenitore fisico (al massimo uno alla volta) ───────────────────────
+    arnia = models.ForeignKey(
+        Arnia, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='colonie',
+        help_text="Arnia (box completo) in cui vive attualmente la colonia"
+    )
+    nucleo = models.ForeignKey(
+        Nucleo, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='colonie',
+        help_text="Nucleo in cui vive attualmente la colonia"
+    )
+
+    # ── Denormalizzato per query rapide senza doppio join ────────────────────
+    apiario = models.ForeignKey(Apiario, on_delete=models.CASCADE, related_name='colonie')
+    utente  = models.ForeignKey(User, on_delete=models.CASCADE, related_name='colonie')
+
+    # ── Ciclo di vita ────────────────────────────────────────────────────────
+    data_inizio = models.DateField(
+        help_text="Data in cui la colonia è stata insediata nel contenitore attuale"
+    )
+    data_fine = models.DateField(
+        null=True, blank=True,
+        help_text="Data di fine del ciclo (null = ancora attiva)"
+    )
+    stato = models.CharField(max_length=20, choices=STATO_CHOICES, default='attiva')
+    motivo_fine = models.TextField(
+        null=True, blank=True,
+        help_text="Descrizione del motivo di fine ciclo (morte, vendita, unione, ecc.)"
+    )
+    note_fine = models.TextField(null=True, blank=True)
+    note      = models.TextField(null=True, blank=True)
+
+    # ── Genealogia ───────────────────────────────────────────────────────────
+    colonia_origine = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='colonie_figlie',
+        help_text="Colonia da cui questa proviene (divisione, sciame catturato, ecc.)"
+    )
+    colonia_successore = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='colonie_assorbite',
+        help_text="Colonia in cui è confluita questa, in caso di unione"
+    )
+
+    data_creazione = models.DateTimeField(auto_now_add=True)
+
+    # ── Helpers ──────────────────────────────────────────────────────────────
+    def is_attiva(self):
+        return self.stato == 'attiva' and self.data_fine is None
+
+    def contenitore_display(self):
+        if self.arnia:
+            return f"Arnia {self.arnia.numero}"
+        if self.nucleo:
+            return f"Nucleo {self.nucleo.numero}"
+        return "—"
+
+    def __str__(self):
+        return f"Colonia {self.id} | {self.contenitore_display()} | {self.apiario.nome} | {self.get_stato_display()}"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.arnia_id and self.nucleo_id:
+            raise ValidationError(
+                "Una colonia può trovarsi in un'Arnia oppure in un Nucleo, non in entrambi."
+            )
+
+    class Meta:
+        verbose_name = "Colonia"
+        verbose_name_plural = "Colonie"
+        ordering = ['-data_inizio']
+
+
 class ControlloNucleo(models.Model):
     """Ispezione/controllo di un nucleo."""
     nucleo = models.ForeignKey(Nucleo, on_delete=models.CASCADE, related_name='controlli')
+    # FK alla colonia presente nel nucleo al momento del controllo
+    colonia = models.ForeignKey(
+        Colonia, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='controlli_nucleo',
+        help_text="Colonia ispezionata (derivato dal nucleo al momento del controllo)"
+    )
     utente = models.ForeignKey(User, on_delete=models.CASCADE)
     data = models.DateField()
     n_telaini = models.PositiveSmallIntegerField(null=True, blank=True,
@@ -246,7 +347,18 @@ class ControlloNucleo(models.Model):
 
 
 class ControlloArnia(models.Model):
-    arnia = models.ForeignKey(Arnia, on_delete=models.CASCADE, related_name='controlli')
+    # FK primario: la colonia ispezionata (obbligatorio dopo migration 0036)
+    colonia = models.ForeignKey(
+        Colonia, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='controlli',
+        help_text="Colonia ispezionata (dato biologico principale)"
+    )
+    # FK secondario denormalizzato: dove si trovava fisicamente la colonia
+    arnia = models.ForeignKey(
+        Arnia, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='controlli',
+        help_text="Arnia (posizione fisica) al momento del controllo"
+    )
     data = models.DateField()
     utente = models.ForeignKey(User, on_delete=models.CASCADE)
     telaini_scorte = models.IntegerField()
@@ -268,8 +380,10 @@ class ControlloArnia(models.Model):
     telaini_config = models.TextField(blank=True, null=True, help_text="JSON configuration of frame types and positions")
 
     def __str__(self):
-        return f"Controllo {self.arnia} - {self.data}"
-    
+        if self.colonia:
+            return f"Controllo Colonia {self.colonia_id} – {self.data}"
+        return f"Controllo {self.arnia} – {self.data}"
+
     class Meta:
         verbose_name = "Controllo Arnia"
         verbose_name_plural = "Controlli Arnie"
@@ -306,9 +420,19 @@ class Regina(models.Model):
         ('altro', 'Altro'),
     ]
     
-    arnia = models.OneToOneField(Arnia, on_delete=models.CASCADE, related_name='regina')
+    # FK primario: colonia a cui appartiene la regina (obbligatorio dopo migration 0036)
+    colonia = models.OneToOneField(
+        Colonia, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='regina',
+        help_text="Colonia di cui è regina"
+    )
+    # Legacy: tenuto nullable fino alla FASE 6 cleanup
+    arnia = models.OneToOneField(
+        Arnia, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='regina'
+    )
     data_nascita = models.DateField(null=True, blank=True)
-    data_introduzione = models.DateField(help_text="Data in cui la regina è stata introdotta nell'arnia")
+    data_introduzione = models.DateField(help_text="Data in cui la regina è stata introdotta nella colonia")
     origine = models.CharField(max_length=20, choices=ORIGINE_CHOICES, default='sconosciuta')
     razza = models.CharField(max_length=20, choices=RAZZA_CHOICES, default='ligustica')
     regina_madre = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, 
@@ -334,7 +458,11 @@ class Regina(models.Model):
                                                       help_text="Tendenza alla sciamatura (1-5)")
     
     def __str__(self):
-        return f"Regina dell'arnia {self.arnia.numero} - {self.get_razza_display()}"
+        if self.colonia:
+            return f"Regina Colonia {self.colonia_id} – {self.get_razza_display()}"
+        if self.arnia:
+            return f"Regina Arnia {self.arnia.numero} – {self.get_razza_display()}"
+        return f"Regina {self.id} – {self.get_razza_display()}"
     
     def get_eta_giorni(self):
         """Calcola l'età della regina in giorni"""
@@ -386,17 +514,31 @@ class Regina(models.Model):
         ordering = ['-data_introduzione']
 
 class StoriaRegine(models.Model):
-    """Modello per tracciare la storia delle regine in un'arnia"""
-    arnia = models.ForeignKey(Arnia, on_delete=models.CASCADE, related_name='storia_regine')
+    """Traccia la storia delle regine in una colonia."""
+    # FK primario sulla colonia
+    colonia = models.ForeignKey(
+        Colonia, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='storia_regine',
+        help_text="Colonia in cui la regina ha operato"
+    )
+    # Legacy: riferimento all'arnia fisica (tenuto per contesto storico)
+    arnia = models.ForeignKey(
+        Arnia, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='storia_regine'
+    )
     regina = models.ForeignKey(Regina, on_delete=models.CASCADE, related_name='storia')
     data_inizio = models.DateField()
     data_fine = models.DateField(null=True, blank=True)
-    motivo_fine = models.CharField(max_length=100, blank=True, null=True, 
+    motivo_fine = models.CharField(max_length=100, blank=True, null=True,
                                  help_text="Motivo della rimozione/morte della regina")
     note = models.TextField(blank=True, null=True)
-    
+
     def __str__(self):
-        return f"Regina in arnia {self.arnia.numero} dal {self.data_inizio}"
+        if self.colonia:
+            return f"Regina in Colonia {self.colonia_id} dal {self.data_inizio}"
+        if self.arnia:
+            return f"Regina in Arnia {self.arnia.numero} dal {self.data_inizio}"
+        return f"StoriaRegine {self.id} dal {self.data_inizio}"
     
     class Meta:
         verbose_name = "Storia Regina"
@@ -421,7 +563,17 @@ class Melario(models.Model):
         ('fogli_cerei', 'Fogli cerei'),
     ]
 
-    arnia = models.ForeignKey(Arnia, on_delete=models.CASCADE, related_name='melari')
+    # FK primario: la colonia produttrice del miele
+    colonia = models.ForeignKey(
+        Colonia, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='melari',
+        help_text="Colonia su cui è posizionato il melario"
+    )
+    # FK location (il box fisico dove si trova)
+    arnia = models.ForeignKey(
+        Arnia, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='melari'
+    )
     numero_telaini = models.IntegerField(default=10, help_text="Numero di telaini nel melario")
     posizione = models.IntegerField(help_text="Posizione del melario (1 = più vicino al nido, ecc.)")
     data_posizionamento = models.DateField()
@@ -434,7 +586,11 @@ class Melario(models.Model):
     note = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f"Melario {self.id} - Arnia {self.arnia.numero} (Pos. {self.posizione})"
+        if self.colonia:
+            return f"Melario {self.id} – Colonia {self.colonia_id} (Pos. {self.posizione})"
+        if self.arnia:
+            return f"Melario {self.id} – Arnia {self.arnia.numero} (Pos. {self.posizione})"
+        return f"Melario {self.id} (Pos. {self.posizione})"
     
     class Meta:
         verbose_name = "Melario"
@@ -862,7 +1018,16 @@ class TrattamentoSanitario(models.Model):
     data_fine_sospensione = models.DateField(blank=True, null=True, help_text="Data dopo la quale si può raccogliere il miele")
     stato = models.CharField(max_length=20, choices=STATO_CHOICES, default='programmato')
     utente = models.ForeignKey(User, on_delete=models.CASCADE)
-    arnie = models.ManyToManyField(Arnia, related_name='trattamenti', blank=True, help_text="Lasciare vuoto se il trattamento è per tutto l'apiario")
+    # M2M primario: colonie specifiche trattate
+    colonie = models.ManyToManyField(
+        Colonia, related_name='trattamenti', blank=True,
+        help_text="Colonie specifiche trattate (vuoto = tutto l'apiario)"
+    )
+    # Legacy M2M sui box fisici (tenuto fino a FASE 6 cleanup)
+    arnie = models.ManyToManyField(
+        Arnia, related_name='trattamenti', blank=True,
+        help_text="Legacy: box fisici — usare 'colonie' per i nuovi record"
+    )
     note = models.TextField(blank=True, null=True)
     data_creazione = models.DateTimeField(auto_now_add=True)
     

@@ -5,8 +5,8 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from .api_views import (
-    ApiarioViewSet, ArniaViewSet, ControlloArniaViewSet, ReginaViewSet,
-    StoriaRegineViewSet, FiorituraViewSet, FiorituraConfermaViewSet,
+    ApiarioViewSet, ArniaViewSet, ColoniaViewSet, ControlloArniaViewSet,
+    ReginaViewSet, StoriaRegineViewSet, FiorituraViewSet, FiorituraConfermaViewSet,
     TrattamentoSanitarioViewSet,
     TipoTrattamentoViewSet, MelarioViewSet, SmielaturaViewSet, GruppoViewSet,
     current_user, sync_data, inviti_ricevuti, accetta_invito, rifiuta_invito,
@@ -23,6 +23,7 @@ from .api_views import (
 router = DefaultRouter()
 router.register(r'apiari', ApiarioViewSet, basename='api-apiario')
 router.register(r'arnie', ArniaViewSet, basename='api-arnia')
+router.register(r'colonie', ColoniaViewSet, basename='api-colonia')
 router.register(r'controlli', ControlloArniaViewSet, basename='api-controllo')
 router.register(r'regine', ReginaViewSet, basename='api-regina')
 router.register(r'storia-regine', StoriaRegineViewSet, basename='api-storia-regina')

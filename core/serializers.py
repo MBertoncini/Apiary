@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import (
-    Apiario, Arnia, Nucleo, ControlloNucleo, ControlloArnia, Regina, StoriaRegine, Fioritura,
-    FiorituraConferma,
+    Apiario, Arnia, Colonia, Nucleo, ControlloNucleo, ControlloArnia,
+    Regina, StoriaRegine, Fioritura, FiorituraConferma,
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
     Gruppo, MembroGruppo, InvitoGruppo, Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
@@ -85,16 +85,21 @@ class ArniaSerializer(serializers.ModelSerializer):
 
 # Serializzatore Controllo Arnia (versione dettagliata)
 class ControlloArniaDetailSerializer(serializers.ModelSerializer):
+    # Dati dalla colonia (FK primario)
+    colonia_id   = serializers.ReadOnlyField(source='colonia.id')
+    # Dati dall'arnia fisica (denormalizzato, può essere null)
     arnia_numero = serializers.ReadOnlyField(source='arnia.numero')
-    apiario_nome = serializers.ReadOnlyField(source='arnia.apiario.nome')
-    apiario_id = serializers.ReadOnlyField(source='arnia.apiario.id')
+    # Apiario: preferisce la colonia, fallback sull'arnia legacy
+    apiario_nome = serializers.SerializerMethodField()
+    apiario_id   = serializers.SerializerMethodField()
     utente_username = serializers.ReadOnlyField(source='utente.username')
-    
+
     class Meta:
         model = ControlloArnia
         fields = [
-            'id', 'arnia', 'arnia_numero', 'apiario_nome', 'apiario_id',
-            'data', 'utente', 'utente_username', 'telaini_scorte', 
+            'id', 'colonia', 'colonia_id', 'arnia', 'arnia_numero',
+            'apiario_nome', 'apiario_id',
+            'data', 'utente', 'utente_username', 'telaini_scorte',
             'telaini_covata', 'presenza_regina', 'sciamatura',
             'data_sciamatura', 'note_sciamatura', 'problemi_sanitari',
             'note_problemi', 'note', 'data_creazione',
@@ -102,76 +107,132 @@ class ControlloArniaDetailSerializer(serializers.ModelSerializer):
             'numero_celle_reali', 'regina_sostituita', 'telaini_config'
         ]
         read_only_fields = ['utente']
-    
+
+    def get_apiario_nome(self, obj):
+        if obj.colonia_id:
+            return obj.colonia.apiario.nome
+        if obj.arnia_id:
+            return obj.arnia.apiario.nome
+        return None
+
+    def get_apiario_id(self, obj):
+        if obj.colonia_id:
+            return obj.colonia.apiario_id
+        if obj.arnia_id:
+            return obj.arnia.apiario_id
+        return None
+
     def create(self, validated_data):
-        # Imposta automaticamente l'utente corrente
         validated_data['utente'] = self.context['request'].user
+        # Denormalizza arnia dal contenitore della colonia al momento del controllo
+        colonia = validated_data.get('colonia')
+        if colonia and not validated_data.get('arnia') and colonia.arnia_id:
+            validated_data['arnia_id'] = colonia.arnia_id
         return super().create(validated_data)
+
 
 # Serializzatore Controllo Arnia (versione lista)
 class ControlloArniaListSerializer(serializers.ModelSerializer):
+    colonia_id   = serializers.ReadOnlyField(source='colonia.id')
     arnia_numero = serializers.ReadOnlyField(source='arnia.numero')
-    apiario_nome = serializers.ReadOnlyField(source='arnia.apiario.nome')
-    
+    apiario_nome = serializers.SerializerMethodField()
+
     class Meta:
         model = ControlloArnia
         fields = [
-            'id', 'arnia', 'arnia_numero', 'apiario_nome',
-            'data', 'telaini_scorte', 'telaini_covata', 
+            'id', 'colonia', 'colonia_id', 'arnia', 'arnia_numero',
+            'apiario_nome', 'data', 'telaini_scorte', 'telaini_covata',
             'presenza_regina', 'problemi_sanitari'
         ]
 
+    def get_apiario_nome(self, obj):
+        if obj.colonia_id:
+            return obj.colonia.apiario.nome
+        if obj.arnia_id:
+            return obj.arnia.apiario.nome
+        return None
+
 # Serializzatore Regina
 class ReginaSerializer(serializers.ModelSerializer):
-    arnia_numero = serializers.ReadOnlyField(source='arnia.numero')
-    apiario_nome = serializers.ReadOnlyField(source='arnia.apiario.nome')
-    apiario_id = serializers.ReadOnlyField(source='arnia.apiario.id')
-    
+    colonia_id   = serializers.ReadOnlyField(source='colonia.id')
+    arnia_numero = serializers.SerializerMethodField()
+    apiario_nome = serializers.SerializerMethodField()
+    apiario_id   = serializers.SerializerMethodField()
+
     class Meta:
         model = Regina
         fields = [
-            'id', 'arnia', 'arnia_numero', 'apiario_nome', 'apiario_id',
+            'id', 'colonia', 'colonia_id', 'arnia', 'arnia_numero',
+            'apiario_nome', 'apiario_id',
             'data_nascita', 'data_introduzione', 'origine', 'razza',
             'regina_madre', 'marcata', 'codice_marcatura', 'colore_marcatura',
             'fecondata', 'selezionata', 'docilita', 'produttivita',
             'resistenza_malattie', 'tendenza_sciamatura', 'note'
         ]
 
+    def get_arnia_numero(self, obj):
+        if obj.colonia_id and obj.colonia.arnia_id:
+            return obj.colonia.arnia.numero
+        if obj.arnia_id:
+            return obj.arnia.numero
+        return None
+
+    def get_apiario_nome(self, obj):
+        if obj.colonia_id:
+            return obj.colonia.apiario.nome
+        if obj.arnia_id:
+            return obj.arnia.apiario.nome
+        return None
+
+    def get_apiario_id(self, obj):
+        if obj.colonia_id:
+            return obj.colonia.apiario_id
+        if obj.arnia_id:
+            return obj.arnia.apiario_id
+        return None
+
+
 # Serializzatore StoriaRegine
 class StoriaRegineSerializer(serializers.ModelSerializer):
-    arnia_numero = serializers.ReadOnlyField(source='arnia.numero')
-    regina_razza = serializers.ReadOnlyField(source='regina.razza')
+    colonia_id     = serializers.ReadOnlyField(source='colonia.id')
+    arnia_numero   = serializers.ReadOnlyField(source='arnia.numero')
+    regina_razza   = serializers.ReadOnlyField(source='regina.razza')
     regina_origine = serializers.ReadOnlyField(source='regina.origine')
 
     class Meta:
         model = StoriaRegine
         fields = [
-            'id', 'arnia', 'arnia_numero', 'regina', 'regina_razza', 'regina_origine',
+            'id', 'colonia', 'colonia_id', 'arnia', 'arnia_numero',
+            'regina', 'regina_razza', 'regina_origine',
             'data_inizio', 'data_fine', 'motivo_fine', 'note'
         ]
 
-# Serializzatore genealogia Regina (madre + figlie + storia nell'arnia)
+
+# Serializzatore genealogia Regina (madre + figlie + storia nella colonia)
 class ReginaGenealogySerializer(serializers.ModelSerializer):
-    madre = serializers.SerializerMethodField()
-    figlie = serializers.SerializerMethodField()
-    storia_arnia = serializers.SerializerMethodField()
+    madre          = serializers.SerializerMethodField()
+    figlie         = serializers.SerializerMethodField()
+    storia_colonia = serializers.SerializerMethodField()
 
     class Meta:
         model = Regina
         fields = [
-            'id', 'arnia', 'razza', 'origine', 'data_nascita', 'data_introduzione',
+            'id', 'colonia', 'arnia', 'razza', 'origine',
+            'data_nascita', 'data_introduzione',
             'marcata', 'colore_marcatura', 'fecondata', 'selezionata', 'note',
-            'madre', 'figlie', 'storia_arnia'
+            'madre', 'figlie', 'storia_colonia'
         ]
 
     def get_madre(self, obj):
         if obj.regina_madre:
+            m = obj.regina_madre
             return {
-                'id': obj.regina_madre.id,
-                'razza': obj.regina_madre.razza,
-                'origine': obj.regina_madre.origine,
-                'data_introduzione': obj.regina_madre.data_introduzione,
-                'arnia': obj.regina_madre.arnia_id,
+                'id': m.id,
+                'razza': m.razza,
+                'origine': m.origine,
+                'data_introduzione': m.data_introduzione,
+                'colonia': m.colonia_id,
+                'arnia': m.arnia_id,
             }
         return None
 
@@ -182,13 +243,19 @@ class ReginaGenealogySerializer(serializers.ModelSerializer):
                 'razza': f.razza,
                 'origine': f.origine,
                 'data_introduzione': f.data_introduzione,
+                'colonia': f.colonia_id,
                 'arnia': f.arnia_id,
             }
             for f in obj.figlie.all()
         ]
 
-    def get_storia_arnia(self, obj):
-        storia = StoriaRegine.objects.filter(arnia=obj.arnia).order_by('-data_inizio')
+    def get_storia_colonia(self, obj):
+        if obj.colonia_id:
+            storia = StoriaRegine.objects.filter(colonia=obj.colonia).order_by('-data_inizio')
+        elif obj.arnia_id:
+            storia = StoriaRegine.objects.filter(arnia=obj.arnia).order_by('-data_inizio')
+        else:
+            return []
         return StoriaRegineSerializer(storia, many=True).data
 
 
@@ -272,7 +339,7 @@ class TrattamentoSanitarioSerializer(serializers.ModelSerializer):
             'tipo_trattamento', 'tipo_trattamento_nome',
             'data_inizio', 'data_fine', 'data_fine_sospensione',
             'stato', 'utente', 'utente_username',
-            'arnie', 'note', 'blocco_covata_attivo', 'data_inizio_blocco',
+            'colonie', 'arnie', 'note', 'blocco_covata_attivo', 'data_inizio_blocco',
             'data_fine_blocco', 'metodo_blocco', 'note_blocco',
             'metodo_applicazione',
         ]
@@ -290,24 +357,41 @@ class TrattamentoSanitarioSerializer(serializers.ModelSerializer):
 
 # Serializzatore Melario
 class MelarioSerializer(serializers.ModelSerializer):
+    colonia_id          = serializers.ReadOnlyField(source='colonia.id')
     arnia_numero        = serializers.ReadOnlyField(source='arnia.numero')
-    apiario_id          = serializers.ReadOnlyField(source='arnia.apiario.id')
-    apiario_nome        = serializers.ReadOnlyField(source='arnia.apiario.nome')
+    apiario_id          = serializers.SerializerMethodField()
+    apiario_nome        = serializers.SerializerMethodField()
     apiario_gruppo_nome = serializers.SerializerMethodField()
 
     class Meta:
         model = Melario
         fields = [
-            'id', 'arnia', 'arnia_numero', 'apiario_id', 'apiario_nome',
-            'apiario_gruppo_nome',
+            'id', 'colonia', 'colonia_id', 'arnia', 'arnia_numero',
+            'apiario_id', 'apiario_nome', 'apiario_gruppo_nome',
             'numero_telaini', 'posizione', 'data_posizionamento',
             'data_rimozione', 'stato', 'tipo_melario', 'stato_favi',
             'escludi_regina', 'peso_stimato', 'note'
         ]
 
+    def _apiario(self, obj):
+        if obj.colonia_id:
+            return obj.colonia.apiario
+        if obj.arnia_id:
+            return obj.arnia.apiario
+        return None
+
+    def get_apiario_id(self, obj):
+        ap = self._apiario(obj)
+        return ap.id if ap else None
+
+    def get_apiario_nome(self, obj):
+        ap = self._apiario(obj)
+        return ap.nome if ap else None
+
     def get_apiario_gruppo_nome(self, obj):
         try:
-            return obj.arnia.apiario.gruppo.nome if obj.arnia.apiario.gruppo_id else None
+            ap = self._apiario(obj)
+            return ap.gruppo.nome if ap and ap.gruppo_id else None
         except Exception:
             return None
 
@@ -800,6 +884,162 @@ class AnalisiTelainoSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+# ── Serializzatori Colonia ────────────────────────────────────────────────────
+
+class ColoniaListSerializer(serializers.ModelSerializer):
+    """Versione compatta per le liste."""
+    apiario_nome       = serializers.ReadOnlyField(source='apiario.nome')
+    contenitore        = serializers.SerializerMethodField()
+    contenitore_numero = serializers.SerializerMethodField()
+    is_attiva          = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Colonia
+        fields = [
+            'id', 'apiario', 'apiario_nome',
+            'arnia', 'nucleo', 'contenitore', 'contenitore_numero',
+            'data_inizio', 'data_fine', 'stato', 'is_attiva',
+        ]
+
+    def get_contenitore(self, obj):
+        if obj.arnia_id:
+            return 'arnia'
+        if obj.nucleo_id:
+            return 'nucleo'
+        return None
+
+    def get_contenitore_numero(self, obj):
+        if obj.arnia_id:
+            return obj.arnia.numero
+        if obj.nucleo_id:
+            return obj.nucleo.numero
+        return None
+
+    def get_is_attiva(self, obj):
+        return obj.is_attiva()
+
+
+class ColoniaDetailSerializer(serializers.ModelSerializer):
+    """Versione completa con nesting leggero per il dettaglio."""
+    apiario_nome        = serializers.ReadOnlyField(source='apiario.nome')
+    utente_username     = serializers.ReadOnlyField(source='utente.username')
+    contenitore         = serializers.SerializerMethodField()
+    contenitore_numero  = serializers.SerializerMethodField()
+    is_attiva           = serializers.SerializerMethodField()
+    # Genealogia (id + label, non ricorsivi per evitare N+1)
+    colonia_origine_label    = serializers.SerializerMethodField()
+    colonia_successore_label = serializers.SerializerMethodField()
+    n_controlli         = serializers.SerializerMethodField()
+    regina_attiva       = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Colonia
+        fields = [
+            'id', 'apiario', 'apiario_nome', 'utente', 'utente_username',
+            'arnia', 'nucleo', 'contenitore', 'contenitore_numero',
+            'data_inizio', 'data_fine', 'stato', 'is_attiva',
+            'motivo_fine', 'note_fine', 'note',
+            'colonia_origine', 'colonia_origine_label',
+            'colonia_successore', 'colonia_successore_label',
+            'n_controlli', 'regina_attiva',
+            'data_creazione',
+        ]
+        read_only_fields = ['utente', 'data_creazione']
+
+    def get_contenitore(self, obj):
+        if obj.arnia_id:
+            return 'arnia'
+        if obj.nucleo_id:
+            return 'nucleo'
+        return None
+
+    def get_contenitore_numero(self, obj):
+        if obj.arnia_id:
+            return obj.arnia.numero
+        if obj.nucleo_id:
+            return obj.nucleo.numero
+        return None
+
+    def get_is_attiva(self, obj):
+        return obj.is_attiva()
+
+    def get_colonia_origine_label(self, obj):
+        if obj.colonia_origine_id:
+            return str(obj.colonia_origine)
+        return None
+
+    def get_colonia_successore_label(self, obj):
+        if obj.colonia_successore_id:
+            return str(obj.colonia_successore)
+        return None
+
+    def get_n_controlli(self, obj):
+        return obj.controlli.count()
+
+    def get_regina_attiva(self, obj):
+        try:
+            r = obj.regina
+            return {
+                'id': r.id,
+                'razza': r.razza,
+                'origine': r.origine,
+                'data_introduzione': r.data_introduzione,
+                'colore_marcatura': r.colore_marcatura,
+            }
+        except Exception:
+            return None
+
+    def create(self, validated_data):
+        validated_data['utente'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+class ColoniaChiudiSerializer(serializers.Serializer):
+    """Payload per POST /colonie/{id}/chiudi/ — chiude il ciclo di vita."""
+    stato = serializers.ChoiceField(choices=[
+        ('morta',     'Colonia morta'),
+        ('venduta',   'Ceduta / Venduta'),
+        ('sciamata',  'Sciamata e non recuperata'),
+        ('unita',     'Unita ad altra colonia'),
+        ('nucleo',    'Ridotta a nucleo'),
+        ('eliminata', 'Eliminata'),
+    ])
+    data_fine          = serializers.DateField(required=False)
+    motivo_fine        = serializers.CharField(required=False, allow_blank=True)
+    note_fine          = serializers.CharField(required=False, allow_blank=True)
+    colonia_successore = serializers.PrimaryKeyRelatedField(
+        queryset=Colonia.objects.all(), required=False, allow_null=True
+    )
+
+
+class ColoniaSpostaSerializer(serializers.Serializer):
+    """
+    Payload per POST /colonie/{id}/sposta_contenitore/
+    Sposta la colonia in un'altra Arnia o Nucleo (es. nomadismo, conversione).
+    """
+    arnia  = serializers.PrimaryKeyRelatedField(
+        queryset=Arnia.objects.all(), required=False, allow_null=True
+    )
+    nucleo = serializers.PrimaryKeyRelatedField(
+        queryset=Nucleo.objects.all(), required=False, allow_null=True  # type: ignore[misc]
+    )
+    data_spostamento = serializers.DateField(required=False)
+    note             = serializers.CharField(required=False, allow_blank=True)
+
+    def validate(self, data):
+        if data.get('arnia') and data.get('nucleo'):
+            raise serializers.ValidationError(
+                "Specificare solo 'arnia' oppure solo 'nucleo', non entrambi."
+            )
+        if not data.get('arnia') and not data.get('nucleo'):
+            raise serializers.ValidationError(
+                "Specificare 'arnia' o 'nucleo' come destinazione."
+            )
+        return data
+
+
+# ── Serializzatori Nucleo ─────────────────────────────────────────────────────
+
 class NucleoSerializer(serializers.ModelSerializer):
     apiario_nome = serializers.ReadOnlyField(source='apiario.nome')
     arnia_numero = serializers.ReadOnlyField(source='arnia.numero')
@@ -820,11 +1060,13 @@ class NucleoSerializer(serializers.ModelSerializer):
 
 
 class ControlloNucleoSerializer(serializers.ModelSerializer):
+    colonia_id = serializers.ReadOnlyField(source='colonia.id')
+
     class Meta:
         model = ControlloNucleo
         fields = [
-            'id', 'nucleo', 'utente', 'data', 'n_telaini',
-            'forza_colonia', 'presenza_regina', 'note', 'data_creazione',
+            'id', 'nucleo', 'colonia', 'colonia_id', 'utente', 'data',
+            'n_telaini', 'forza_colonia', 'presenza_regina', 'note', 'data_creazione',
         ]
         read_only_fields = ['utente', 'data_creazione']
 

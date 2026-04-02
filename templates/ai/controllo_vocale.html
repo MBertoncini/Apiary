@@ -102,6 +102,100 @@ mark.vc-mark {
   font-weight: 700; font-size: .78rem;
   margin: 1px;
 }
+
+/* ── Info panel (prima visita) ─────────────────────────── */
+@keyframes vcInfoIn {
+  from { opacity:0; transform:scale(.85) translateY(-10px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+@keyframes vcInfoShrink {
+  0%   { opacity:1; transform:scale(1); border-radius:12px; }
+  40%  { opacity:.9; transform:scale(.6); border-radius:50%; }
+  100% { opacity:0; transform:scale(0); border-radius:50%; }
+}
+@keyframes vcBubbleIn {
+  from { opacity:0; transform:scale(0) rotate(-90deg); }
+  to   { opacity:1; transform:scale(1) rotate(0deg); }
+}
+@keyframes vcBubblePulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(245,166,35,.5); }
+  50%     { box-shadow: 0 0 0 10px rgba(245,166,35,0); }
+}
+
+/* Overlay backdrop */
+.vc-info-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(44,24,16,.35);
+  z-index: 1055;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+/* Info card */
+.vc-info-panel {
+  background: #FFFDF5;
+  border: 1.5px solid #EAD9BF;
+  border-radius: 16px;
+  padding: 24px 28px;
+  max-width: 520px; width: 100%;
+  box-shadow: 0 12px 40px rgba(44,24,16,.18);
+  position: relative;
+  animation: vcInfoIn .35s cubic-bezier(.22,.68,0,1.2) both;
+  transform-origin: center top;
+}
+.vc-info-panel.closing {
+  animation: vcInfoShrink .45s cubic-bezier(.4,0,.6,1) forwards;
+}
+.vc-info-title {
+  font-family: 'Caveat', cursive;
+  font-size: 1.6rem; color: #2C1810;
+  margin-bottom: 10px; display: flex; align-items: center; gap: 10px;
+}
+.vc-info-close {
+  position: absolute; top: 14px; right: 14px;
+  background: #f0e8d8; border: none;
+  border-radius: 50%; width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: #7a5000; font-size: 1rem;
+  transition: background .2s;
+}
+.vc-info-close:hover { background: #EAD9BF; }
+.vc-info-examples {
+  background: #fff8e6; border-radius: 10px;
+  padding: 12px 14px; font-size: .82rem; color: #7a5000;
+  border: 1px solid #F5A623; margin-top: 14px;
+}
+.vc-info-examples em { display:block; margin-bottom:4px; line-height:1.55; }
+.vc-info-examples em:last-child { margin-bottom:0; }
+
+/* Cerchio galleggiante */
+.vc-bubble {
+  position: fixed; top: 72px; right: 20px;
+  width: 46px; height: 46px; border-radius: 50%;
+  background: linear-gradient(135deg,#F5A623,#e8920f);
+  color: #fff; font-size: 1.2rem;
+  border: none; cursor: pointer;
+  display: none; align-items: center; justify-content: center;
+  box-shadow: 0 3px 14px rgba(245,166,35,.5);
+  z-index: 1054;
+  animation: vcBubbleIn .4s cubic-bezier(.22,.68,0,1.2) both, vcBubblePulse 2s ease-in-out 1s 3;
+  transition: transform .15s, box-shadow .15s;
+}
+.vc-bubble:hover {
+  transform: scale(1.12);
+  box-shadow: 0 5px 20px rgba(245,166,35,.65);
+}
+/* tooltip sul bubble */
+.vc-bubble::after {
+  content: "Guida";
+  position: absolute; right: calc(100% + 8px); top: 50%;
+  transform: translateY(-50%);
+  background: #2C1810; color: #fff;
+  font-size: .72rem; white-space: nowrap;
+  padding: 3px 8px; border-radius: 6px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+}
+.vc-bubble:hover::after { opacity: 1; }
 </style>
 {% endblock %}
 
@@ -275,6 +369,47 @@ mark.vc-mark {
     </div>
   </div>
 </div>
+
+<!-- ══ Info panel prima visita ══════════════════════════════════════════ -->
+<div class="vc-info-backdrop" id="vc-info-backdrop">
+  <div class="vc-info-panel" id="vc-info-panel">
+    <button class="vc-info-close" id="vc-info-close" title="Chiudi" aria-label="Chiudi">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    <div class="vc-info-title">
+      <i class="bi bi-mic-fill" style="color:#F5A623"></i>
+      Come funziona il Controllo Vocale
+    </div>
+    <ol class="mb-2 small" style="color:#5a3a1a;padding-left:18px;line-height:1.8">
+      <li>Seleziona l'<strong>apiario</strong> e abilita la <strong>modalità batch</strong> se vuoi registrare più arnie di fila.</li>
+      <li>Premi <i class="bi bi-mic-fill text-amber"></i> e parla — la trascrizione appare in tempo reale.</li>
+      <li>Usa i <strong>comandi vocali</strong> per passare all'arnia successiva:
+        <span class="trigger-pill">avanti</span>
+        <span class="trigger-pill">prossima</span>
+        <span class="trigger-pill">continua</span>
+      </li>
+      <li>Premi <span class="trigger-pill" style="background:#dc3545">stop</span> o dì <em>"ho finito"</em> per terminare.</li>
+      <li>Rivedi i dati estratti da <strong>Gemini AI</strong> e salva i controlli.</li>
+    </ol>
+    <div class="vc-info-examples">
+      <strong><i class="bi bi-lightbulb me-1"></i>Esempi di frasi:</strong>
+      <em>"Arnia 5, famiglia forte, 4 telaini covata, 3 scorte, regina presente"</em>
+      <em>"Arnia 12, regina assente, celle reali 2, rischio sciamatura"</em>
+      <em>"Arnia 7, varroa visibile, 5 telaini covata, trattamento necessario"</em>
+    </div>
+    <div class="text-end mt-3">
+      <button class="btn btn-primary btn-sm" id="vc-info-got-it">
+        <i class="bi bi-check2 me-1"></i>Ho capito, iniziamo!
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Cerchio galleggiante (guida rapida) -->
+<button class="vc-bubble" id="vc-bubble" title="Guida" aria-label="Riapri guida">
+  <i class="bi bi-question-lg"></i>
+</button>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -283,4 +418,72 @@ mark.vc-mark {
   const VOICE_SAVE_URL    = "{% url 'voice_save' %}";
 </script>
 <script src="{% static 'js/voice-controllo.js' %}"></script>
+<script>
+(function () {
+  const LS_KEY   = 'vc_info_dismissed';
+  const backdrop = document.getElementById('vc-info-backdrop');
+  const panel    = document.getElementById('vc-info-panel');
+  const bubble   = document.getElementById('vc-bubble');
+  const btnClose = document.getElementById('vc-info-close');
+  const btnGotIt = document.getElementById('vc-info-got-it');
+
+  /* Se già visto in precedenza: nascondi subito e mostra il bubble */
+  if (localStorage.getItem(LS_KEY)) {
+    backdrop.style.display = 'none';
+    showBubble(false); /* senza animazione */
+    return;
+  }
+
+  /* ── Chiudi il pannello con animazione → bubble ───────────────── */
+  function closePanel(remember) {
+    if (remember) localStorage.setItem(LS_KEY, '1');
+
+    const bubbleTop   = 72;
+    const bubbleRight = 20;
+    const bubbleSize  = 46;
+
+    /* Centro del pannello */
+    const pr   = panel.getBoundingClientRect();
+    const cx   = pr.left + pr.width  / 2;
+    const cy   = pr.top  + pr.height / 2;
+
+    /* Centro destinazione bubble (fixed top-right) */
+    const destX = window.innerWidth  - bubbleRight - bubbleSize / 2;
+    const destY = bubbleTop + bubbleSize / 2;
+
+    const tx = destX - cx;
+    const ty = destY - cy;
+
+    panel.animate([
+      { transform: 'translate(0,0) scale(1)',                               opacity: 1,  borderRadius: '16px', offset: 0    },
+      { transform: `translate(${tx*.5}px,${ty*.5}px) scale(.4)`,           opacity: .8, borderRadius: '50%',  offset: .55  },
+      { transform: `translate(${tx}px,${ty}px) scale(0)`,                  opacity: 0,  borderRadius: '50%',  offset: 1    }
+    ], { duration: 480, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'forwards' }).onfinish = function () {
+      backdrop.style.display = 'none';
+      showBubble(true);
+    };
+  }
+
+  function showBubble(withAnim) {
+    bubble.style.display = 'flex';
+    if (!withAnim) bubble.style.animation = 'none';
+  }
+
+  /* Riapri il pannello dal bubble */
+  function openPanel() {
+    /* reset transform/opacity lasciati dall'animazione di chiusura */
+    panel.style.cssText = '';
+    backdrop.style.display = 'flex';
+    bubble.style.display   = 'none';
+    /* riavvia animazione entrata */
+    void panel.offsetWidth; /* reflow per ripartire */
+    panel.style.animation  = 'vcInfoIn .35s cubic-bezier(.22,.68,0,1.2) both';
+  }
+
+  btnClose.addEventListener('click', () => closePanel(true));
+  btnGotIt.addEventListener('click', () => closePanel(true));
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closePanel(true); });
+  bubble.addEventListener('click', openPanel);
+})();
+</script>
 {% endblock %}
