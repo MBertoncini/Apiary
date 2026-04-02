@@ -527,8 +527,8 @@ class ArniaViewSet(viewsets.ModelViewSet):
         """Converte l'arnia in un nucleo, disattivando l'arnia originale."""
         arnia = self.get_object()
 
-        # Controlla che non sia già stata convertita
-        if hasattr(arnia, 'nucleo_originale') and arnia.nucleo_originale is not None:
+        # Controlla che l'arnia non sia già inattiva (già convertita in nucleo)
+        if not arnia.attiva:
             return Response(
                 {'detail': 'Questa arnia è già stata convertita in nucleo.'},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -542,7 +542,6 @@ class ArniaViewSet(viewsets.ModelViewSet):
                 data_installazione=arnia.data_installazione,
                 note=arnia.note or '',
                 attiva=True,
-                arnia=arnia,
                 data_conversione=timezone.now().date(),
             )
         except Exception as exc:
