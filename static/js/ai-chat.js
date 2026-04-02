@@ -122,15 +122,10 @@
   display: flex;
   flex-direction: column;
   z-index: 1199;
-  transform: scale(.92) translateY(16px);
   opacity: 0;
   pointer-events: none;
-  transition: opacity .22s, transform .22s;
-}
-#ai-panel.open {
-  transform: scale(1) translateY(0);
-  opacity: 1;
-  pointer-events: all;
+  transform-origin: center center;
+  will-change: transform, opacity, border-radius;
 }
 
 #ai-panel-header {
@@ -317,28 +312,98 @@
   }
 
   // -------------------------------------------------------------------------
-  // Panel open/close
+  // Panel open/close  (morph animation: panel ↔ FAB)
   // -------------------------------------------------------------------------
+  let _animating = false;
+
   function togglePanel() {
+    if (_animating) return;
     isOpen ? closePanel() : openPanel();
   }
 
+  /*
+   * Calcola il vettore dal centro del panel (posizione CSS, ignorando transform)
+   * al centro del FAB. Usa valori CSS fissi per evitare che getBoundingClientRect
+   * restituisca rettangoli distorti dalla trasformazione dell'animazione precedente.
+   */
+  function _morphVector() {
+    const fr = document.getElementById('ai-fab').getBoundingClientRect();
+    const panelRight  = 24;
+    const panelBottom = 90;
+    const panelW = Math.min(360, window.innerWidth  - 32);
+    const panelH = Math.min(520, window.innerHeight - 110);
+    const pcx = window.innerWidth  - panelRight  - panelW / 2;
+    const pcy = window.innerHeight - panelBottom - panelH / 2;
+    return {
+      tx: (fr.left + fr.width  / 2) - pcx,
+      ty: (fr.top  + fr.height / 2) - pcy,
+    };
+  }
+
   function openPanel() {
+    if (_animating) return;
+    _animating = true;
     isOpen = true;
-    document.getElementById('ai-panel').classList.add('open');
-    document.getElementById('ai-panel').setAttribute('aria-hidden', 'false');
-    document.getElementById('ai-fab').classList.add('active');
-    document.getElementById('ai-fab').innerHTML = '<i class="bi bi-x-lg"></i>';
-    setTimeout(() => document.getElementById('ai-input').focus(), 220);
+
+    const fab   = document.getElementById('ai-fab');
+    const panel = document.getElementById('ai-panel');
+
+    fab.classList.add('active');
+    fab.innerHTML = '<i class="bi bi-x-lg"></i>';
+    panel.setAttribute('aria-hidden', 'false');
+    panel.style.pointerEvents = 'none';
+    panel.style.opacity = '0';  // stato di partenza noto
+
+    const { tx, ty } = _morphVector();
+
+    /* Parte dal punto del FAB (traslato + scala 0) → espande nella sua posizione */
+    const anim = panel.animate([
+      { transform: `translate(${tx}px,${ty}px) scale(0)`,           opacity: 0,  borderRadius: '50%'  },
+      { transform: `translate(${tx*.4}px,${ty*.4}px) scale(.55)`,   opacity: .7, borderRadius: '24px', offset: .45 },
+      { transform: 'translate(0,0) scale(1)',                        opacity: 1,  borderRadius: '16px' }
+    ], { duration: 380, easing: 'cubic-bezier(.22,.68,0,1.15)' }); // no fill — gestiamo noi lo stato finale
+
+    anim.onfinish = () => {
+      panel.style.opacity       = '1';
+      panel.style.pointerEvents = 'all';
+      _animating = false;
+      setTimeout(() => document.getElementById('ai-input').focus(), 50);
+    };
   }
 
   function closePanel() {
+    if (_animating) return;
+    _animating = true;
     isOpen = false;
-    document.getElementById('ai-panel').classList.remove('open');
-    document.getElementById('ai-panel').setAttribute('aria-hidden', 'true');
-    document.getElementById('ai-fab').classList.remove('active');
-    document.getElementById('ai-fab').innerHTML = '<i class="bi bi-stars"></i>';
+
+    const fab   = document.getElementById('ai-fab');
+    const panel = document.getElementById('ai-panel');
+
+    panel.setAttribute('aria-hidden', 'true');
+    panel.style.pointerEvents = 'none';
     if (isListening) stopListening();
+
+    const { tx, ty } = _morphVector();
+
+    /* Si rimpicciolisce e vola verso il FAB */
+    const anim = panel.animate([
+      { transform: 'translate(0,0) scale(1)',                       opacity: 1,  borderRadius: '16px' },
+      { transform: `translate(${tx*.45}px,${ty*.45}px) scale(.5)`, opacity: .7, borderRadius: '28px', offset: .5 },
+      { transform: `translate(${tx}px,${ty}px) scale(0)`,          opacity: 0,  borderRadius: '50%'  }
+    ], { duration: 360, easing: 'cubic-bezier(.4,0,.6,1)' });
+
+    anim.onfinish = () => {
+      panel.style.opacity = '0';
+      fab.classList.remove('active');
+      fab.innerHTML = '<i class="bi bi-stars"></i>';
+      /* Piccolo pulse sul FAB: ricorda all'utente dove è andato il panel */
+      fab.animate([
+        { transform: 'scale(1)'    },
+        { transform: 'scale(1.25)' },
+        { transform: 'scale(1)'    }
+      ], { duration: 340, easing: 'ease-out' });
+      _animating = false;
+    };
   }
 
   function clearHistory() {

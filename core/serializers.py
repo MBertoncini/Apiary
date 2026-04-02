@@ -945,6 +945,7 @@ class ColoniaDetailSerializer(serializers.ModelSerializer):
             'data_creazione',
         ]
         read_only_fields = ['utente', 'data_creazione']
+        extra_kwargs = {'apiario': {'required': False}}
 
     def get_contenitore(self, obj):
         if obj.arnia_id:
@@ -988,6 +989,21 @@ class ColoniaDetailSerializer(serializers.ModelSerializer):
             }
         except Exception:
             return None
+
+    def validate(self, attrs):
+        # Deriva apiario da arnia o nucleo se non fornito esplicitamente
+        if not attrs.get('apiario'):
+            arnia  = attrs.get('arnia')
+            nucleo = attrs.get('nucleo')
+            if arnia:
+                attrs['apiario'] = arnia.apiario
+            elif nucleo:
+                attrs['apiario'] = nucleo.apiario
+            else:
+                raise serializers.ValidationError(
+                    {'apiario': 'Fornire apiario, arnia o nucleo.'}
+                )
+        return attrs
 
     def create(self, validated_data):
         validated_data['utente'] = self.context['request'].user
