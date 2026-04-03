@@ -2469,3 +2469,66 @@ def password_reset_confirm(request):
     user.set_password(new_password)
     user.save()
     return Response({'detail': 'Password reimpostata con successo.'})
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def google_auth(request):
+    """
+    Autentica l'utente tramite Google Sign-In.
+    Accetta un id_token Google, lo verifica e restituisce JWT access/refresh tokens.
+    Se l'utente non esiste viene creato automaticamente.
+    """
+    from google.oauth2 import id_token
+    from google.auth.transport import requests as google_requests
+    from django.contrib.auth import get_user_model
+    from rest_framework_simplejwt.tokens import RefreshToken
+
+    User = get_user_model()
+
+    # Web Client ID del progetto Firebase/Google Cloud
+    GOOGLE_CLIENT_ID = '349177568966-it8t7p7d79geijhup4l3n51gkh16bc6k.apps.googleusercontent.com'
+
+    token = request.data.get('id_token')
+    if not token:
+        return Response({'detail': 'id_token obbligatorio.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # Verifica il token con i server Google
+        idinfo = id_token.verify_oauth2_token(
+            token,
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID,
+        )
+    except ValueError as e:
+        return Response({'detail': f'Token Google non valido: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+
+    email = idinfo.get('email')
+    if not email:
+        return Response({'detail': 'Email non presente nel token Google.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not idinfo.get('email_verified', False):
+        return Response({'detail': 'Email Google non verificata.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Trova o crea l'utente
+    user, created = User.objects.get_or_create(
+        email=email,
+        defaults={
+            'username': email.split('@')[0],
+            'first_name': idinfo.get('given_name', ''),
+            'last_name': idinfo.get('family_name', ''),
+            'is_active': True,
+        }
+    )
+
+    # Se lo username esiste già per un altro utente, aggiunge un suffisso univoco
+    if created and User.objects.filter(username=user.username).exclude(pk=user.pk).exists():
+        user.username = f"{user.username}_{user.pk}"
+        user.save(update_fields=['username'])
+
+    # Genera i JWT token
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        'access': str(refresh.access_token),
+        'refresh': str(refresh),
+    }, status=status.HTTP_200_OK)

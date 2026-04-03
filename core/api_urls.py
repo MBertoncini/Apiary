@@ -17,6 +17,7 @@ from .api_views import (
     AnalisiTelainoViewSet, NucleoViewSet, register_user, chat_ai_api, ai_quota,
     password_reset_request, password_reset_confirm,
     PreferenzaMaturazionViewSet, MatutatoreViewSet, ContenitoreStoccaggioViewSet,
+    google_auth,
 )
 
 # Crea un router e registra i viewsets
@@ -81,4 +82,7 @@ urlpatterns = [
     # Endpoint reset password (app mobile)
     path('password-reset/', password_reset_request, name='api-password-reset'),
     path('password-reset/confirm/', password_reset_confirm, name='api-password-reset-confirm'),
+
+    # Endpoint Google Sign-In
+    path('auth/google/', google_auth, name='api-google-auth'),
 ]
