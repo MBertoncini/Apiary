@@ -139,8 +139,7 @@ mark.vc-mark {
   max-width: 520px; width: 100%;
   box-shadow: 0 12px 40px rgba(44,24,16,.18);
   position: relative;
-  animation: vcInfoIn .35s cubic-bezier(.22,.68,0,1.2) both;
-  transform-origin: center top;
+  transform-origin: center center; /* CRITICO: scala dal centro, non dal bordo */
 }
 .vc-info-panel.closing {
   animation: vcInfoShrink .45s cubic-bezier(.4,0,.6,1) forwards;
@@ -424,64 +423,81 @@ mark.vc-mark {
   const backdrop = document.getElementById('vc-info-backdrop');
   const panel    = document.getElementById('vc-info-panel');
   const bubble   = document.getElementById('vc-bubble');
-  const btnClose = document.getElementById('vc-info-close');
-  const btnGotIt = document.getElementById('vc-info-got-it');
 
-  /* Se già visto in precedenza: nascondi subito e mostra il bubble */
-  if (localStorage.getItem(LS_KEY)) {
-    backdrop.style.display = 'none';
-    showBubble(false); /* senza animazione */
-    return;
+  /* ── Animazione entrata del panel ──────────────────────────── */
+  function animateIn() {
+    /* Cancella eventuali animazioni WAAPI in corso (evita conflitti) */
+    panel.getAnimations().forEach(a => a.cancel());
+    panel.animate([
+      { transform: 'scale(.82)', opacity: 0 },
+      { transform: 'scale(1)',   opacity: 1 }
+    ], { duration: 340, easing: 'cubic-bezier(.22,.68,0,1.2)' });
   }
 
-  /* ── Chiudi il pannello con animazione → bubble ───────────────── */
+  /* ── Chiudi: panel vola/si rimpicciolisce verso il bubble ──── */
   function closePanel(remember) {
     if (remember) localStorage.setItem(LS_KEY, '1');
 
+    const bubbleSize  = 46;
     const bubbleTop   = 72;
     const bubbleRight = 20;
-    const bubbleSize  = 46;
 
-    /* Centro del pannello */
+    /* Centro attuale del panel (transform già applicato = scale(1)) */
     const pr   = panel.getBoundingClientRect();
     const cx   = pr.left + pr.width  / 2;
     const cy   = pr.top  + pr.height / 2;
 
-    /* Centro destinazione bubble (fixed top-right) */
+    /* Centro destinazione: il bubble fixed top-right */
     const destX = window.innerWidth  - bubbleRight - bubbleSize / 2;
     const destY = bubbleTop + bubbleSize / 2;
+    const tx    = destX - cx;
+    const ty    = destY - cy;
 
-    const tx = destX - cx;
-    const ty = destY - cy;
+    /* Cancella l'animazione d'entrata se ancora attiva */
+    panel.getAnimations().forEach(a => a.cancel());
 
     panel.animate([
-      { transform: 'translate(0,0) scale(1)',                               opacity: 1,  borderRadius: '16px', offset: 0    },
-      { transform: `translate(${tx*.5}px,${ty*.5}px) scale(.4)`,           opacity: .8, borderRadius: '50%',  offset: .55  },
-      { transform: `translate(${tx}px,${ty}px) scale(0)`,                  opacity: 0,  borderRadius: '50%',  offset: 1    }
-    ], { duration: 480, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'forwards' }).onfinish = function () {
+      { transform: 'translate(0,0) scale(1)',                        opacity: 1,  borderRadius: '16px', offset: 0   },
+      { transform: `translate(${tx*.5}px,${ty*.5}px) scale(.35)`,   opacity: .8, borderRadius: '50%',  offset: .55 },
+      { transform: `translate(${tx}px,${ty}px) scale(0)`,           opacity: 0,  borderRadius: '50%',  offset: 1   }
+    ], { duration: 460, easing: 'cubic-bezier(.4,0,.6,1)' }
+    ).onfinish = () => {
       backdrop.style.display = 'none';
       showBubble(true);
     };
   }
 
+  /* ── Mostra il bubble ──────────────────────────────────────── */
   function showBubble(withAnim) {
-    bubble.style.display = 'flex';
     if (!withAnim) bubble.style.animation = 'none';
+    bubble.style.display = 'flex';
   }
 
-  /* Riapri il pannello dal bubble */
+  /* ── Riapri il panel dal bubble ────────────────────────────── */
   function openPanel() {
-    /* reset transform/opacity lasciati dall'animazione di chiusura */
-    panel.style.cssText = '';
-    backdrop.style.display = 'flex';
     bubble.style.display   = 'none';
-    /* riavvia animazione entrata */
-    void panel.offsetWidth; /* reflow per ripartire */
-    panel.style.animation  = 'vcInfoIn .35s cubic-bezier(.22,.68,0,1.2) both';
+    panel.style.opacity    = '0'; /* evita flash prima di animateIn */
+    backdrop.style.display = 'flex';
+    /* un frame di pausa garantisce che il backdrop sia visibile prima di animare */
+    requestAnimationFrame(() => {
+      panel.style.opacity = '';
+      animateIn();
+    });
   }
 
-  btnClose.addEventListener('click', () => closePanel(true));
-  btnGotIt.addEventListener('click', () => closePanel(true));
+  /* ── Init ──────────────────────────────────────────────────── */
+  if (localStorage.getItem(LS_KEY)) {
+    /* Già visto: nascondi overlay, mostra bubble silenzioso */
+    backdrop.style.display = 'none';
+    showBubble(false);
+  } else {
+    /* Prima visita: anima entrata */
+    animateIn();
+  }
+
+  /* Event listeners — registrati SEMPRE (non dentro un if/return) */
+  document.getElementById('vc-info-close').addEventListener('click', () => closePanel(true));
+  document.getElementById('vc-info-got-it').addEventListener('click', () => closePanel(true));
   backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closePanel(true); });
   bubble.addEventListener('click', openPanel);
 })();

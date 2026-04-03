@@ -117,6 +117,7 @@
           {% for apiario in apiari_condivisi %}
           <a href="#" class="list-group-item list-group-item-action py-2 px-2 apiario-item apiario-condiviso"
              data-id="{{ apiario.id }}"
+             data-proprietario="{{ apiario.proprietario.get_full_name|default:apiario.proprietario.username }}"
              {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
             <div class="d-flex justify-content-between align-items-center">
               <span class="fw-semibold small">{{ apiario.nome }}</span>
@@ -131,6 +132,7 @@
           {% for apiario in apiari_visibili_gruppo %}
           <a href="#" class="list-group-item list-group-item-action py-2 px-2 apiario-item apiario-visibile-gruppo"
              data-id="{{ apiario.id }}"
+             data-proprietario="{{ apiario.proprietario.get_full_name|default:apiario.proprietario.username }}"
              {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
             <div class="d-flex justify-content-between align-items-center">
               <span class="fw-semibold small">{{ apiario.nome }}</span>
@@ -145,6 +147,7 @@
           {% for apiario in apiari_pubblici %}
           <a href="#" class="list-group-item list-group-item-action py-2 px-2 apiario-item apiario-pubblico"
              data-id="{{ apiario.id }}"
+             data-proprietario="{{ apiario.proprietario.get_full_name|default:apiario.proprietario.username }}"
              {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
             <div class="d-flex justify-content-between align-items-center">
               <span class="fw-semibold small">{{ apiario.nome }}</span>
@@ -310,18 +313,40 @@ document.addEventListener('DOMContentLoaded', function () {
     flightRingsLayer.addLayer(flightRing);
 
     // Popup
+    var nome = el.querySelector('.fw-semibold').textContent;
+    var info = el.querySelector('.text-muted').textContent.trim();
+    var proprietario = el.dataset.proprietario || '';
+    var isMio = (tipo === 'proprio');
+    var isCondiviso = (tipo === 'condiviso');
+
+    var proprietarioHtml = proprietario
+      ? `<div style="color:#7B6E5D;font-size:.8rem;margin-bottom:2px;"><i class="bi bi-person me-1"></i>${proprietario}</div>`
+      : '';
+
+    var azioniHtml = '';
+    if (isMio) {
+      azioniHtml = `
+        <a href="/app/apiario/${id}/" class="btn btn-sm btn-primary" style="font-size:.8rem;">
+          <i class="bi bi-grid"></i> Dettagli
+        </a>
+        <a href="/app/apiario/${id}/ispezioni/export-pdf/" class="btn btn-sm btn-outline-danger" style="font-size:.8rem;">
+          <i class="bi bi-file-earmark-pdf"></i> PDF
+        </a>`;
+    } else {
+      azioniHtml = `
+        <a href="/app/apiario/${id}/" class="btn btn-sm btn-outline-primary" style="font-size:.8rem;">
+          <i class="bi bi-eye"></i> Visualizza
+        </a>`;
+    }
+
     var popupHtml = `
       <div style="min-width:240px;">
-        <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">${el.querySelector('.fw-semibold').textContent}</div>
-        <div style="color:#7B6E5D;font-size:.85rem;margin-bottom:8px;">${el.querySelector('.text-muted').textContent.trim()}</div>
+        <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">${nome}</div>
+        ${proprietarioHtml}
+        <div style="color:#7B6E5D;font-size:.85rem;margin-bottom:8px;">${info}</div>
         <hr style="margin:6px 0;border-color:#EAD9BF;">
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-          <a href="/app/apiario/${id}/" class="btn btn-sm btn-primary" style="font-size:.8rem;">
-            <i class="bi bi-grid"></i> Dettagli
-          </a>
-          <a href="/app/apiario/${id}/ispezioni/export-pdf/" class="btn btn-sm btn-outline-danger" style="font-size:.8rem;">
-            <i class="bi bi-file-earmark-pdf"></i> PDF
-          </a>
+          ${azioniHtml}
           <button class="btn btn-sm btn-outline-warning toggle-ring-btn" data-lat="${lat}" data-lng="${lng}" style="font-size:.8rem;">
             <i class="bi bi-circle"></i> Raggio volo
           </button>

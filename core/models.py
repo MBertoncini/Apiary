@@ -420,16 +420,11 @@ class Regina(models.Model):
         ('altro', 'Altro'),
     ]
     
-    # FK primario: colonia a cui appartiene la regina (obbligatorio dopo migration 0036)
+    # FK primario: colonia a cui appartiene la regina
     colonia = models.OneToOneField(
         Colonia, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='regina',
         help_text="Colonia di cui è regina"
-    )
-    # Legacy: tenuto nullable fino alla FASE 6 cleanup
-    arnia = models.OneToOneField(
-        Arnia, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name='regina'
     )
     data_nascita = models.DateField(null=True, blank=True)
     data_introduzione = models.DateField(help_text="Data in cui la regina è stata introdotta nella colonia")
@@ -460,8 +455,6 @@ class Regina(models.Model):
     def __str__(self):
         if self.colonia:
             return f"Regina Colonia {self.colonia_id} – {self.get_razza_display()}"
-        if self.arnia:
-            return f"Regina Arnia {self.arnia.numero} – {self.get_razza_display()}"
         return f"Regina {self.id} – {self.get_razza_display()}"
     
     def get_eta_giorni(self):
@@ -521,11 +514,6 @@ class StoriaRegine(models.Model):
         related_name='storia_regine',
         help_text="Colonia in cui la regina ha operato"
     )
-    # Legacy: riferimento all'arnia fisica (tenuto per contesto storico)
-    arnia = models.ForeignKey(
-        Arnia, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name='storia_regine'
-    )
     regina = models.ForeignKey(Regina, on_delete=models.CASCADE, related_name='storia')
     data_inizio = models.DateField()
     data_fine = models.DateField(null=True, blank=True)
@@ -536,8 +524,6 @@ class StoriaRegine(models.Model):
     def __str__(self):
         if self.colonia:
             return f"Regina in Colonia {self.colonia_id} dal {self.data_inizio}"
-        if self.arnia:
-            return f"Regina in Arnia {self.arnia.numero} dal {self.data_inizio}"
         return f"StoriaRegine {self.id} dal {self.data_inizio}"
     
     class Meta:
@@ -569,11 +555,6 @@ class Melario(models.Model):
         related_name='melari',
         help_text="Colonia su cui è posizionato il melario"
     )
-    # FK location (il box fisico dove si trova)
-    arnia = models.ForeignKey(
-        Arnia, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name='melari'
-    )
     numero_telaini = models.IntegerField(default=10, help_text="Numero di telaini nel melario")
     posizione = models.IntegerField(help_text="Posizione del melario (1 = più vicino al nido, ecc.)")
     data_posizionamento = models.DateField()
@@ -588,14 +569,12 @@ class Melario(models.Model):
     def __str__(self):
         if self.colonia:
             return f"Melario {self.id} – Colonia {self.colonia_id} (Pos. {self.posizione})"
-        if self.arnia:
-            return f"Melario {self.id} – Arnia {self.arnia.numero} (Pos. {self.posizione})"
         return f"Melario {self.id} (Pos. {self.posizione})"
-    
+
     class Meta:
         verbose_name = "Melario"
         verbose_name_plural = "Melari"
-        ordering = ['arnia', 'posizione']
+        ordering = ['colonia', 'posizione']
 
 class Smielatura(models.Model):
     """Modello per gestire le operazioni di smielatura"""

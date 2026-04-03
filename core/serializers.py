@@ -162,7 +162,7 @@ class ReginaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Regina
         fields = [
-            'id', 'colonia', 'colonia_id', 'arnia', 'arnia_numero',
+            'id', 'colonia', 'colonia_id', 'arnia_numero',
             'apiario_nome', 'apiario_id',
             'data_nascita', 'data_introduzione', 'origine', 'razza',
             'regina_madre', 'marcata', 'codice_marcatura', 'colore_marcatura',
@@ -173,36 +173,29 @@ class ReginaSerializer(serializers.ModelSerializer):
     def get_arnia_numero(self, obj):
         if obj.colonia_id and obj.colonia.arnia_id:
             return obj.colonia.arnia.numero
-        if obj.arnia_id:
-            return obj.arnia.numero
         return None
 
     def get_apiario_nome(self, obj):
         if obj.colonia_id:
             return obj.colonia.apiario.nome
-        if obj.arnia_id:
-            return obj.arnia.apiario.nome
         return None
 
     def get_apiario_id(self, obj):
         if obj.colonia_id:
             return obj.colonia.apiario_id
-        if obj.arnia_id:
-            return obj.arnia.apiario_id
         return None
 
 
 # Serializzatore StoriaRegine
 class StoriaRegineSerializer(serializers.ModelSerializer):
     colonia_id     = serializers.ReadOnlyField(source='colonia.id')
-    arnia_numero   = serializers.ReadOnlyField(source='arnia.numero')
     regina_razza   = serializers.ReadOnlyField(source='regina.razza')
     regina_origine = serializers.ReadOnlyField(source='regina.origine')
 
     class Meta:
         model = StoriaRegine
         fields = [
-            'id', 'colonia', 'colonia_id', 'arnia', 'arnia_numero',
+            'id', 'colonia', 'colonia_id',
             'regina', 'regina_razza', 'regina_origine',
             'data_inizio', 'data_fine', 'motivo_fine', 'note'
         ]
@@ -217,7 +210,7 @@ class ReginaGenealogySerializer(serializers.ModelSerializer):
     class Meta:
         model = Regina
         fields = [
-            'id', 'colonia', 'arnia', 'razza', 'origine',
+            'id', 'colonia', 'razza', 'origine',
             'data_nascita', 'data_introduzione',
             'marcata', 'colore_marcatura', 'fecondata', 'selezionata', 'note',
             'madre', 'figlie', 'storia_colonia'
@@ -232,7 +225,6 @@ class ReginaGenealogySerializer(serializers.ModelSerializer):
                 'origine': m.origine,
                 'data_introduzione': m.data_introduzione,
                 'colonia': m.colonia_id,
-                'arnia': m.arnia_id,
             }
         return None
 
@@ -244,18 +236,14 @@ class ReginaGenealogySerializer(serializers.ModelSerializer):
                 'origine': f.origine,
                 'data_introduzione': f.data_introduzione,
                 'colonia': f.colonia_id,
-                'arnia': f.arnia_id,
             }
             for f in obj.figlie.all()
         ]
 
     def get_storia_colonia(self, obj):
-        if obj.colonia_id:
-            storia = StoriaRegine.objects.filter(colonia=obj.colonia).order_by('-data_inizio')
-        elif obj.arnia_id:
-            storia = StoriaRegine.objects.filter(arnia=obj.arnia).order_by('-data_inizio')
-        else:
+        if not obj.colonia_id:
             return []
+        storia = StoriaRegine.objects.filter(colonia=obj.colonia).order_by('-data_inizio')
         return StoriaRegineSerializer(storia, many=True).data
 
 
@@ -358,7 +346,6 @@ class TrattamentoSanitarioSerializer(serializers.ModelSerializer):
 # Serializzatore Melario
 class MelarioSerializer(serializers.ModelSerializer):
     colonia_id          = serializers.ReadOnlyField(source='colonia.id')
-    arnia_numero        = serializers.ReadOnlyField(source='arnia.numero')
     apiario_id          = serializers.SerializerMethodField()
     apiario_nome        = serializers.SerializerMethodField()
     apiario_gruppo_nome = serializers.SerializerMethodField()
@@ -366,7 +353,7 @@ class MelarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Melario
         fields = [
-            'id', 'colonia', 'colonia_id', 'arnia', 'arnia_numero',
+            'id', 'colonia', 'colonia_id',
             'apiario_id', 'apiario_nome', 'apiario_gruppo_nome',
             'numero_telaini', 'posizione', 'data_posizionamento',
             'data_rimozione', 'stato', 'tipo_melario', 'stato_favi',
@@ -376,8 +363,6 @@ class MelarioSerializer(serializers.ModelSerializer):
     def _apiario(self, obj):
         if obj.colonia_id:
             return obj.colonia.apiario
-        if obj.arnia_id:
-            return obj.arnia.apiario
         return None
 
     def get_apiario_id(self, obj):

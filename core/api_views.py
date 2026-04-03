@@ -162,8 +162,13 @@ class ApiarioViewSet(viewsets.ModelViewSet):
         Filtra gli apiari in base all'utente autenticato.
         Restituisce gli apiari di cui l'utente è proprietario o
         che sono condivisi con i gruppi di cui l'utente è membro.
+        Per le azioni di sola lettura include anche gli apiari pubblici.
         """
-        return get_apiari_accessibili(self.request.user)
+        base_qs = get_apiari_accessibili(self.request.user)
+        if getattr(self, 'action', None) in ('retrieve', 'arnie', 'controlli', 'meteo'):
+            public_qs = Apiario.objects.filter(visibilita_mappa='pubblico')
+            return (base_qs | public_qs).distinct()
+        return base_qs
     
     @action(detail=True, methods=['get'])
     def arnie(self, request, pk=None):
@@ -434,6 +439,27 @@ class NucleoViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['get'], url_path='colonia_attiva')
+    def colonia_attiva(self, request, pk=None):
+        """Restituisce la colonia attualmente attiva in questo nucleo (se esiste)."""
+        nucleo = self.get_object()
+        colonia = Colonia.objects.filter(
+            nucleo=nucleo, stato='attiva', data_fine__isnull=True
+        ).first()
+        if not colonia:
+            return Response(
+                {'detail': 'Nessuna colonia attiva in questo nucleo.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response(ColoniaDetailSerializer(colonia, context={'request': request}).data)
+
+    @action(detail=True, methods=['get'], url_path='storia_colonie')
+    def storia_colonie(self, request, pk=None):
+        """Restituisce tutte le colonie che hanno abitato questo nucleo."""
+        nucleo = self.get_object()
+        colonie = Colonia.objects.filter(nucleo=nucleo).order_by('-data_inizio')
+        return Response(ColoniaListSerializer(colonie, many=True, context={'request': request}).data)
+
 
 # Funzione helper per inviare email di invito (a livello di modulo, non dentro una classe)
 def invia_email_invito(invito):
@@ -528,15 +554,18 @@ class ArniaViewSet(viewsets.ModelViewSet):
         Restituisce i dati della regina associata all'arnia.
         """
         arnia = self.get_object()
-        try:
-            regina = Regina.objects.get(arnia=arnia)
-            serializer = ReginaSerializer(regina)
-            return Response(serializer.data)
-        except Regina.DoesNotExist:
+        regina = Regina.objects.filter(
+            colonia__arnia=arnia,
+            colonia__stato='attiva',
+            colonia__data_fine__isnull=True,
+        ).first()
+        if not regina:
             return Response(
                 {"detail": "Nessuna regina associata a questa arnia."},
                 status=status.HTTP_404_NOT_FOUND
             )
+        serializer = ReginaSerializer(regina)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['get'], url_path='colonia_attiva')
     def colonia_attiva(self, request, pk=None):
@@ -628,13 +657,12 @@ class ReginaViewSet(viewsets.ModelViewSet):
     serializer_class = ReginaSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter]
-    search_fields = ['colonia__apiario__nome', 'arnia__numero', 'razza']
+    search_fields = ['colonia__apiario__nome', 'razza']
 
     def get_queryset(self):
         apiari_accessibili = get_apiari_accessibili(self.request.user)
         return Regina.objects.filter(
-            Q(colonia__apiario__in=apiari_accessibili) |
-            Q(colonia__isnull=True, arnia__apiario__in=apiari_accessibili)
+            colonia__apiario__in=apiari_accessibili
         ).distinct()
 
     @action(detail=True, methods=['get'])
@@ -660,26 +688,20 @@ class ReginaViewSet(viewsets.ModelViewSet):
         except ValueError:
             data_fine = timezone.now().date()
 
-        # Chiudi StoriaRegine attiva cercando prima per colonia, poi per arnia (legacy)
-        storia_attiva = None
+        # Chiudi StoriaRegine attiva per la colonia
         if regina.colonia_id:
             storia_attiva = StoriaRegine.objects.filter(
                 colonia=regina.colonia, data_fine__isnull=True
             ).first()
-        if not storia_attiva and regina.arnia_id:
-            storia_attiva = StoriaRegine.objects.filter(
-                arnia=regina.arnia, data_fine__isnull=True
-            ).first()
-        if storia_attiva:
-            storia_attiva.data_fine   = data_fine
-            storia_attiva.motivo_fine = motivo_fine
-            storia_attiva.save()
+            if storia_attiva:
+                storia_attiva.data_fine   = data_fine
+                storia_attiva.motivo_fine = motivo_fine
+                storia_attiva.save()
 
         colonia_id = regina.colonia_id
-        arnia_id   = regina.arnia_id
         regina.delete()
         return Response(
-            {'detail': 'Regina sostituita con successo.', 'colonia': colonia_id, 'arnia': arnia_id},
+            {'detail': 'Regina sostituita con successo.', 'colonia': colonia_id},
             status=status.HTTP_200_OK,
         )
 
@@ -692,8 +714,7 @@ class StoriaRegineViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         apiari_accessibili = get_apiari_accessibili(self.request.user)
         return StoriaRegine.objects.filter(
-            Q(colonia__apiario__in=apiari_accessibili) |
-            Q(colonia__isnull=True, arnia__apiario__in=apiari_accessibili)
+            colonia__apiario__in=apiari_accessibili
         ).distinct()
 
 
@@ -1009,15 +1030,11 @@ class MelarioViewSet(viewsets.ModelViewSet):
     serializer_class = MelarioSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter]
-    search_fields = ['arnia__numero', 'arnia__apiario__nome', 'stato']
+    search_fields = ['colonia__apiario__nome', 'stato']
 
     def get_queryset(self):
-        """
-        Filtra i melari in base alle arnie accessibili all'utente.
-        """
         apiari_accessibili = get_apiari_accessibili(self.request.user)
-        arnie_accessibili = Arnia.objects.filter(apiario__in=apiari_accessibili)
-        return Melario.objects.filter(arnia__in=arnie_accessibili)
+        return Melario.objects.filter(colonia__apiario__in=apiari_accessibili).distinct()
 
 class SmielaturaViewSet(viewsets.ModelViewSet):
     """

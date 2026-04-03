@@ -159,11 +159,19 @@ def richiedi_proprietario_o_gruppo(view_func):
                         messages.error(request, "Non hai i permessi necessari per questa operazione nel gruppo.")
                         return redirect('visualizza_apiario', apiario_id=apiario.id)
                 except MembroGruppo.DoesNotExist:
-                    messages.error(request, "Non sei membro del gruppo che ha accesso a questa risorsa.")
-                    return redirect('dashboard')
-            else:
-                messages.error(request, "Non hai accesso a questa risorsa.")
-                return redirect('dashboard')
+                    pass  # Continua con i controlli di visibilità
+
+            # Accesso in sola lettura per apiario con visibilità pubblica
+            if apiario.visibilita_mappa == 'pubblico' and request.method == 'GET':
+                return view_func(request, *args, **kwargs)
+
+            # Accesso in sola lettura per apiario visibile al gruppo, se l'utente è membro
+            if apiario.visibilita_mappa == 'gruppo' and apiario.gruppo and request.method == 'GET':
+                if MembroGruppo.objects.filter(utente=request.user, gruppo=apiario.gruppo).exists():
+                    return view_func(request, *args, **kwargs)
+
+            messages.error(request, "Non hai accesso a questa risorsa.")
+            return redirect('dashboard')
                 
         except Apiario.DoesNotExist:
             messages.error(request, "Risorsa non trovata.")
