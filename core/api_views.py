@@ -127,6 +127,13 @@ class IsOwnerOrGroupRole(permissions.BasePermission):
             apiario = obj.apiario
         elif hasattr(obj, 'arnia') and obj.arnia and hasattr(obj.arnia, 'apiario'):
             apiario = obj.arnia.apiario
+        elif hasattr(obj, 'colonia') and obj.colonia:
+            # Regina, Melario, TrattamentoSanitario, etc. legati a Colonia
+            colonia = obj.colonia
+            if hasattr(colonia, 'utente') and colonia.utente == user:
+                return True
+            if hasattr(colonia, 'apiario') and colonia.apiario:
+                apiario = colonia.apiario
         elif hasattr(obj, 'attrezzatura') and obj.attrezzatura:
             # Per manutenzioni di attrezzature condivise
             if obj.attrezzatura.condiviso_con_gruppo and obj.attrezzatura.gruppo:
