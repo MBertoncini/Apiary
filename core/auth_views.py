@@ -251,7 +251,7 @@ def google_login_web(request):
     from google.oauth2 import id_token
     from google.auth.transport import requests as google_requests
 
-    GOOGLE_CLIENT_ID = '349177568966-it8t7p7d79geijhup4l3n51gkh16bc6k.apps.googleusercontent.com'
+    GOOGLE_CLIENT_ID = '1027906615551-1srn9iu2m2ebivv2ej84eu7d7eha5e2o.apps.googleusercontent.com'
     User = get_user_model()
 
     try:
