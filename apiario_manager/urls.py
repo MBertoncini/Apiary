@@ -2,9 +2,8 @@
 
 from django.contrib import admin
 from django.urls import path, include
-from django.contrib.auth import views as auth_views
-from core.views import homepage  # Importa la vista homepage
-from core.auth_views import register_view, logout_view, password_reset_confirm_web, delete_account_view, delete_data_view
+from core.views import homepage
+from core.auth_views import login_view, register_view, logout_view, password_reset_confirm_web, forgot_password_view, delete_account_view, delete_data_view
 
 # Swagger/OpenAPI per documentazione API
 from rest_framework import permissions
@@ -29,9 +28,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', homepage, name='homepage'),  # Homepage come vista principale
     path('app/', include('core.urls')),   # Tutte le altre URL sotto /app/
-    path('login/', auth_views.LoginView.as_view(template_name='auth/login.html'), name='login'),
-    path('logout/', logout_view, name='logout'),  # Usa la tua vista personalizzata invece di LogoutView
-    path('register/', register_view, name='register'),  # Aggiunge la URL per la registrazione
+    path('login/', login_view, name='login'),
+    path('logout/', logout_view, name='logout'),
+    path('register/', register_view, name='register'),
+    path('forgot-password/', forgot_password_view, name='forgot_password'),
     path('reset-password/<uidb64>/<token>/', password_reset_confirm_web, name='password_reset_confirm_web'),
     path('delete-account/', delete_account_view, name='delete_account'),
     path('delete-data/', delete_data_view, name='delete_data'),

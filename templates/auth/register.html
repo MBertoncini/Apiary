@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% load static %}
 
-{% block title %}Registrazione — Apiary{% endblock %}
+{% block title %}Registrazione - Apiary{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -17,108 +17,300 @@
 
   .auth-card {
     width: 100%;
-    max-width: 480px;
+    max-width: 460px;
     background: white;
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     overflow: hidden;
   }
 
-  .auth-header {
-    background: linear-gradient(135deg, var(--honey) 0%, #D4880A 100%);
-    padding: 32px 32px 26px;
+  .auth-body { padding: 36px 32px 28px; }
+
+  /* Logo */
+  .auth-logo {
+    width: 80px;
+    height: 80px;
+    background: var(--honey, #F5A623);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    box-shadow: 0 4px 16px rgba(245, 166, 35, 0.3);
+  }
+  .auth-logo img { width: 48px; height: 48px; filter: brightness(0) invert(1); }
+
+  .auth-title {
+    font-family: var(--font-display, 'Caveat', cursive);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--honey, #F5A623);
     text-align: center;
-    color: white;
+    margin-bottom: 4px;
+  }
+  .auth-subtitle {
+    text-align: center;
+    color: #6D5D4B;
+    font-size: 0.9rem;
+    margin-bottom: 24px;
   }
 
-  .auth-header .logo { font-size: 3rem; margin-bottom: 8px; display: block; }
-  .auth-header h1 { font-family: var(--font-display); font-size: 2rem; font-weight: 700; margin-bottom: 4px; }
-  .auth-header p { font-size: 0.9rem; opacity: 0.85; margin: 0; }
-
-  .auth-body { padding: 28px 32px; }
-
-  .auth-body .form-control {
+  /* Form fields */
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block;
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: #4A2515;
+    margin-bottom: 5px;
+  }
+  .input-wrapper { position: relative; }
+  .form-group .form-control {
     background: #FFFDF5;
     border: 1.5px solid #EAD9BF;
     border-radius: 10px;
     padding: 10px 14px;
     font-size: 0.875rem;
+    width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
-
-  .auth-body .form-control:focus {
-    border-color: var(--honey);
-    box-shadow: 0 0 0 3px rgba(245,166,35,0.15);
+  .form-group .form-control:focus {
+    border-color: var(--honey, #F5A623);
+    box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
     background: white;
+    outline: none;
   }
+  .form-group .form-control.is-invalid {
+    border-color: #DC2626;
+  }
+  .form-group .form-control.has-toggle { padding-right: 44px; }
 
-  .auth-body label { font-weight: 500; font-size: 0.85rem; color: #4A2515; margin-bottom: 5px; }
+  /* Field error */
+  .field-error {
+    color: #DC2626;
+    font-size: 0.8rem;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .field-error i { font-size: 0.75rem; }
 
-  .btn-auth {
-    background: linear-gradient(135deg, var(--honey) 0%, #D4880A 100%);
-    color: white;
+  /* Password toggle */
+  .password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
     border: none;
-    border-radius: 10px;
+    color: #8B7355;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+  .password-toggle:hover { color: var(--honey, #F5A623); }
+
+  /* Privacy checkbox */
+  .privacy-group {
+    margin: 20px 0 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .privacy-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: var(--honey, #F5A623);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .privacy-group label {
+    font-size: 0.825rem;
+    color: #6D5D4B;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .privacy-group label a {
+    color: var(--honey-darker, #A86800);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .privacy-group label a:hover { text-decoration: underline; }
+
+  /* Submit button */
+  .btn-auth {
+    background: var(--honey, #F5A623);
+    color: white;
+    border: 1px solid rgba(139, 94, 0, 0.3);
+    border-radius: 8px;
     padding: 12px;
     font-weight: 600;
     font-size: 0.95rem;
     width: 100%;
-    margin-top: 8px;
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 12px rgba(245,166,35,0.35);
+    margin-top: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 6px rgba(245, 166, 35, 0.3);
+  }
+  .btn-auth:hover:not(:disabled) {
+    background: var(--honey-dark, #D4880A);
+    box-shadow: 0 4px 12px rgba(245, 166, 35, 0.4);
+  }
+  .btn-auth:disabled { opacity: 0.7; cursor: not-allowed; }
+  .btn-auth .spinner-border { width: 20px; height: 20px; border-width: 2px; }
+
+  /* Password hint */
+  .password-hint {
+    font-size: 0.78rem;
+    color: #8B7355;
+    margin-top: 4px;
   }
 
-  .btn-auth:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(245,166,35,0.45);
-    color: white;
-  }
-
+  /* Footer */
   .auth-footer {
     text-align: center;
-    padding: 16px 32px 24px;
+    padding: 18px 32px 24px;
     border-top: 1px solid #EAD9BF;
     font-size: 0.85rem;
     color: #7A5C45;
     background: #FFFDF5;
   }
-
-  .auth-footer a { color: var(--honey-darker); font-weight: 500; }
-  .auth-footer a:hover { color: var(--honey); }
+  .auth-footer a { color: var(--honey-darker, #A86800); font-weight: 600; text-decoration: none; }
+  .auth-footer a:hover { text-decoration: underline; }
 </style>
 {% endblock %}
 
 {% block content_public %}
 <div class="auth-wrapper">
   <div class="auth-card">
-
-    <div class="auth-header">
-      <span class="logo">🐝</span>
-      <h1>Crea Account</h1>
-      <p>Registrati su Apiary</p>
-    </div>
-
     <div class="auth-body">
-      {% if form.errors %}
-      <div class="alert alert-danger mb-3">
-        <i class="bi bi-exclamation-circle-fill me-2"></i>
-        Si sono verificati degli errori nel form. Controlla i campi evidenziati.
-      </div>
-      {% endif %}
 
-      <form method="post">
+      <!-- Logo -->
+      <div class="auth-logo">
+        <img src="{% static 'images/logo.svg' %}" alt="Apiary">
+      </div>
+      <h1 class="auth-title">Crea Account</h1>
+      <p class="auth-subtitle">Registrati su Apiary</p>
+
+      <!-- Registration form -->
+      <form method="post" id="registerForm" novalidate>
         {% csrf_token %}
-        {{ form|crispy }}
-        <button type="submit" class="btn btn-auth mt-2">
-          <i class="bi bi-person-plus me-2"></i> Crea Account
+
+        <!-- Username -->
+        <div class="form-group">
+          <label for="id_username">Username</label>
+          <input type="text" name="username" id="id_username"
+                 class="form-control {% if errors.username %}is-invalid{% endif %}"
+                 value="{{ username }}" placeholder="Scegli uno username"
+                 autocomplete="username" required>
+          {% if errors.username %}
+          <div class="field-error"><i class="bi bi-exclamation-circle"></i> {{ errors.username }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label for="id_email">Email</label>
+          <input type="email" name="email" id="id_email"
+                 class="form-control {% if errors.email %}is-invalid{% endif %}"
+                 value="{{ email }}" placeholder="La tua email"
+                 autocomplete="email" required>
+          {% if errors.email %}
+          <div class="field-error"><i class="bi bi-exclamation-circle"></i> {{ errors.email }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label for="id_password">Password</label>
+          <div class="input-wrapper">
+            <input type="password" name="password" id="id_password"
+                   class="form-control has-toggle {% if errors.password %}is-invalid{% endif %}"
+                   placeholder="Crea una password" autocomplete="new-password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('id_password', this)">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+          {% if errors.password %}
+          <div class="field-error"><i class="bi bi-exclamation-circle"></i> {{ errors.password }}</div>
+          {% else %}
+          <div class="password-hint">Minimo 8 caratteri</div>
+          {% endif %}
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label for="id_confirm_password">Conferma Password</label>
+          <div class="input-wrapper">
+            <input type="password" name="confirm_password" id="id_confirm_password"
+                   class="form-control has-toggle {% if errors.confirm_password %}is-invalid{% endif %}"
+                   placeholder="Ripeti la password" autocomplete="new-password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('id_confirm_password', this)">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+          {% if errors.confirm_password %}
+          <div class="field-error"><i class="bi bi-exclamation-circle"></i> {{ errors.confirm_password }}</div>
+          {% endif %}
+        </div>
+
+        <!-- Privacy -->
+        <div class="privacy-group">
+          <input type="checkbox" name="privacy_accepted" id="id_privacy"
+                 {% if privacy_accepted %}checked{% endif %}>
+          <label for="id_privacy">
+            Accetto l'<a href="/app/privacy/" target="_blank">informativa sulla privacy</a>
+            e i termini di servizio
+          </label>
+        </div>
+        {% if errors.privacy %}
+        <div class="field-error" style="margin-top: -12px; margin-bottom: 14px;">
+          <i class="bi bi-exclamation-circle"></i> {{ errors.privacy }}
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn-auth" id="submitBtn">
+          <i class="bi bi-person-plus"></i>
+          <span class="btn-text">Crea Account</span>
+          <span class="spinner-border text-light d-none" id="submitSpinner" role="status"></span>
         </button>
       </form>
+
     </div>
 
     <div class="auth-footer">
-      Hai già un account?
-      <a href="{% url 'login' %}">Accedi</a>
+      Hai già un account? <a href="{% url 'login' %}">Accedi</a>
     </div>
-
   </div>
 </div>
+
+<script>
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const icon = btn.querySelector('i');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'bi bi-eye-slash';
+  } else {
+    input.type = 'password';
+    icon.className = 'bi bi-eye';
+  }
+}
+
+// Loading spinner on submit
+document.getElementById('registerForm').addEventListener('submit', function() {
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.querySelector('.btn-text').textContent = 'Creazione in corso...';
+  btn.querySelector('.bi-person-plus')?.classList.add('d-none');
+  document.getElementById('submitSpinner').classList.remove('d-none');
+});
+</script>
 {% endblock %}

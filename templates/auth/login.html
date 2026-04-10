@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
-{% load static %} {% block title %}Accedi - Apiary{% endblock %}
+{% load static %}
+
+{% block title %}Accedi - Apiary{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -23,79 +24,358 @@
     overflow: hidden;
   }
 
-  .auth-header {
-    background: linear-gradient(135deg, #F5A623 0%, #D4880A 100%);
-    padding: 36px 32px 28px;
+  .auth-body { padding: 36px 32px 28px; }
+
+  /* Logo */
+  .auth-logo {
+    width: 100px;
+    height: 100px;
+    background: var(--honey, #F5A623);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    box-shadow: 0 4px 16px rgba(245, 166, 35, 0.3);
+  }
+  .auth-logo img { width: 60px; height: 60px; filter: brightness(0) invert(1); }
+
+  .auth-title {
+    font-family: var(--font-display, 'Caveat', cursive);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--honey, #F5A623);
     text-align: center;
-    color: white;
+    margin-bottom: 4px;
+  }
+  .auth-subtitle {
+    text-align: center;
+    color: #6D5D4B;
+    font-size: 0.9rem;
+    margin-bottom: 28px;
   }
 
-  /* Modificato per gestire l'immagine SVG invece dell'emoji */
-  .auth-header .logo-img { 
-    width: 80px; 
-    height: auto; 
-    margin-bottom: 15px;
+  /* Error box */
+  .auth-error-box {
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
   }
+  .auth-error-box .error-icon {
+    color: #DC2626;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .auth-error-box .error-content { flex: 1; }
+  .auth-error-box .error-text { color: #991B1B; font-size: 0.875rem; font-weight: 500; margin: 0; }
+  .auth-error-box .error-hint {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #FECACA;
+  }
+  .auth-error-box .error-hint a {
+    color: var(--honey-darker, #A86800);
+    font-weight: 600;
+    font-size: 0.825rem;
+    text-decoration: none;
+  }
+  .auth-error-box .error-hint a:hover { text-decoration: underline; }
 
-  .auth-header h1 { font-family: sans-serif; font-size: 2rem; font-weight: 700; margin-bottom: 4px; }
-  .auth-header p { font-size: 0.9rem; opacity: 0.85; margin: 0; }
-
-  .auth-body { padding: 32px; }
-  .auth-body .form-control { background: #FFFDF5; border: 1.5px solid #EAD9BF; border-radius: 10px; }
-  
-  .btn-auth {
-    background: linear-gradient(135deg, #F5A623 0%, #D4880A 100%);
-    color: white;
-    border: none;
+  /* Form fields */
+  .form-group { margin-bottom: 18px; }
+  .form-group label {
+    display: block;
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: #4A2515;
+    margin-bottom: 6px;
+  }
+  .input-wrapper {
+    position: relative;
+  }
+  .form-group .form-control {
+    background: #FFFDF5;
+    border: 1.5px solid #EAD9BF;
     border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 0.9rem;
+    width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .form-group .form-control:focus {
+    border-color: var(--honey, #F5A623);
+    box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+    background: white;
+    outline: none;
+  }
+  .form-group .form-control.has-toggle { padding-right: 44px; }
+
+  /* Password toggle */
+  .password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #8B7355;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 1.1rem;
+    line-height: 1;
+  }
+  .password-toggle:hover { color: var(--honey, #F5A623); }
+
+  /* Submit button */
+  .btn-auth {
+    background: var(--honey, #F5A623);
+    color: white;
+    border: 1px solid rgba(139, 94, 0, 0.3);
+    border-radius: 8px;
     padding: 12px;
     font-weight: 600;
+    font-size: 0.95rem;
     width: 100%;
-    margin-top: 8px;
-    box-shadow: 0 4px 12px rgba(245,166,35,0.35);
+    margin-top: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 6px rgba(245, 166, 35, 0.3);
+  }
+  .btn-auth:hover:not(:disabled) {
+    background: var(--honey-dark, #D4880A);
+    box-shadow: 0 4px 12px rgba(245, 166, 35, 0.4);
+  }
+  .btn-auth:disabled { opacity: 0.7; cursor: not-allowed; }
+  .btn-auth .spinner-border { width: 20px; height: 20px; border-width: 2px; }
+
+  /* Forgot password link */
+  .forgot-link {
+    display: block;
+    text-align: right;
+    font-size: 0.825rem;
+    color: var(--honey-darker, #A86800);
+    text-decoration: none;
+    margin-top: -10px;
+    margin-bottom: 18px;
+    font-weight: 500;
+  }
+  .forgot-link:hover { text-decoration: underline; color: var(--honey, #F5A623); }
+
+  /* Divider */
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 22px 0;
+  }
+  .auth-divider::before,
+  .auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #EAD9BF;
+  }
+  .auth-divider span {
+    font-size: 0.8rem;
+    color: #8B7355;
+    text-transform: lowercase;
   }
 
+  /* Google button */
+  .btn-google {
+    width: 100%;
+    padding: 11px;
+    border: 1.5px solid #EAD9BF;
+    border-radius: 8px;
+    background: white;
+    color: #4A2515;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn-google:hover {
+    background: #FFFDF5;
+    border-color: var(--honey, #F5A623);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .btn-google img { width: 20px; height: 20px; }
+
+  /* Footer */
   .auth-footer {
     text-align: center;
     padding: 18px 32px 24px;
     border-top: 1px solid #EAD9BF;
     font-size: 0.85rem;
+    color: #7A5C45;
     background: #FFFDF5;
   }
+  .auth-footer a { color: var(--honey-darker, #A86800); font-weight: 600; text-decoration: none; }
+  .auth-footer a:hover { text-decoration: underline; }
 </style>
 {% endblock %}
 
 {% block content_public %}
 <div class="auth-wrapper">
   <div class="auth-card">
-
-    <div class="auth-header">
-      <img src="{% static 'images/logo.svg' %}" alt="Logo Apiary" class="logo-img">
-      <h1>Apiary</h1>
-      <p>Accedi al tuo account</p>
-    </div>
-
     <div class="auth-body">
-      {% if form.errors %}
-      <div class="alert alert-danger mb-3">
-        Username o password non validi. Riprova.
+
+      <!-- Logo -->
+      <div class="auth-logo">
+        <img src="{% static 'images/logo.svg' %}" alt="Apiary">
+      </div>
+      <h1 class="auth-title">Apiary</h1>
+      <p class="auth-subtitle">Accedi al tuo account</p>
+
+      <!-- Contextual error messages -->
+      {% if error_type %}
+      <div class="auth-error-box">
+        <i class="bi bi-exclamation-circle-fill error-icon"></i>
+        <div class="error-content">
+          <p class="error-text">{{ error_message }}</p>
+          <div class="error-hint">
+            {% if error_type == 'user_not_found' %}
+              <a href="{% url 'register' %}">
+                <i class="bi bi-person-plus me-1"></i>Crea un account
+              </a>
+            {% elif error_type == 'wrong_password' %}
+              <a href="{% url 'forgot_password' %}">
+                <i class="bi bi-key me-1"></i>Hai dimenticato la password?
+              </a>
+            {% endif %}
+          </div>
+        </div>
       </div>
       {% endif %}
 
-      <form method="post">
+      <!-- Login form -->
+      <form method="post" id="loginForm">
         {% csrf_token %}
-        {{ form|crispy }}
         <input type="hidden" name="next" value="{{ next }}">
-        <button type="submit" class="btn btn-auth mt-2">
-          Accedi
+
+        <div class="form-group">
+          <label for="id_username">Username o Email</label>
+          <input type="text" name="username" id="id_username" class="form-control"
+                 value="{{ username }}" placeholder="Inserisci username o email"
+                 autocomplete="username" required>
+        </div>
+
+        <div class="form-group">
+          <label for="id_password">Password</label>
+          <div class="input-wrapper">
+            <input type="password" name="password" id="id_password" class="form-control has-toggle"
+                   placeholder="Inserisci la password" autocomplete="current-password" required>
+            <button type="button" class="password-toggle" onclick="togglePassword('id_password', this)">
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <a href="{% url 'forgot_password' %}" class="forgot-link">Dimenticato la password?</a>
+
+        <button type="submit" class="btn-auth" id="submitBtn">
+          <span class="btn-text">Accedi</span>
+          <span class="spinner-border text-light d-none" id="submitSpinner" role="status"></span>
         </button>
       </form>
+
+      <!-- Divider -->
+      <div class="auth-divider"><span>oppure</span></div>
+
+      <!-- Google Sign-In -->
+      <button type="button" class="btn-google" id="googleBtn" onclick="loginWithGoogle()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+        Accedi con Google
+      </button>
+
     </div>
 
     <div class="auth-footer">
       Non hai un account? <a href="{% url 'register' %}">Registrati</a>
     </div>
-
   </div>
 </div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const icon = btn.querySelector('i');
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.className = 'bi bi-eye-slash';
+  } else {
+    input.type = 'password';
+    icon.className = 'bi bi-eye';
+  }
+}
+
+// Loading spinner on submit
+document.getElementById('loginForm').addEventListener('submit', function() {
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.querySelector('.btn-text').textContent = 'Accesso in corso...';
+  document.getElementById('submitSpinner').classList.remove('d-none');
+});
+
+// Google Sign-In
+const GOOGLE_CLIENT_ID = '349177568966-it8t7p7d79geijhup4l3n51gkh16bc6k.apps.googleusercontent.com';
+
+function loginWithGoogle() {
+  const client = google.accounts.oauth2.initCodeClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'email profile',
+    ux_mode: 'popup',
+    callback: handleGoogleResponse,
+  });
+  // Use initTokenClient for id_token flow
+  const tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'email profile',
+    callback: (response) => {
+      if (response.access_token) {
+        // Get id_token via Google's tokeninfo
+        fetch('/api/v1/auth/google/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+          },
+          body: JSON.stringify({ access_token: response.access_token }),
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.access) {
+            // Store JWT and redirect
+            window.location.href = '{% url "dashboard" %}';
+          } else {
+            alert(data.detail || 'Errore durante l\'accesso con Google.');
+          }
+        })
+        .catch(() => alert('Errore di connessione.'));
+      }
+    },
+  });
+  tokenClient.requestAccessToken();
+}
+
+function handleGoogleResponse(response) {
+  // Fallback handler
+  console.log('Google auth response:', response);
+}
+</script>
 {% endblock %}
