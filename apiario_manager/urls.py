@@ -3,7 +3,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from core.views import homepage
-from core.auth_views import login_view, register_view, logout_view, password_reset_confirm_web, forgot_password_view, delete_account_view, delete_data_view
+from core.auth_views import login_view, register_view, logout_view, password_reset_confirm_web, forgot_password_view, google_login_web, delete_account_view, delete_data_view
 
 # Swagger/OpenAPI per documentazione API
 from rest_framework import permissions
@@ -32,6 +32,7 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     path('register/', register_view, name='register'),
     path('forgot-password/', forgot_password_view, name='forgot_password'),
+    path('auth/google/', google_login_web, name='google_login_web'),
     path('reset-password/<uidb64>/<token>/', password_reset_confirm_web, name='password_reset_confirm_web'),
     path('delete-account/', delete_account_view, name='delete_account'),
     path('delete-data/', delete_data_view, name='delete_data'),

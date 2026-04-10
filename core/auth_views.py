@@ -8,8 +8,9 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse
 import re
 
 
@@ -239,6 +240,60 @@ def password_reset_confirm_web(request, uidb64, token):
         return render(request, 'auth/reset_password.html', {'success': True})
 
     return render(request, 'auth/reset_password.html', {})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def google_login_web(request):
+    """Autentica l'utente tramite Google Sign-In (One Tap / credential flow).
+    Verifica l'id_token, crea/trova l'utente, e fa login nella sessione Django."""
+    import json
+    from google.oauth2 import id_token
+    from google.auth.transport import requests as google_requests
+
+    GOOGLE_CLIENT_ID = '349177568966-it8t7p7d79geijhup4l3n51gkh16bc6k.apps.googleusercontent.com'
+    User = get_user_model()
+
+    try:
+        body = json.loads(request.body)
+        credential = body.get('credential', '')
+    except (json.JSONDecodeError, AttributeError):
+        credential = request.POST.get('credential', '')
+
+    if not credential:
+        return JsonResponse({'error': 'Token mancante.'}, status=400)
+
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            credential,
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID,
+        )
+    except ValueError as e:
+        return JsonResponse({'error': f'Token non valido: {e}'}, status=400)
+
+    email = idinfo.get('email')
+    if not email or not idinfo.get('email_verified', False):
+        return JsonResponse({'error': 'Email non verificata.'}, status=400)
+
+    # Find or create user
+    user, created = User.objects.get_or_create(
+        email=email,
+        defaults={
+            'username': email.split('@')[0],
+            'first_name': idinfo.get('given_name', ''),
+            'last_name': idinfo.get('family_name', ''),
+            'is_active': True,
+        }
+    )
+
+    if created and User.objects.filter(username=user.username).exclude(pk=user.pk).exists():
+        user.username = f"{user.username}_{user.pk}"
+        user.save(update_fields=['username'])
+
+    # Django session login
+    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+    return JsonResponse({'success': True, 'redirect': '/app/dashboard/'})
 
 
 def delete_data_view(request):
