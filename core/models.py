@@ -177,7 +177,12 @@ class Arnia(models.Model):
     data_installazione = models.DateField()
     note = models.TextField(blank=True, null=True)
     attiva = models.BooleanField(default=True)
-    
+    attrezzatura = models.ForeignKey(
+        'Attrezzatura', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='arnie',
+        help_text="Attrezzatura collegata (se tracciata nell'inventario)"
+    )
+
     def __str__(self):
         return f"Arnia {self.numero} ({self.colore}) - {self.apiario.nome}"
     

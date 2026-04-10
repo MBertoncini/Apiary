@@ -80,7 +80,8 @@ class ArniaSerializer(serializers.ModelSerializer):
         model = Arnia
         fields = [
             'id', 'apiario', 'apiario_nome', 'numero', 'colore',
-            'colore_hex', 'tipo_arnia', 'data_installazione', 'note', 'attiva'
+            'colore_hex', 'tipo_arnia', 'data_installazione', 'note', 'attiva',
+            'attrezzatura'
         ]
 
 # Serializzatore Controllo Arnia (versione dettagliata)
