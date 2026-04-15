@@ -1134,6 +1134,25 @@ class SystemAiQuota(models.Model):
         return f"SystemAiQuota: {self.requests_today} richieste oggi"
 
 
+# ── AI Tier ──────────────────────────────────────────────────────────────────
+AI_TIER_FREE = 'free'
+AI_TIER_APICOLTORE = 'apicoltore'
+AI_TIER_PROFESSIONALE = 'professionale'
+
+AI_TIER_CHOICES = [
+    (AI_TIER_FREE, 'Free'),
+    (AI_TIER_APICOLTORE, 'Apicoltore'),
+    (AI_TIER_PROFESSIONALE, 'Professionale'),
+]
+
+# Limiti giornalieri per tier: chat, voice, totale
+AI_TIER_LIMITS = {
+    AI_TIER_FREE:           {'chat': 10,  'voice': 5,   'total': 15},
+    AI_TIER_APICOLTORE:     {'chat': 30,  'voice': 30,  'total': 60},
+    AI_TIER_PROFESSIONALE:  {'chat': 200, 'voice': 100, 'total': 300},
+}
+
+
 class Profilo(models.Model):
     """Modello per il profilo utente esteso"""
     utente = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profilo')
@@ -1143,10 +1162,18 @@ class Profilo(models.Model):
     onboarding_completato = models.BooleanField(default=False)
     gemini_api_key = models.CharField(max_length=200, blank=True, default='',
                                       verbose_name='Gemini API Key personale')
+    ai_tier = models.CharField(
+        max_length=20, choices=AI_TIER_CHOICES, default=AI_TIER_FREE,
+        verbose_name='Piano AI',
+    )
     ai_requests_today = models.IntegerField(default=0,
-                                            verbose_name='Richieste AI oggi (chiave personale)')
+                                            verbose_name='Richieste AI oggi (totale)')
+    ai_chat_today = models.IntegerField(default=0,
+                                        verbose_name='Richieste chat AI oggi')
+    ai_voice_today = models.IntegerField(default=0,
+                                         verbose_name='Richieste voice AI oggi')
     ai_requests_reset_at = models.DateTimeField(null=True, blank=True,
-                                                verbose_name='Reset contatore AI personale')
+                                                verbose_name='Reset contatore AI')
     
     def __str__(self):
         return f"Profilo di {self.utente.username}"

@@ -15,7 +15,7 @@ from django.conf import settings
 
 from datetime import date
 
-from .ai_services import gemini_service, increment_ai_quota
+from .ai_services import gemini_service, increment_ai_quota, check_ai_quota
 from .models import Apiario, Arnia, ControlloArnia, AnalisiTelaino, MembroGruppo
 
 # ---------------------------------------------------------------------------
@@ -349,6 +349,15 @@ def _build_user_context(user):
 def chat_ai(request):
     """Endpoint POST: riceve messaggio + cronologia, ritorna risposta AI."""
     try:
+        # ── Verifica quota tier ────────────────────────────────────────
+        allowed, quota_error, tier_limits = check_ai_quota(request.user, call_type='chat')
+        if not allowed:
+            return JsonResponse({
+                'error': quota_error,
+                'quota_exceeded': True,
+                'tier_limits': tier_limits,
+            }, status=429)
+
         data = json.loads(request.body)
         message = data.get('message', '').strip()
         history = data.get('history', [])  # [{role: 'user'|'model', text: '...'}]
@@ -376,7 +385,7 @@ def chat_ai(request):
             messages, system_prompt=system, temperature=0.7, max_tokens=800,
             api_key=user_api_key,
         )
-        increment_ai_quota(request.user, used_personal_key=bool(user_api_key))
+        increment_ai_quota(request.user, used_personal_key=bool(user_api_key), call_type='chat')
         return JsonResponse({'response': response_text, 'model': model_used})
 
     except Exception as e:
@@ -394,6 +403,15 @@ def voice_ai(request):
     Ritorna JSON strutturato con azione, dati estratti e risposta testuale.
     """
     try:
+        # ── Verifica quota tier ────────────────────────────────────────
+        allowed, quota_error, tier_limits = check_ai_quota(request.user, call_type='voice')
+        if not allowed:
+            return JsonResponse({
+                'error': quota_error,
+                'quota_exceeded': True,
+                'tier_limits': tier_limits,
+            }, status=429)
+
         data = json.loads(request.body)
         transcript = data.get('transcript', '').strip()
         context = data.get('context', '')  # contesto pagina (es. nome apiario corrente)
@@ -425,7 +443,7 @@ Rispondi SOLO con il JSON grezzo, senza markdown."""
             api_key=user_api_key,
             response_mime_type='application/json',
         )
-        increment_ai_quota(request.user, used_personal_key=bool(user_api_key))
+        increment_ai_quota(request.user, used_personal_key=bool(user_api_key), call_type='voice')
 
         # Pulisci e parsa il JSON
         try:
@@ -731,6 +749,15 @@ def voice_process(request):
     Ritorna JSON con i campi del controllo arnia.
     """
     try:
+        # ── Verifica quota tier ────────────────────────────────────────
+        allowed, quota_error, tier_limits = check_ai_quota(request.user, call_type='voice')
+        if not allowed:
+            return JsonResponse({
+                'error': quota_error,
+                'quota_exceeded': True,
+                'tier_limits': tier_limits,
+            }, status=429)
+
         data = json.loads(request.body)
         transcript = data.get('transcript', '').strip()
         apiario_id = data.get('apiario_id')
@@ -789,7 +816,7 @@ Regole:
             api_key=user_api_key,
             response_mime_type='application/json',
         )
-        increment_ai_quota(request.user, used_personal_key=bool(user_api_key))
+        increment_ai_quota(request.user, used_personal_key=bool(user_api_key), call_type='voice')
 
         # Pulisci e parsa JSON
         result = _extract_json(response_text)

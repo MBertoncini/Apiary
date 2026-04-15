@@ -1041,7 +1041,11 @@ class MelarioViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         apiari_accessibili = get_apiari_accessibili(self.request.user)
-        return Melario.objects.filter(colonia__apiario__in=apiari_accessibili).distinct()
+        return Melario.objects.filter(
+            colonia__apiario__in=apiari_accessibili
+        ).select_related(
+            'colonia', 'colonia__arnia', 'colonia__apiario', 'colonia__apiario__gruppo'
+        ).distinct()
 
 class SmielaturaViewSet(viewsets.ModelViewSet):
     """
@@ -1059,7 +1063,9 @@ class SmielaturaViewSet(viewsets.ModelViewSet):
         Filtra le smielature in base agli apiari accessibili all'utente.
         """
         apiari_accessibili = get_apiari_accessibili(self.request.user)
-        return Smielatura.objects.filter(apiario__in=apiari_accessibili)
+        return Smielatura.objects.filter(
+            apiario__in=apiari_accessibili
+        ).select_related('apiario', 'apiario__gruppo', 'utente')
 
 # Modifica il GruppoViewSet esistente aggiungendo le nuove azioni
 class GruppoViewSet(viewsets.ModelViewSet):
@@ -1613,6 +1619,9 @@ class InvasettamentoViewSet(viewsets.ModelViewSet):
         return Invasettamento.objects.filter(
             Q(smielatura__apiario__in=apiari_accessibili) |
             Q(contenitore__utente=self.request.user)
+        ).select_related(
+            'smielatura', 'smielatura__apiario', 'smielatura__apiario__gruppo',
+            'contenitore', 'utente'
         ).distinct()
 
     def perform_create(self, serializer):
@@ -2117,7 +2126,16 @@ def chat_ai_api(request):
     Payload: {"message": "...", "history": [{"role": "user|model", "text": "..."}]}
     """
     from .ai_views import _build_user_context, _get_user_api_key, BEE_SYSTEM_PROMPT, gemini_service
-    from .ai_services import increment_ai_quota
+    from .ai_services import increment_ai_quota, check_ai_quota
+
+    # ── Verifica quota tier ────────────────────────────────────────────────
+    allowed, quota_error, tier_limits = check_ai_quota(request.user, call_type='chat')
+    if not allowed:
+        return Response({
+            'error': quota_error,
+            'quota_exceeded': True,
+            'tier_limits': tier_limits,
+        }, status=429)
 
     CHART_INSTRUCTIONS = """
 
@@ -2154,7 +2172,7 @@ Inserisci il tag UNA SOLA VOLTA nella risposta quando l'utente chiede esplicitam
             messages, system_prompt=system, temperature=0.7, max_tokens=800,
             api_key=user_api_key,
         )
-        increment_ai_quota(request.user, used_personal_key=bool(user_api_key))
+        increment_ai_quota(request.user, used_personal_key=bool(user_api_key), call_type='chat')
         return Response({'response': response_text, 'model': model_used})
     except Exception as e:
         return Response({'error': str(e)}, status=500)
@@ -2169,25 +2187,27 @@ from .ai_services import AI_DAILY_LIMIT
 @permission_classes([IsAuthenticated])
 def ai_quota(request):
     """
-    Restituisce le informazioni sulla quota AI giornaliera.
-    Risposta:
-      personal_key_set: bool
-      active_key: 'personal' | 'system'
-      daily_limit: int
-      personal: {requests_today, reset_at}
-      system: {requests_today, reset_at}
+    Restituisce le informazioni sulla quota AI giornaliera con dettagli tier.
     """
+    from .models import AI_TIER_LIMITS, AI_TIER_FREE
+
     now = timezone.now()
 
     personal_key_set = False
     personal_requests = 0
     personal_reset_at = None
+    ai_tier = AI_TIER_FREE
+    chat_today = 0
+    voice_today = 0
     try:
         profilo = request.user.profilo
         personal_key_set = bool(profilo.gemini_api_key)
+        ai_tier = profilo.ai_tier or AI_TIER_FREE
         if profilo.ai_requests_reset_at and profilo.ai_requests_reset_at > now:
             personal_requests = profilo.ai_requests_today
             personal_reset_at = profilo.ai_requests_reset_at.isoformat()
+            chat_today = profilo.ai_chat_today
+            voice_today = profilo.ai_voice_today
     except Exception:
         pass
 
@@ -2201,10 +2221,24 @@ def ai_quota(request):
     except SystemAiQuota.DoesNotExist:
         pass
 
+    tier_limits = AI_TIER_LIMITS.get(ai_tier, AI_TIER_LIMITS[AI_TIER_FREE])
+
     return Response({
         'personal_key_set': personal_key_set,
         'active_key': 'personal' if personal_key_set else 'system',
         'daily_limit': AI_DAILY_LIMIT,
+        'ai_tier': ai_tier,
+        'tier_limits': tier_limits,
+        'usage': {
+            'chat_today': chat_today,
+            'voice_today': voice_today,
+            'total_today': personal_requests,
+        },
+        'remaining': {
+            'chat': max(0, tier_limits['chat'] - chat_today),
+            'voice': max(0, tier_limits['voice'] - voice_today),
+            'total': max(0, tier_limits['total'] - personal_requests),
+        },
         'personal': {
             'requests_today': personal_requests,
             'reset_at': personal_reset_at,

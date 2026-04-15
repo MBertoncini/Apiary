@@ -16,16 +16,24 @@ from .models import (
 class UserSerializer(serializers.ModelSerializer):
     gemini_api_key = serializers.SerializerMethodField()
     profile_image = serializers.SerializerMethodField()
+    ai_tier = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'gemini_api_key', 'profile_image']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name',
+                  'gemini_api_key', 'profile_image', 'ai_tier']
 
     def get_gemini_api_key(self, obj):
         try:
             return obj.profilo.gemini_api_key or ''
         except Exception:
             return ''
+
+    def get_ai_tier(self, obj):
+        try:
+            return obj.profilo.ai_tier or 'free'
+        except Exception:
+            return 'free'
 
     def get_profile_image(self, obj):
         try:
@@ -350,21 +358,36 @@ class MelarioSerializer(serializers.ModelSerializer):
     apiario_id          = serializers.SerializerMethodField()
     apiario_nome        = serializers.SerializerMethodField()
     apiario_gruppo_nome = serializers.SerializerMethodField()
+    arnia_id            = serializers.SerializerMethodField()
+    arnia_numero        = serializers.SerializerMethodField()
 
     class Meta:
         model = Melario
         fields = [
             'id', 'colonia', 'colonia_id',
+            'arnia_id', 'arnia_numero',
             'apiario_id', 'apiario_nome', 'apiario_gruppo_nome',
             'numero_telaini', 'posizione', 'data_posizionamento',
             'data_rimozione', 'stato', 'tipo_melario', 'stato_favi',
             'escludi_regina', 'peso_stimato', 'note'
         ]
 
-    def _apiario(self, obj):
+    def _colonia(self, obj):
         if obj.colonia_id:
-            return obj.colonia.apiario
+            return obj.colonia
         return None
+
+    def _apiario(self, obj):
+        col = self._colonia(obj)
+        return col.apiario if col else None
+
+    def get_arnia_id(self, obj):
+        col = self._colonia(obj)
+        return col.arnia_id if col and col.arnia_id else None
+
+    def get_arnia_numero(self, obj):
+        col = self._colonia(obj)
+        return col.arnia.numero if col and col.arnia_id else None
 
     def get_apiario_id(self, obj):
         ap = self._apiario(obj)

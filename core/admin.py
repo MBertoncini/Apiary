@@ -8,7 +8,60 @@ from .models import (
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
     Invasettamento, Cliente, Vendita, DettaglioVendita,
     AnalisiTelaino, Nucleo, ControlloNucleo,
+    Profilo, AI_TIER_LIMITS,
 )
+
+
+@admin.register(Profilo)
+class ProfiloAdmin(admin.ModelAdmin):
+    list_display = ['utente', 'ai_tier', 'ai_chat_today', 'ai_voice_today',
+                    'ai_requests_today', 'ai_requests_reset_at']
+    list_filter = ['ai_tier']
+    search_fields = ['utente__username', 'utente__email']
+    list_editable = ['ai_tier']
+    readonly_fields = ['utente', 'ai_requests_reset_at']
+    fieldsets = (
+        (None, {
+            'fields': ('utente', 'immagine', 'data_nascita', 'bio',
+                       'onboarding_completato'),
+        }),
+        ('API Keys', {
+            'fields': ('gemini_api_key',),
+        }),
+        ('Piano AI', {
+            'fields': ('ai_tier', 'ai_chat_today', 'ai_voice_today',
+                       'ai_requests_today', 'ai_requests_reset_at'),
+            'description': (
+                'Limiti giornalieri per tier — '
+                f'Free: {AI_TIER_LIMITS["free"]}, '
+                f'Apicoltore: {AI_TIER_LIMITS["apicoltore"]}, '
+                f'Professionale: {AI_TIER_LIMITS["professionale"]}'
+            ),
+        }),
+    )
+
+    actions = ['reset_ai_counters', 'set_tier_free', 'set_tier_apicoltore',
+               'set_tier_professionale']
+
+    @admin.action(description='Reset contatori AI a zero')
+    def reset_ai_counters(self, request, queryset):
+        queryset.update(ai_chat_today=0, ai_voice_today=0, ai_requests_today=0)
+        self.message_user(request, f'{queryset.count()} profili resettati.')
+
+    @admin.action(description='Imposta tier → Free')
+    def set_tier_free(self, request, queryset):
+        queryset.update(ai_tier='free')
+        self.message_user(request, f'{queryset.count()} profili impostati a Free.')
+
+    @admin.action(description='Imposta tier → Apicoltore')
+    def set_tier_apicoltore(self, request, queryset):
+        queryset.update(ai_tier='apicoltore')
+        self.message_user(request, f'{queryset.count()} profili impostati a Apicoltore.')
+
+    @admin.action(description='Imposta tier → Professionale')
+    def set_tier_professionale(self, request, queryset):
+        queryset.update(ai_tier='professionale')
+        self.message_user(request, f'{queryset.count()} profili impostati a Professionale.')
 
 
 @admin.register(Fioritura)
