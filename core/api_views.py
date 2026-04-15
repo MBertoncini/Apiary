@@ -2250,6 +2250,71 @@ def ai_quota(request):
     })
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def request_ai_upgrade(request):
+    """
+    Riceve una richiesta di upgrade tier AI dall'app e invia notifica email all'admin.
+    Payload: {"requested_tier": "apicoltore"|"professionale", "message": "..."}
+    """
+    from .models import AI_TIER_CHOICES, AI_TIER_LIMITS
+
+    requested_tier = request.data.get('requested_tier', '')
+    user_message = request.data.get('message', '')
+    valid_tiers = [t[0] for t in AI_TIER_CHOICES]
+
+    if requested_tier not in valid_tiers:
+        return Response(
+            {'error': f'Tier non valido. Opzioni: {valid_tiers}'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user = request.user
+    current_tier = 'free'
+    try:
+        current_tier = user.profilo.ai_tier or 'free'
+    except Exception:
+        pass
+
+    if valid_tiers.index(requested_tier) <= valid_tiers.index(current_tier):
+        return Response(
+            {'error': 'Il tier richiesto deve essere superiore a quello attuale.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    limits = AI_TIER_LIMITS.get(requested_tier, {})
+    subject = f'[Apiary] Richiesta upgrade AI: {user.username} → {requested_tier}'
+    body = (
+        f'Utente: {user.username} ({user.email})\n'
+        f'Piano attuale: {current_tier}\n'
+        f'Piano richiesto: {requested_tier}\n'
+        f'Limiti del piano: chat={limits.get("chat")}, '
+        f'voice={limits.get("voice")}, total={limits.get("total")}\n'
+    )
+    if user_message:
+        body += f'\nMessaggio utente:\n{user_message}\n'
+
+    try:
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email=None,  # usa DEFAULT_FROM_EMAIL
+            recipient_list=['michele.bertoncini@gmail.com'],
+            fail_silently=False,
+        )
+    except Exception as e:
+        logger.error(f'Errore invio email upgrade: {e}')
+        return Response(
+            {'error': 'Richiesta registrata ma invio email fallito. Ti contatteremo comunque.'},
+            status=status.HTTP_201_CREATED,
+        )
+
+    return Response({
+        'success': True,
+        'message': 'Richiesta di upgrade inviata! Ti contatteremo a breve.',
+    }, status=status.HTTP_201_CREATED)
+
+
 # Aggiungi queste funzioni di vista API per gestire gli inviti
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

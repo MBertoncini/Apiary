@@ -14,7 +14,7 @@ from .api_views import (
     CustomTokenObtainPairView, CustomTokenRefreshView,
     AttrezzaturaViewSet, SpesaAttrezzaturaViewSet, ManutenzioneAttrezzaturaViewSet,
     InvasettamentoViewSet, ClienteViewSet, VenditaViewSet,
-    AnalisiTelainoViewSet, NucleoViewSet, register_user, chat_ai_api, ai_quota,
+    AnalisiTelainoViewSet, NucleoViewSet, register_user, chat_ai_api, ai_quota, request_ai_upgrade,
     password_reset_request, password_reset_confirm,
     PreferenzaMaturazionViewSet, MatutatoreViewSet, ContenitoreStoccaggioViewSet,
     google_auth,
@@ -72,6 +72,7 @@ urlpatterns = [
     # Endpoint AI chat (JWT-compatible, per app mobile)
     path('ai/chat/', chat_ai_api, name='api-ai-chat'),
     path('ai/quota/', ai_quota, name='api-ai-quota'),
+    path('ai/request-upgrade/', request_ai_upgrade, name='api-ai-request-upgrade'),
 
     # Endpoint per il meteo
     path('meteo/', meteo_by_location, name='api-meteo'),
