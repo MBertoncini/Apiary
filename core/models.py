@@ -1207,6 +1207,35 @@ class Profilo(models.Model):
         
         super().save(*args, **kwargs)
 
+class ActivationCode(models.Model):
+    """Codice di attivazione per sbloccare tier AI (tester, promo, ecc.)."""
+    code = models.CharField(max_length=50, unique=True, db_index=True)
+    target_tier = models.CharField(
+        max_length=20, choices=AI_TIER_CHOICES, default=AI_TIER_APICOLTORE,
+        verbose_name='Tier da attivare',
+    )
+    max_uses = models.IntegerField(default=1, verbose_name='Utilizzi massimi')
+    times_used = models.IntegerField(default=0, verbose_name='Volte utilizzato')
+    expires_at = models.DateTimeField(null=True, blank=True, verbose_name='Scadenza')
+    note = models.CharField(max_length=200, blank=True, verbose_name='Nota interna')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Codice attivazione AI'
+        verbose_name_plural = 'Codici attivazione AI'
+
+    def __str__(self):
+        return f'{self.code} → {self.target_tier} ({self.times_used}/{self.max_uses})'
+
+    @property
+    def is_valid(self):
+        if self.times_used >= self.max_uses:
+            return False
+        if self.expires_at and timezone.now() > self.expires_at:
+            return False
+        return True
+
+
 # Crea automaticamente un profilo per ogni nuovo utente
 @receiver(post_save, sender=User)
 def crea_profilo(sender, instance, created, **kwargs):

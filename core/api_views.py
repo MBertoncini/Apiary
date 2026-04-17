@@ -2229,6 +2229,7 @@ def ai_quota(request):
         'daily_limit': AI_DAILY_LIMIT,
         'ai_tier': ai_tier,
         'tier_limits': tier_limits,
+        'all_tier_limits': AI_TIER_LIMITS,
         'usage': {
             'chat_today': chat_today,
             'voice_today': voice_today,
@@ -2313,6 +2314,66 @@ def request_ai_upgrade(request):
         'success': True,
         'message': 'Richiesta di upgrade inviata! Ti contatteremo a breve.',
     }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def activate_ai_code(request):
+    """
+    Attiva un codice di accesso per sbloccare un tier AI.
+    Payload: {"code": "TESTER123"}
+    """
+    from .models import ActivationCode, AI_TIER_CHOICES
+
+    code_str = (request.data.get('code') or '').strip().upper()
+    if not code_str:
+        return Response(
+            {'error': 'Codice mancante.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        activation = ActivationCode.objects.get(code__iexact=code_str)
+    except ActivationCode.DoesNotExist:
+        return Response(
+            {'error': 'Codice non valido.'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if not activation.is_valid:
+        return Response(
+            {'error': 'Codice scaduto o già utilizzato al massimo.'},
+            status=status.HTTP_410_GONE,
+        )
+
+    # Apply the tier upgrade.
+    profilo = request.user.profilo
+    valid_tiers = [t[0] for t in AI_TIER_CHOICES]
+    current_idx = valid_tiers.index(profilo.ai_tier) if profilo.ai_tier in valid_tiers else 0
+    target_idx = valid_tiers.index(activation.target_tier) if activation.target_tier in valid_tiers else 0
+
+    if target_idx <= current_idx:
+        return Response(
+            {'error': f'Il tuo piano attuale ({profilo.ai_tier}) è già uguale o superiore.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    profilo.ai_tier = activation.target_tier
+    profilo.save(update_fields=['ai_tier'])
+
+    activation.times_used += 1
+    activation.save(update_fields=['times_used'])
+
+    logger.info(
+        f'Activation code {code_str} used by {request.user.username} '
+        f'→ tier {activation.target_tier}'
+    )
+
+    return Response({
+        'success': True,
+        'message': f'Piano aggiornato a {activation.target_tier}!',
+        'tier': activation.target_tier,
+    })
 
 
 # Aggiungi queste funzioni di vista API per gestire gli inviti

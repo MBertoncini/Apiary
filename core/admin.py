@@ -8,7 +8,7 @@ from .models import (
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
     Invasettamento, Cliente, Vendita, DettaglioVendita,
     AnalisiTelaino, Nucleo, ControlloNucleo,
-    Profilo, AI_TIER_LIMITS,
+    Profilo, AI_TIER_LIMITS, ActivationCode,
 )
 
 
@@ -62,6 +62,19 @@ class ProfiloAdmin(admin.ModelAdmin):
     def set_tier_professionale(self, request, queryset):
         queryset.update(ai_tier='professionale')
         self.message_user(request, f'{queryset.count()} profili impostati a Professionale.')
+
+
+@admin.register(ActivationCode)
+class ActivationCodeAdmin(admin.ModelAdmin):
+    list_display = ['code', 'target_tier', 'times_used', 'max_uses', 'expires_at', 'is_valid_display', 'note']
+    list_filter = ['target_tier']
+    search_fields = ['code', 'note']
+    readonly_fields = ['times_used', 'created_at']
+
+    def is_valid_display(self, obj):
+        return obj.is_valid
+    is_valid_display.boolean = True
+    is_valid_display.short_description = 'Valido'
 
 
 @admin.register(Fioritura)
