@@ -2253,6 +2253,76 @@ def ai_quota(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+def record_voice_call(request):
+    """
+    Telemetria chiamate Gemini voice effettuate direttamente dal client.
+    Il client (Flutter) invoca Gemini multimodale senza passare dal backend;
+    questo endpoint serve a mantenere ai_voice_today autoritativo server-side
+    e a rispettare i limiti del tier.
+
+    Payload opzionale: {"model": "gemini-2.5-flash"}
+    Risposta 200: {"voice_today": N, "usage": {"chat_today": ..., "voice_today": N,
+                                              "total_today": ...},
+                   "remaining": {"chat": ..., "voice": ..., "total": ...}}
+    Risposta 429: {"error": "...", "quota_exceeded": true, "tier_limits": {...}}
+    """
+    from .ai_services import increment_ai_quota, check_ai_quota
+    from .models import AI_TIER_LIMITS, AI_TIER_FREE
+
+    # Verifica quota prima di incrementare: se già esaurita, 429 coerente
+    # con la gestione client-side di QuotaExceededException.
+    allowed, quota_error, tier_limits = check_ai_quota(request.user, call_type='voice')
+    if not allowed:
+        return Response({
+            'error': quota_error,
+            'quota_exceeded': True,
+            'tier_limits': tier_limits,
+        }, status=429)
+
+    personal_key_set = False
+    try:
+        personal_key_set = bool(request.user.profilo.gemini_api_key)
+    except Exception:
+        pass
+
+    increment_ai_quota(request.user, used_personal_key=personal_key_set, call_type='voice')
+
+    # Rileggi i contatori aggiornati per restituirli autoritativi al client.
+    voice_today = 0
+    chat_today = 0
+    total_today = 0
+    ai_tier = AI_TIER_FREE
+    try:
+        profilo = request.user.profilo
+        ai_tier = profilo.ai_tier or AI_TIER_FREE
+        now = timezone.now()
+        if profilo.ai_requests_reset_at and profilo.ai_requests_reset_at > now:
+            voice_today = profilo.ai_voice_today
+            chat_today = profilo.ai_chat_today
+            total_today = profilo.ai_requests_today
+    except Exception:
+        pass
+
+    limits = AI_TIER_LIMITS.get(ai_tier, AI_TIER_LIMITS[AI_TIER_FREE])
+
+    return Response({
+        'voice_today': voice_today,
+        'usage': {
+            'chat_today': chat_today,
+            'voice_today': voice_today,
+            'total_today': total_today,
+        },
+        'remaining': {
+            'chat': max(0, limits['chat'] - chat_today),
+            'voice': max(0, limits['voice'] - voice_today),
+            'total': max(0, limits['total'] - total_today),
+        },
+        'model': request.data.get('model'),
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def request_ai_upgrade(request):
     """
     Riceve una richiesta di upgrade tier AI dall'app e invia notifica email all'admin.

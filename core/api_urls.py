@@ -14,7 +14,7 @@ from .api_views import (
     CustomTokenObtainPairView, CustomTokenRefreshView,
     AttrezzaturaViewSet, SpesaAttrezzaturaViewSet, ManutenzioneAttrezzaturaViewSet,
     InvasettamentoViewSet, ClienteViewSet, VenditaViewSet,
-    AnalisiTelainoViewSet, NucleoViewSet, register_user, chat_ai_api, ai_quota, request_ai_upgrade, activate_ai_code,
+    AnalisiTelainoViewSet, NucleoViewSet, register_user, chat_ai_api, ai_quota, record_voice_call, request_ai_upgrade, activate_ai_code,
     password_reset_request, password_reset_confirm,
     PreferenzaMaturazionViewSet, MatutatoreViewSet, ContenitoreStoccaggioViewSet,
     google_auth,
@@ -72,6 +72,7 @@ urlpatterns = [
     # Endpoint AI chat (JWT-compatible, per app mobile)
     path('ai/chat/', chat_ai_api, name='api-ai-chat'),
     path('ai/quota/', ai_quota, name='api-ai-quota'),
+    path('ai/record-voice-call/', record_voice_call, name='api-ai-record-voice-call'),
     path('ai/request-upgrade/', request_ai_upgrade, name='api-ai-request-upgrade'),
     path('ai/activate-code/', activate_ai_code, name='api-ai-activate-code'),
 
