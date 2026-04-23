@@ -14,12 +14,12 @@ from .models import (
 
 @admin.register(Profilo)
 class ProfiloAdmin(admin.ModelAdmin):
-    list_display = ['utente', 'ai_tier', 'ai_chat_today', 'ai_voice_today',
-                    'ai_requests_today', 'ai_requests_reset_at']
+    list_display = ['utente', 'ai_tier', 'chat_usage', 'voice_usage',
+                    'total_usage', 'ai_requests_reset_at']
     list_filter = ['ai_tier']
     search_fields = ['utente__username', 'utente__email']
     list_editable = ['ai_tier']
-    readonly_fields = ['utente', 'ai_requests_reset_at']
+    readonly_fields = ['utente', 'ai_requests_reset_at', 'chat_usage', 'voice_usage', 'total_usage']
     fieldsets = (
         (None, {
             'fields': ('utente', 'immagine', 'data_nascita', 'bio',
@@ -28,17 +28,32 @@ class ProfiloAdmin(admin.ModelAdmin):
         ('API Keys', {
             'fields': ('gemini_api_key',),
         }),
-        ('Piano AI', {
-            'fields': ('ai_tier', 'ai_chat_today', 'ai_voice_today',
-                       'ai_requests_today', 'ai_requests_reset_at'),
+        ('Piano AI & Utilizzo', {
+            'fields': ('ai_tier', 'chat_usage', 'voice_usage',
+                       'total_usage', 'ai_requests_reset_at'),
             'description': (
                 'Limiti giornalieri per tier — '
-                f'Free: {AI_TIER_LIMITS["free"]}, '
-                f'Apicoltore: {AI_TIER_LIMITS["apicoltore"]}, '
-                f'Professionale: {AI_TIER_LIMITS["professionale"]}'
+                f'Base: {AI_TIER_LIMITS["free"]}, '
+                f'Sostenitore: {AI_TIER_LIMITS["apicoltore"]}, '
+                f'Tester Avanzato: {AI_TIER_LIMITS["professionale"]}'
             ),
         }),
     )
+
+    def chat_usage(self, obj):
+        limit = AI_TIER_LIMITS.get(obj.ai_tier, AI_TIER_LIMITS['free'])['chat']
+        return f"{obj.ai_chat_today} / {limit}"
+    chat_usage.short_description = 'Chat (oggi/max)'
+
+    def voice_usage(self, obj):
+        limit = AI_TIER_LIMITS.get(obj.ai_tier, AI_TIER_LIMITS['free'])['voice']
+        return f"{obj.ai_voice_today} / {limit}"
+    voice_usage.short_description = 'Voice (oggi/max)'
+
+    def total_usage(self, obj):
+        limit = AI_TIER_LIMITS.get(obj.ai_tier, AI_TIER_LIMITS['free'])['total']
+        return f"{obj.ai_requests_today} / {limit}"
+    total_usage.short_description = 'Totale (oggi/max)'
 
     actions = ['reset_ai_counters', 'set_tier_free', 'set_tier_apicoltore',
                'set_tier_professionale']
@@ -48,20 +63,20 @@ class ProfiloAdmin(admin.ModelAdmin):
         queryset.update(ai_chat_today=0, ai_voice_today=0, ai_requests_today=0)
         self.message_user(request, f'{queryset.count()} profili resettati.')
 
-    @admin.action(description='Imposta tier → Free')
+    @admin.action(description='Imposta tier → Base (Test)')
     def set_tier_free(self, request, queryset):
         queryset.update(ai_tier='free')
-        self.message_user(request, f'{queryset.count()} profili impostati a Free.')
+        self.message_user(request, f'{queryset.count()} profili impostati a Base (Test).')
 
-    @admin.action(description='Imposta tier → Apicoltore')
+    @admin.action(description='Imposta tier → Sostenitore')
     def set_tier_apicoltore(self, request, queryset):
         queryset.update(ai_tier='apicoltore')
-        self.message_user(request, f'{queryset.count()} profili impostati a Apicoltore.')
+        self.message_user(request, f'{queryset.count()} profili impostati a Sostenitore.')
 
-    @admin.action(description='Imposta tier → Professionale')
+    @admin.action(description='Imposta tier → Tester Avanzato')
     def set_tier_professionale(self, request, queryset):
         queryset.update(ai_tier='professionale')
-        self.message_user(request, f'{queryset.count()} profili impostati a Professionale.')
+        self.message_user(request, f'{queryset.count()} profili impostati a Tester Avanzato.')
 
 
 @admin.register(ActivationCode)

@@ -1140,9 +1140,9 @@ AI_TIER_APICOLTORE = 'apicoltore'
 AI_TIER_PROFESSIONALE = 'professionale'
 
 AI_TIER_CHOICES = [
-    (AI_TIER_FREE, 'Free'),
-    (AI_TIER_APICOLTORE, 'Apicoltore'),
-    (AI_TIER_PROFESSIONALE, 'Professionale'),
+    (AI_TIER_FREE, 'Base (Test)'),
+    (AI_TIER_APICOLTORE, 'Sostenitore'),
+    (AI_TIER_PROFESSIONALE, 'Tester Avanzato'),
 ]
 
 # Limiti giornalieri per tier: chat, voice, totale
