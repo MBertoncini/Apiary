@@ -113,7 +113,7 @@ class ControlloArniaDetailSerializer(serializers.ModelSerializer):
             'data_sciamatura', 'note_sciamatura', 'problemi_sanitari',
             'note_problemi', 'note', 'data_creazione',
             'regina_vista', 'uova_fresche', 'celle_reali',
-            'numero_celle_reali', 'regina_sostituita', 'telaini_config'
+            'numero_celle_reali', 'regina_sostituita', 'sostituzione_scatola', 'telaini_config'
         ]
         read_only_fields = ['utente']
 

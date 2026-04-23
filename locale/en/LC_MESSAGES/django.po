@@ -1,0 +1,193 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Apiary\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-04-23 21:15+0000\n"
+"PO-Revision-Date: 2026-04-23 21:15+0000\n"
+"Last-Translator: \n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgid "Apiario"
+msgstr "Apiary"
+
+msgid "Nuovo Apiario"
+msgstr "New Apiary"
+
+msgid "Fioriture"
+msgstr "Blooms"
+
+msgid "Calendario"
+msgstr "Calendar"
+
+msgid "Mappa"
+msgstr "Map"
+
+msgid "Nomadismo"
+msgstr "Nomadism"
+
+msgid "Gestione"
+msgstr "Management"
+
+msgid "Trattamenti"
+msgstr "Treatments"
+
+msgid "Pagamenti"
+msgstr "Payments"
+
+msgid "Quote"
+msgstr "Quotas"
+
+msgid "Vendite"
+msgstr "Sales"
+
+msgid "Clienti"
+msgstr "Customers"
+
+msgid "Nuclei"
+msgstr "Nuclei"
+
+msgid "Melari"
+msgstr "Supers"
+
+msgid "Cantina"
+msgstr "Honey House"
+
+msgid "Inventario"
+msgstr "Inventory"
+
+msgid "Attrezzature"
+msgstr "Equipment"
+
+msgid "Regine"
+msgstr "Queens"
+
+msgid "Ricerca Regine"
+msgstr "Queen Search"
+
+msgid "Confronta Regine"
+msgstr "Compare Queens"
+
+msgid "Intelligenza Artificiale"
+msgstr "Artificial Intelligence"
+
+msgid "Controllo Vocale"
+msgstr "Voice Control"
+
+msgid "Analisi Telaino"
+msgstr "Frame Analysis"
+
+msgid "Collaborazione"
+msgstr "Collaboration"
+
+msgid "Gruppi"
+msgstr "Groups"
+
+msgid "Aiuto"
+msgstr "Help"
+
+msgid "Guida"
+msgstr "Guide"
+
+msgid "Offrici un caffè"
+msgstr "Buy us a coffee"
+
+msgid "Il mio profilo"
+msgstr "My profile"
+
+msgid "Cerca apiari, arnie, regine…"
+msgstr "Search apiaries, hives, queens…"
+
+msgid "Lingua"
+msgstr "Language"
+
+msgid "Notifiche"
+msgstr "Notifications"
+
+msgid "Benvenuto su Apiary"
+msgstr "Welcome to Apiary"
+
+msgid "La piattaforma professionale per la gestione dell'apiario"
+msgstr "The professional platform for apiary management"
+
+msgid "Vai alla Dashboard"
+msgstr "Go to Dashboard"
+
+msgid "I miei Apiari"
+msgstr "My Apiaries"
+
+msgid "Accedi"
+msgstr "Login"
+
+msgid "Registrati"
+msgstr "Register"
+
+msgid "Tutto quello che ti serve"
+msgstr "Everything you need"
+
+msgid "Una suite completa di strumenti pensati per l'apicoltore moderno."
+msgstr "A complete suite of tools designed for the modern beekeeper."
+
+msgid "Gestione Apiari & Arnie"
+msgstr "Apiaries & Hives Management"
+
+msgid "Monitora ogni arnia con colori, telaini visuali e storico completo dei controlli."
+msgstr "Monitor every hive with colors, visual frames and full inspection history."
+
+msgid "Tracciamento Regine"
+msgstr "Queen Tracking"
+
+msgid "Genealogia, marcatura, razza e performance — tieni traccia di ogni regina nel dettaglio."
+msgstr "Genealogy, marking, breed and performance — track every queen in detail."
+
+msgid "Produzione Miele"
+msgstr "Honey Production"
+
+msgid "Gestisci melari, smielature e invasettamento con tracciabilità completa della produzione."
+msgstr "Manage supers, honey extraction and bottling with full production traceability."
+
+msgid "Trattamenti Sanitari"
+msgstr "Sanitary Treatments"
+
+msgid "Pianifica e monitora i trattamenti con calcolo automatico del periodo di sospensione."
+msgstr "Plan and monitor treatments with automatic withdrawal period calculation."
+
+msgid "Fioriture & Pascolo"
+msgstr "Blooms & Pasture"
+
+msgid "Mappa le fioriture locali e condividile con la community degli apicoltori."
+msgstr "Map local blooms and share them with the beekeeper community."
+
+msgid "Collaborazione"
+msgstr "Collaboration"
+
+msgid "Condividi apiari, gestisci quote e pagamenti con il tuo team in modo trasparente."
+msgstr "Share apiaries, manage quotas and payments with your team transparently."
+
+msgid "Arnie gestite"
+msgstr "Managed hives"
+
+msgid "Controlli questo mese"
+msgstr "Inspections this month"
+
+msgid "Fioriture attive"
+msgstr "Active blooms"
+
+msgid "Trattamenti attivi"
+msgstr "Active treatments"
+
+msgid "Pronto a gestire il tuo apiario?"
+msgstr "Ready to manage your apiary?"
+
+msgid "Unisciti agli apicoltori che usano Apiary per tenere tutto sotto controllo."
+msgstr "Join beekeepers using Apiary to keep everything under control."
+
+msgid "Crea il tuo account gratuito"
+msgstr "Create your free account"

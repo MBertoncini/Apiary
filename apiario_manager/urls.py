@@ -2,6 +2,7 @@
 
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls.i18n import i18n_patterns
 from core.views import homepage
 from core.auth_views import login_view, register_view, logout_view, password_reset_confirm_web, forgot_password_view, google_login_web, delete_account_view, delete_data_view
 
@@ -25,7 +26,21 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    path('i18n/', include('django.conf.urls.i18n')),
     path('admin/', admin.site.urls),
+    
+    # API REST (non localizzate)
+    path('api/v1/', include('core.api_urls')),
+
+    # Modulo Statistiche & AI Analytics (non localizzate)
+    path('api/stats/', include('statistiche.urls')),
+    
+    # Documenti Swagger/OpenAPI
+    path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+]
+
+urlpatterns += i18n_patterns(
     path('', homepage, name='homepage'),  # Homepage come vista principale
     path('app/', include('core.urls')),   # Tutte le altre URL sotto /app/
     path('login/', login_view, name='login'),
@@ -36,14 +51,4 @@ urlpatterns = [
     path('reset-password/<uidb64>/<token>/', password_reset_confirm_web, name='password_reset_confirm_web'),
     path('delete-account/', delete_account_view, name='delete_account'),
     path('delete-data/', delete_data_view, name='delete_data'),
-    
-    # Aggiungi le API REST
-    path('api/v1/', include('core.api_urls')),
-
-    # Modulo Statistiche & AI Analytics
-    path('api/stats/', include('statistiche.urls')),
-    
-    # Documenti Swagger/OpenAPI
-    path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-]
+)

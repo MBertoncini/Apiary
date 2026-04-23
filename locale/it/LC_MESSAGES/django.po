@@ -1,0 +1,112 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Apiary\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-04-23 21:15+0000\n"
+"PO-Revision-Date: 2026-04-23 21:15+0000\n"
+"Last-Translator: \n"
+"Language-Team: Italiano\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgid "Apiario"
+msgstr "Apiario"
+
+msgid "Nuovo Apiario"
+msgstr "Nuovo Apiario"
+
+msgid "Fioriture"
+msgstr "Fioriture"
+
+msgid "Calendario"
+msgstr "Calendario"
+
+msgid "Mappa"
+msgstr "Mappa"
+
+msgid "Nomadismo"
+msgstr "Nomadismo"
+
+msgid "Gestione"
+msgstr "Gestione"
+
+msgid "Trattamenti"
+msgstr "Trattamenti"
+
+msgid "Pagamenti"
+msgstr "Pagamenti"
+
+msgid "Quote"
+msgstr "Quote"
+
+msgid "Vendite"
+msgstr "Vendite"
+
+msgid "Clienti"
+msgstr "Clienti"
+
+msgid "Nuclei"
+msgstr "Nuclei"
+
+msgid "Melari"
+msgstr "Melari"
+
+msgid "Cantina"
+msgstr "Cantina"
+
+msgid "Inventario"
+msgstr "Inventario"
+
+msgid "Attrezzature"
+msgstr "Attrezzature"
+
+msgid "Regine"
+msgstr "Regine"
+
+msgid "Ricerca Regine"
+msgstr "Ricerca Regine"
+
+msgid "Confronta Regine"
+msgstr "Confronta Regine"
+
+msgid "Intelligenza Artificiale"
+msgstr "Intelligenza Artificiale"
+
+msgid "Controllo Vocale"
+msgstr "Controllo Vocale"
+
+msgid "Analisi Telaino"
+msgstr "Analisi Telaino"
+
+msgid "Collaborazione"
+msgstr "Collaborazione"
+
+msgid "Gruppi"
+msgstr "Gruppi"
+
+msgid "Aiuto"
+msgstr "Aiuto"
+
+msgid "Guida"
+msgstr "Guida"
+
+msgid "Offrici un caffè"
+msgstr "Offrici un caffè"
+
+msgid "Il mio profilo"
+msgstr "Il mio profilo"
+
+msgid "Cerca apiari, arnie, regine…"
+msgstr "Cerca apiari, arnie, regine…"
+
+msgid "Lingua"
+msgstr "Lingua"
+
+msgid "Notifiche"
+msgstr "Notifiche"

@@ -66,6 +66,9 @@ urlpatterns = [
     path('inviti/accetta/<uuid:token>/', accetta_invito, name='api-attiva-invito'),
     path('inviti/rifiuta/<uuid:token>/', rifiuta_invito, name='api-rifiuta-invito'),
     
+    path('arnie/create_from_voice/', ArniaViewSet.as_view({'post': 'create_from_voice'}), name='api-arnia-voice-create'),
+    path('trattamenti/create_from_voice/', TrattamentoSanitarioViewSet.as_view({'post': 'create_from_voice'}), name='api-trattamento-voice-create'),
+
     # Endpoint per il profilo utente
     path('users/me/', current_user, name='api-current-user'),
     

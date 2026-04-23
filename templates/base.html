@@ -1,6 +1,7 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
-<html lang="it">
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,154 +49,154 @@
     <a href="{% url 'dashboard' %}"
        class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
       <i class="bi bi-speedometer2 nav-icon"></i>
-      Dashboard
+      {% trans "Dashboard" %}
     </a>
 
     <!-- APIARIO -->
-    <div class="sidebar-section-label">Apiario</div>
+    <div class="sidebar-section-label">{% trans "Apiario" %}</div>
 
     <a href="{% url 'crea_apiario' %}"
        class="sidebar-link {% if request.resolver_match.url_name == 'crea_apiario' %}active{% endif %}">
       <i class="bi bi-plus-circle nav-icon"></i>
-      Nuovo Apiario
+      {% trans "Nuovo Apiario" %}
     </a>
 
     <a href="{% url 'gestione_fioriture' %}"
        class="sidebar-link {% if request.resolver_match.url_name == 'gestione_fioriture' %}active{% endif %}">
       <i class="bi bi-flower1 nav-icon"></i>
-      Fioriture
+      {% trans "Fioriture" %}
     </a>
 
     <a href="{% url 'calendario_apiario' %}"
        class="sidebar-link {% if request.resolver_match.url_name == 'calendario_apiario' %}active{% endif %}">
       <i class="bi bi-calendar3 nav-icon"></i>
-      Calendario
+      {% trans "Calendario" %}
     </a>
 
     <a href="{% url 'mappa_apiari' %}"
        class="sidebar-link {% if request.resolver_match.url_name == 'mappa_apiari' %}active{% endif %}">
       <i class="bi bi-geo-alt nav-icon"></i>
-      Mappa
+      {% trans "Mappa" %}
     </a>
 
     <a href="{% url 'mappa_nomadismo' %}"
        class="sidebar-link {% if request.resolver_match.url_name == 'mappa_nomadismo' %}active{% endif %}">
       <i class="bi bi-compass nav-icon"></i>
-      Nomadismo
+      {% trans "Nomadismo" %}
     </a>
 
     <!-- GESTIONE -->
-    <div class="sidebar-section-label">Gestione</div>
+    <div class="sidebar-section-label">{% trans "Gestione" %}</div>
 
     <a href="{% url 'gestione_trattamenti' %}"
        class="sidebar-link {% if 'trattament' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-capsule nav-icon"></i>
-      Trattamenti
+      {% trans "Trattamenti" %}
     </a>
 
     <a href="{% url 'gestione_pagamenti' %}"
        class="sidebar-link {% if request.resolver_match.url_name == 'gestione_pagamenti' %}active{% endif %}">
       <i class="bi bi-cash-coin nav-icon"></i>
-      Pagamenti
+      {% trans "Pagamenti" %}
     </a>
 
     <a href="{% url 'gestione_quote' %}"
        class="sidebar-link {% if request.resolver_match.url_name == 'gestione_quote' %}active{% endif %}">
       <i class="bi bi-percent nav-icon"></i>
-      Quote
+      {% trans "Quote" %}
     </a>
 
     <a href="{% url 'gestione_vendite' %}"
        class="sidebar-link {% if 'vendita' in request.resolver_match.url_name or 'vendite' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-bag-heart nav-icon"></i>
-      Vendite
+      {% trans "Vendite" %}
     </a>
 
     <a href="{% url 'gestione_clienti' %}"
        class="sidebar-link {% if 'client' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-people nav-icon"></i>
-      Clienti
+      {% trans "Clienti" %}
     </a>
 
     <a href="{% url 'gestione_nuclei' %}"
        class="sidebar-link {% if 'nucleo' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-hexagon-half nav-icon"></i>
-      Nuclei
+      {% trans "Nuclei" %}
     </a>
 
     <a href="{% url 'gestione_melari_globale' %}"
        class="sidebar-link {% if 'melari' in request.resolver_match.url_name or 'smielatura' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-layers nav-icon"></i>
-      Melari
+      {% trans "Melari" %}
     </a>
 
     <a href="{% url 'gestione_cantina' %}"
        class="sidebar-link {% if 'cantina' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-jar nav-icon"></i>
-      Cantina
+      {% trans "Cantina" %}
     </a>
 
     <!-- INVENTARIO -->
-    <div class="sidebar-section-label">Inventario</div>
+    <div class="sidebar-section-label">{% trans "Inventario" %}</div>
 
     <a href="{% url 'gestione_attrezzature' %}"
        class="sidebar-link {% if 'attrezzatur' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-box-seam nav-icon"></i>
-      Attrezzature
+      {% trans "Attrezzature" %}
     </a>
 
     <a href="{% url 'inventario_attrezzature' %}"
        class="sidebar-link {% if request.resolver_match.url_name == 'inventario_attrezzature' %}active{% endif %}">
       <i class="bi bi-clipboard-data nav-icon"></i>
-      Inventario
+      {% trans "Inventario" %}
     </a>
 
     <!-- REGINE -->
-    <div class="sidebar-section-label">Regine</div>
+    <div class="sidebar-section-label">{% trans "Regine" %}</div>
 
     <a href="{% url 'ricerca_regine' %}"
        class="sidebar-link {% if request.resolver_match.url_name == 'ricerca_regine' %}active{% endif %}">
       <i class="bi bi-diagram-3 nav-icon"></i>
-      Ricerca Regine
+      {% trans "Ricerca Regine" %}
     </a>
 
     <a href="{% url 'confronta_regine' %}"
        class="sidebar-link {% if request.resolver_match.url_name == 'confronta_regine' %}active{% endif %}">
       <i class="bi bi-bar-chart-steps nav-icon"></i>
-      Confronta Regine
+      {% trans "Confronta Regine" %}
     </a>
 
     <!-- AI -->
-    <div class="sidebar-section-label">Intelligenza Artificiale</div>
+    <div class="sidebar-section-label">{% trans "Intelligenza Artificiale" %}</div>
 
     <a href="{% url 'controllo_vocale' %}"
        class="sidebar-link {% if request.resolver_match.url_name == 'controllo_vocale' %}active{% endif %}">
       <i class="bi bi-mic-fill nav-icon"></i>
-      Controllo Vocale
+      {% trans "Controllo Vocale" %}
     </a>
 
     <a href="{% url 'analisi_telaino' %}"
        class="sidebar-link {% if request.resolver_match.url_name == 'analisi_telaino' %}active{% endif %}">
       <i class="bi bi-camera nav-icon"></i>
-      Analisi Telaino
+      {% trans "Analisi Telaino" %}
     </a>
 
     <!-- COLLABORAZIONE -->
-    <div class="sidebar-section-label">Collaborazione</div>
+    <div class="sidebar-section-label">{% trans "Collaborazione" %}</div>
 
     <a href="{% url 'gestione_gruppi' %}"
        class="sidebar-link {% if 'grupp' in request.resolver_match.url_name %}active{% endif %}">
       <i class="bi bi-people nav-icon"></i>
-      Gruppi
+      {% trans "Gruppi" %}
     </a>
 
     <!-- AIUTO -->
-    <div class="sidebar-section-label">Aiuto</div>
+    <div class="sidebar-section-label">{% trans "Aiuto" %}</div>
 
     <a href="{% url 'guida' %}"
        class="sidebar-link {% if request.resolver_match.url_name == 'guida' %}active{% endif %}">
       <i class="bi bi-question-circle nav-icon"></i>
-      Guida
+      {% trans "Guida" %}
     </a>
 
   </nav>
@@ -238,7 +239,7 @@
   <div class="topbar-search">
     <form action="{% url 'ricerca' %}" method="get">
       <input class="form-control" type="search" name="q"
-             placeholder="Cerca apiari, arnie, regine…"
+             placeholder="{% trans 'Cerca apiari, arnie, regine…' %}"
              value="{{ request.GET.q|default:'' }}">
       <button class="btn" type="submit"><i class="bi bi-search"></i></button>
     </form>
@@ -247,7 +248,30 @@
   <!-- Actions -->
   <div class="topbar-actions">
 
-    <a href="{% url 'crea_apiario' %}" class="topbar-icon-btn d-none d-md-flex" title="Nuovo Apiario">
+    <!-- Language Switcher -->
+    <div class="dropdown me-2">
+      <button class="topbar-icon-btn" data-bs-toggle="dropdown" aria-expanded="false" title="{% trans 'Lingua' %}">
+        <i class="bi bi-translate"></i>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        {% get_available_languages as LANGUAGES %}
+        {% get_language_info_list for LANGUAGES as languages %}
+        {% for language in languages %}
+          <li>
+            <form action="{% url 'set_language' %}" method="post">
+              {% csrf_token %}
+              <input name="next" type="hidden" value="{{ request.get_full_path }}">
+              <input name="language" type="hidden" value="{{ language.code }}">
+              <button type="submit" class="dropdown-item {% if language.code == LANGUAGE_CODE %}active{% endif %}">
+                {{ language.name_local }}
+              </button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <a href="{% url 'crea_apiario' %}" class="topbar-icon-btn d-none d-md-flex" title="{% trans 'Nuovo Apiario' %}">
       <i class="bi bi-plus-circle"></i>
     </a>
 
@@ -255,7 +279,7 @@
     <div class="dropdown notifiche-dropdown">
       <button class="topbar-icon-btn position-relative notifiche-bell-btn"
               data-bs-toggle="dropdown" aria-expanded="false"
-              title="Notifiche" id="notificheBell">
+              title="{% trans 'Notifiche' %}" id="notificheBell">
         <i class="bi bi-bell"></i>
         {% if notifiche_non_lette > 0 %}
         <span class="notifiche-badge" id="notificheBadge">{{ notifiche_non_lette }}</span>
