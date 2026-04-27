@@ -4,6 +4,7 @@ from .views.export import ExportExcelView, ExportPdfView
 from .views.nl_query import NLQueryView
 from .views.query_builder import QueryBuilderView
 from .views.widgets import (
+    AndamentoCovataView,
     AndamentoScorteView,
     BilancioEconomicoView,
     DashboardConfigView,
@@ -35,6 +36,7 @@ urlpatterns = [
     path('widgets/quote_gruppo/', QuoteGruppoView.as_view(), name='stats-quote-gruppo'),
     path('widgets/fioriture_vicine/', FioritureVicineView.as_view(), name='stats-fioriture-vicine'),
     path('widgets/andamento_scorte/', AndamentoScorteView.as_view(), name='stats-andamento-scorte'),
+    path('widgets/andamento_covata/', AndamentoCovataView.as_view(), name='stats-andamento-covata'),
     path('widgets/produzione_per_tipo/', ProduzionePerTipoView.as_view(), name='stats-produzione-per-tipo'),
     path('widgets/riepilogo_attrezzature/', RiepilogoAttrezzatureView.as_view(), name='stats-riepilogo-attrezzature'),
 

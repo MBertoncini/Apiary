@@ -45,7 +45,10 @@
       "Bash(ls:*)",
       "Bash(DJANGO_SETTINGS_MODULE=apiario_manager.settings python -c \"import django; django.setup\\(\\); from core.auth_views import login_view, register_view, logout_view, password_reset_confirm_web, forgot_password_view; print\\('All views imported OK'\\)\")",
       "Bash(python -m py_compile core/auth_views.py)",
-      "Bash(python -m py_compile apiario_manager/urls.py)"
+      "Bash(python -m py_compile apiario_manager/urls.py)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }

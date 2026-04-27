@@ -34,6 +34,7 @@ WIDGET_CATALOG = [
     {'widget_id': 'quote_gruppo',          'titolo': 'Quote Gruppo',               'tipo': 'progress', 'parametri': {'gruppo_id': None, 'anno': None}},
     {'widget_id': 'fioriture_vicine',      'titolo': 'Fioriture Vicine',           'tipo': 'map',      'parametri': {'raggio_km': 5}},
     {'widget_id': 'andamento_scorte',      'titolo': 'Andamento Scorte',           'tipo': 'line',     'parametri': {'periodo_mesi': 6, 'apiario_id': None}},
+    {'widget_id': 'andamento_covata',      'titolo': 'Andamento Covata',           'tipo': 'line',     'parametri': {'periodo_mesi': 6, 'apiario_id': None}},
     {'widget_id': 'produzione_per_tipo',   'titolo': 'Produzione per Tipo di Miele', 'tipo': 'pie',   'parametri': {'anno': None}},
     {'widget_id': 'riepilogo_attrezzature','titolo': 'Riepilogo Attrezzature',     'tipo': 'table',    'parametri': {'categoria': None}},
 ]
@@ -116,7 +117,8 @@ class SaluteArnieView(APIView):
             arnie_qs = arnie_qs.filter(apiario_id=apiario_id)
 
         data_soglia = timezone.now().date() - datetime.timedelta(days=periodo_giorni)
-        ottima = attenzione = critica = 0
+        arnie_ottime = []
+        arnie_attenzione = []
         arnie_critiche = []
 
         for arnia in arnie_qs.select_related('apiario'):
@@ -124,23 +126,25 @@ class SaluteArnieView(APIView):
                 arnia=arnia, data__gte=data_soglia
             ).order_by('-data').first()
 
+            info = {
+                'id': arnia.id,
+                'numero': arnia.numero,
+                'apiario': arnia.apiario.nome,
+            }
             if not ultimo:
-                critica += 1
-                arnie_critiche.append({
-                    'id': arnia.id,
-                    'numero': arnia.numero,
-                    'apiario': arnia.apiario.nome,
-                })
+                arnie_critiche.append(info)
             elif not ultimo.presenza_regina or ultimo.problemi_sanitari:
-                attenzione += 1
+                arnie_attenzione.append(info)
             else:
-                ottima += 1
+                arnie_ottime.append(info)
 
         data = {
-            'ottima': ottima,
-            'attenzione': attenzione,
-            'critica': critica,
-            'totale': ottima + attenzione + critica,
+            'ottima': len(arnie_ottime),
+            'attenzione': len(arnie_attenzione),
+            'critica': len(arnie_critiche),
+            'totale': len(arnie_ottime) + len(arnie_attenzione) + len(arnie_critiche),
+            'arnie_ottime': arnie_ottime,
+            'arnie_attenzione': arnie_attenzione,
             'arnie_critiche': arnie_critiche,
         }
         cache.set(_cache_key('salute_arnie', request.user.id, params), data, timeout=300)
@@ -268,9 +272,7 @@ class RegineStatisticheView(APIView):
         if cached:
             return Response(cached)
 
-        arnia_ids = _get_user_arnia_ids(request.user)
-
-        sostituzioni = StoriaRegine.objects.filter(arnia_id__in=arnia_ids)
+        sostituzioni = StoriaRegine.objects.filter(colonia__utente=request.user)
         if anno:
             sostituzioni = sostituzioni.filter(data_inizio__year=anno)
 
@@ -281,11 +283,11 @@ class RegineStatisticheView(APIView):
             .order_by('-count')
         )
 
-        regine_attive = Regina.objects.filter(arnia_id__in=arnia_ids).count()
+        regine_attive = Regina.objects.filter(colonia__utente=request.user).count()
 
         # Calcola durata media vita regine (data_inizio → data_fine in StoriaRegine)
         durata_data = StoriaRegine.objects.filter(
-            arnia_id__in=arnia_ids,
+            colonia__utente=request.user,
             data_fine__isnull=False,
         ).annotate(
             durata=F('data_fine') - F('data_inizio')
@@ -318,19 +320,24 @@ class PerformanceRegineView(APIView):
         if cached:
             return Response(cached)
 
-        qs = Regina.objects.filter(arnia__apiario__proprietario=request.user).select_related('arnia', 'arnia__apiario')
+        qs = (Regina.objects
+              .filter(colonia__apiario__proprietario=request.user)
+              .select_related('colonia', 'colonia__arnia', 'colonia__apiario'))
         if apiario_id:
-            qs = qs.filter(arnia__apiario_id=apiario_id)
+            qs = qs.filter(colonia__apiario_id=apiario_id)
 
         regine = []
         for r in qs:
             valori = [v for v in [r.docilita, r.produttivita, r.resistenza_malattie, r.tendenza_sciamatura] if v is not None]
             punteggio = round(sum(valori) / len(valori), 2) if valori else 0
+            colonia = r.colonia
+            arnia_numero = colonia.arnia.numero if colonia and colonia.arnia_id else None
+            apiario_nome = colonia.apiario.nome if colonia and colonia.apiario_id else None
             regine.append({
                 'id': r.id,
                 'codice': r.codice_marcatura or f'Regina #{r.id}',
-                'arnia': r.arnia.numero,
-                'apiario': r.arnia.apiario.nome,
+                'arnia': arnia_numero,
+                'apiario': apiario_nome,
                 'punteggio_medio': punteggio,
                 'docilita': r.docilita,
                 'produttivita': r.produttivita,
@@ -586,8 +593,9 @@ class FioritureVicineView(APIView):
 
     def get(self, request):
         raggio_km = float(request.query_params.get('raggio_km', 5))
+        apiario_id = request.query_params.get('apiario_id')
         oggi = timezone.now().date()
-        params = {'raggio_km': raggio_km}
+        params = {'raggio_km': raggio_km, 'apiario_id': apiario_id}
         cached = cache.get(_cache_key('fioriture_vicine', request.user.id, params))
         if cached:
             return Response(cached)
@@ -597,6 +605,8 @@ class FioritureVicineView(APIView):
             latitudine__isnull=False,
             longitudine__isnull=False,
         )
+        if apiario_id:
+            apiari = apiari.filter(id=apiario_id)
 
         fioriture_attive = Fioritura.objects.filter(
             Q(data_fine__isnull=True) | Q(data_fine__gte=oggi),
@@ -670,6 +680,45 @@ class AndamentoScorteView(APIView):
 
         data = {'arnie': result}
         cache.set(_cache_key('andamento_scorte', request.user.id, params), data, timeout=300)
+        return Response(data)
+
+
+# ---------------------------------------------------------------------------
+# WIDGET_10b — Andamento Covata
+# ---------------------------------------------------------------------------
+
+class AndamentoCovataView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        periodo_mesi = int(request.query_params.get('periodo_mesi', 6))
+        apiario_id = request.query_params.get('apiario_id')
+        params = {'periodo_mesi': periodo_mesi, 'apiario_id': apiario_id}
+        cached = cache.get(_cache_key('andamento_covata', request.user.id, params))
+        if cached:
+            return Response(cached)
+
+        data_inizio = timezone.now().date() - datetime.timedelta(days=periodo_mesi * 30)
+        arnie_qs = Arnia.objects.filter(apiario__proprietario=request.user, attiva=True)
+        if apiario_id:
+            arnie_qs = arnie_qs.filter(apiario_id=apiario_id)
+
+        result = []
+        for arnia in arnie_qs[:20]:
+            controlli = (
+                ControlloArnia.objects.filter(arnia=arnia, data__gte=data_inizio)
+                .order_by('data')
+                .values('data', 'telaini_covata')
+            )
+            if controlli:
+                result.append({
+                    'arnia_id': arnia.id,
+                    'numero': arnia.numero,
+                    'dati': [{'data': str(c['data']), 'valore': c['telaini_covata']} for c in controlli],
+                })
+
+        data = {'arnie': result}
+        cache.set(_cache_key('andamento_covata', request.user.id, params), data, timeout=300)
         return Response(data)
 
 
