@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 
 from core.models import (
     Apiario, Arnia, Attrezzatura, CategoriaAttrezzatura,
-    ControlloArnia, DettaglioVendita, Fioritura,
+    ControlloArnia, DettaglioVendita, Fioritura, Gruppo,
     MembroGruppo, Pagamento, QuotaUtente,
     Regina, Smielatura, SpesaAttrezzatura,
     StoriaRegine, TrattamentoSanitario, Vendita,
@@ -463,54 +463,114 @@ class QuoteGruppoView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        gruppo_id = request.query_params.get('gruppo_id')
-        anno = int(request.query_params.get('anno', timezone.now().year))
+        try:
+            gruppo_id = int(request.query_params.get('gruppo_id')) if request.query_params.get('gruppo_id') else None
+        except (TypeError, ValueError):
+            return Response({'error': 'gruppo_id non valido'}, status=400)
 
-        if not gruppo_id:
-            # Restituisci il primo gruppo di cui l'utente è coordinatore
+        anno_param = request.query_params.get('anno')
+        try:
+            anno = int(anno_param) if anno_param else None
+        except ValueError:
+            return Response({'error': 'anno non valido'}, status=400)
+
+        if gruppo_id is None:
             membro = MembroGruppo.objects.filter(
                 utente=request.user, ruolo='admin'
-            ).first()
+            ).select_related('gruppo').order_by('gruppo__nome').first()
             if not membro:
-                return Response({'error': 'Nessun gruppo trovato per questo utente'}, status=404)
+                return Response(
+                    {'error': 'Nessun gruppo trovato per questo utente', 'codice': 'no_gruppo'},
+                    status=404,
+                )
             gruppo_id = membro.gruppo_id
+            gruppo = membro.gruppo
+        else:
+            try:
+                gruppo = Gruppo.objects.get(pk=gruppo_id)
+            except Gruppo.DoesNotExist:
+                return Response({'error': 'Gruppo non trovato'}, status=404)
 
-        # Verifica che l'utente sia admin del gruppo
         is_admin = MembroGruppo.objects.filter(
             utente=request.user, gruppo_id=gruppo_id, ruolo='admin'
         ).exists()
         if not is_admin:
-            return Response({'error': 'Accesso consentito solo ai coordinatori del gruppo'}, status=403)
+            return Response(
+                {'error': 'Accesso consentito solo ai coordinatori del gruppo', 'codice': 'not_admin'},
+                status=403,
+            )
 
-        params = {'gruppo_id': gruppo_id, 'anno': anno}
+        params = {'gruppo_id': gruppo_id, 'anno': anno or 'all'}
         cached = cache.get(_cache_key('quote_gruppo', request.user.id, params))
         if cached:
             return Response(cached)
 
-        membri = MembroGruppo.objects.filter(gruppo_id=gruppo_id).select_related('utente')
-        quote = QuotaUtente.objects.filter(gruppo_id=gruppo_id)
+        membri = (
+            MembroGruppo.objects.filter(gruppo_id=gruppo_id)
+            .select_related('utente')
+            .order_by('utente__first_name', 'utente__username')
+        )
 
-        totale_atteso = sum(float(q.percentuale) for q in quote)
-        pagamenti = Pagamento.objects.filter(gruppo_id=gruppo_id, data__year=anno)
-        totale_raccolto = float(pagamenti.aggregate(t=Sum('importo'))['t'] or 0)
+        # Quote: percentuale di partecipazione per utente (0-100)
+        quote_per_utente = {
+            q['utente_id']: float(q['percentuale'])
+            for q in QuotaUtente.objects.filter(gruppo_id=gruppo_id).values('utente_id', 'percentuale')
+        }
+        somma_percentuali = round(sum(quote_per_utente.values()), 2)
 
+        # Pagamenti: somma in euro per utente, opzionalmente filtrata per anno.
+        # Se 'anno' non è specificato si considerano tutti i pagamenti del gruppo
+        # (così il widget mostra dati significativi anche a inizio anno).
+        pagamenti_qs = Pagamento.objects.filter(gruppo_id=gruppo_id)
+        if anno is not None:
+            pagamenti_qs = pagamenti_qs.filter(data__year=anno)
+
+        pagato_per_utente = {
+            row['utente_id']: float(row['totale'] or 0)
+            for row in pagamenti_qs.values('utente_id').annotate(totale=Sum('importo'))
+        }
+        totale_speso = float(pagamenti_qs.aggregate(t=Sum('importo'))['t'] or 0)
+
+        # Tolleranza per arrotondamenti centesimi
+        EPS = 0.01
         membri_data = []
         for m in membri:
-            quota = quote.filter(utente=m.utente).first()
-            pagato = float(pagamenti.filter(utente=m.utente).aggregate(t=Sum('importo'))['t'] or 0)
-            atteso = float(quota.percentuale) if quota else 0
+            quota_pct = quote_per_utente.get(m.utente_id, 0.0)
+            importo_pagato = pagato_per_utente.get(m.utente_id, 0.0)
+            importo_dovuto = round(totale_speso * quota_pct / 100, 2)
+            saldo = round(importo_pagato - importo_dovuto, 2)
+            ha_pagato = importo_dovuto <= EPS or importo_pagato + EPS >= importo_dovuto
             membri_data.append({
+                'utente_id': m.utente_id,
                 'nome': m.utente.get_full_name() or m.utente.username,
-                'importo_atteso': atteso,
-                'importo_pagato': pagato,
-                'pagato': pagato >= atteso,
+                'ruolo': m.ruolo,
+                'quota_percentuale': round(quota_pct, 2),
+                'importo_dovuto': importo_dovuto,
+                'importo_pagato': round(importo_pagato, 2),
+                'saldo': saldo,
+                'pagato': ha_pagato,
+                # Retrocompat con client esistenti che leggono 'importo_atteso'
+                'importo_atteso': importo_dovuto,
             })
+
+        totale_dovuto = round(sum(x['importo_dovuto'] for x in membri_data), 2)
+        totale_raccolto = round(sum(x['importo_pagato'] for x in membri_data), 2)
+        percentuale_copertura = (
+            round(totale_raccolto / totale_dovuto * 100, 1) if totale_dovuto > 0 else 0
+        )
 
         data = {
             'gruppo_id': gruppo_id,
-            'totale_atteso': totale_atteso,
+            'nome_gruppo': gruppo.nome,
+            'anno': anno,
+            'somma_percentuali_quote': somma_percentuali,
+            'quote_complete': abs(somma_percentuali - 100) < 0.01,
+            'totale_speso': round(totale_speso, 2),
+            'totale_dovuto': totale_dovuto,
             'totale_raccolto': totale_raccolto,
-            'percentuale': round(totale_raccolto / totale_atteso * 100, 1) if totale_atteso else 0,
+            'percentuale': percentuale_copertura,
+            # Retrocompat
+            'totale_atteso': totale_dovuto,
             'membri': membri_data,
         }
         cache.set(_cache_key('quote_gruppo', request.user.id, params), data, timeout=300)
