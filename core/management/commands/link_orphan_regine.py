@@ -136,7 +136,8 @@ class Command(BaseCommand):
             candidates = self._candidates_for(regina)
 
             if not candidates:
-                self._log_unlinkable(regina, f"nessun candidato vicino al {regina.data_introduzione}")
+                reason = self._explain_no_candidates(regina)
+                self._log_unlinkable(regina, reason)
                 unlinkable += 1
                 if delete_unlinkable and not self.dry:
                     regina.delete()
@@ -216,13 +217,11 @@ class Command(BaseCommand):
                                      colonia__data_fine__isnull=True)
                              .exclude(id=regina.id)
                              .values_list('colonia__arnia_id', flat=True))
-        kept_after_2 = [a for a in arnia_ids if a not in already_linked]
-        # Fallback: se il filtro 2 elimina tutto, è probabile che la regina
-        # vada a sostituirne una già esistente (caso "sostituzione regina"):
-        # in quel caso non possiamo escludere le arnie già collegate, quindi
-        # ripristiniamo l'elenco originale e lasciamo decidere all'utente.
-        if kept_after_2:
-            arnia_ids = kept_after_2
+        # Filtro stretto: se un'arnia ha già una regina linkata, non possiamo
+        # collegarla a questa orfana (Regina.colonia è OneToOne). Se filtra
+        # tutto, restituiamo lista vuota: l'utente vedrà "nessun candidato
+        # libero" e potrà usare `--delete` o `sostituisci`.
+        arnia_ids = [a for a in arnia_ids if a not in already_linked]
         if len(arnia_ids) <= 1:
             return list(Arnia.objects.filter(id__in=arnia_ids).select_related('apiario'))
 
@@ -249,6 +248,24 @@ class Command(BaseCommand):
     def _link(self, regina, arnia):
         d = regina.data_introduzione
         colonia = self._get_or_create_active_colonia(arnia, d)
+        if colonia is None and not self.dry:
+            self.stdout.write(self.style.ERROR(
+                f"  ✗ Regina #{regina.id} → arnia {arnia.numero} ({arnia.apiario.nome}): "
+                "impossibile creare/trovare una colonia compatibile."
+            ))
+            return False
+        # Verifica collisione: Regina.colonia è OneToOne. Se la colonia ha già
+        # un'altra regina, dobbiamo fermarci e dire all'utente come procedere.
+        if colonia is not None:
+            existing = Regina.objects.filter(colonia=colonia).exclude(id=regina.id).first()
+            if existing is not None:
+                self.stdout.write(self.style.ERROR(
+                    f"  ✗ Regina #{regina.id} → arnia {arnia.numero} ({arnia.apiario.nome}): "
+                    f"colonia #{colonia.id} ha già la regina #{existing.id}. "
+                    f"Usa `--delete {existing.id}` se è un duplicato, oppure chiama "
+                    f"`POST /api/v1/regine/{existing.id}/sostituisci/` se è una sostituzione."
+                ))
+                return False
         tag = ' [DRY]' if self.dry else ''
         self.stdout.write(self.style.SUCCESS(
             f"  ↪ Regina #{regina.id} → Arnia {arnia.numero} (apiario '{arnia.apiario.nome}'), "
@@ -257,6 +274,7 @@ class Command(BaseCommand):
         if not self.dry and colonia is not None:
             regina.colonia = colonia
             regina.save(update_fields=['colonia'])
+        return True
 
     def _get_or_create_active_colonia(self, arnia, data_intro):
         colonia = Colonia.objects.filter(
@@ -293,6 +311,30 @@ class Command(BaseCommand):
         self.stdout.write(self.style.WARNING(
             f"  ✗ Regina #{regina.id} (intro {regina.data_introduzione}, razza {regina.razza}): {reason}"
         ))
+
+    def _explain_no_candidates(self, regina):
+        """Spiega perché non si è trovato nessun candidato per questa regina."""
+        d = regina.data_introduzione
+        if not d:
+            return "regina senza data_introduzione"
+        qs = ControlloArnia.objects.filter(
+            presenza_regina=True,
+            data__gte=d - self.window,
+            data__lte=d + self.window,
+            arnia__isnull=False,
+        )
+        if self.user_filter is not None:
+            qs = qs.filter(arnia__apiario__proprietario=self.user_filter)
+        n_ctrl = qs.count()
+        if n_ctrl == 0:
+            return (f"nessun ControlloArnia con presenza_regina nei ±{self.window.days} "
+                    f"giorni del {d}. Prova `--window-days N` più ampio, "
+                    f"oppure `--link {regina.id}:<arnia_id>` o `--delete {regina.id}`.")
+        return (f"trovati {n_ctrl} controlli ma tutte le arnie candidate hanno già "
+                f"una regina collegata: probabilmente è una sostituzione. "
+                f"Usa `--link {regina.id}:<arnia_id>` (la sostituzione richiede prima "
+                f"`POST /api/v1/regine/<old_id>/sostituisci/`), "
+                f"oppure `--delete {regina.id}` se è un duplicato.")
 
     def _log_ambiguous(self, regina, candidates):
         labels = ", ".join(f"arnia {a.numero} ({a.apiario.nome})" for a in candidates)
