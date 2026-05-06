@@ -191,14 +191,15 @@ class Arnia(models.Model):
         return f"Arnia {self.numero} ({self.colore}) - {self.apiario.nome}"
     
     def save(self, *args, **kwargs):
-        # Se il colore è uno dei colori predefiniti, imposta il colore_hex corrispondente
-        if self.colore in self.COLORE_HEX and not self.colore_hex:
+        # Per i colori predefiniti il colore_hex è derivato dal nome:
+        # normalizziamo sempre, così update di solo `colore` non lasciano hex stale.
+        if self.colore in self.COLORE_HEX and self.colore != 'altro':
             self.colore_hex = self.COLORE_HEX[self.colore]
-        # Se il colore è 'altro' ma non è stato specificato un colore_hex, imposta un colore di default
+        # Per 'altro' rispettiamo l'hex inviato dal client; fallback se mancante.
         elif self.colore == 'altro' and not self.colore_hex:
             self.colore_hex = self.COLORE_HEX['altro']
         super().save(*args, **kwargs)
-    
+
     class Meta:
         verbose_name = "Arnia"
         verbose_name_plural = "Arnie"
@@ -450,6 +451,10 @@ class Regina(models.Model):
     marcata = models.BooleanField(default=False)
     fecondata = models.BooleanField(default=True, help_text="Indica se la regina è stata fecondata")
     selezionata = models.BooleanField(default=False, help_text="Regina selezionata per caratteristiche genetiche")
+    sospetta_assente = models.BooleanField(
+        default=False,
+        help_text="Segnalata come sospetta assente da 2+ controlli consecutivi senza regina e senza uova fresche",
+    )
     note = models.TextField(blank=True, null=True)
     
     # Storico delle performance

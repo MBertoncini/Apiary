@@ -672,6 +672,19 @@ class ReginaViewSet(viewsets.ModelViewSet):
             colonia__apiario__in=apiari_accessibili
         ).distinct()
 
+    def perform_create(self, serializer):
+        # Una regina deve essere collegata a una Colonia. Se il client invia
+        # solo l'arnia, il serializer risolve/crea la Colonia attiva. Senza
+        # nessuno dei due rifiutiamo: niente record orfani.
+        colonia = serializer.validated_data.get('colonia')
+        arnia   = serializer.validated_data.get('arnia')
+        if not colonia and not arnia:
+            from rest_framework.exceptions import ValidationError as DRFValidationError
+            raise DRFValidationError(
+                {'colonia': "Specificare 'colonia' oppure 'arnia' per collegare la regina."}
+            )
+        serializer.save()
+
     @action(detail=True, methods=['get'])
     def genealogy(self, request, pk=None):
         """Restituisce la genealogia completa di una regina."""

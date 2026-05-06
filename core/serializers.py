@@ -167,17 +167,28 @@ class ReginaSerializer(serializers.ModelSerializer):
     arnia_numero = serializers.SerializerMethodField()
     apiario_nome = serializers.SerializerMethodField()
     apiario_id   = serializers.SerializerMethodField()
+    # Hint write-only: il client può inviare l'arnia e il serializer risolve
+    # (o crea, se mancante) la Colonia attiva associata. Mantiene compatibilità
+    # con i client che usano ancora il vecchio payload {arnia: id}.
+    arnia = serializers.PrimaryKeyRelatedField(
+        write_only=True, required=False, allow_null=True,
+        queryset=Arnia.objects.all()
+    )
 
     class Meta:
         model = Regina
         fields = [
-            'id', 'colonia', 'colonia_id', 'arnia_numero',
+            'id', 'colonia', 'colonia_id', 'arnia', 'arnia_numero',
             'apiario_nome', 'apiario_id',
             'data_nascita', 'data_introduzione', 'origine', 'razza',
             'regina_madre', 'marcata', 'codice_marcatura', 'colore_marcatura',
-            'fecondata', 'selezionata', 'docilita', 'produttivita',
+            'fecondata', 'selezionata', 'sospetta_assente',
+            'docilita', 'produttivita',
             'resistenza_malattie', 'tendenza_sciamatura', 'note'
         ]
+        extra_kwargs = {
+            'colonia': {'required': False, 'allow_null': True},
+        }
 
     def get_arnia_numero(self, obj):
         if obj.colonia_id and obj.colonia.arnia_id:
@@ -193,6 +204,39 @@ class ReginaSerializer(serializers.ModelSerializer):
         if obj.colonia_id:
             return obj.colonia.apiario_id
         return None
+
+    def _resolve_colonia(self, validated_data):
+        """Se è stato passato l'hint `arnia` ma non `colonia`, trova la
+        Colonia attiva di quell'arnia (o ne crea una se manca) e la imposta."""
+        arnia = validated_data.pop('arnia', None)
+        if validated_data.get('colonia') or arnia is None:
+            return validated_data
+        from django.utils import timezone
+        colonia = Colonia.objects.filter(
+            arnia=arnia, stato='attiva', data_fine__isnull=True
+        ).first()
+        if colonia is None:
+            request = self.context.get('request')
+            user = request.user if request is not None else arnia.apiario.proprietario
+            colonia = Colonia.objects.create(
+                arnia=arnia,
+                apiario=arnia.apiario,
+                utente=user,
+                data_inizio=validated_data.get('data_introduzione') or timezone.now().date(),
+                stato='attiva',
+            )
+        validated_data['colonia'] = colonia
+        return validated_data
+
+    def create(self, validated_data):
+        validated_data = self._resolve_colonia(validated_data)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # In update il campo `arnia` è solo un eco lato client: la rilegatura
+        # alla colonia avviene tramite endpoint dedicati (sostituisci, sposta).
+        validated_data.pop('arnia', None)
+        return super().update(instance, validated_data)
 
 
 # Serializzatore StoriaRegine
