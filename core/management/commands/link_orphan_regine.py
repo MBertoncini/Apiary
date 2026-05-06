@@ -54,6 +54,8 @@ class Command(BaseCommand):
                             help="Cancella una regina orfana specifica (ripetibile).")
         parser.add_argument('--delete-unlinkable', action='store_true',
                             help="Elimina le orfane senza candidati possibili.")
+        parser.add_argument('--explain', type=int, default=None, metavar='REGINA_ID',
+                            help="Mostra tutti i segnali per capire se è sostituzione o duplicato.")
         parser.add_argument('--user', type=str, default=None,
                             help="Limita ai candidati la cui arnia appartiene a questo username.")
         parser.add_argument('--window-days', type=int, default=2,
@@ -69,6 +71,9 @@ class Command(BaseCommand):
                 self.user_filter = User.objects.get(username=opts['user'])
             except User.DoesNotExist:
                 raise CommandError(f"Utente '{opts['user']}' non trovato.")
+
+        if opts['explain'] is not None:
+            return self._do_explain(opts['explain'])
 
         if opts['delete']:
             return self._do_delete(opts['delete'])
@@ -110,7 +115,144 @@ class Command(BaseCommand):
             if not self.dry:
                 r.delete()
 
-    def _do_manual_link(self, pairs):
+    def _do_explain(self, regina_id):
+        try:
+            r = Regina.objects.get(id=regina_id)
+        except Regina.DoesNotExist:
+            raise CommandError(f"Regina #{regina_id} non esiste.")
+
+        H = self.style.MIGRATE_HEADING
+        OK = self.style.SUCCESS
+        WARN = self.style.WARNING
+        ERR = self.style.ERROR
+
+        d = r.data_introduzione
+        wd = self.window.days
+
+        self.stdout.write(H(f"\n=== Regina #{r.id} ==="))
+        self.stdout.write(self._format_regina(r))
+        self.stdout.write(f"  colonia: {r.colonia_id or '— (orfana)'}")
+
+        if d is None:
+            self.stdout.write(ERR("Nessuna data_introduzione → impossibile cercare segnali."))
+            return
+
+        # 1) Sostituzioni esplicite
+        self.stdout.write(H(f"\n--- 1) ControlloArnia con regina_sostituita=True nei ±{wd} giorni del {d} ---"))
+        sost = ControlloArnia.objects.filter(
+            regina_sostituita=True,
+            data__gte=d - self.window,
+            data__lte=d + self.window,
+            arnia__isnull=False,
+        ).select_related('arnia__apiario').order_by('data', 'arnia__apiario__nome', 'arnia__numero')
+        if not sost.exists():
+            self.stdout.write("  (nessuno → non è una sostituzione esplicita)")
+        else:
+            for c in sost:
+                self.stdout.write(OK(
+                    f"  • {c.data}  arnia {c.arnia.numero} ({c.arnia.apiario.nome})  "
+                    f"controllo #{c.id}  utente={c.utente_id}"
+                ))
+            self.stdout.write(WARN(
+                "  ↑ Forte segnale di sostituzione: la regina orfana probabilmente è quella nuova."
+            ))
+
+        # 2) Tutti i controlli con presenza_regina nella finestra
+        self.stdout.write(H(f"\n--- 2) ControlloArnia con presenza_regina=True nei ±{wd} giorni ---"))
+        ctrl = ControlloArnia.objects.filter(
+            presenza_regina=True,
+            data__gte=d - self.window,
+            data__lte=d + self.window,
+            arnia__isnull=False,
+        ).select_related('arnia__apiario').order_by('data', 'arnia__apiario__nome', 'arnia__numero')
+        if not ctrl.exists():
+            self.stdout.write("  (nessuno → maybeAutoCreate non sarebbe stato innescato qui)")
+        else:
+            self.stdout.write(f"  Trovati {ctrl.count()} controlli candidati:")
+            for c in ctrl:
+                self.stdout.write(
+                    f"  • {c.data}  arnia {c.arnia.numero} ({c.arnia.apiario.nome}) "
+                    f"id={c.arnia.id}  ctrl#{c.id}  "
+                    f"uova={'Y' if c.uova_fresche else 'N'} "
+                    f"sostit={'Y' if c.regina_sostituita else 'N'}"
+                )
+
+        # 3) Stato attuale di ciascuna arnia candidata: regina già linkata?
+        self.stdout.write(H("\n--- 3) Stato attuale delle arnie candidate ---"))
+        arnia_ids = list(ctrl.values_list('arnia_id', flat=True).distinct()) if ctrl.exists() else []
+        if not arnia_ids:
+            self.stdout.write("  (nessuna arnia candidata)")
+        else:
+            arnie = Arnia.objects.filter(id__in=arnia_ids).select_related('apiario').order_by(
+                'apiario__nome', 'numero')
+            for a in arnie:
+                col = Colonia.objects.filter(arnia=a, stato='attiva', data_fine__isnull=True).first()
+                cur_regina = (Regina.objects.filter(colonia=col).first() if col else None)
+                if cur_regina:
+                    line = (f"  • arnia {a.numero} ({a.apiario.nome}) id={a.id}: "
+                            f"colonia #{col.id} ha già Regina #{cur_regina.id} "
+                            f"(intro {cur_regina.data_introduzione}, razza {cur_regina.razza})")
+                    self.stdout.write(WARN(line))
+                elif col:
+                    self.stdout.write(OK(
+                        f"  • arnia {a.numero} ({a.apiario.nome}) id={a.id}: colonia #{col.id} "
+                        f"libera (nessuna regina) → linkabile direttamente"
+                    ))
+                else:
+                    self.stdout.write(OK(
+                        f"  • arnia {a.numero} ({a.apiario.nome}) id={a.id}: nessuna colonia "
+                        f"attiva → verrà creata"
+                    ))
+
+        # 4) Altre orfane con stessa data_introduzione
+        self.stdout.write(H("\n--- 4) Altre regine orfane con stessa data_introduzione ---"))
+        twins = Regina.objects.filter(colonia__isnull=True, data_introduzione=d).exclude(id=r.id)
+        if not twins.exists():
+            self.stdout.write("  (nessuna)")
+        else:
+            self.stdout.write(WARN(
+                f"  Ci sono {twins.count()} altre orfane stesso giorno → possibili duplicati creati "
+                "dal vecchio bug (Flutter ricreava la scheda perché /arnie/{id}/regina/ tornava 404):"
+            ))
+            for t in twins:
+                self.stdout.write("    " + self._format_regina(t).lstrip())
+
+        # 5) Suggerimento finale
+        self.stdout.write(H("\n--- 5) Cosa fare ---"))
+        if sost.exists():
+            arnia_ids_sost = list(sost.values_list('arnia_id', flat=True).distinct())
+            if len(arnia_ids_sost) == 1:
+                a = Arnia.objects.select_related('apiario').get(id=arnia_ids_sost[0])
+                col = Colonia.objects.filter(arnia=a, stato='attiva', data_fine__isnull=True).first()
+                cur = Regina.objects.filter(colonia=col).first() if col else None
+                if cur:
+                    self.stdout.write(WARN(
+                        f"  È SOSTITUZIONE su arnia {a.numero} ({a.apiario.nome}, id={a.id}). "
+                        f"Step:\n"
+                        f"    1) curl -X POST .../api/v1/regine/{cur.id}/sostituisci/ "
+                        f"(o cancella manualmente Regina #{cur.id})\n"
+                        f"    2) python manage.py link_orphan_regine --link {r.id}:{a.id}"
+                    ))
+                else:
+                    self.stdout.write(OK(
+                        f"  Sostituzione su arnia {a.numero} ({a.apiario.nome}, id={a.id}), "
+                        f"colonia libera. Esegui:\n"
+                        f"    python manage.py link_orphan_regine --link {r.id}:{a.id}"
+                    ))
+            else:
+                self.stdout.write(WARN(
+                    "  Sostituzione confermata ma su più arnie possibili: scegli tu con --link."
+                ))
+        elif twins.exists():
+            self.stdout.write(WARN(
+                "  Non risulta nessuna sostituzione esplicita E ci sono orfane gemelle stesso "
+                f"giorno → probabilmente Regina #{r.id} è un duplicato. Valuta:\n"
+                f"    python manage.py link_orphan_regine --delete {r.id}"
+            ))
+        else:
+            self.stdout.write(
+                "  Nessun segnale forte: usa --link <regina>:<arnia> manualmente, oppure --delete."
+            )
         for raw in pairs:
             try:
                 rid, aid = (int(x) for x in raw.split(':'))
