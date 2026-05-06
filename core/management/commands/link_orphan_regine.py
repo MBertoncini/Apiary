@@ -216,7 +216,13 @@ class Command(BaseCommand):
                                      colonia__data_fine__isnull=True)
                              .exclude(id=regina.id)
                              .values_list('colonia__arnia_id', flat=True))
-        arnia_ids = [a for a in arnia_ids if a not in already_linked]
+        kept_after_2 = [a for a in arnia_ids if a not in already_linked]
+        # Fallback: se il filtro 2 elimina tutto, è probabile che la regina
+        # vada a sostituirne una già esistente (caso "sostituzione regina"):
+        # in quel caso non possiamo escludere le arnie già collegate, quindi
+        # ripristiniamo l'elenco originale e lasciamo decidere all'utente.
+        if kept_after_2:
+            arnia_ids = kept_after_2
         if len(arnia_ids) <= 1:
             return list(Arnia.objects.filter(id__in=arnia_ids).select_related('apiario'))
 
