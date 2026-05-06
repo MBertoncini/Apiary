@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Apiary\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-23 21:15+0000\n"
-"PO-Revision-Date: 2026-04-23 21:15+0000\n"
+"POT-Creation-Date: 2026-04-30 00:00+0000\n"
+"PO-Revision-Date: 2026-04-30 00:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: English\n"
 "Language: en\n"
@@ -12,11 +12,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+# === Sidebar / Navigation ===
 msgid "Dashboard"
 msgstr "Dashboard"
 
 msgid "Apiario"
 msgstr "Apiary"
+
+msgid "Apiari"
+msgstr "Apiaries"
 
 msgid "Nuovo Apiario"
 msgstr "New Apiary"
@@ -99,8 +103,12 @@ msgstr "Guide"
 msgid "Offrici un caffè"
 msgstr "Buy us a coffee"
 
+# === Topbar / user ===
 msgid "Il mio profilo"
 msgstr "My profile"
+
+msgid "Il mio Profilo"
+msgstr "My Profile"
 
 msgid "Cerca apiari, arnie, regine…"
 msgstr "Search apiaries, hives, queens…"
@@ -111,11 +119,44 @@ msgstr "Language"
 msgid "Notifiche"
 msgstr "Notifications"
 
+msgid "Impostazioni"
+msgstr "Settings"
+
+msgid "Logout"
+msgstr "Logout"
+
+msgid "Chiudi"
+msgstr "Close"
+
+# === Notification dropdown ===
+msgid "Segna tutte come lette"
+msgstr "Mark all as read"
+
+msgid "Tutte lette"
+msgstr "All read"
+
+msgid "Elimina"
+msgstr "Delete"
+
+msgid "Nessuna notifica"
+msgstr "No notifications"
+
+msgid "Vedi tutte le notifiche"
+msgstr "View all notifications"
+
+#, python-format
+msgid "%(t)s fa"
+msgstr "%(t)s ago"
+
+# === Homepage ===
 msgid "Benvenuto su Apiary"
 msgstr "Welcome to Apiary"
 
 msgid "La piattaforma professionale per la gestione dell'apiario"
 msgstr "The professional platform for apiary management"
+
+msgid "La piattaforma completa per gestire il tuo apiario in modo collaborativo, efficiente e professionale."
+msgstr "The complete platform to manage your apiary collaboratively, efficiently and professionally."
 
 msgid "Vai alla Dashboard"
 msgstr "Go to Dashboard"
@@ -165,9 +206,6 @@ msgstr "Blooms & Pasture"
 msgid "Mappa le fioriture locali e condividile con la community degli apicoltori."
 msgstr "Map local blooms and share them with the beekeeper community."
 
-msgid "Collaborazione"
-msgstr "Collaboration"
-
 msgid "Condividi apiari, gestisci quote e pagamenti con il tuo team in modo trasparente."
 msgstr "Share apiaries, manage quotas and payments with your team transparently."
 
@@ -191,3 +229,709 @@ msgstr "Join beekeepers using Apiary to keep everything under control."
 
 msgid "Crea il tuo account gratuito"
 msgstr "Create your free account"
+
+# === Dashboard ===
+msgid "Buongiorno!"
+msgstr "Good morning!"
+
+msgid "Arnie totali"
+msgstr "Total hives"
+
+msgid "Controlli recenti"
+msgstr "Recent inspections"
+
+msgid "I tuoi Apiari"
+msgstr "Your Apiaries"
+
+msgid "Nessun apiario ancora"
+msgstr "No apiary yet"
+
+msgid "Crea il tuo primo apiario per iniziare."
+msgstr "Create your first apiary to get started."
+
+msgid "Crea apiario"
+msgstr "Create apiary"
+
+#, python-format
+msgid "%(counter)s arnia"
+msgid_plural "%(counter)s arnie"
+msgstr[0] "%(counter)s hive"
+msgstr[1] "%(counter)s hives"
+
+msgid "Fioriture Attive"
+msgstr "Active Blooms"
+
+msgid "in corso"
+msgstr "ongoing"
+
+msgid "Nessuna fioritura attiva"
+msgstr "No active bloom"
+
+msgid "Registra le fioriture per monitorare il pascolo."
+msgstr "Record blooms to monitor pasture."
+
+msgid "Aggiungi fioritura"
+msgstr "Add bloom"
+
+msgid "Gestisci Fioriture"
+msgstr "Manage Blooms"
+
+msgid "Controlli per mese"
+msgstr "Inspections per month"
+
+msgid "Produzione miele (kg)"
+msgstr "Honey production (kg)"
+
+msgid "Stato arnie"
+msgstr "Hive health"
+
+#, python-format
+msgid "%(n)s in buona salute"
+msgstr "%(n)s healthy"
+
+#, python-format
+msgid "%(n)s senza regina"
+msgstr "%(n)s queenless"
+
+#, python-format
+msgid "%(n)s con problemi"
+msgstr "%(n)s with issues"
+
+msgid "Aggiorna"
+msgstr "Refresh"
+
+msgid "Controlli Recenti"
+msgstr "Recent Inspections"
+
+msgid "Data"
+msgstr "Date"
+
+msgid "Arnia"
+msgstr "Hive"
+
+msgid "Operatore"
+msgstr "Operator"
+
+msgid "Stato"
+msgstr "Status"
+
+msgid "Dettagli"
+msgstr "Details"
+
+#, python-format
+msgid "Arnia #%(n)s"
+msgstr "Hive #%(n)s"
+
+msgid "Regina"
+msgstr "Queen"
+
+msgid "Sciamatura"
+msgstr "Swarming"
+
+msgid "Problemi"
+msgstr "Issues"
+
+msgid "Modifica"
+msgstr "Edit"
+
+#, python-format
+msgid "Controllo — Arnia #%(n)s"
+msgstr "Inspection — Hive #%(n)s"
+
+msgid "Telaini covata"
+msgstr "Brood frames"
+
+msgid "Telaini scorte"
+msgstr "Stores frames"
+
+msgid "Presenza regina"
+msgstr "Queen present"
+
+msgid "Sì"
+msgstr "Yes"
+
+msgid "No"
+msgstr "No"
+
+msgid "Note"
+msgstr "Notes"
+
+msgid "Nessun controllo recente"
+msgstr "No recent inspection"
+
+msgid "I controlli delle arnie appariranno qui."
+msgstr "Hive inspections will appear here."
+
+# === Auth ===
+msgid "Registrazione"
+msgstr "Registration"
+
+msgid "Accedi al tuo account"
+msgstr "Log in to your account"
+
+msgid "Crea un account"
+msgstr "Create an account"
+
+msgid "Hai dimenticato la password?"
+msgstr "Forgot your password?"
+
+msgid "Username o Email"
+msgstr "Username or Email"
+
+msgid "Inserisci username o email"
+msgstr "Enter your username or email"
+
+msgid "Inserisci la password"
+msgstr "Enter your password"
+
+msgid "Dimenticato la password?"
+msgstr "Forgot your password?"
+
+msgid "oppure"
+msgstr "or"
+
+msgid "Accedi con Google"
+msgstr "Sign in with Google"
+
+msgid "Non hai un account?"
+msgstr "Don't have an account?"
+
+msgid "Crea Account"
+msgstr "Create Account"
+
+msgid "Registrati su Apiary"
+msgstr "Sign up for Apiary"
+
+msgid "Username"
+msgstr "Username"
+
+msgid "Scegli uno username"
+msgstr "Choose a username"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "La tua email"
+msgstr "Your email"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Crea una password"
+msgstr "Create a password"
+
+msgid "Minimo 8 caratteri"
+msgstr "Minimum 8 characters"
+
+msgid "Conferma Password"
+msgstr "Confirm Password"
+
+msgid "Ripeti la password"
+msgstr "Repeat password"
+
+msgid "Accetto l'<a href=\"/app/privacy/\" target=\"_blank\">informativa sulla privacy</a> e i termini di servizio"
+msgstr "I accept the <a href=\"/app/privacy/\" target=\"_blank\">privacy policy</a> and terms of service"
+
+msgid "Hai già un account?"
+msgstr "Already have an account?"
+
+msgid "Reimposta Password"
+msgstr "Reset Password"
+
+msgid "Email inviata!"
+msgstr "Email sent!"
+
+#, python-format
+msgid "Un link per reimpostare la password è stato inviato a %(email)s."
+msgstr "A link to reset your password has been sent to %(email)s."
+
+msgid "Controlla la tua casella di posta (anche lo spam)."
+msgstr "Check your inbox (including spam)."
+
+msgid "Torna al login"
+msgstr "Back to login"
+
+msgid "Non hai ricevuto l'email? Riprova"
+msgstr "Didn't receive the email? Try again"
+
+msgid "Inserisci l'email associata al tuo account."
+msgstr "Enter the email associated with your account."
+
+msgid "Ti invieremo un link per reimpostare la password."
+msgstr "We will send you a link to reset your password."
+
+msgid "Inserisci la tua email"
+msgstr "Enter your email"
+
+msgid "Invia link di reset"
+msgstr "Send reset link"
+
+msgid "Link non valido"
+msgstr "Invalid link"
+
+msgid "Il link di reset è scaduto o non è valido."
+msgstr "The reset link has expired or is invalid."
+
+msgid "I link sono validi per 24 ore."
+msgstr "Links are valid for 24 hours."
+
+msgid "Richiedi un nuovo link"
+msgstr "Request a new link"
+
+msgid "Password reimpostata!"
+msgstr "Password reset!"
+
+msgid "La tua password è stata cambiata con successo."
+msgstr "Your password has been changed successfully."
+
+msgid "Puoi ora accedere con la nuova password."
+msgstr "You can now log in with your new password."
+
+msgid "Accedi ora"
+msgstr "Log in now"
+
+msgid "Nuova Password"
+msgstr "New Password"
+
+msgid "Scegli una nuova password sicura per il tuo account."
+msgstr "Choose a secure new password for your account."
+
+msgid "Nuova password"
+msgstr "New password"
+
+msgid "Inserisci la nuova password"
+msgstr "Enter your new password"
+
+msgid "Conferma password"
+msgstr "Confirm password"
+
+msgid "Ripeti la nuova password"
+msgstr "Repeat new password"
+
+msgid "Reimposta password"
+msgstr "Reset password"
+
+# === Apiaries / Profile ===
+msgid "Nuovo"
+msgstr "New"
+
+msgid "Modifica Apiario"
+msgstr "Edit Apiary"
+
+msgid "Annulla"
+msgstr "Cancel"
+
+msgid "Informazioni Apiario"
+msgstr "Apiary Information"
+
+msgid "Posizione Geografica"
+msgstr "Geographic Location"
+
+msgid "Lat"
+msgstr "Lat"
+
+msgid "Lng"
+msgstr "Lng"
+
+msgid "Seleziona sulla mappa"
+msgstr "Select on map"
+
+msgid "Coordinate geografiche dell'apiario"
+msgstr "Geographic coordinates of the apiary"
+
+msgid "Aggiorna Apiario"
+msgstr "Update Apiary"
+
+msgid "Suggerimenti"
+msgstr "Tips"
+
+msgid "è il luogo dove sono posizionate le arnie."
+msgstr "is the place where hives are located."
+
+msgid "Fornisci un nome descrittivo e la posizione dell'apiario."
+msgstr "Provide a descriptive name and the location of the apiary."
+
+msgid "Le coordinate geografiche sono opzionali ma consigliate per la visualizzazione dell'apiario sulla mappa."
+msgstr "Geographic coordinates are optional but recommended for displaying the apiary on the map."
+
+msgid "Suggerimento"
+msgstr "Tip"
+
+msgid "Puoi selezionare la posizione esatta dell'apiario sulla mappa cliccando sul pulsante \"Seleziona sulla mappa\"."
+msgstr "You can select the exact location of the apiary on the map by clicking the \"Select on map\" button."
+
+msgid "Gestione Gruppi Apiario"
+msgstr "Apiary Group Management"
+
+msgid "Gestione Condivisione"
+msgstr "Sharing Management"
+
+msgid "Condivisione"
+msgstr "Sharing"
+
+msgid "Torna all'Apiario"
+msgstr "Back to Apiary"
+
+msgid "Impostazioni di Condivisione"
+msgstr "Sharing Settings"
+
+#, python-format
+msgid "Da qui puoi gestire la condivisione dell'apiario \"%(nome)s\" con un gruppo di collaboratori."
+msgstr "Here you can manage the sharing of the \"%(nome)s\" apiary with a group of collaborators."
+
+msgid "Condividendo l'apiario con un gruppo, i membri potranno accedere in base al loro ruolo:"
+msgstr "By sharing the apiary with a group, members will be able to access based on their role:"
+
+msgid "Admin"
+msgstr "Admin"
+
+msgid "Editor"
+msgstr "Editor"
+
+msgid "Visualizzatore"
+msgstr "Viewer"
+
+msgid "Accesso completo"
+msgstr "Full access"
+
+msgid "Può modificare arnie e controlli"
+msgstr "Can edit hives and inspections"
+
+msgid "Può solo visualizzare"
+msgstr "Can only view"
+
+msgid "Salva Impostazioni"
+msgstr "Save Settings"
+
+msgid "I tuoi Gruppi"
+msgstr "Your Groups"
+
+#, python-format
+msgid "%(count)s membri"
+msgstr "%(count)s members"
+
+msgid "Attualmente condiviso"
+msgstr "Currently shared"
+
+msgid "Impostazioni Mappa"
+msgstr "Map Settings"
+
+msgid "Chi può visualizzare questo apiario sulla mappa?"
+msgstr "Who can view this apiary on the map?"
+
+msgid "Solo proprietario"
+msgstr "Owner only"
+
+msgid "Solo tu puoi vedere l'apiario sulla mappa"
+msgstr "Only you can see the apiary on the map"
+
+msgid "Membri del gruppo"
+msgstr "Group members"
+
+msgid "L'apiario sarà visibile a tutti i membri del gruppo selezionato"
+msgstr "The apiary will be visible to all members of the selected group"
+
+msgid "Tutti gli utenti"
+msgstr "All users"
+
+msgid "L'apiario sarà visibile sulla mappa per tutti gli utenti della piattaforma"
+msgstr "The apiary will be visible on the map for all platform users"
+
+msgid "Non fai parte di nessun gruppo."
+msgstr "You are not part of any group."
+
+msgid "Crea un gruppo"
+msgstr "Create a group"
+
+msgid "Gestione Gruppi"
+msgstr "Group Management"
+
+msgid "Profilo"
+msgstr "Profile"
+
+msgid "Il tuo Profilo"
+msgstr "Your Profile"
+
+#, python-format
+msgid "Profilo di %(username)s"
+msgstr "%(username)s's Profile"
+
+msgid "Modifica Profilo"
+msgstr "Edit Profile"
+
+msgid "Aggiungi una bio per descrivere la tua esperienza con l'apicoltura."
+msgstr "Add a bio to describe your experience with beekeeping."
+
+msgid "Iscritto dal"
+msgstr "Member since"
+
+#, python-format
+msgid "%(count)s arnie"
+msgstr "%(count)s hives"
+
+msgid "Nessun apiario trovato."
+msgstr "No apiary found."
+
+msgid "Nessun gruppo trovato."
+msgstr "No group found."
+
+msgid "Guida & Tutorial"
+msgstr "Guide & Tutorial"
+
+msgid "Rivedi il tutorial"
+msgstr "Review tutorial"
+
+msgid "Guida completa"
+msgstr "Full guide"
+
+msgid "Informazioni Profilo"
+msgstr "Profile Information"
+
+msgid "Immagine Profilo"
+msgstr "Profile Picture"
+
+msgid "Informazioni Utente"
+msgstr "User Information"
+
+msgid "Dettagli Profilo"
+msgstr "Profile Details"
+
+msgid "Inserisci la tua chiave API personale di Google Gemini per usare le funzioni AI (inserimento vocale, chat, analisi telaino)."
+msgstr "Enter your personal Google Gemini API key to use AI features (voice input, chat, frame analysis)."
+
+msgid "Ottienila gratuitamente su"
+msgstr "Get it for free at"
+
+msgid "Mostra/Nascondi"
+msgstr "Show/Hide"
+
+msgid "Salva Modifiche"
+msgstr "Save Changes"
+
+# === Hives ===
+msgid "Nuova"
+msgstr "New"
+
+msgid "Arnia"
+msgstr "Hive"
+
+msgid "Nuova Arnia"
+msgstr "New Hive"
+
+msgid "Informazioni Arnia"
+msgstr "Hive Information"
+
+msgid "Anteprima colore"
+msgstr "Color preview"
+
+msgid "Elimina arnia"
+msgstr "Delete hive"
+
+msgid "Aggiorna Arnia"
+msgstr "Update Hive"
+
+msgid "Crea Arnia"
+msgstr "Create Hive"
+
+msgid "Per creare una nuova arnia, compila il modulo con i seguenti dettagli:"
+msgstr "To create a new hive, fill in the form with the following details:"
+
+msgid "L'apiario in cui si trova l'arnia"
+msgstr "The apiary where the hive is located"
+
+msgid "Un numero identificativo univoco per l'arnia all'interno dell'apiario"
+msgstr "A unique identification number for the hive within the apiary"
+
+msgid "Il colore dell'arnia (aiuta nell'identificazione visiva)"
+msgstr "The color of the hive (helps with visual identification)"
+
+msgid "La data in cui l'arnia è stata installata"
+msgstr "The date the hive was installed"
+
+msgid "Eventuali note o dettagli aggiuntivi"
+msgstr "Any additional notes or details"
+
+msgid "Indica se l'arnia è attualmente in uso"
+msgstr "Indicates if the hive is currently in use"
+
+msgid "Scegli \"Altro\" nel campo colore se vuoi utilizzare un colore personalizzato con il selettore."
+msgstr "Choose \"Other\" in the color field if you want to use a custom color with the picker."
+
+msgid "Nuovo Controllo Arnia"
+msgstr "New Hive Inspection"
+
+msgid "Modifica Controllo"
+msgstr "Edit Inspection"
+
+msgid "Nuovo Controllo"
+msgstr "New Inspection"
+
+msgid "Compila con voce"
+msgstr "Fill with voice"
+
+msgid "Registra"
+msgstr "Record"
+
+msgid "Clicca il microfono e parla"
+msgstr "Click the microphone and speak"
+
+msgid "Applica al form"
+msgstr "Apply to form"
+
+msgid "Dati del Controllo"
+msgstr "Inspection Data"
+
+msgid "Configurazione Telaini"
+msgstr "Frame Configuration"
+
+msgid "Clicca o trascina per dipingere · Tasto destro per cancellare"
+msgstr "Click or drag to paint · Right-click to erase"
+
+msgid "Sciamatura rilevata"
+msgstr "Swarm detected"
+
+msgid "Problemi sanitari rilevati"
+msgstr "Health issues detected"
+
+msgid "Salva Controllo"
+msgstr "Save Inspection"
+
+msgid "Guida al Controllo"
+msgstr "Inspection Guide"
+
+msgid "Il controllo dell'arnia ti permette di registrare lo stato generale della famiglia."
+msgstr "The hive inspection lets you record the general state of the colony."
+
+msgid "Numero di telaini con miele e polline"
+msgstr "Number of frames with honey and pollen"
+
+msgid "Numero di telaini con covata (uova, larve, pupe)"
+msgstr "Number of frames with brood (eggs, larvae, pupae)"
+
+msgid "Indica se la regina è stata vista o se ci sono segni della sua presenza (uova fresche)"
+msgstr "Indicates if the queen was seen or if there are signs of her presence (fresh eggs)"
+
+msgid "Indica se l'arnia ha sciamato o se ci sono segni di preparazione alla sciamatura"
+msgstr "Indicates if the hive has swarmed or if there are signs of swarm preparation"
+
+msgid "Indica la presenza di malattie, parassiti o altre anomalie"
+msgstr "Indicates the presence of diseases, parasites or other anomalies"
+
+msgid "Utilizza il configuratore dei telaini per rappresentare con precisione la disposizione all'interno dell'arnia."
+msgstr "Use the frame configurator to accurately represent the arrangement inside the hive."
+
+# === Apiary View ===
+msgid "Vedi sulla mappa"
+msgstr "View on map"
+
+msgid "Aggiungi nucleo"
+msgstr "Add nucleus"
+
+msgid "Nucleo"
+msgstr "Nucleus"
+
+msgid "Esporta ispezioni PDF"
+msgstr "Export inspections PDF"
+
+msgid "Esporta produzione CSV"
+msgstr "Export production CSV"
+
+msgid "Produzione"
+msgstr "Production"
+
+msgid "Trattamento"
+msgstr "Treatment"
+
+#, python-format
+msgid "Condiviso con il gruppo <strong>%(nome)s</strong>"
+msgstr "Shared with group <strong>%(nome)s</strong>"
+
+msgid "Data di Riferimento"
+msgstr "Reference Date"
+
+msgid "Al:"
+msgstr "As of:"
+
+msgid "Trattamenti Attivi"
+msgstr "Active Treatments"
+
+#, python-format
+msgid "Programmato per %(data)s"
+msgstr "Scheduled for %(data)s"
+
+#, python-format
+msgid "In corso dal %(data)s"
+msgstr "Ongoing since %(data)s"
+
+#, python-format
+msgid "Su {{ count }} arnie"
+msgstr "On {{ count }} hives"
+
+msgid "Su tutte le arnie"
+msgstr "On all hives"
+
+msgid "Nessun trattamento attivo per questa data."
+msgstr "No active treatment for this date."
+
+msgid "Piantina Apiario"
+msgstr "Apiary Layout"
+
+msgid "Salva"
+msgstr "Save"
+
+msgid "Nuovo Nucleo"
+msgstr "New Nucleus"
+
+msgid "Numero"
+msgstr "Number"
+
+msgid "Colore"
+msgstr "Color"
+
+msgid "Attivo"
+msgstr "Active"
+
+msgid "Aggiungi"
+msgstr "Add"
+
+msgid "Attiva"
+msgstr "Active"
+
+msgid "Inattiva"
+msgstr "Inactive"
+
+msgid "Controllo"
+msgstr "Inspection"
+
+msgid "Regina presente"
+msgstr "Queen present"
+
+msgid "Regina assente"
+msgstr "Queen absent"
+
+msgid "marcata"
+msgstr "marked"
+
+msgid "Verifica necessaria"
+msgstr "Check needed"
+
+msgid "Nessun controllo registrato"
+msgstr "No inspection recorded"
+
+msgid "Modifica arnia"
+msgstr "Edit hive"
+
+msgid "Copia controllo"
+msgstr "Copy inspection"
+
+msgid "Modifica controllo"
+msgstr "Edit inspection"
+
+msgid "Elimina controllo"
+msgstr "Delete inspection"
+
+msgid "Non ci sono arnie registrate per questo apiario."
+msgstr "There are no hives registered for this apiary."
+
+msgid "Aggiungi la prima arnia"
+msgstr "Add the first hive"

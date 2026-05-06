@@ -182,6 +182,10 @@ class Arnia(models.Model):
         null=True, blank=True, related_name='arnie',
         help_text="Attrezzatura collegata (se tracciata nell'inventario)"
     )
+    nfc_id = models.CharField(
+        max_length=50, blank=True, null=True, unique=True,
+        help_text="ID del tag NFC associato (es. AA:BB:CC:DD)"
+    )
 
     def __str__(self):
         return f"Arnia {self.numero} ({self.colore}) - {self.apiario.nome}"
@@ -592,21 +596,40 @@ class Smielatura(models.Model):
     utente = models.ForeignKey(User, on_delete=models.CASCADE)
     note = models.TextField(blank=True, null=True)
     data_registrazione = models.DateTimeField(auto_now_add=True)
-    
+    # Kg già trasferiti in maturatori. Aggiornato dal signal su Maturatore.
+    # Indipendente dalla vita successiva del maturatore (svuotato, eliminato):
+    # rappresenta il flusso unidirezionale di miele uscito dalla smielatura.
+    kg_trasferiti = models.DecimalField(
+        max_digits=7, decimal_places=2, default=0,
+        help_text="Kg già trasferiti in maturatori (auto-aggiornato).",
+    )
+    # Flag manuale per chiudere una smielatura anche se kg_residui > 0
+    # (es. miele perso, scarti). Le esaurite naturalmente sono già nascoste
+    # dal flusso senza bisogno di toccare questo flag.
+    archiviata = models.BooleanField(
+        default=False,
+        help_text="Se True, la smielatura non appare più nelle viste attive.",
+    )
+
     def __str__(self):
         return f"Smielatura {self.data} - {self.apiario.nome} ({self.quantita_miele}kg)"
-    
+
+    @property
+    def kg_residui(self):
+        """Kg di miele ancora da trasferire in maturazione."""
+        from decimal import Decimal
+        return max(Decimal('0'), Decimal(self.quantita_miele) - Decimal(self.kg_trasferiti))
+
+    @property
+    def is_esaurita(self):
+        """True se tutto il miele è stato trasferito (con tolleranza 0.01 kg)."""
+        from decimal import Decimal
+        return self.kg_residui <= Decimal('0.01')
+
     class Meta:
         verbose_name = "Smielatura"
         verbose_name_plural = "Smielature"
         ordering = ['-data']
-        
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        # Quando si salva una smielatura, aggiorna lo stato dei melari
-        for melario in self.melari.all():
-            melario.stato = 'smielato'
-            melario.save()
 
 STATO_VASETTI_CHOICES = [
     ('disponibile', 'Disponibile'),
@@ -620,7 +643,15 @@ class Invasettamento(models.Model):
     contenitore = models.ForeignKey('ContenitoreStoccaggio', on_delete=models.SET_NULL, null=True, blank=True, related_name='invasettamenti')
     tipo_miele = models.CharField(max_length=100)
     formato_vasetto = models.IntegerField(help_text="Grammi per vasetto (250, 500, 1000)")
+    # Vasetti totali prodotti in questo lotto (immutabile dopo la creazione,
+    # tranne edit esplicito). Le vendite NON lo decrementano: incrementano
+    # numero_vasetti_venduti. In questo modo lo storico produzione per
+    # anno/fioritura resta accurato anche dopo aver venduto.
     numero_vasetti = models.IntegerField()
+    numero_vasetti_venduti = models.IntegerField(
+        default=0,
+        help_text="Vasetti già venduti del lotto (vasetti disponibili = numero_vasetti - venduti).",
+    )
     lotto = models.CharField(max_length=50, blank=True, null=True)
     stato = models.CharField(max_length=20, choices=STATO_VASETTI_CHOICES, default='disponibile')
     utente = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -633,6 +664,14 @@ class Invasettamento(models.Model):
     @property
     def kg_totali(self):
         return (self.formato_vasetto * self.numero_vasetti) / 1000
+
+    @property
+    def vasetti_disponibili(self):
+        return max(0, self.numero_vasetti - self.numero_vasetti_venduti)
+
+    @property
+    def kg_disponibili(self):
+        return (self.formato_vasetto * self.vasetti_disponibili) / 1000
 
     class Meta:
         verbose_name = "Invasettamento"
@@ -1116,7 +1155,7 @@ class TrattamentoSanitario(models.Model):
 from django.db import models
 from django.contrib.auth.models import User
 from django.dispatch import receiver
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, m2m_changed
 from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -1290,6 +1329,43 @@ class ImmagineProfilo(models.Model):
 def crea_immagine_gruppo(sender, instance, created, **kwargs):
     if created:
         ImmagineProfilo.objects.create(gruppo=instance)
+
+
+@receiver(post_save, sender=Maturatore)
+def aggiorna_kg_trasferiti_smielatura(sender, instance, created, **kwargs):
+    """Aggiorna Smielatura.kg_trasferiti alla creazione di un Maturatore.
+
+    Solo `created=True`: i kg in maturatore al momento della creazione
+    rappresentano il flusso unidirezionale di miele uscito dalla smielatura.
+    Edit successivi del Maturatore (kg_attuali calato per trasferimento o
+    svuotato) NON tornano indietro nel kg_trasferiti — il miele è sceso
+    avanti, non torna nella smielatura.
+    """
+    if not created or not instance.smielatura_id:
+        return
+    from decimal import Decimal
+    from django.db.models import F
+    Smielatura.objects.filter(pk=instance.smielatura_id).update(
+        kg_trasferiti=F('kg_trasferiti') + Decimal(instance.kg_attuali or 0)
+    )
+
+
+@receiver(m2m_changed, sender=Smielatura.melari.through)
+def aggiorna_stato_melari_smielatura(sender, instance, action, pk_set, **kwargs):
+    """Aggiorna lo stato dei melari quando vengono linkati/scollegati da una smielatura.
+
+    Sostituisce la logica nell'override Smielatura.save(), che non funzionava via
+    DRF: serializer.create() popola la M2M dopo Model.save(), quindi self.melari.all()
+    era sempre vuoto al momento dell'iterazione.
+    """
+    if action == 'post_add' and pk_set:
+        Melario.objects.filter(pk__in=pk_set).update(stato='smielato')
+    elif action == 'post_remove' and pk_set:
+        # Edit di una smielatura: melari rimossi tornano disponibili (rimosso).
+        Melario.objects.filter(pk__in=pk_set).update(stato='rimosso')
+    elif action == 'pre_clear':
+        # Cancellazione smielatura o set([]) : melari linkati tornano rimossi.
+        instance.melari.all().update(stato='rimosso')
 
 
 class DatiMeteo(models.Model):

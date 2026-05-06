@@ -1,6 +1,6 @@
 <!-- templates/arnie/visualizza_apiario.html -->
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 {% block title %}{{ apiario.nome }} - Apiary{% endblock %}
 
 {% block content %}
@@ -11,7 +11,7 @@
       <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione }}
       {% if apiario.has_coordinates %}
       · <a href="{% url 'mappa_apiari' %}?focus={{ apiario.id %}" class="text-muted">
-          <i class="bi bi-map me-1"></i>Vedi sulla mappa
+          <i class="bi bi-map me-1"></i>{% trans "Vedi sulla mappa" %}
         </a>
       {% endif %}
     </p>
@@ -22,23 +22,23 @@
       <i class="bi bi-people"></i>
     </a>
     {% endif %}
-    <a href="{% url 'crea_nucleo' %}?apiario_id={{ apiario.id }}" class="btn btn-outline-secondary btn-sm" title="Aggiungi nucleo">
-      <i class="bi bi-hexagon-half me-1"></i>Nucleo
+    <a href="{% url 'crea_nucleo' %}?apiario_id={{ apiario.id }}" class="btn btn-outline-secondary btn-sm" title="{% trans 'Aggiungi nucleo' %}">
+      <i class="bi bi-hexagon-half me-1"></i>{% trans "Nucleo" %}
     </a>
-    <a href="{% url 'export_ispezioni_pdf' apiario.id %}" class="btn btn-outline-danger btn-sm" title="Esporta ispezioni PDF">
+    <a href="{% url 'export_ispezioni_pdf' apiario.id %}" class="btn btn-outline-danger btn-sm" title="{% trans 'Esporta ispezioni PDF' %}">
       <i class="bi bi-file-earmark-pdf me-1"></i>PDF
     </a>
-    <a href="{% url 'export_produzione_csv' %}" class="btn btn-outline-success btn-sm" title="Esporta produzione CSV">
-      <i class="bi bi-filetype-csv me-1"></i>Produzione
+    <a href="{% url 'export_produzione_csv' %}" class="btn btn-outline-success btn-sm" title="{% trans 'Esporta produzione CSV' %}">
+      <i class="bi bi-filetype-csv me-1"></i>{% trans "Produzione" %}
     </a>
     <a href="{% url 'gestione_melari' apiario.id %}" class="btn btn-outline-secondary btn-sm">
-      <i class="bi bi-archive me-1"></i>Melari
+      <i class="bi bi-archive me-1"></i>{% trans "Melari" %}
     </a>
     <a href="{% url 'nuovo_trattamento_apiario' apiario.id %}" class="btn btn-outline-warning btn-sm">
-      <i class="bi bi-capsule me-1"></i>Trattamento
+      <i class="bi bi-capsule me-1"></i>{% trans "Trattamento" %}
     </a>
     <a href="{% url 'crea_arnia' %}?apiario_id={{ apiario.id }}" class="btn btn-primary">
-      <i class="bi bi-plus-circle me-1"></i>Nuova Arnia
+      <i class="bi bi-plus-circle me-1"></i>{% trans "Nuova Arnia" %}
     </a>
   </div>
 </div>
@@ -46,7 +46,7 @@
 {% if apiario.gruppo and apiario.condiviso_con_gruppo %}
 <div class="alert alert-info mb-4">
   <i class="bi bi-people me-2"></i>
-  Condiviso con il gruppo <strong>{{ apiario.gruppo.nome }}</strong>
+  {% blocktrans with nome=apiario.gruppo.nome %}Condiviso con il gruppo <strong>{{ nome }}</strong>{% endblocktrans %}
   {% if membro_gruppo %}
   · <span class="badge bg-info">{{ membro_gruppo.get_ruolo_display }}</span>
   {% endif %}
@@ -58,11 +58,11 @@
     <div class="col-md-4 col-sm-12 mb-3 mb-md-0">
         <div class="card h-100">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-calendar3"></i> Data di Riferimento</h5>
+                <h5 class="mb-0"><i class="bi bi-calendar3"></i> {% trans "Data di Riferimento" %}</h5>
             </div>
             <div class="card-body d-flex flex-column justify-content-center">
                 <form id="dataForm" method="get" class="d-flex align-items-center gap-2 flex-wrap">
-                    <label for="dataSelezionata" class="form-label mb-0 text-nowrap">Al:</label>
+                    <label for="dataSelezionata" class="form-label mb-0 text-nowrap">{% trans "Al:" %}</label>
                     <input type="date" id="dataSelezionata" name="data" class="form-control" style="min-width:130px" value="{{ data_selezionata|date:'Y-m-d' }}">
                     <button type="submit" class="btn btn-primary text-nowrap">
                         <i class="bi bi-check-circle"></i> Aggiorna
@@ -73,20 +73,20 @@
     </div>
     <div class="col-md-8 col-sm-12">
         <div class="card h-100">
-            <div class="card-header"><h5 class="mb-0"><i class="bi bi-capsule"></i> Trattamenti Attivi</h5></div>
+            <div class="card-header"><h5 class="mb-0"><i class="bi bi-capsule"></i> {% trans "Trattamenti Attivi" %}</h5></div>
             <div class="card-body">
                 {% if trattamenti_attivi %}
                     <div class="list-group">{% for trattamento in trattamenti_attivi %}
                         <div class="list-group-item">
                             <div class="d-flex w-100 justify-content-between">
                                 <h6 class="mb-1">{{ trattamento.tipo_trattamento.nome }}</h6>
-                                <small>{% if trattamento.stato == 'programmato' %}<span class="badge bg-info">Programmato per {{ trattamento.data_inizio|date:"d/m/Y" }}</span>{% elif trattamento.stato == 'in_corso' %}<span class="badge bg-warning text-dark">In corso dal {{ trattamento.data_inizio|date:"d/m/Y" }}</span>{% endif %}</small>
+                                <small>{% if trattamento.stato == 'programmato' %}<span class="badge bg-info">{% blocktrans with data=trattamento.data_inizio|date:"d/m/Y" %}Programmato per {{ data }}{% endblocktrans %}</span>{% elif trattamento.stato == 'in_corso' %}<span class="badge bg-warning text-dark">{% blocktrans with data=trattamento.data_inizio|date:"d/m/Y" %}In corso dal {{ data }}{% endblocktrans %}</span>{% endif %}</small>
                             </div>
-                            <small>{% if trattamento.arnie.count > 0 %}Su {{ trattamento.arnie.count }} arnie{% else %}Su tutte le arnie{% endif %} · <a href="{% url 'modifica_trattamento' trattamento.id %}"><i class="bi bi-pencil"></i> Dettagli</a></small>
+                            <small>{% if trattamento.arnie.count > 0 %}{% blocktrans with count=trattamento.arnie.count %}Su {{ count }} arnie{% endblocktrans %}{% else %}{% trans "Su tutte le arnie" %}{% endif %} · <a href="{% url 'modifica_trattamento' trattamento.id %}"><i class="bi bi-pencil"></i> {% trans "Dettagli" %}</a></small>
                         </div>
                     {% endfor %}</div>
                 {% else %}
-                    <p class="text-center mb-0 text-muted">Nessun trattamento attivo per questa data.</p>
+                    <p class="text-center mb-0 text-muted">{% trans "Nessun trattamento attivo per questa data." %}</p>
                 {% endif %}
             </div>
         </div>
@@ -101,14 +101,14 @@
       <!-- Card header -->
       <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2 py-2">
         <h5 class="mb-0 d-flex align-items-center gap-2">
-          <i class="bi bi-diagram-2"></i> Piantina Apiario
+          <i class="bi bi-diagram-2"></i> {% trans "Piantina Apiario" %}
           <span id="piantina-count" class="badge text-bg-secondary fw-normal" style="font-size:.72rem"></span>
         </h5>
         {% if can_edit %}
         <div class="d-flex align-items-center gap-2">
           <span id="save-status" class="small"></span>
           <button id="btn-save" class="btn btn-sm btn-primary" onclick="PIANTINA.save()">
-            <i class="bi bi-floppy me-1"></i>Salva
+            <i class="bi bi-floppy me-1"></i>{% trans "Salva" %}
           </button>
         </div>
         {% endif %}
@@ -174,16 +174,16 @@
   <div class="modal-dialog modal-sm">
     <div class="modal-content">
       <div class="modal-header" style="background:#f8f4ec;border-bottom:1px solid #e8dfc8">
-        <h5 class="modal-title" id="nucleoModalLabel"><i class="bi bi-hexagon me-2"></i>Nuovo Nucleo</h5>
+        <h5 class="modal-title" id="nucleoModalLabel"><i class="bi bi-hexagon me-2"></i>{% trans "Nuovo Nucleo" %}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label class="form-label fw-semibold">Numero</label>
+          <label class="form-label fw-semibold">{% trans "Numero" %}</label>
           <input type="number" id="nucleo-numero" class="form-control form-control-sm" min="1" value="1">
         </div>
         <div class="mb-3">
-          <label class="form-label fw-semibold">Colore</label>
+          <label class="form-label fw-semibold">{% trans "Colore" %}</label>
           <div class="d-flex flex-wrap gap-2 mt-1" id="nucleo-color-picker">
             <button class="nucleo-color-btn active" data-color="#8B6914" style="background:#8B6914"  title="Miele (default)"></button>
             <button class="nucleo-color-btn"        data-color="#FFC107" style="background:#FFC107"  title="Giallo"></button>
@@ -199,12 +199,12 @@
         </div>
         <div class="form-check">
           <input class="form-check-input" type="checkbox" id="nucleo-attiva" checked>
-          <label class="form-check-label" for="nucleo-attiva">Attivo</label>
+          <label class="form-check-label" for="nucleo-attiva">{% trans "Attivo" %}</label>
         </div>
       </div>
       <div class="modal-footer" style="background:#f8f4ec;border-top:1px solid #e8dfc8">
-        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annulla</button>
-        <button type="button" class="btn btn-primary btn-sm" id="nucleo-confirm-btn"><i class="bi bi-check-lg me-1"></i>Aggiungi</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
+        <button type="button" class="btn btn-primary btn-sm" id="nucleo-confirm-btn"><i class="bi bi-check-lg me-1"></i>{% trans "Aggiungi" %}</button>
       </div>
     </div>
   </div>
@@ -217,7 +217,7 @@
     <div class="col-12 mb-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-grid-3x3"></i> Arnie</h5>
+                <h5 class="mb-0"><i class="bi bi-grid-3x3"></i> {% trans "Arnie" %}</h5>
             </div>
             <div class="card-body">
                 {% if arnie %}
@@ -239,11 +239,11 @@
                                             </div>
                                             <div class="flex-grow-1 min-w-0">
                                                 <div class="d-flex align-items-center justify-content-between gap-1 flex-wrap">
-                                                    <span class="arnia-title">Arnia {{ arnia.numero }}</span>
+                                                    <span class="arnia-title">{% blocktrans with numero=arnia.numero %}Arnia {{ numero }}{% endblocktrans %}</span>
                                                     {% if arnia.attiva %}
-                                                    <span class="arnia-status-badge active">Attiva</span>
+                                                    <span class="arnia-status-badge active">{% trans "Attiva" %}</span>
                                                     {% else %}
-                                                    <span class="arnia-status-badge inactive">Inattiva</span>
+                                                    <span class="arnia-status-badge inactive">{% trans "Inattiva" %}</span>
                                                     {% endif %}
                                                 </div>
                                                 <div class="arnia-subtitle">
@@ -256,7 +256,7 @@
                                         {% for controllo in ultimi_controlli %}
                                             {% if controllo.arnia.id == arnia.id %}
                                                 <div class="arnia-last-check mb-2">
-                                                    <i class="bi bi-clock me-1"></i>Controllo: {{ controllo.data|date:"d/m/Y" }}
+                                                    <i class="bi bi-clock me-1"></i>{% trans "Controllo" %}: {{ controllo.data|date:"d/m/Y" }}
                                                 </div>
 
                                                 <!-- Barra telaini (stile Flutter) -->
@@ -267,7 +267,7 @@
                                                     <div class="hive-frame-bar">
                                                         <div class="mini-hive-row"></div>
                                                         <div class="arnia-queen-dot {% if controllo.presenza_regina %}present{% else %}absent{% endif %}"
-                                                             title="{% if controllo.presenza_regina %}Regina presente{% else %}Regina assente{% endif %}">♛</div>
+                                                             title="{% if controllo.presenza_regina %}{% trans 'Regina presente' %}{% else %}{% trans 'Regina assente' %}{% endif %}">♛</div>
                                                     </div>
                                                     <div class="mini-hive-legend"></div>
                                                 </div>
@@ -280,11 +280,11 @@
                                                       <i class="bi bi-crown-fill"></i>
                                                     </div>
                                                     <div class="regina-info">
-                                                      <span class="regina-label-ok">Regina presente</span>
+                                                      <span class="regina-label-ok">{% trans "Regina presente" %}</span>
                                                       <span class="regina-meta">
                                                         {% if controllo.arnia.regina and controllo.arnia.regina.marcata %}
                                                           <span class="regina-mark-dot" style="background:{{ controllo.arnia.regina.get_hex_colore_marcatura|default:'#F5A623' }};"></span>
-                                                          marcata
+                                                          {% trans "marcata" %}
                                                         {% else %}&nbsp;{% endif %}
                                                       </span>
                                                     </div>
@@ -296,8 +296,8 @@
                                                       <i class="bi bi-crown"></i>
                                                     </div>
                                                     <div class="regina-info">
-                                                      <span class="regina-label-absent">Regina assente</span>
-                                                      <span class="regina-meta">Verifica necessaria</span>
+                                                      <span class="regina-label-absent">{% trans "Regina assente" %}</span>
+                                                      <span class="regina-meta">{% trans "Verifica necessaria" %}</span>
                                                     </div>
                                                     <i class="bi bi-chevron-right regina-chevron"></i>
                                                   </div>
@@ -307,10 +307,10 @@
                                                 {% if controllo.sciamatura or controllo.problemi_sanitari %}
                                                 <div class="d-flex gap-1 flex-wrap mb-2">
                                                   {% if controllo.sciamatura %}
-                                                  <span class="badge rounded-pill bg-warning text-dark"><i class="bi bi-exclamation-triangle-fill me-1"></i>Sciamatura</span>
+                                                  <span class="badge rounded-pill bg-warning text-dark"><i class="bi bi-exclamation-triangle-fill me-1"></i>{% trans "Sciamatura" %}</span>
                                                   {% endif %}
                                                   {% if controllo.problemi_sanitari %}
-                                                  <span class="badge rounded-pill bg-danger"><i class="bi bi-bug-fill me-1"></i>Problemi sanitari</span>
+                                                  <span class="badge rounded-pill bg-danger"><i class="bi bi-bug-fill me-1"></i>{% trans "Problemi sanitari" %}</span>
                                                   {% endif %}
                                                 </div>
                                                 {% endif %}
@@ -326,7 +326,7 @@
                                         {% empty %}
                                             <div class="text-center py-3 arnia-no-data">
                                                 <i class="bi bi-clipboard2 d-block mb-1"></i>
-                                                Nessun controllo registrato
+                                                {% trans "Nessun controllo registrato" %}
                                             </div>
                                         {% endfor %}
                                     </div>
@@ -334,26 +334,26 @@
                                     <!-- Footer azioni -->
                                     <div class="arnia-card-footer">
                                         <a href="{% url 'nuovo_controllo' arnia.id %}" class="btn btn-sm btn-primary arnia-btn-main">
-                                            <i class="bi bi-clipboard-check me-1"></i>Controllo
+                                            <i class="bi bi-clipboard-check me-1"></i>{% trans "Controllo" %}
                                         </a>
                                         <div class="arnia-btn-group">
-                                            <a href="{% url 'modifica_arnia' arnia.id %}" class="btn btn-sm btn-outline-secondary" title="Modifica arnia">
+                                            <a href="{% url 'modifica_arnia' arnia.id %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Modifica arnia' %}">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                             {% if is_proprietario %}
-                                            <a href="{% url 'elimina_arnia' arnia.id %}" class="btn btn-sm btn-outline-danger" title="Elimina arnia">
+                                            <a href="{% url 'elimina_arnia' arnia.id %}" class="btn btn-sm btn-outline-danger" title="{% trans 'Elimina arnia' %}">
                                                 <i class="bi bi-trash"></i>
                                             </a>
                                             {% endif %}
                                             {% for controllo in ultimi_controlli %}
                                                 {% if controllo.arnia.id == arnia.id %}
-                                                    <a href="{% url 'copia_controllo' controllo.id %}" class="btn btn-sm btn-outline-success" title="Copia controllo">
+                                                    <a href="{% url 'copia_controllo' controllo.id %}" class="btn btn-sm btn-outline-success" title="{% trans 'Copia controllo' %}">
                                                         <i class="bi bi-files"></i>
                                                     </a>
-                                                    <a href="{% url 'modifica_controllo' controllo.id %}" class="btn btn-sm btn-outline-primary" title="Modifica controllo">
+                                                    <a href="{% url 'modifica_controllo' controllo.id %}" class="btn btn-sm btn-outline-primary" title="{% trans 'Modifica controllo' %}">
                                                         <i class="bi bi-pencil-square"></i>
                                                     </a>
-                                                    <a href="{% url 'elimina_controllo' controllo.id %}?next=apiario" class="btn btn-sm btn-outline-danger" title="Elimina controllo">
+                                                    <a href="{% url 'elimina_controllo' controllo.id %}?next=apiario" class="btn btn-sm btn-outline-danger" title="{% trans 'Elimina controllo' %}">
                                                         <i class="bi bi-trash3"></i>
                                                     </a>
                                                 {% endif %}
@@ -366,9 +366,9 @@
                     </div>
                 {% else %}
                     <div class="text-center py-4">
-                        <p>Non ci sono arnie registrate per questo apiario.</p>
+                        <p>{% trans "Non ci sono arnie registrate per questo apiario." %}</p>
                         <a href="{% url 'crea_arnia' %}?apiario_id={{ apiario.id }}" class="btn btn-success">
-                            <i class="bi bi-plus-circle"></i> Aggiungi la prima arnia
+                            <i class="bi bi-plus-circle"></i> {% trans "Aggiungi la prima arnia" %}
                         </a>
                     </div>
                 {% endif %}
@@ -383,7 +383,7 @@
     <div class="col-12 mb-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-journal-text"></i> Note</h5>
+                <h5 class="mb-0"><i class="bi bi-journal-text"></i> {% trans "Note" %}</h5>
             </div>
             <div class="card-body">
                 <p>{{ apiario.note|linebreaks }}</p>

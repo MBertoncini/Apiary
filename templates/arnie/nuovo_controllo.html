@@ -1,21 +1,21 @@
 <!-- templates/arnie/nuovo_controllo.html -->
 {% extends 'base.html' %}
-{% load static crispy_forms_tags %}
+{% load static crispy_forms_tags i18n %}
 
-{% block title %}Nuovo Controllo Arnia - Apiary{% endblock %}
+{% block title %}{% trans "Nuovo Controllo Arnia" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">{% if is_edit %}✏️ Modifica Controllo{% else %}📋 Nuovo Controllo{% endif %}</h1>
-    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' arnia.apiario.id %}">{{ arnia.apiario.nome }}</a> › Arnia #{{ arnia.numero }}</p>
+    <h1 class="page-title">{% if is_edit %}✏️ {% trans "Modifica Controllo" %}{% else %}📋 {% trans "Nuovo Controllo" %}{% endif %}</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a> › <a href="{% url 'visualizza_apiario' arnia.apiario.id %}">{{ arnia.apiario.nome }}</a> › {% blocktrans with numero=arnia.numero %}Arnia #{{ numero }}{% endblocktrans %}</p>
   </div>
   <div class="d-flex gap-2">
-    <button class="btn btn-amber" id="vc-fill-btn" title="Compila con voce">
-      <i class="bi bi-mic-fill me-1"></i> Compila con voce
+    <button class="btn btn-amber" id="vc-fill-btn" title="{% trans 'Compila con voce' %}">
+      <i class="bi bi-mic-fill me-1"></i> {% trans "Compila con voce" %}
     </button>
     <a href="{% url 'visualizza_apiario' arnia.apiario.id %}" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i> Torna all'Apiario
+      <i class="bi bi-arrow-left me-1"></i> {% trans "Torna all'Apiario" %}
     </a>
   </div>
 </div>
@@ -29,7 +29,7 @@
     <div class="modal-content">
       <div class="modal-header" style="background:linear-gradient(135deg,#2C1810,#3d2215);color:#F5A623;">
         <h5 class="modal-title" id="voiceFillModalLabel" style="font-family:'Caveat',cursive;font-size:1.3rem;">
-          <i class="bi bi-mic-fill me-2"></i>Compila con voce — Arnia #{{ arnia.numero }}
+          <i class="bi bi-mic-fill me-2"></i>{% trans "Compila con voce" %} — {% blocktrans with numero=arnia.numero %}Arnia #{{ numero }}{% endblocktrans %}
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
@@ -38,18 +38,18 @@
           Parla liberamente: "{{ arnia.apiario.nome }}, 4 telaini covata, 3 scorte, regina presente, famiglia forte"
         </p>
         <button class="btn btn-danger btn-lg rounded-pill px-4" id="vf-record-btn" style="min-width:160px">
-          <i class="bi bi-mic-fill me-2"></i>Registra
+          <i class="bi bi-mic-fill me-2"></i>{% trans "Registra" %}
         </button>
-        <p class="small mt-3 mb-2" id="vf-status" style="min-height:20px">Clicca il microfono e parla</p>
+        <p class="small mt-3 mb-2" id="vf-status" style="min-height:20px">{% trans "Clicca il microfono e parla" %}</p>
         <div class="vf-transcript-box mt-2" id="vf-transcript" style="
           background:#f7f3ec; border:1px solid #EAD9BF; border-radius:10px;
           padding:12px 14px; min-height:52px; font-size:.88rem; color:#3a2a1a;
           text-align:left; white-space:pre-wrap;">…</div>
       </div>
       <div class="modal-footer justify-content-between">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
         <button type="button" class="btn btn-success" id="vf-apply-btn" style="display:none">
-          <i class="bi bi-check-circle me-1"></i>Applica al form
+          <i class="bi bi-check-circle me-1"></i>{% trans "Applica al form" %}
         </button>
       </div>
     </div>
@@ -60,7 +60,7 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Dati del Controllo</h5>
+                <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>{% trans "Dati del Controllo" %}</h5>
             </div>
             <div class="card-body">
                 <form method="post" id="controlloForm">
@@ -84,7 +84,7 @@
                     <!-- ══ EDITOR TELAINI ══ -->
                     <div class="card mb-4 frame-editor-card">
                       <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <h5 class="mb-0"><i class="bi bi-grid-3x3 me-2"></i>Configurazione Telaini</h5>
+                        <h5 class="mb-0"><i class="bi bi-grid-3x3 me-2"></i>{% trans "Configurazione Telaini" %}</h5>
                         <div class="d-flex align-items-center gap-2">
                           <span class="small text-muted">Telaini:</span>
                           <button type="button" class="btn btn-sm btn-outline-secondary frame-count-btn" id="btn-frame-minus" style="width:28px;padding:0">−</button>
@@ -123,7 +123,7 @@
                         </div>
 
                         <p class="text-muted small mb-2 text-center">
-                          <i class="bi bi-mouse me-1"></i>Clicca o trascina per dipingere · Tasto destro per cancellare
+                          <i class="bi bi-mouse me-1"></i>{% trans "Clicca o trascina per dipingere · Tasto destro per cancellare" %}
                         </p>
 
                         <!-- Arnia visualizer -->
@@ -188,7 +188,7 @@
                         <div class="form-check">
                             {{ form.sciamatura }}
                             <label class="form-check-label" for="{{ form.sciamatura.id_for_label }}">
-                                Sciamatura rilevata
+                                {% trans "Sciamatura rilevata" %}
                             </label>
                         </div>
                         
@@ -206,7 +206,7 @@
                         <div class="form-check">
                             {{ form.problemi_sanitari }}
                             <label class="form-check-label" for="{{ form.problemi_sanitari.id_for_label }}">
-                                Problemi sanitari rilevati
+                                {% trans "Problemi sanitari rilevati" %}
                             </label>
                         </div>
                         
@@ -221,11 +221,11 @@
                     
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'visualizza_apiario' arnia.apiario.id %}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Annulla
+                            <i class="bi bi-arrow-left"></i> {% trans "Annulla" %}
                         </a>
-                        
+
                         <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check-circle"></i> Salva Controllo
+                            <i class="bi bi-check-circle"></i> {% trans "Salva Controllo" %}
                         </button>
                     </div>
                 </form>
@@ -236,37 +236,35 @@
     <div class="col-md-4">
         <div class="card mb-4">
             <div class="card-header" {% if arnia.colore_hex %}style="background-color:{{ arnia.colore_hex }}20; border-left: 4px solid {{ arnia.colore_hex }};"{% endif %}>
-                <h5 class="mb-0"><i class="bi bi-box me-2"></i>Arnia #{{ arnia.numero }}</h5>
+                <h5 class="mb-0"><i class="bi bi-box me-2"></i>{% blocktrans with numero=arnia.numero %}Arnia #{{ numero }}{% endblocktrans %}</h5>
             </div>
             <div class="card-body">
-                <p><strong>Apiario:</strong> {{ arnia.apiario.nome }}</p>
-                <p><strong>Colore:</strong> {{ arnia.get_colore_display }}</p>
-                <p><strong>Data installazione:</strong> {{ arnia.data_installazione|date:"d/m/Y" }}</p>
+                <p><strong>{% trans "Apiario" %}:</strong> {{ arnia.apiario.nome }}</p>
+                <p><strong>{% trans "Colore" %}:</strong> {{ arnia.get_colore_display }}</p>
+                <p><strong>{% trans "Data installazione" %}:</strong> {{ arnia.data_installazione|date:"d/m/Y" }}</p>
                 {% if arnia.note %}
-                    <p><strong>Note:</strong> {{ arnia.note }}</p>
+                    <p><strong>{% trans "Note" %}:</strong> {{ arnia.note }}</p>
                 {% endif %}
             </div>
         </div>
         
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Guida al Controllo</h5>
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>{% trans "Guida al Controllo" %}</h5>
             </div>
             <div class="card-body">
-                <p>
-                    Il controllo dell'arnia ti permette di registrare lo stato generale della famiglia.
-                </p>
+                <p>{% trans "Il controllo dell'arnia ti permette di registrare lo stato generale della famiglia." %}</p>
                 <ul>
-                    <li><strong>Telaini scorte:</strong> Numero di telaini con miele e polline</li>
-                    <li><strong>Telaini covata:</strong> Numero di telaini con covata (uova, larve, pupe)</li>
-                    <li><strong>Presenza regina:</strong> Indica se la regina è stata vista o se ci sono segni della sua presenza (uova fresche)</li>
-                    <li><strong>Sciamatura:</strong> Indica se l'arnia ha sciamato o se ci sono segni di preparazione alla sciamatura</li>
-                    <li><strong>Problemi sanitari:</strong> Indica la presenza di malattie, parassiti o altre anomalie</li>
+                    <li><strong>{% trans "Telaini scorte" %}:</strong> {% trans "Numero di telaini con miele e polline" %}</li>
+                    <li><strong>{% trans "Telaini covata" %}:</strong> {% trans "Numero di telaini con covata (uova, larve, pupe)" %}</li>
+                    <li><strong>{% trans "Presenza regina" %}:</strong> {% trans "Indica se la regina è stata vista o se ci sono segni della sua presenza (uova fresche)" %}</li>
+                    <li><strong>{% trans "Sciamatura" %}:</strong> {% trans "Indica se l'arnia ha sciamato o se ci sono segni di preparazione alla sciamatura" %}</li>
+                    <li><strong>{% trans "Problemi sanitari" %}:</strong> {% trans "Indica la presenza di malattie, parassiti o altre anomalie" %}</li>
                 </ul>
-                
+
                 <div class="alert alert-primary mt-3">
-                    <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong>
-                    Utilizza il configuratore dei telaini per rappresentare con precisione la disposizione all'interno dell'arnia.
+                    <i class="bi bi-lightbulb"></i> <strong>{% trans "Suggerimento" %}:</strong>
+                    {% trans "Utilizza il configuratore dei telaini per rappresentare con precisione la disposizione all'interno dell'arnia." %}
                 </div>
             </div>
         </div>

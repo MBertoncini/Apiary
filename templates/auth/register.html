@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Registrazione - Apiary{% endblock %}
+{% block title %}{% trans "Registrazione" %} - Apiary{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -196,8 +196,8 @@
       <div class="auth-logo">
         <img src="{% static 'images/logo.svg' %}" alt="Apiary">
       </div>
-      <h1 class="auth-title">Crea Account</h1>
-      <p class="auth-subtitle">Registrati su Apiary</p>
+      <h1 class="auth-title">{% trans "Crea Account" %}</h1>
+      <p class="auth-subtitle">{% trans "Registrati su Apiary" %}</p>
 
       <!-- Registration form -->
       <form method="post" id="registerForm" novalidate>
@@ -205,10 +205,10 @@
 
         <!-- Username -->
         <div class="form-group">
-          <label for="id_username">Username</label>
+          <label for="id_username">{% trans "Username" %}</label>
           <input type="text" name="username" id="id_username"
                  class="form-control {% if errors.username %}is-invalid{% endif %}"
-                 value="{{ username }}" placeholder="Scegli uno username"
+                 value="{{ username }}" placeholder="{% trans 'Scegli uno username' %}"
                  autocomplete="username" required>
           {% if errors.username %}
           <div class="field-error"><i class="bi bi-exclamation-circle"></i> {{ errors.username }}</div>
@@ -217,10 +217,10 @@
 
         <!-- Email -->
         <div class="form-group">
-          <label for="id_email">Email</label>
+          <label for="id_email">{% trans "Email" %}</label>
           <input type="email" name="email" id="id_email"
                  class="form-control {% if errors.email %}is-invalid{% endif %}"
-                 value="{{ email }}" placeholder="La tua email"
+                 value="{{ email }}" placeholder="{% trans 'La tua email' %}"
                  autocomplete="email" required>
           {% if errors.email %}
           <div class="field-error"><i class="bi bi-exclamation-circle"></i> {{ errors.email }}</div>
@@ -229,11 +229,11 @@
 
         <!-- Password -->
         <div class="form-group">
-          <label for="id_password">Password</label>
+          <label for="id_password">{% trans "Password" %}</label>
           <div class="input-wrapper">
             <input type="password" name="password" id="id_password"
                    class="form-control has-toggle {% if errors.password %}is-invalid{% endif %}"
-                   placeholder="Crea una password" autocomplete="new-password" required>
+                   placeholder="{% trans 'Crea una password' %}" autocomplete="new-password" required>
             <button type="button" class="password-toggle" onclick="togglePassword('id_password', this)">
               <i class="bi bi-eye"></i>
             </button>
@@ -241,17 +241,17 @@
           {% if errors.password %}
           <div class="field-error"><i class="bi bi-exclamation-circle"></i> {{ errors.password }}</div>
           {% else %}
-          <div class="password-hint">Minimo 8 caratteri</div>
+          <div class="password-hint">{% trans "Minimo 8 caratteri" %}</div>
           {% endif %}
         </div>
 
         <!-- Confirm Password -->
         <div class="form-group">
-          <label for="id_confirm_password">Conferma Password</label>
+          <label for="id_confirm_password">{% trans "Conferma Password" %}</label>
           <div class="input-wrapper">
             <input type="password" name="confirm_password" id="id_confirm_password"
                    class="form-control has-toggle {% if errors.confirm_password %}is-invalid{% endif %}"
-                   placeholder="Ripeti la password" autocomplete="new-password" required>
+                   placeholder="{% trans 'Ripeti la password' %}" autocomplete="new-password" required>
             <button type="button" class="password-toggle" onclick="togglePassword('id_confirm_password', this)">
               <i class="bi bi-eye"></i>
             </button>
@@ -266,8 +266,7 @@
           <input type="checkbox" name="privacy_accepted" id="id_privacy"
                  {% if privacy_accepted %}checked{% endif %}>
           <label for="id_privacy">
-            Accetto l'<a href="/app/privacy/" target="_blank">informativa sulla privacy</a>
-            e i termini di servizio
+            {% blocktrans %}Accetto l'<a href="/app/privacy/" target="_blank">informativa sulla privacy</a> e i termini di servizio{% endblocktrans %}
           </label>
         </div>
         {% if errors.privacy %}
@@ -278,7 +277,7 @@
 
         <button type="submit" class="btn-auth" id="submitBtn">
           <i class="bi bi-person-plus"></i>
-          <span class="btn-text">Crea Account</span>
+          <span class="btn-text">{% trans "Crea Account" %}</span>
           <span class="spinner-border text-light d-none" id="submitSpinner" role="status"></span>
         </button>
       </form>
@@ -286,7 +285,7 @@
     </div>
 
     <div class="auth-footer">
-      Hai già un account? <a href="{% url 'login' %}">Accedi</a>
+      {% trans "Hai già un account?" %} <a href="{% url 'login' %}">{% trans "Accedi" %}</a>
     </div>
   </div>
 </div>

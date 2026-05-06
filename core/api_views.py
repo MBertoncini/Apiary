@@ -1102,11 +1102,32 @@ class SmielaturaViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Filtra le smielature in base agli apiari accessibili all'utente.
+
+        Query param `?attive=true`: nasconde le smielature archiviate o
+        esaurite (kg_residui ≤ 0). Default: tutte (per compat e per stats
+        annuali in app).
         """
         apiari_accessibili = get_apiari_accessibili(self.request.user)
-        return Smielatura.objects.filter(
+        qs = Smielatura.objects.filter(
             apiario__in=apiari_accessibili
         ).select_related('apiario', 'apiario__gruppo', 'utente')
+        attive = self.request.query_params.get('attive')
+        if attive in ('1', 'true', 'True'):
+            from django.db.models import F
+            qs = qs.filter(archiviata=False).filter(kg_trasferiti__lt=F('quantita_miele'))
+        return qs
+
+    @action(detail=True, methods=['post'])
+    def archivia(self, request, pk=None):
+        """Archivia/sblocca manualmente una smielatura.
+
+        Body opzionale: `{"archiviata": true|false}`. Se omesso toggla.
+        """
+        s = self.get_object()
+        target = request.data.get('archiviata')
+        s.archiviata = (not s.archiviata) if target is None else bool(target)
+        s.save(update_fields=['archiviata'])
+        return Response(SmielaturaSerializer(s, context={'request': request}).data)
 
 # Modifica il GruppoViewSet esistente aggiungendo le nuove azioni
 class GruppoViewSet(viewsets.ModelViewSet):
@@ -1655,18 +1676,68 @@ class InvasettamentoViewSet(viewsets.ModelViewSet):
     ordering = ['-data']
 
     def get_queryset(self):
-        from django.db.models import Q
+        from django.db.models import Q, F
         apiari_accessibili = get_apiari_accessibili(self.request.user)
-        return Invasettamento.objects.filter(
+        qs = Invasettamento.objects.filter(
             Q(smielatura__apiario__in=apiari_accessibili) |
             Q(contenitore__utente=self.request.user)
         ).select_related(
             'smielatura', 'smielatura__apiario', 'smielatura__apiario__gruppo',
             'contenitore', 'utente'
         ).distinct()
+        # Query param `?disponibili=true`: solo lotti con vasetti residui.
+        if self.request.query_params.get('disponibili') in ('1', 'true', 'True'):
+            qs = qs.filter(numero_vasetti__gt=F('numero_vasetti_venduti'))
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(utente=self.request.user)
+
+    @action(detail=False, methods=['post'])
+    def vendi(self, request):
+        """Marca come venduti N vasetti di un dato (tipo_miele, formato).
+
+        Body: `{"tipo_miele": "...", "formato_vasetto": 500, "quantita": 12}`.
+        Distribuzione FIFO sui lotti dell'utente con vasetti disponibili.
+        Restituisce la lista dei lotti aggiornati.
+        """
+        tipo = request.data.get('tipo_miele')
+        formato = request.data.get('formato_vasetto')
+        qta = int(request.data.get('quantita', 0))
+        if not tipo or not formato or qta <= 0:
+            return Response(
+                {'error': 'tipo_miele, formato_vasetto e quantita > 0 sono richiesti.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        from django.db.models import F
+        lotti = list(self.get_queryset().filter(
+            tipo_miele=tipo, formato_vasetto=int(formato),
+            numero_vasetti__gt=F('numero_vasetti_venduti'),
+        ).order_by('data', 'id'))  # FIFO
+
+        disponibili_tot = sum(l.vasetti_disponibili for l in lotti)
+        if qta > disponibili_tot:
+            return Response(
+                {'error': f'Disponibili: {disponibili_tot}, richiesti: {qta}.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        rimanenti = qta
+        aggiornati = []
+        for lotto in lotti:
+            if rimanenti <= 0:
+                break
+            disp = lotto.vasetti_disponibili
+            preso = min(disp, rimanenti)
+            lotto.numero_vasetti_venduti += preso
+            if lotto.numero_vasetti_venduti >= lotto.numero_vasetti:
+                lotto.stato = 'venduto'
+            lotto.save(update_fields=['numero_vasetti_venduti', 'stato'])
+            rimanenti -= preso
+            aggiornati.append(lotto)
+
+        ser = InvasettamentoSerializer(aggiornati, many=True, context={'request': request})
+        return Response({'venduti': qta, 'lotti': ser.data})
 
 
 class PreferenzaMaturazionViewSet(viewsets.ModelViewSet):

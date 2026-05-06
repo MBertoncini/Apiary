@@ -1,20 +1,21 @@
 <!-- templates/arnie/conferma_elimina_arnia.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Elimina Arnia #{{ arnia.numero }} - Apiary{% endblock %}
+{% block title %}{% blocktrans with numero=arnia.numero %}Elimina Arnia #{{ numero }}{% endblocktrans %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">Elimina Arnia #{{ arnia.numero }}</h1>
+    <h1 class="page-title">{% blocktrans with numero=arnia.numero %}Elimina Arnia #{{ numero }}{% endblocktrans %}</h1>
     <p class="page-subtitle">
-      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a>
       › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a>
-      › Elimina Arnia
+      › {% trans "Elimina Arnia" %}
     </p>
   </div>
   <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-outline-secondary">
-    <i class="bi bi-arrow-left me-1"></i>Annulla
+    <i class="bi bi-arrow-left me-1"></i>{% trans "Annulla" %}
   </a>
 </div>
 
@@ -22,27 +23,27 @@
   <div class="col-md-6">
     <div class="card border-danger">
       <div class="card-header bg-danger text-white">
-        <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Attenzione: operazione irreversibile</h5>
+        <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>{% trans "Attenzione: operazione irreversibile" %}</h5>
       </div>
       <div class="card-body">
-        <p>Stai per eliminare definitivamente l'arnia:</p>
+        <p>{% trans "Stai per eliminare definitivamente l'arnia:" %}</p>
         <ul>
-          <li><strong>Arnia #{{ arnia.numero }}</strong> — {{ apiario.nome }}</li>
-          {% if arnia.colore %}<li>Colore: {{ arnia.get_colore_display }}</li>{% endif %}
-          {% if arnia.data_installazione %}<li>Installata il: {{ arnia.data_installazione }}</li>{% endif %}
+          <li><strong>{% blocktrans with numero=arnia.numero nome=apiario.nome %}Arnia #{{ numero }}{% endblocktrans %}</strong> — {{ apiario.nome }}</li>
+          {% if arnia.colore %}<li>{% trans "Colore:" %} {{ arnia.get_colore_display }}</li>{% endif %}
+          {% if arnia.data_installazione %}<li>{% trans "Installata il:" %} {{ arnia.data_installazione }}</li>{% endif %}
         </ul>
         <div class="alert alert-danger">
           <i class="bi bi-trash me-1"></i>
-          Verranno eliminati anche <strong>tutti i controlli, melari, dati regina e trattamenti</strong> associati a questa arnia.
+          {% blocktrans %}Verranno eliminati anche <strong>tutti i controlli, melari, dati regina e trattamenti</strong> associati a questa arnia.{% endblocktrans %}
         </div>
         <form method="post">
           {% csrf_token %}
           <div class="d-flex gap-2 justify-content-end">
             <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-outline-secondary">
-              <i class="bi bi-x-circle me-1"></i>Annulla
+              <i class="bi bi-x-circle me-1"></i>{% trans "Annulla" %}
             </a>
             <button type="submit" class="btn btn-danger">
-              <i class="bi bi-trash me-1"></i>Elimina definitivamente
+              <i class="bi bi-trash me-1"></i>{% trans "Elimina definitivamente" %}
             </button>
           </div>
         </form>

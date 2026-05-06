@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Dashboard — Apiary{% endblock %}
+{% block title %}{% trans "Dashboard" %} — Apiary{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -14,11 +15,11 @@
 <!-- Page header -->
 <div class="page-header">
   <div>
-    <h1 class="page-title">🐝 Buongiorno!</h1>
+    <h1 class="page-title">🐝 {% trans "Buongiorno!" %}</h1>
     <p class="page-subtitle">{{ data_selezionata|date:"l d F Y" }}</p>
   </div>
   <a href="{% url 'crea_apiario' %}" class="btn btn-primary">
-    <i class="bi bi-plus-circle me-1"></i> Nuovo Apiario
+    <i class="bi bi-plus-circle me-1"></i> {% trans "Nuovo Apiario" %}
   </a>
 </div>
 
@@ -31,7 +32,7 @@
     <div class="stat-card">
       <span class="stat-icon">🏡</span>
       <div class="stat-value">{{ apiari|length }}</div>
-      <div class="stat-label">Apiari</div>
+      <div class="stat-label">{% trans "Apiari" %}</div>
     </div>
   </div>
 
@@ -39,7 +40,7 @@
     <div class="stat-card">
       <span class="stat-icon">🐝</span>
       <div class="stat-value">{{ num_arnie|default:"—" }}</div>
-      <div class="stat-label">Arnie totali</div>
+      <div class="stat-label">{% trans "Arnie totali" %}</div>
     </div>
   </div>
 
@@ -47,7 +48,7 @@
     <div class="stat-card">
       <span class="stat-icon">🌸</span>
       <div class="stat-value">{{ fioriture_attuali|length }}</div>
-      <div class="stat-label">Fioriture attive</div>
+      <div class="stat-label">{% trans "Fioriture attive" %}</div>
     </div>
   </div>
 
@@ -55,7 +56,7 @@
     <div class="stat-card">
       <span class="stat-icon">📋</span>
       <div class="stat-value">{{ ultimi_controlli|length }}</div>
-      <div class="stat-label">Controlli recenti</div>
+      <div class="stat-label">{% trans "Controlli recenti" %}</div>
     </div>
   </div>
 
@@ -71,7 +72,7 @@
     <div class="card h-100">
       <div class="card-header">
         <i class="bi bi-grid-fill"></i>
-        I tuoi Apiari
+        {% trans "I tuoi Apiari" %}
         <span class="badge bg-white text-dark ms-auto" style="color: var(--honey-darker) !important;">{{ apiari|length }}</span>
       </div>
       <div class="card-body p-0">
@@ -90,7 +91,7 @@
                 {% endif %}
               </div>
               <span class="badge bg-honey" style="background:var(--honey)!important; color:white; flex-shrink:0; margin-left:8px;">
-                {{ apiario.arnie.count }} arnie
+                {% blocktrans count counter=apiario.arnie.count %}{{ counter }} arnia{% plural %}{{ counter }} arnie{% endblocktrans %}
               </span>
             </div>
           </a>
@@ -99,20 +100,20 @@
         {% else %}
         <div class="empty-state">
           <span class="empty-icon">🏡</span>
-          <h5>Nessun apiario ancora</h5>
-          <p>Crea il tuo primo apiario per iniziare.</p>
+          <h5>{% trans "Nessun apiario ancora" %}</h5>
+          <p>{% trans "Crea il tuo primo apiario per iniziare." %}</p>
           <a href="{% url 'crea_apiario' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i> Crea apiario
+            <i class="bi bi-plus-circle me-1"></i> {% trans "Crea apiario" %}
           </a>
         </div>
         {% endif %}
       </div>
       <div class="card-footer">
         <a href="{% url 'crea_apiario' %}" class="btn btn-sm btn-primary">
-          <i class="bi bi-plus-circle me-1"></i> Nuovo Apiario
+          <i class="bi bi-plus-circle me-1"></i> {% trans "Nuovo Apiario" %}
         </a>
         <a href="{% url 'mappa_apiari' %}" class="btn btn-sm btn-outline-secondary ms-2">
-          <i class="bi bi-map me-1"></i> Mappa
+          <i class="bi bi-map me-1"></i> {% trans "Mappa" %}
         </a>
       </div>
     </div>
@@ -123,7 +124,7 @@
     <div class="card h-100">
       <div class="card-header">
         <i class="bi bi-flower1"></i>
-        Fioriture Attive
+        {% trans "Fioriture Attive" %}
         <span class="badge bg-white ms-auto" style="color: var(--success) !important;">{{ fioriture_attuali|length }}</span>
       </div>
       <div class="card-body p-0">
@@ -137,7 +138,7 @@
                 <small class="text-muted">
                   {{ fioritura.data_inizio|date:"d/m/Y" }}
                   {% if fioritura.data_fine %}→ {{ fioritura.data_fine|date:"d/m/Y" }}
-                  {% else %}<span class="badge bg-success ms-1" style="font-size:0.68rem;">in corso</span>{% endif %}
+                  {% else %}<span class="badge bg-success ms-1" style="font-size:0.68rem;">{% trans "in corso" %}</span>{% endif %}
                 </small>
               </div>
               {% if fioritura.apiario %}
@@ -150,17 +151,17 @@
         {% else %}
         <div class="empty-state">
           <span class="empty-icon">🌸</span>
-          <h5>Nessuna fioritura attiva</h5>
-          <p>Registra le fioriture per monitorare il pascolo.</p>
+          <h5>{% trans "Nessuna fioritura attiva" %}</h5>
+          <p>{% trans "Registra le fioriture per monitorare il pascolo." %}</p>
           <a href="{% url 'gestione_fioriture' %}" class="btn btn-success">
-            <i class="bi bi-plus-circle me-1"></i> Aggiungi fioritura
+            <i class="bi bi-plus-circle me-1"></i> {% trans "Aggiungi fioritura" %}
           </a>
         </div>
         {% endif %}
       </div>
       <div class="card-footer">
         <a href="{% url 'gestione_fioriture' %}" class="btn btn-sm btn-success">
-          <i class="bi bi-flower1 me-1"></i> Gestisci Fioriture
+          <i class="bi bi-flower1 me-1"></i> {% trans "Gestisci Fioriture" %}
         </a>
       </div>
     </div>
@@ -178,7 +179,7 @@
     <div class="card h-100">
       <div class="card-header">
         <i class="bi bi-bar-chart-fill me-2" style="color:var(--honey);"></i>
-        Controlli per mese
+        {% trans "Controlli per mese" %}
       </div>
       <div class="card-body chart-card">
         <canvas id="chartControlli"></canvas>
@@ -191,7 +192,7 @@
     <div class="card h-100">
       <div class="card-header">
         <i class="bi bi-droplet-fill me-2" style="color:var(--honey);"></i>
-        Produzione miele (kg)
+        {% trans "Produzione miele (kg)" %}
       </div>
       <div class="card-body chart-card">
         <canvas id="chartProduzione"></canvas>
@@ -208,25 +209,25 @@
     <div class="card card-honey">
       <div class="card-body py-3">
         <div class="d-flex align-items-center gap-4 flex-wrap">
-          <strong style="font-size:0.9rem;">🐝 Stato arnie</strong>
+          <strong style="font-size:0.9rem;">🐝 {% trans "Stato arnie" %}</strong>
           <span>
             <span class="health-dot me-1" style="background:var(--success);"></span>
-            <span class="text-muted" style="font-size:0.85rem;">{{ num_arnie|add:"-"|add:arnie_senza_regina|add:"-"|add:arnie_con_problemi }} in buona salute</span>
+            <span class="text-muted" style="font-size:0.85rem;">{% blocktrans with n=num_arnie|add:"-"|add:arnie_senza_regina|add:"-"|add:arnie_con_problemi %}{{ n }} in buona salute{% endblocktrans %}</span>
           </span>
           {% if arnie_senza_regina %}
           <span>
             <span class="health-dot me-1" style="background:var(--danger);"></span>
-            <span class="text-muted" style="font-size:0.85rem;">{{ arnie_senza_regina }} senza regina</span>
+            <span class="text-muted" style="font-size:0.85rem;">{% blocktrans with n=arnie_senza_regina %}{{ n }} senza regina{% endblocktrans %}</span>
           </span>
           {% endif %}
           {% if arnie_con_problemi %}
           <span>
             <span class="health-dot me-1" style="background:var(--warning);"></span>
-            <span class="text-muted" style="font-size:0.85rem;">{{ arnie_con_problemi }} con problemi</span>
+            <span class="text-muted" style="font-size:0.85rem;">{% blocktrans with n=arnie_con_problemi %}{{ n }} con problemi{% endblocktrans %}</span>
           </span>
           {% endif %}
           <span class="ms-auto">
-            <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary">Aggiorna</a>
+            <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "Aggiorna" %}</a>
           </span>
         </div>
       </div>
@@ -241,7 +242,7 @@
 <div class="card mb-4">
   <div class="card-header">
     <i class="bi bi-clipboard-check"></i>
-    Controlli Recenti
+    {% trans "Controlli Recenti" %}
   </div>
 
   {% if ultimi_controlli %}
@@ -249,12 +250,12 @@
     <table class="table table-hover mb-0">
       <thead>
         <tr>
-          <th>Data</th>
-          <th>Arnia</th>
-          <th>Apiario</th>
-          <th>Operatore</th>
-          <th>Stato</th>
-          <th>Dettagli</th>
+          <th>{% trans "Data" %}</th>
+          <th>{% trans "Arnia" %}</th>
+          <th>{% trans "Apiario" %}</th>
+          <th>{% trans "Operatore" %}</th>
+          <th>{% trans "Stato" %}</th>
+          <th>{% trans "Dettagli" %}</th>
           <th></th>
         </tr>
       </thead>
@@ -266,28 +267,28 @@
             <div class="d-flex align-items-center gap-2">
               <span class="color-square"
                 style="background-color: {% if controllo.arnia.colore_hex %}{{ controllo.arnia.colore_hex }}{% else %}#ccc{% endif %};"></span>
-              Arnia #{{ controllo.arnia.numero }}
+              {% blocktrans with n=controllo.arnia.numero %}Arnia #{{ n }}{% endblocktrans %}
             </div>
           </td>
           <td>{{ controllo.arnia.apiario.nome }}</td>
           <td>{{ controllo.utente.username }}</td>
           <td>
             {% if controllo.presenza_regina %}
-              <span class="badge bg-success">👑 Regina ✓</span>
+              <span class="badge bg-success">👑 {% trans "Regina" %} ✓</span>
             {% else %}
-              <span class="badge bg-danger">👑 Regina ✗</span>
+              <span class="badge bg-danger">👑 {% trans "Regina" %} ✗</span>
             {% endif %}
             {% if controllo.sciamatura %}
-              <span class="badge bg-warning">Sciamatura</span>
+              <span class="badge bg-warning">{% trans "Sciamatura" %}</span>
             {% endif %}
             {% if controllo.problemi_sanitari %}
-              <span class="badge bg-danger">Problemi</span>
+              <span class="badge bg-danger">{% trans "Problemi" %}</span>
             {% endif %}
           </td>
           <td>
             <button type="button" class="btn btn-sm btn-outline-secondary"
                     data-bs-toggle="modal" data-bs-target="#modalC{{ controllo.id }}"
-                    title="Dettagli">
+                    title="{% trans 'Dettagli' %}">
               <i class="bi bi-info-circle"></i>
             </button>
 
@@ -303,7 +304,7 @@
                     {% endif %}>
                     <h5 class="modal-title">
                       <i class="bi bi-clipboard-check me-2"></i>
-                      Controllo — Arnia #{{ controllo.arnia.numero }}
+                      {% blocktrans with n=controllo.arnia.numero %}Controllo — Arnia #{{ n }}{% endblocktrans %}
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                       {% if controllo.arnia.colore_hex and controllo.arnia.colore_hex != '#FFFFFF' %}
@@ -313,41 +314,41 @@
                   <div class="modal-body">
                     <div class="row g-3">
                       <div class="col-6">
-                        <small class="text-muted d-block">Data</small>
+                        <small class="text-muted d-block">{% trans "Data" %}</small>
                         <strong>{{ controllo.data|date:"d/m/Y" }}</strong>
                       </div>
                       <div class="col-6">
-                        <small class="text-muted d-block">Operatore</small>
+                        <small class="text-muted d-block">{% trans "Operatore" %}</small>
                         <strong>{{ controllo.utente.username }}</strong>
                       </div>
                       <div class="col-6">
-                        <small class="text-muted d-block">Telaini covata</small>
+                        <small class="text-muted d-block">{% trans "Telaini covata" %}</small>
                         <strong>{{ controllo.telaini_covata }}</strong>
                       </div>
                       <div class="col-6">
-                        <small class="text-muted d-block">Telaini scorte</small>
+                        <small class="text-muted d-block">{% trans "Telaini scorte" %}</small>
                         <strong>{{ controllo.telaini_scorte }}</strong>
                       </div>
                       <div class="col-6">
-                        <small class="text-muted d-block">Presenza regina</small>
-                        <strong>{% if controllo.presenza_regina %}✅ Sì{% else %}❌ No{% endif %}</strong>
+                        <small class="text-muted d-block">{% trans "Presenza regina" %}</small>
+                        <strong>{% if controllo.presenza_regina %}✅ {% trans "Sì" %}{% else %}❌ {% trans "No" %}{% endif %}</strong>
                       </div>
                       <div class="col-6">
-                        <small class="text-muted d-block">Sciamatura</small>
-                        <strong>{% if controllo.sciamatura %}⚠️ Sì{% else %}No{% endif %}</strong>
+                        <small class="text-muted d-block">{% trans "Sciamatura" %}</small>
+                        <strong>{% if controllo.sciamatura %}⚠️ {% trans "Sì" %}{% else %}{% trans "No" %}{% endif %}</strong>
                       </div>
                       {% if controllo.note %}
                       <div class="col-12">
-                        <small class="text-muted d-block">Note</small>
+                        <small class="text-muted d-block">{% trans "Note" %}</small>
                         <p class="mb-0">{{ controllo.note }}</p>
                       </div>
                       {% endif %}
                     </div>
                   </div>
                   <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Chiudi</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Chiudi" %}</button>
                     <a href="{% url 'modifica_controllo' controllo.id %}" class="btn btn-primary btn-sm">
-                      <i class="bi bi-pencil me-1"></i> Modifica
+                      <i class="bi bi-pencil me-1"></i> {% trans "Modifica" %}
                     </a>
                   </div>
                 </div>
@@ -356,10 +357,10 @@
           </td>
           <td>
             <div class="btn-group btn-group-sm">
-              <a href="{% url 'modifica_controllo' controllo.id %}" class="btn btn-outline-primary" title="Modifica">
+              <a href="{% url 'modifica_controllo' controllo.id %}" class="btn btn-outline-primary" title="{% trans 'Modifica' %}">
                 <i class="bi bi-pencil-square"></i>
               </a>
-              <a href="{% url 'elimina_controllo' controllo.id %}?next=dashboard" class="btn btn-outline-danger" title="Elimina">
+              <a href="{% url 'elimina_controllo' controllo.id %}?next=dashboard" class="btn btn-outline-danger" title="{% trans 'Elimina' %}">
                 <i class="bi bi-trash"></i>
               </a>
             </div>
@@ -373,8 +374,8 @@
   <div class="card-body">
     <div class="empty-state">
       <span class="empty-icon">📋</span>
-      <h5>Nessun controllo recente</h5>
-      <p>I controlli delle arnie appariranno qui.</p>
+      <h5>{% trans "Nessun controllo recente" %}</h5>
+      <p>{% trans "I controlli delle arnie appariranno qui." %}</p>
     </div>
   </div>
   {% endif %}

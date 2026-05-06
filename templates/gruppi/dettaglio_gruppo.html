@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% load i18n crispy_forms_tags %}
 
 {% block title %}{{ gruppo.nome }} - Apiary{% endblock %}
 
@@ -16,9 +16,9 @@
     <div>
       <h1 class="page-title mb-0">👥 {{ gruppo.nome }}</h1>
       <p class="page-subtitle mb-0">
-        <a href="{% url 'gestione_gruppi' %}">Gruppi</a> › {{ gruppo.nome }}
-        <span class="badge bg-secondary ms-2">{{ membri.count }} membri</span>
-        {% if gruppo.creatore == user %}<span class="badge bg-warning text-dark ms-1">Creatore</span>{% endif %}
+        <a href="{% url 'gestione_gruppi' %}">{% trans "Gruppi" %}</a> › {{ gruppo.nome }}
+        <span class="badge bg-secondary ms-2">{% blocktrans with count=membri.count %}{{ count }} membri{% endblocktrans %}</span>
+        {% if gruppo.creatore == user %}<span class="badge bg-warning text-dark ms-1">{% trans "Creatore" %}</span>{% endif %}
       </p>
       {% if gruppo.descrizione %}<p class="text-muted mb-0 small mt-1">{{ gruppo.descrizione }}</p>{% endif %}
     </div>
@@ -26,17 +26,17 @@
 
   <div class="d-flex gap-2">
     <a href="{% url 'gestione_gruppi' %}" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i> Gruppi
+      <i class="bi bi-arrow-left me-1"></i> {% trans "Gruppi" %}
     </a>
     {% if is_admin %}
       <a href="{% url 'modifica_immagine_gruppo' gruppo.id %}" class="btn btn-outline-info">
-        <i class="bi bi-image me-1"></i> Immagine
+        <i class="bi bi-image me-1"></i> {% trans "Immagine" %}
       </a>
       <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modifyGroupModal">
-        <i class="bi bi-pencil me-1"></i> Modifica
+        <i class="bi bi-pencil me-1"></i> {% trans "Modifica" %}
       </button>
       <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteGroupModal">
-        <i class="bi bi-trash me-1"></i> Elimina
+        <i class="bi bi-trash me-1"></i> {% trans "Elimina" %}
       </button>
     {% endif %}
   </div>
@@ -46,19 +46,19 @@
     <div class="col-md-8">
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-people me-2"></i>Membri del Gruppo</h5>
+                <h5 class="mb-0"><i class="bi bi-people me-2"></i>{% trans "Membri del Gruppo" %}</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>Utente</th>
-                                <th>Email</th>
-                                <th>Ruolo</th>
-                                <th>Data aggiunta</th>
+                                <th>{% trans "Utente" %}</th>
+                                <th>{% trans "Email" %}</th>
+                                <th>{% trans "Ruolo" %}</th>
+                                <th>{% trans "Data aggiunta" %}</th>
                                 {% if is_admin %}
-                                    <th>Azioni</th>
+                                    <th>{% trans "Azioni" %}</th>
                                 {% endif %}
                             </tr>
                         </thead>
@@ -68,7 +68,7 @@
                                     <td>
                                         {{ membro.utente.username }}
                                         {% if membro.utente == gruppo.creatore %}
-                                            <span class="badge bg-info">Creatore</span>
+                                            <span class="badge bg-info">{% trans "Creatore" %}</span>
                                         {% endif %}
                                     </td>
                                     <td>{{ membro.utente.email }}</td>
@@ -82,10 +82,10 @@
                                         <td>
                                             <div class="btn-group">
                                                 {% if membro.utente != gruppo.creatore or user == gruppo.creatore %}
-                                                    <a href="{% url 'modifica_ruolo_membro' membro.id %}" class="btn btn-sm btn-outline-primary" title="Modifica Ruolo">
+                                                    <a href="{% url 'modifica_ruolo_membro' membro.id %}" class="btn btn-sm btn-outline-primary" title="{% trans "Modifica Ruolo" %}">
                                                         <i class="bi bi-pencil"></i>
                                                     </a>
-                                                    <a href="{% url 'rimuovi_membro' membro.id %}" class="btn btn-sm btn-outline-danger" title="Rimuovi Membro">
+                                                    <a href="{% url 'rimuovi_membro' membro.id %}" class="btn btn-sm btn-outline-danger" title="{% trans "Rimuovi Membro" %}">
                                                         <i class="bi bi-person-dash"></i>
                                                     </a>
                                                 {% endif %}
@@ -97,13 +97,13 @@
                         </tbody>
                     </table>
                 </div>
-                
+
                 {% if not is_admin %}
                     {% for membro in membri %}
                         {% if membro.utente == user %}
                         <div class="mt-3">
                             <a href="{% url 'rimuovi_membro' membro.id %}" class="btn btn-outline-danger">
-                                <i class="bi bi-box-arrow-left"></i> Lascia Gruppo
+                                <i class="bi bi-box-arrow-left"></i> {% trans "Lascia Gruppo" %}
                             </a>
                         </div>
                         {% endif %}
@@ -111,10 +111,10 @@
                 {% endif %}
             </div>
         </div>
-        
+
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-grid me-2"></i>Apiari Condivisi</h5>
+                <h5 class="mb-0"><i class="bi bi-grid me-2"></i>{% trans "Apiari Condivisi" %}</h5>
             </div>
             <div class="card-body">
                 {% if apiari_gruppo %}
@@ -123,28 +123,28 @@
                             <a href="{% url 'visualizza_apiario' apiario.id %}" class="list-group-item list-group-item-action">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">{{ apiario.nome }}</h5>
-                                    <small>{{ apiario.arnie.count }} arnie</small>
+                                    <small>{% blocktrans with count=apiario.arnie.count %}{{ count }} arnie{% endblocktrans %}</small>
                                 </div>
                                 <p class="mb-1">{{ apiario.posizione }}</p>
-                                <small class="text-muted">Proprietario: {{ apiario.proprietario.username }}</small>
+                                <small class="text-muted">{% blocktrans with owner=apiario.proprietario.username %}Proprietario: {{ owner }}{% endblocktrans %}</small>
                             </a>
                         {% endfor %}
                     </div>
                 {% else %}
                     <div class="text-center py-4">
-                        <p>Non ci sono apiari condivisi in questo gruppo.</p>
-                        <p class="small text-muted">Per condividere un apiario, vai nella pagina dell'apiario e seleziona "Condividi con gruppo".</p>
+                        <p>{% trans "Non ci sono apiari condivisi in questo gruppo." %}</p>
+                        <p class="small text-muted">{% trans "Per condividere un apiario, vai nella pagina dell'apiario e seleziona \"Condividi con gruppo\"." %}</p>
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         {% if is_admin %}
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-person-plus me-2"></i>Invita Nuovi Membri</h5>
+                    <h5 class="mb-0"><i class="bi bi-person-plus me-2"></i>{% trans "Invita Nuovi Membri" %}</h5>
                 </div>
                 <div class="card-body">
                     <form method="post">
@@ -152,17 +152,17 @@
                         <input type="hidden" name="invita" value="1">
                         {{ form_invito|crispy }}
                         <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-envelope me-1"></i> Invia Invito
+                            <i class="bi bi-envelope me-1"></i> {% trans "Invia Invito" %}
                         </button>
                     </form>
                 </div>
             </div>
         {% endif %}
-        
+
         {% if inviti_attivi %}
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-envelope-open me-2"></i>Inviti in Attesa</h5>
+                    <h5 class="mb-0"><i class="bi bi-envelope-open me-2"></i>{% trans "Inviti in Attesa" %}</h5>
                 </div>
                 <div class="card-body">
                     <div class="list-group">
@@ -171,8 +171,8 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <h6 class="mb-1">{{ invito.email }}</h6>
-                                        <p class="mb-1 small">Ruolo: {{ invito.get_ruolo_proposto_display }}</p>
-                                        <small class="text-muted">Scade: {{ invito.data_scadenza|date:"d/m/Y" }}</small>
+                                        <p class="mb-1 small">{% blocktrans with ruolo=invito.get_ruolo_proposto_display %}Ruolo: {{ ruolo }}{% endblocktrans %}</p>
+                                        <small class="text-muted">{% blocktrans with data=invito.data_scadenza|date:"d/m/Y" %}Scade: {{ data }}{% endblocktrans %}</small>
                                     </div>
                                     {% if is_admin %}
                                         <a href="{% url 'annulla_invito' invito.id %}" class="btn btn-sm btn-outline-danger">
@@ -186,17 +186,17 @@
                 </div>
             </div>
         {% endif %}
-        
+
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Ruoli del Gruppo</h5>
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>{% trans "Ruoli del Gruppo" %}</h5>
             </div>
             <div class="card-body">
-                <p class="small">I membri hanno diversi livelli di accesso:</p>
+                <p class="small">{% trans "I membri hanno diversi livelli di accesso:" %}</p>
                 <ul class="small">
-                    <li><strong>Amministratore:</strong> Gestione completa.</li>
-                    <li><strong>Editor:</strong> Modifica risorse condivise.</li>
-                    <li><strong>Visualizzatore:</strong> Solo lettura.</li>
+                    <li><strong>{% trans "Amministratore:" %}</strong> {% trans "Gestione completa." %}</li>
+                    <li><strong>{% trans "Editor:" %}</strong> {% trans "Modifica risorse condivise." %}</li>
+                    <li><strong>{% trans "Visualizzatore:" %}</strong> {% trans "Solo lettura." %}</li>
                 </ul>
             </div>
         </div>
@@ -207,8 +207,8 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Modifica Gruppo</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">{% trans "Modifica Gruppo" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
             </div>
             <form method="post">
                 <div class="modal-body">
@@ -217,8 +217,8 @@
                     {{ form_gruppo|crispy }}
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                    <button type="submit" class="btn btn-primary">Salva Modifiche</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Salva Modifiche" %}</button>
                 </div>
             </form>
         </div>
@@ -229,16 +229,16 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Conferma</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle me-2"></i>{% trans "Conferma" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
             </div>
             <div class="modal-body">
-                <p>Sei sicuro di voler eliminare il gruppo "{{ gruppo.nome }}"?</p>
-                <p class="text-danger small">L'operazione è irreversibile.</p>
+                <p>{% blocktrans with nome=gruppo.nome %}Sei sicuro di voler eliminare il gruppo "{{ nome }}"?{% endblocktrans %}</p>
+                <p class="text-danger small">{% trans "L'operazione è irreversibile." %}</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                <a href="{% url 'elimina_gruppo' gruppo.id %}" class="btn btn-danger">Elimina Gruppo</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
+                <a href="{% url 'elimina_gruppo' gruppo.id %}" class="btn btn-danger">{% trans "Elimina Gruppo" %}</a>
             </div>
         </div>
     </div>

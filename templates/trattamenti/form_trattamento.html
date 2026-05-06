@@ -1,49 +1,49 @@
 <!-- Aggiorna templates/trattamenti/form_trattamento.html -->
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags i18n %}
 
-{% block title %}{% if trattamento %}Modifica{% else %}Nuovo{% endif %} Trattamento - Apiary{% endblock %}
+{% block title %}{% if trattamento %}{% trans "Modifica" %}{% else %}{% trans "Nuovo" %}{% endif %} {% trans "Trattamento" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">{% if trattamento %}✏️ Modifica Trattamento{% else %}💊 Nuovo Trattamento{% endif %}</h1>
+    <h1 class="page-title">{% if trattamento %}✏️ {% trans "Modifica Trattamento" %}{% else %}💊 {% trans "Nuovo Trattamento" %}{% endif %}</h1>
     <p class="page-subtitle">
-      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a>
       {% if apiario %} › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a>{% endif %}
-       › <a href="{% url 'gestione_trattamenti' %}">Trattamenti</a> › {% if trattamento %}Modifica{% else %}Nuovo{% endif %}
+       › <a href="{% url 'gestione_trattamenti' %}">{% trans "Trattamenti" %}</a> › {% if trattamento %}{% trans "Modifica" %}{% else %}{% trans "Nuovo" %}{% endif %}
     </p>
   </div>
-  <a href="{% url 'gestione_trattamenti' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Annulla</a>
+  <a href="{% url 'gestione_trattamenti' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Annulla" %}</a>
 </div>
 
 <div class="row">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-clipboard2-pulse me-2"></i>Informazioni Trattamento</h5>
+                <h5 class="mb-0"><i class="bi bi-clipboard2-pulse me-2"></i>{% trans "Informazioni Trattamento" %}</h5>
             </div>
             <div class="card-body">
                 <form method="post" id="trattamentoForm">
                     {% csrf_token %}
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form.apiario|as_crispy_field }}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Tipo Trattamento</label>
+                            <label class="form-label">{% trans "Tipo Trattamento" %}</label>
                             <div class="input-group">
                                 {{ form.tipo_trattamento }}
                                 <button type="button" class="btn btn-outline-primary" id="btn-nuovo-tipo"
                                         data-bs-toggle="modal" data-bs-target="#modalNuovoTipo"
-                                        title="Aggiungi nuovo tipo">
+                                        title="{% trans "Aggiungi nuovo tipo" %}">
                                     <i class="bi bi-plus-lg"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form.data_inizio|as_crispy_field }}
@@ -52,42 +52,42 @@
                             {{ form.data_fine|as_crispy_field }}
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         {{ form.stato|as_crispy_field }}
                     </div>
-                    
+
                     <div class="mb-3">
                         {{ form.seleziona_tutte_arnie|as_crispy_field }}
                     </div>
-                    
+
                     <div class="mb-3 arnie-selection">
-                        <label class="form-label">Arnie da trattare</label>
+                        <label class="form-label">{% trans "Arnie da trattare" %}</label>
                         <div class="card">
                             <div class="card-body">
                                 <div class="mb-2">
-                                    <button type="button" class="btn btn-sm btn-outline-primary" id="seleziona-tutte">Seleziona tutte</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="deseleziona-tutte">Deseleziona tutte</button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="seleziona-tutte">{% trans "Seleziona tutte" %}</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="deseleziona-tutte">{% trans "Deseleziona tutte" %}</button>
                                 </div>
-                                
+
                                 {{ form.arnie|as_crispy_field }}
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Nuova sezione per il blocco di covata -->
                     <div class="card mb-4 blocco-covata-section" style="{% if not tipo_trattamento_info.richiede_blocco_covata %}display:none;{% endif %}">
                         <div class="card-header">
-                            <h5 class="mb-0"><i class="bi bi-calendar-x me-2"></i>Blocco di Covata</h5>
+                            <h5 class="mb-0"><i class="bi bi-calendar-x me-2"></i>{% trans "Blocco di Covata" %}</h5>
                             {% if tipo_trattamento_info.richiede_blocco_covata %}
-                            <p class="mb-0 small">Questo trattamento richiede un blocco di covata.</p>
+                            <p class="mb-0 small">{% trans "Questo trattamento richiede un blocco di covata." %}</p>
                             {% endif %}
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
                                 {{ form.blocco_covata_attivo|as_crispy_field }}
                             </div>
-                            
+
                             <div class="blocco-covata-details" style="display: none;">
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
@@ -97,74 +97,74 @@
                                         {{ form.data_fine_blocco|as_crispy_field }}
                                     </div>
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     {{ form.metodo_blocco|as_crispy_field }}
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     {{ form.note_blocco|as_crispy_field }}
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         {{ form.note|as_crispy_field }}
                     </div>
-                    
+
                     <div class="d-flex justify-content-end">
                         <input type="hidden" name="save" value="1">
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-circle me-1"></i>{% if trattamento %}Aggiorna Trattamento{% else %}Crea Trattamento{% endif %}
+                            <i class="bi bi-check-circle me-1"></i>{% if trattamento %}{% trans "Aggiorna Trattamento" %}{% else %}{% trans "Crea Trattamento" %}{% endif %}
                         </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Informazioni</h5>
+                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>{% trans "Informazioni" %}</h5>
             </div>
             <div class="card-body">
                 <p>
-                    I trattamenti sanitari sono essenziali per la salute delle api.
+                    {% trans "I trattamenti sanitari sono essenziali per la salute delle api." %}
                 </p>
-                
+
                 <ul>
-                    <li><strong>Apiario:</strong> Seleziona l'apiario dove verrà applicato il trattamento</li>
-                    <li><strong>Tipo:</strong> Seleziona il tipo di trattamento da applicare</li>
-                    <li><strong>Data inizio:</strong> La data in cui si inizia il trattamento</li>
-                    <li><strong>Data fine:</strong> Opzionale, la data in cui termina il trattamento</li>
-                    <li><strong>Stato:</strong> Stato attuale del trattamento</li>
-                    <li><strong>Arnie:</strong> Seleziona le arnie da trattare o applica a tutte</li>
+                    <li><strong>{% trans "Apiario:" %}</strong> {% trans "Seleziona l'apiario dove verrà applicato il trattamento" %}</li>
+                    <li><strong>{% trans "Tipo:" %}</strong> {% trans "Seleziona il tipo di trattamento da applicare" %}</li>
+                    <li><strong>{% trans "Data inizio:" %}</strong> {% trans "La data in cui si inizia il trattamento" %}</li>
+                    <li><strong>{% trans "Data fine:" %}</strong> {% trans "Opzionale, la data in cui termina il trattamento" %}</li>
+                    <li><strong>{% trans "Stato:" %}</strong> {% trans "Stato attuale del trattamento" %}</li>
+                    <li><strong>{% trans "Arnie:" %}</strong> {% trans "Seleziona le arnie da trattare o applica a tutte" %}</li>
                 </ul>
-                
+
                 <div class="alert alert-warning mt-3">
-                    <i class="bi bi-exclamation-triangle"></i> <strong>Attenzione:</strong>
-                    Ricorda di rispettare i periodi di sospensione dopo il trattamento prima di raccogliere il miele.
+                    <i class="bi bi-exclamation-triangle"></i> <strong>{% trans "Attenzione:" %}</strong>
+                    {% trans "Ricorda di rispettare i periodi di sospensione dopo il trattamento prima di raccogliere il miele." %}
                 </div>
-                
+
                 {% if tipo_trattamento_info %}
                 <div class="alert alert-primary mt-3">
-                    <h6>Informazioni sul tipo di trattamento selezionato:</h6>
-                    <p><strong>Principio attivo:</strong> {{ tipo_trattamento_info.principio_attivo }}</p>
-                    <p><strong>Tempo sospensione:</strong> {{ tipo_trattamento_info.tempo_sospensione }} giorni</p>
-                    
+                    <h6>{% trans "Informazioni sul tipo di trattamento selezionato:" %}</h6>
+                    <p><strong>{% trans "Principio attivo:" %}</strong> {{ tipo_trattamento_info.principio_attivo }}</p>
+                    <p><strong>{% trans "Tempo sospensione:" %}</strong> {% blocktrans with giorni=tipo_trattamento_info.tempo_sospensione %}{{ giorni }} giorni{% endblocktrans %}</p>
+
                     {% if tipo_trattamento_info.richiede_blocco_covata %}
                     <div class="alert alert-warning">
-                        <p><strong>Blocco covata richiesto:</strong> {{ tipo_trattamento_info.giorni_blocco_covata }} giorni</p>
+                        <p><strong>{% trans "Blocco covata richiesto:" %}</strong> {% blocktrans with giorni=tipo_trattamento_info.giorni_blocco_covata %}{{ giorni }} giorni{% endblocktrans %}</p>
                         {% if tipo_trattamento_info.nota_blocco_covata %}
                             <p>{{ tipo_trattamento_info.nota_blocco_covata }}</p>
                         {% endif %}
                     </div>
                     {% endif %}
-                    
+
                     {% if tipo_trattamento_info.istruzioni %}
-                        <p><strong>Istruzioni:</strong> {{ tipo_trattamento_info.istruzioni }}</p>
+                        <p><strong>{% trans "Istruzioni:" %}</strong> {{ tipo_trattamento_info.istruzioni }}</p>
                     {% endif %}
                 </div>
                 {% endif %}
@@ -177,34 +177,34 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalNuovoTipoLabel"><i class="bi bi-plus-circle me-2"></i>Nuovo Tipo di Trattamento</h5>
+        <h5 class="modal-title" id="modalNuovoTipoLabel"><i class="bi bi-plus-circle me-2"></i>{% trans "Nuovo Tipo di Trattamento" %}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div id="nuovo-tipo-error" class="alert alert-danger d-none"></div>
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label fw-semibold">Nome *</label>
-            <input type="text" class="form-control" id="nt-nome" placeholder="es. Apiguard">
+            <label class="form-label fw-semibold">{% trans "Nome" %} *</label>
+            <input type="text" class="form-control" id="nt-nome" placeholder="{% trans "es. Apiguard" %}">
           </div>
           <div class="col-md-6">
-            <label class="form-label fw-semibold">Principio Attivo</label>
-            <input type="text" class="form-control" id="nt-principio" placeholder="es. Timolo">
+            <label class="form-label fw-semibold">{% trans "Principio Attivo" %}</label>
+            <input type="text" class="form-control" id="nt-principio" placeholder="{% trans "es. Timolo" %}">
           </div>
           <div class="col-md-4">
-            <label class="form-label fw-semibold">Tempo Sospensione (giorni)</label>
+            <label class="form-label fw-semibold">{% trans "Tempo Sospensione (giorni)" %}</label>
             <input type="number" class="form-control" id="nt-sospensione" value="0" min="0">
           </div>
           <div class="col-md-8">
-            <label class="form-label fw-semibold">Descrizione</label>
+            <label class="form-label fw-semibold">{% trans "Descrizione" %}</label>
             <textarea class="form-control" id="nt-descrizione" rows="2"></textarea>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
         <button type="button" class="btn btn-primary" id="btn-salva-nuovo-tipo">
-          <i class="bi bi-check-circle me-1"></i>Salva e Seleziona
+          <i class="bi bi-check-circle me-1"></i>{% trans "Salva e Seleziona" %}
         </button>
       </div>
     </div>
@@ -222,17 +222,17 @@
                 checkbox.checked = true;
             });
         });
-        
+
         document.getElementById('deseleziona-tutte').addEventListener('click', function() {
             document.querySelectorAll('input[name="arnie"]').forEach(function(checkbox) {
                 checkbox.checked = false;
             });
         });
-        
+
         // Gestione checkbox "Applica a tutte le arnie"
         const selectAllCheckbox = document.getElementById('id_seleziona_tutte_arnie');
         const arnieSelection = document.querySelector('.arnie-selection');
-        
+
         function toggleArnieSelection() {
             if (selectAllCheckbox.checked) {
                 arnieSelection.style.display = 'none';
@@ -240,17 +240,17 @@
                 arnieSelection.style.display = 'block';
             }
         }
-        
+
         // Trigger iniziale
         toggleArnieSelection();
-        
+
         // Event listener
         selectAllCheckbox.addEventListener('change', toggleArnieSelection);
-        
+
         // Gestione di blocco covata
         const bloccoCovataCheckbox = document.getElementById('id_blocco_covata_attivo');
         const bloccoCovataDetails = document.querySelector('.blocco-covata-details');
-        
+
         function toggleBloccoCovataDetails() {
             if (bloccoCovataCheckbox.checked) {
                 bloccoCovataDetails.style.display = 'block';
@@ -258,26 +258,26 @@
                 bloccoCovataDetails.style.display = 'none';
             }
         }
-        
+
         // Imposta lo stato iniziale del blocco covata
         toggleBloccoCovataDetails();
-        
+
         // Event listener per il blocco covata
         bloccoCovataCheckbox.addEventListener('change', toggleBloccoCovataDetails);
-        
+
         // Aggiornamento del tipo di trattamento selezionato
         const tipoTrattamentoSelect = document.getElementById('id_tipo_trattamento');
-        
+
         if (tipoTrattamentoSelect) {
             tipoTrattamentoSelect.addEventListener('change', function() {
                 document.getElementById('trattamentoForm').submit();
             });
         }
-        
+
         // Prefill blocco covata date se il tipo di trattamento lo richiede
         const dataInizioField = document.getElementById('id_data_inizio');
         const dataInizioBlockField = document.getElementById('id_data_inizio_blocco');
-        
+
         if (dataInizioField && dataInizioBlockField && !dataInizioBlockField.value) {
             dataInizioBlockField.value = dataInizioField.value;
         }
@@ -289,7 +289,7 @@
                 const nome = document.getElementById('nt-nome').value.trim();
                 const errorEl = document.getElementById('nuovo-tipo-error');
                 errorEl.classList.add('d-none');
-                if (!nome) { errorEl.textContent = 'Il nome è obbligatorio.'; errorEl.classList.remove('d-none'); return; }
+                if (!nome) { errorEl.textContent = '{% trans "Il nome è obbligatorio." %}'; errorEl.classList.remove('d-none'); return; }
 
                 const csrfToken = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
                 const formData = new FormData();
@@ -324,7 +324,7 @@
                         errorEl.classList.remove('d-none');
                     }
                 } catch(e) {
-                    errorEl.textContent = 'Errore di rete.';
+                    errorEl.textContent = '{% trans "Errore di rete." %}';
                     errorEl.classList.remove('d-none');
                 } finally {
                     btnSalvaTipo.disabled = false;
@@ -332,4 +332,5 @@
             });
         }
     });
-    {% endblock %}
+</script>
+{% endblock %}

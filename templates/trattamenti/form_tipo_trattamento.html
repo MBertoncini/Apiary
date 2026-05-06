@@ -1,28 +1,28 @@
 <!-- Aggiorna templates/trattamenti/form_tipo_trattamento.html -->
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags i18n %}
 
-{% block title %}{% if tipo %}Modifica{% else %}Nuovo{% endif %} Tipo di Trattamento - Apiary{% endblock %}
+{% block title %}{% if tipo %}{% trans "Modifica" %}{% else %}{% trans "Nuovo" %}{% endif %} {% trans "Tipo di Trattamento" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">{% if tipo %}✏️ Modifica Tipo Trattamento{% else %}💊 Nuovo Tipo Trattamento{% endif %}</h1>
-    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'gestione_trattamenti' %}">Trattamenti</a> › <a href="{% url 'tipi_trattamento' %}">Tipi</a> › {% if tipo %}Modifica{% else %}Nuovo{% endif %}</p>
+    <h1 class="page-title">{% if tipo %}✏️ {% trans "Modifica Tipo Trattamento" %}{% else %}💊 {% trans "Nuovo Tipo Trattamento" %}{% endif %}</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a> › <a href="{% url 'gestione_trattamenti' %}">{% trans "Trattamenti" %}</a> › <a href="{% url 'tipi_trattamento' %}">{% trans "Tipi" %}</a> › {% if tipo %}{% trans "Modifica" %}{% else %}{% trans "Nuovo" %}{% endif %}</p>
   </div>
-  <a href="{% url 'tipi_trattamento' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Annulla</a>
+  <a href="{% url 'tipi_trattamento' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Annulla" %}</a>
 </div>
 
 <div class="row">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Informazioni Tipo di Trattamento</h5>
+                <h5 class="mb-0">{% trans "Informazioni Tipo di Trattamento" %}</h5>
             </div>
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form.nome|as_crispy_field }}
@@ -31,54 +31,54 @@
                             {{ form.principio_attivo|as_crispy_field }}
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         {{ form.tempo_sospensione|as_crispy_field }}
                     </div>
-                    
+
                     <div class="mb-3">
                         {{ form.descrizione|as_crispy_field }}
                     </div>
-                    
+
                     <div class="mb-3">
                         {{ form.istruzioni|as_crispy_field }}
                     </div>
-                    
+
                     <!-- Nuova sezione per gestione blocco covata -->
                     <div class="card mb-4">
                         <div class="card-header">
-                            <h5 class="mb-0">Gestione Blocco di Covata</h5>
+                            <h5 class="mb-0">{% trans "Gestione Blocco di Covata" %}</h5>
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
                                 {{ form.richiede_blocco_covata|as_crispy_field }}
                             </div>
-                            
+
                             <div class="blocco-covata-details" style="display: none;">
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         {{ form.giorni_blocco_covata|as_crispy_field }}
                                     </div>
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     {{ form.nota_blocco_covata|as_crispy_field }}
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'tipi_trattamento' %}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Annulla
+                            <i class="bi bi-arrow-left"></i> {% trans "Annulla" %}
                         </a>
-                        
+
                         <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check-circle"></i> 
+                            <i class="bi bi-check-circle"></i>
                             {% if tipo %}
-                                Aggiorna
+                                {% trans "Aggiorna" %}
                             {% else %}
-                                Crea Tipo di Trattamento
+                                {% trans "Crea Tipo di Trattamento" %}
                             {% endif %}
                         </button>
                     </div>
@@ -86,35 +86,33 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> {% trans "Informazioni" %}</h5>
             </div>
             <div class="card-body">
                 <p>
-                    I tipi di trattamento definiscono le diverse opzioni di trattamenti sanitari 
-                    che possono essere applicati alle arnie.
+                    {% trans "I tipi di trattamento definiscono le diverse opzioni di trattamenti sanitari che possono essere applicati alle arnie." %}
                 </p>
-                
+
                 <ul>
-                    <li><strong>Nome:</strong> Il nome del trattamento (es. "Trattamento antivarroa")</li>
-                    <li><strong>Principio Attivo:</strong> La sostanza attiva del trattamento (es. "Acido ossalico")</li>
-                    <li><strong>Tempo Sospensione:</strong> Il numero di giorni dopo il trattamento durante i quali non è possibile raccogliere il miele</li>
-                    <li><strong>Descrizione:</strong> Una breve descrizione del trattamento</li>
-                    <li><strong>Istruzioni:</strong> Dettagli su come applicare correttamente il trattamento</li>
+                    <li><strong>{% trans "Nome:" %}</strong> {% trans "Il nome del trattamento (es. \"Trattamento antivarroa\")" %}</li>
+                    <li><strong>{% trans "Principio Attivo:" %}</strong> {% trans "La sostanza attiva del trattamento (es. \"Acido ossalico\")" %}</li>
+                    <li><strong>{% trans "Tempo Sospensione:" %}</strong> {% trans "Il numero di giorni dopo il trattamento durante i quali non è possibile raccogliere il miele" %}</li>
+                    <li><strong>{% trans "Descrizione:" %}</strong> {% trans "Una breve descrizione del trattamento" %}</li>
+                    <li><strong>{% trans "Istruzioni:" %}</strong> {% trans "Dettagli su come applicare correttamente il trattamento" %}</li>
                 </ul>
-                
+
                 <div class="alert alert-warning mt-3">
-                    <i class="bi bi-exclamation-triangle"></i> <strong>Blocco di Covata:</strong>
-                    Se il trattamento richiede un blocco di covata, indica la durata consigliata e fornisci 
-                    istruzioni specifiche. Questo sarà utile per programmare adeguatamente i trattamenti.
+                    <i class="bi bi-exclamation-triangle"></i> <strong>{% trans "Blocco di Covata:" %}</strong>
+                    {% trans "Se il trattamento richiede un blocco di covata, indica la durata consigliata e fornisci istruzioni specifiche. Questo sarà utile per programmare adeguatamente i trattamenti." %}
                 </div>
-                
+
                 <div class="alert alert-primary mt-3">
-                    <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong>
-                    Includi istruzioni dettagliate per garantire che tutti gli apicoltori seguano lo stesso protocollo.
+                    <i class="bi bi-lightbulb"></i> <strong>{% trans "Suggerimento:" %}</strong>
+                    {% trans "Includi istruzioni dettagliate per garantire che tutti gli apicoltori seguano lo stesso protocollo." %}
                 </div>
             </div>
         </div>
@@ -128,7 +126,7 @@
         // Gestione della visualizzazione condizionale per il blocco di covata
         const requiresBloccoCheckbox = document.getElementById('id_richiede_blocco_covata');
         const bloccoDetails = document.querySelector('.blocco-covata-details');
-        
+
         function toggleBloccoDetails() {
             if (requiresBloccoCheckbox.checked) {
                 bloccoDetails.style.display = 'block';
@@ -136,10 +134,10 @@
                 bloccoDetails.style.display = 'none';
             }
         }
-        
+
         // Imposta lo stato iniziale
         toggleBloccoDetails();
-        
+
         // Aggiungi l'event listener per il cambio
         requiresBloccoCheckbox.addEventListener('change', toggleBloccoDetails);
     });

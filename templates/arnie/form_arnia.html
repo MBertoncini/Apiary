@@ -1,25 +1,25 @@
 <!-- templates/arnie/form_arnia.html -->
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags i18n %}
 
-{% block title %}{% if form.instance.pk %}Modifica{% else %}Nuova{% endif %} Arnia - Apiary{% endblock %}
+{% block title %}{% if form.instance.pk %}{% trans "Modifica" %}{% else %}{% trans "Nuova" %}{% endif %} {% trans "Arnia" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">{% if form.instance.pk %}✏️ Modifica Arnia #{{ form.instance.numero }}{% else %}🐝 Nuova Arnia{% endif %}</h1>
+    <h1 class="page-title">{% if form.instance.pk %}✏️ {% blocktrans with numero=form.instance.numero %}Modifica Arnia #{{ numero }}{% endblocktrans %}{% else %}🐝 {% trans "Nuova Arnia" %}{% endif %}</h1>
     <p class="page-subtitle">
-      <a href="{% url 'dashboard' %}">Dashboard</a>
-      {% if form.instance.apiario %} › <a href="{% url 'visualizza_apiario' form.instance.apiario.id %}">{{ form.instance.apiario.nome }}</a>{% elif form.initial.apiario %} › <a href="{% url 'visualizza_apiario' form.initial.apiario %}">Apiario</a>{% endif %}
-      › {% if form.instance.pk %}Modifica{% else %}Nuova Arnia{% endif %}
+      <a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a>
+      {% if form.instance.apiario %} › <a href="{% url 'visualizza_apiario' form.instance.apiario.id %}">{{ form.instance.apiario.nome }}</a>{% elif form.initial.apiario %} › <a href="{% url 'visualizza_apiario' form.initial.apiario %}">{% trans "Apiario" %}</a>{% endif %}
+      › {% if form.instance.pk %}{% trans "Modifica" %}{% else %}{% trans "Nuova Arnia" %}{% endif %}
     </p>
   </div>
   {% if form.instance.apiario %}
-    <a href="{% url 'visualizza_apiario' form.instance.apiario.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Annulla</a>
+    <a href="{% url 'visualizza_apiario' form.instance.apiario.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Annulla" %}</a>
   {% elif form.initial.apiario %}
-    <a href="{% url 'visualizza_apiario' form.initial.apiario %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Annulla</a>
+    <a href="{% url 'visualizza_apiario' form.initial.apiario %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Annulla" %}</a>
   {% else %}
-    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Annulla</a>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Annulla" %}</a>
   {% endif %}
 </div>
 
@@ -28,7 +28,7 @@
         <div class="card">
             <div class="card-header" id="arniaCardHeader"
                  {% if form.instance.colore_hex %}style="background-color: {{ form.instance.colore_hex }}20; border-left: 4px solid {{ form.instance.colore_hex }};"{% endif %}>
-                <h5 class="mb-0"><i class="bi bi-box me-2"></i>Informazioni Arnia</h5>
+                <h5 class="mb-0"><i class="bi bi-box me-2"></i>{% trans "Informazioni Arnia" %}</h5>
             </div>
             <div class="card-body">
                 <form method="post" id="arniaForm">
@@ -62,7 +62,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <div class="form-group">
-                                <label class="form-label">Anteprima colore</label>
+                                <label class="form-label">{% trans "Anteprima colore" %}</label>
                                 <div class="color-preview" id="colorPreview" 
                                      style="height: 38px; border-radius: 0.25rem; border: 1px solid #ced4da; background-color: {{ form.instance.colore_hex|default:'#FFFFFF' }};">
                                 </div>
@@ -81,7 +81,7 @@
                     <div class="d-flex justify-content-between">
                         {% if form.instance.pk %}
                         <a href="{% url 'elimina_arnia' form.instance.pk %}" class="btn btn-outline-danger">
-                            <i class="bi bi-trash me-1"></i>Elimina arnia
+                            <i class="bi bi-trash me-1"></i>{% trans "Elimina arnia" %}
                         </a>
                         {% else %}
                         <div></div>
@@ -89,9 +89,9 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle"></i>
                             {% if form.instance.pk %}
-                                Aggiorna Arnia
+                                {% trans "Aggiorna Arnia" %}
                             {% else %}
-                                Crea Arnia
+                                {% trans "Crea Arnia" %}
                             {% endif %}
                         </button>
                     </div>
@@ -103,24 +103,24 @@
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Suggerimenti</h5>
+                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>{% trans "Suggerimenti" %}</h5>
             </div>
             <div class="card-body">
                 <p>
-                    Per creare una nuova arnia, compila il modulo con i seguenti dettagli:
+                    {% trans "Per creare una nuova arnia, compila il modulo con i seguenti dettagli:" %}
                 </p>
                 <ul>
-                    <li><strong>Apiario:</strong> L'apiario in cui si trova l'arnia</li>
-                    <li><strong>Numero:</strong> Un numero identificativo univoco per l'arnia all'interno dell'apiario</li>
-                    <li><strong>Colore:</strong> Il colore dell'arnia (aiuta nell'identificazione visiva)</li>
-                    <li><strong>Data installazione:</strong> La data in cui l'arnia è stata installata</li>
-                    <li><strong>Note:</strong> Eventuali note o dettagli aggiuntivi</li>
-                    <li><strong>Attiva:</strong> Indica se l'arnia è attualmente in uso</li>
+                    <li><strong>{% trans "Apiario:" %}</strong> {% trans "L'apiario in cui si trova l'arnia" %}</li>
+                    <li><strong>{% trans "Numero:" %}</strong> {% trans "Un numero identificativo univoco per l'arnia all'interno dell'apiario" %}</li>
+                    <li><strong>{% trans "Colore:" %}</strong> {% trans "Il colore dell'arnia (aiuta nell'identificazione visiva)" %}</li>
+                    <li><strong>{% trans "Data installazione:" %}</strong> {% trans "La data in cui l'arnia è stata installata" %}</li>
+                    <li><strong>{% trans "Note:" %}</strong> {% trans "Eventuali note o dettagli aggiuntivi" %}</li>
+                    <li><strong>{% trans "Attiva:" %}</strong> {% trans "Indica se l'arnia è attualmente in uso" %}</li>
                 </ul>
-                
+
                 <div class="alert alert-primary mt-3">
-                    <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong>
-                    Scegli "Altro" nel campo colore se vuoi utilizzare un colore personalizzato con il selettore.
+                    <i class="bi bi-lightbulb"></i> <strong>{% trans "Suggerimento:" %}</strong>
+                    {% trans "Scegli \"Altro\" nel campo colore se vuoi utilizzare un colore personalizzato con il selettore." %}
                 </div>
             </div>
         </div>

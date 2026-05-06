@@ -48,7 +48,10 @@
       "Bash(python -m py_compile apiario_manager/urls.py)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(command -v msgfmt)",
+      "Bash(python -m pip show babel)",
+      "Bash(python compile_translations.py)"
     ]
   }
 }

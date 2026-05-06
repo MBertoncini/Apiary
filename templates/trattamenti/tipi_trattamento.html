@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags i18n %}
 
-{% block title %}Gestione Tipi di Trattamento - Apiary{% endblock %}
+{% block title %}{% trans "Gestione Tipi di Trattamento" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12 mb-4">
         <div class="d-flex justify-content-between align-items-center">
-            <h1><i class="bi bi-list-check"></i> Tipi di Trattamento</h1>
+            <h1><i class="bi bi-list-check"></i> {% trans "Tipi di Trattamento" %}</h1>
             <div>
                 <a href="{% url 'gestione_trattamenti' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Torna ai Trattamenti
+                    <i class="bi bi-arrow-left"></i> {% trans "Torna ai Trattamenti" %}
                 </a>
             </div>
         </div>
@@ -21,7 +21,7 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-list-check"></i> Tipi di Trattamento Disponibili</h5>
+                <h5 class="mb-0"><i class="bi bi-list-check"></i> {% trans "Tipi di Trattamento Disponibili" %}</h5>
             </div>
             <div class="card-body">
                 {% if tipi %}
@@ -29,11 +29,11 @@
                         <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
-                                    <th>Nome</th>
-                                    <th>Principio Attivo</th>
-                                    <th>Sospensione</th>
-                                    <th>Blocco Covata</th>
-                                    <th>Azioni</th>
+                                    <th>{% trans "Nome" %}</th>
+                                    <th>{% trans "Principio Attivo" %}</th>
+                                    <th>{% trans "Sospensione" %}</th>
+                                    <th>{% trans "Blocco Covata" %}</th>
+                                    <th>{% trans "Azioni" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -43,27 +43,27 @@
                                         <td>{{ tipo.principio_attivo }}</td>
                                         <td>
                                             {% if tipo.tempo_sospensione > 0 %}
-                                                <span class="badge bg-warning text-dark">{{ tipo.tempo_sospensione }} giorni</span>
+                                                <span class="badge bg-warning text-dark">{% blocktrans with giorni=tipo.tempo_sospensione %}{{ giorni }} giorni{% endblocktrans %}</span>
                                             {% else %}
-                                                <span class="badge bg-success">Nessuna</span>
+                                                <span class="badge bg-success">{% trans "Nessuna" %}</span>
                                             {% endif %}
                                         </td>
                                         <td>
                                             {% if tipo.richiede_blocco_covata %}
-                                                <span class="badge bg-danger">{{ tipo.giorni_blocco_covata }} giorni</span>
-                                                <a href="#" data-bs-toggle="popover" data-bs-trigger="hover" title="Dettagli Blocco Covata" 
-                                                    data-bs-content="{{ tipo.nota_blocco_covata|default:'Nessuna nota specifica' }}">
+                                                <span class="badge bg-danger">{% blocktrans with giorni=tipo.giorni_blocco_covata %}{{ giorni }} giorni{% endblocktrans %}</span>
+                                                <a href="#" data-bs-toggle="popover" data-bs-trigger="hover" title="{% trans "Dettagli Blocco Covata" %}"
+                                                    data-bs-content="{{ tipo.nota_blocco_covata|default:_('Nessuna nota specifica') }}">
                                                     <i class="bi bi-info-circle"></i>
                                                 </a>
                                             {% else %}
-                                                <span class="badge bg-secondary">No</span>
+                                                <span class="badge bg-secondary">{% trans "No" %}</span>
                                             {% endif %}
                                         </td>
                                         <td>
                                             <a href="{% url 'modifica_tipo_trattamento' tipo.id %}" class="btn btn-sm btn-outline-primary">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <a href="{% url 'elimina_tipo_trattamento' tipo.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Sei sicuro di voler eliminare questo tipo di trattamento?')">
+                                            <a href="{% url 'elimina_tipo_trattamento' tipo.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% trans "Sei sicuro di voler eliminare questo tipo di trattamento?" %}')">
                                                 <i class="bi bi-trash"></i>
                                             </a>
                                         </td>
@@ -74,59 +74,59 @@
                     </div>
                 {% else %}
                     <div class="text-center py-4">
-                        <p>Non ci sono tipi di trattamento configurati.</p>
+                        <p>{% trans "Non ci sono tipi di trattamento configurati." %}</p>
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Nuovo Tipo di Trattamento</h5>
+                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> {% trans "Nuovo Tipo di Trattamento" %}</h5>
             </div>
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
-                    
+
                     <div class="mb-3">
                         {{ form.nome|as_crispy_field }}
                     </div>
-                    
+
                     <div class="mb-3">
                         {{ form.principio_attivo|as_crispy_field }}
                     </div>
-                    
+
                     <div class="mb-3">
                         {{ form.tempo_sospensione|as_crispy_field }}
                     </div>
-                    
+
                     <div class="mb-3">
                         {{ form.descrizione|as_crispy_field }}
                     </div>
-                    
+
                     <div class="mb-3">
                         {{ form.istruzioni|as_crispy_field }}
                     </div>
-                    
+
                     <!-- Sezione blocco covata -->
                     <div class="mb-3">
                         {{ form.richiede_blocco_covata|as_crispy_field }}
                     </div>
-                    
+
                     <div class="blocco-covata-form-fields" style="display: none;">
                         <div class="mb-3">
                             {{ form.giorni_blocco_covata|as_crispy_field }}
                         </div>
-                        
+
                         <div class="mb-3">
                             {{ form.nota_blocco_covata|as_crispy_field }}
                         </div>
                     </div>
-                    
+
                     <button type="submit" class="btn btn-success w-100">
-                        <i class="bi bi-plus-circle"></i> Aggiungi Tipo di Trattamento
+                        <i class="bi bi-plus-circle"></i> {% trans "Aggiungi Tipo di Trattamento" %}
                     </button>
                 </form>
             </div>
@@ -143,11 +143,11 @@
         var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
             return new bootstrap.Popover(popoverTriggerEl);
         });
-        
+
         // Gestione della visualizzazione condizionale dei campi del blocco covata nel form
         const bloccoCheckbox = document.getElementById('id_richiede_blocco_covata');
         const bloccoFields = document.querySelector('.blocco-covata-form-fields');
-        
+
         function toggleBloccoFields() {
             if (bloccoCheckbox.checked) {
                 bloccoFields.style.display = 'block';
@@ -155,10 +155,10 @@
                 bloccoFields.style.display = 'none';
             }
         }
-        
+
         // Imposta lo stato iniziale
         toggleBloccoFields();
-        
+
         // Aggiungi event listener
         bloccoCheckbox.addEventListener('change', toggleBloccoFields);
     });

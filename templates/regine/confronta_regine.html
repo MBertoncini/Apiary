@@ -1,7 +1,8 @@
 <!-- templates/regine/confronta_regine.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Confronta Regine - Apiary{% endblock %}
+{% block title %}{% trans "Confronta Regine" %} - Apiary{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -29,9 +30,9 @@
 <div class="row">
     <div class="col-12 mb-4">
         <div class="d-flex justify-content-between align-items-center">
-            <h1><i class="bi bi-arrows-expand"></i> Confronta Regine</h1>
+            <h1><i class="bi bi-arrows-expand"></i> {% trans "Confronta Regine" %}</h1>
             <a href="{% url 'ricerca_regine' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Torna alla Ricerca
+                <i class="bi bi-arrow-left"></i> {% trans "Torna alla Ricerca" %}
             </a>
         </div>
     </div>
@@ -43,11 +44,11 @@
             <table class="table table-bordered comparison-table">
                 <thead>
                     <tr>
-                        <th style="width: 200px;">Caratteristica</th>
+                        <th style="width: 200px;">{% trans "Caratteristica" %}</th>
                         {% for item in confronto %}
                         <th class="text-center">
                             <a href="{% url 'visualizza_regina' item.regina.arnia.id %}">
-                                Arnia #{{ item.regina.arnia.numero }}
+                                {% blocktrans with num=item.regina.arnia.numero %}Arnia #{{ num }}{% endblocktrans %}
                             </a>
                             <br>
                             <small class="text-muted">{{ item.regina.arnia.apiario.nome }}</small>
@@ -58,7 +59,7 @@
                 <tbody>
                     <!-- Razza -->
                     <tr>
-                        <th>Razza</th>
+                        <th>{% trans "Razza" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">{{ item.regina.get_razza_display }}</td>
                         {% endfor %}
@@ -66,7 +67,7 @@
 
                     <!-- Origine -->
                     <tr>
-                        <th>Origine</th>
+                        <th>{% trans "Origine" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">{{ item.regina.get_origine_display }}</td>
                         {% endfor %}
@@ -74,12 +75,12 @@
 
                     <!-- Eta -->
                     <tr>
-                        <th>Eta (giorni)</th>
+                        <th>{% trans "Età (giorni)" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">
                             {% if item.eta_giorni %}
                                 {{ item.eta_giorni }}
-                                <br><small class="text-muted">({{ item.regina.get_eta_anni }} anni)</small>
+                                <br><small class="text-muted">({% blocktrans with anni=item.regina.get_eta_anni %}{{ anni }} anni{% endblocktrans %})</small>
                             {% else %}
                                 -
                             {% endif %}
@@ -89,7 +90,7 @@
 
                     <!-- Data introduzione -->
                     <tr>
-                        <th>Data Introduzione</th>
+                        <th>{% trans "Data Introduzione" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">{{ item.regina.data_introduzione|date:"d/m/Y" }}</td>
                         {% endfor %}
@@ -97,7 +98,7 @@
 
                     <!-- Marcatura -->
                     <tr>
-                        <th>Marcatura</th>
+                        <th>{% trans "Marcatura" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">
                             {% if item.regina.marcata %}
@@ -111,7 +112,7 @@
                                     width: 16px; height: 16px; border-radius: 50%; display: inline-block; border: 1px solid #ced4da;"></span>
                                 {{ item.regina.get_colore_marcatura_display }}
                             {% else %}
-                                <span class="text-muted">Non marcata</span>
+                                <span class="text-muted">{% trans "Non marcata" %}</span>
                             {% endif %}
                         </td>
                         {% endfor %}
@@ -119,13 +120,13 @@
 
                     <!-- Fecondata -->
                     <tr>
-                        <th>Fecondata</th>
+                        <th>{% trans "Fecondata" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">
                             {% if item.regina.fecondata %}
-                                <i class="bi bi-check-circle text-success"></i> Si
+                                <i class="bi bi-check-circle text-success"></i> {% trans "Sì" %}
                             {% else %}
-                                <i class="bi bi-x-circle text-danger"></i> No
+                                <i class="bi bi-x-circle text-danger"></i> {% trans "No" %}
                             {% endif %}
                         </td>
                         {% endfor %}
@@ -133,13 +134,13 @@
 
                     <!-- Selezionata -->
                     <tr>
-                        <th>Selezionata</th>
+                        <th>{% trans "Selezionata" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">
                             {% if item.regina.selezionata %}
-                                <i class="bi bi-star-fill text-warning"></i> Si
+                                <i class="bi bi-star-fill text-warning"></i> {% trans "Sì" %}
                             {% else %}
-                                <i class="bi bi-star text-muted"></i> No
+                                <i class="bi bi-star text-muted"></i> {% trans "No" %}
                             {% endif %}
                         </td>
                         {% endfor %}
@@ -147,13 +148,13 @@
 
                     <tr>
                         <th colspan="{{ confronto|length|add:1 }}" class="table-secondary">
-                            <strong>Valutazioni</strong>
+                            <strong>{% trans "Valutazioni" %}</strong>
                         </th>
                     </tr>
 
                     <!-- Docilita -->
                     <tr>
-                        <th>Docilita</th>
+                        <th>{% trans "Docilità" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">
                             {% if item.regina.docilita %}
@@ -176,7 +177,7 @@
 
                     <!-- Produttivita -->
                     <tr>
-                        <th>Produttivita</th>
+                        <th>{% trans "Produttività" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">
                             {% if item.regina.produttivita %}
@@ -199,7 +200,7 @@
 
                     <!-- Resistenza malattie -->
                     <tr>
-                        <th>Resistenza Malattie</th>
+                        <th>{% trans "Resistenza Malattie" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">
                             {% if item.regina.resistenza_malattie %}
@@ -222,7 +223,7 @@
 
                     <!-- Tendenza sciamatura -->
                     <tr>
-                        <th>Tendenza Sciamatura</th>
+                        <th>{% trans "Tendenza Sciamatura" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">
                             {% if item.regina.tendenza_sciamatura %}
@@ -237,7 +238,7 @@
                                 </div>
                                 <small>{{ item.regina.tendenza_sciamatura }}/5</small>
                                 <br>
-                                <small class="text-muted">(piu basso = meglio)</small>
+                                <small class="text-muted">({% trans "più basso = meglio" %})</small>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
@@ -247,7 +248,7 @@
 
                     <!-- Media valutazione -->
                     <tr>
-                        <th>Media Valutazione</th>
+                        <th>{% trans "Media Valutazione" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">
                             {% if item.media_valutazione %}
@@ -261,21 +262,21 @@
 
                     <tr>
                         <th colspan="{{ confronto|length|add:1 }}" class="table-secondary">
-                            <strong>Genealogia</strong>
+                            <strong>{% trans "Genealogia" %}</strong>
                         </th>
                     </tr>
 
                     <!-- Regina madre -->
                     <tr>
-                        <th>Regina Madre</th>
+                        <th>{% trans "Regina Madre" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">
                             {% if item.regina.regina_madre %}
                                 <a href="{% url 'visualizza_regina' item.regina.regina_madre.arnia.id %}">
-                                    Arnia #{{ item.regina.regina_madre.arnia.numero }}
+                                    {% blocktrans with num=item.regina.regina_madre.arnia.numero %}Arnia #{{ num }}{% endblocktrans %}
                                 </a>
                             {% else %}
-                                <span class="text-muted">Sconosciuta</span>
+                                <span class="text-muted">{% trans "Sconosciuta" %}</span>
                             {% endif %}
                         </td>
                         {% endfor %}
@@ -283,7 +284,7 @@
 
                     <!-- Numero figlie -->
                     <tr>
-                        <th>Numero Figlie</th>
+                        <th>{% trans "Numero Figlie" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">
                             {% if item.num_figlie > 0 %}
@@ -297,16 +298,16 @@
 
                     <!-- Azioni -->
                     <tr>
-                        <th>Azioni</th>
+                        <th>{% trans "Azioni" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'visualizza_regina' item.regina.arnia.id %}"
-                                   class="btn btn-outline-primary" title="Dettaglio">
+                                   class="btn btn-outline-primary" title="{% trans 'Dettaglio' %}">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 <a href="{% url 'albero_genealogico_completo' item.regina.id %}"
-                                   class="btn btn-outline-success" title="Genealogia">
+                                   class="btn btn-outline-success" title="{% trans 'Genealogia' %}">
                                     <i class="bi bi-diagram-3"></i>
                                 </a>
                             </div>

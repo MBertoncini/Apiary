@@ -89,7 +89,7 @@ class ArniaSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'apiario', 'apiario_nome', 'numero', 'colore',
             'colore_hex', 'tipo_arnia', 'data_installazione', 'note', 'attiva',
-            'attrezzatura'
+            'attrezzatura', 'nfc_id'
         ]
 
 # Serializzatore Controllo Arnia (versione dettagliata)
@@ -410,15 +410,18 @@ class SmielaturaSerializer(serializers.ModelSerializer):
     apiario_gruppo_nome = serializers.SerializerMethodField()
     utente_username     = serializers.ReadOnlyField(source='utente.username')
     melari_count        = serializers.SerializerMethodField()
+    kg_residui          = serializers.ReadOnlyField()
+    is_esaurita         = serializers.ReadOnlyField()
 
     class Meta:
         model = Smielatura
         fields = [
             'id', 'data', 'apiario', 'apiario_nome', 'apiario_gruppo_nome',
             'melari', 'melari_count', 'quantita_miele', 'tipo_miele',
+            'kg_trasferiti', 'kg_residui', 'is_esaurita', 'archiviata',
             'utente', 'utente_username', 'note', 'data_registrazione'
         ]
-        read_only_fields = ['utente']
+        read_only_fields = ['utente', 'kg_trasferiti']
 
     def get_apiario_gruppo_nome(self, obj):
         try:
@@ -669,6 +672,8 @@ class InvasettamentoSerializer(serializers.ModelSerializer):
     apiario_gruppo_nome = serializers.SerializerMethodField()
     utente_username     = serializers.ReadOnlyField(source='utente.username')
     kg_totali           = serializers.SerializerMethodField()
+    vasetti_disponibili = serializers.ReadOnlyField()
+    kg_disponibili      = serializers.ReadOnlyField()
 
     class Meta:
         model = Invasettamento
@@ -676,9 +681,10 @@ class InvasettamentoSerializer(serializers.ModelSerializer):
             'id', 'data', 'smielatura', 'smielatura_info',
             'contenitore', 'contenitore_info',
             'apiario_gruppo_nome',
-            'tipo_miele', 'formato_vasetto', 'numero_vasetti',
+            'tipo_miele', 'formato_vasetto',
+            'numero_vasetti', 'numero_vasetti_venduti', 'vasetti_disponibili',
             'lotto', 'utente', 'utente_username', 'note',
-            'data_registrazione', 'kg_totali'
+            'data_registrazione', 'kg_totali', 'kg_disponibili',
         ]
         read_only_fields = ['utente']
         extra_kwargs = {
@@ -754,6 +760,27 @@ class MatutatoreSerializer(serializers.ModelSerializer):
 
     def get_tipo_display(self, obj):
         return obj.get_stato_display()
+
+    def validate(self, attrs):
+        # Sui CREATE la smielatura è obbligatoria: il flusso impone che
+        # ogni maturatore origini da una smielatura specifica. Sugli UPDATE
+        # restiamo permissivi per non rompere dati storici già senza FK.
+        if self.instance is None and not attrs.get('smielatura'):
+            raise serializers.ValidationError(
+                {'smielatura': 'La smielatura di origine è obbligatoria per un nuovo maturatore.'}
+            )
+        # Validazione coerenza kg: non si può iniziare con più di quanto
+        # disponibile dalla smielatura selezionata.
+        smiel = attrs.get('smielatura')
+        kg = attrs.get('kg_attuali')
+        if self.instance is None and smiel is not None and kg is not None:
+            from decimal import Decimal
+            residui = smiel.kg_residui
+            if Decimal(kg) > residui + Decimal('0.01'):
+                raise serializers.ValidationError({
+                    'kg_attuali': f'Disponibili dalla smielatura: {residui} kg, richiesti: {kg} kg.'
+                })
+        return attrs
 
     def create(self, validated_data):
         validated_data['utente'] = self.context['request'].user

@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
-{% block title %}Elimina Vendita - Apiary{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Elimina Vendita" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1 class="page-title"><i class="bi bi-trash me-2 text-danger"></i>Elimina Vendita</h1>
+  <h1 class="page-title"><i class="bi bi-trash me-2 text-danger"></i>{% trans "Elimina Vendita" %}</h1>
 </div>
 
 <div class="row justify-content-center">
@@ -11,13 +12,13 @@
     <div class="card border-danger">
       <div class="card-body text-center py-5">
         <i class="bi bi-exclamation-triangle-fill text-danger fs-1 d-block mb-3"></i>
-        <h5>Sei sicuro di voler eliminare la vendita del <strong>{{ vendita.data|date:"d/m/Y" }}</strong>?</h5>
-        <p class="text-muted">Totale: <strong>€ {{ vendita.totale|floatformat:2 }}</strong>. L'operazione è irreversibile.</p>
+        <h5>{% blocktrans with data=vendita.data|date:"d/m/Y" %}Sei sicuro di voler eliminare la vendita del <strong>{{ data }}</strong>?{% endblocktrans %}</h5>
+        <p class="text-muted">{% blocktrans with totale=vendita.totale|floatformat:2 %}Totale: <strong>€ {{ totale }}</strong>. L'operazione è irreversibile.{% endblocktrans %}</p>
         <div class="d-flex gap-3 justify-content-center mt-4">
-          <a href="{% url 'gestione_vendite' %}" class="btn btn-outline-secondary">Annulla</a>
+          <a href="{% url 'gestione_vendite' %}" class="btn btn-outline-secondary">{% trans "Annulla" %}</a>
           <form method="post">
             {% csrf_token %}
-            <button type="submit" class="btn btn-danger">Sì, elimina</button>
+            <button type="submit" class="btn btn-danger">{% trans "Sì, elimina" %}</button>
           </form>
         </div>
       </div>

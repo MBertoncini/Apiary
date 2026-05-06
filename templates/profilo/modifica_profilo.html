@@ -1,8 +1,8 @@
 <!-- templates/profilo/modifica_profilo.html -->
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags i18n %}
 
-{% block title %}Modifica Profilo - Apiary{% endblock %}
+{% block title %}{% trans "Modifica Profilo" %} - Apiary{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -24,33 +24,33 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">✏️ Modifica Profilo</h1>
-    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'profilo' %}">Profilo</a> › Modifica</p>
+    <h1 class="page-title">✏️ {% trans "Modifica Profilo" %}</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a> › <a href="{% url 'profilo' %}">{% trans "Profilo" %}</a> › {% trans "Modifica" %}</p>
   </div>
-  <a href="{% url 'profilo' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Annulla</a>
+  <a href="{% url 'profilo' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Annulla" %}</a>
 </div>
 
 <div class="row">
     <div class="col-md-8 offset-md-2">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-person-circle me-2"></i>Informazioni Profilo</h5>
+                <h5 class="mb-0"><i class="bi bi-person-circle me-2"></i>{% trans "Informazioni Profilo" %}</h5>
             </div>
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
 
                     <div class="form-section">
-                        <h5 class="form-section-title">Immagine Profilo</h5>
+                        <h5 class="form-section-title">{% trans "Immagine Profilo" %}</h5>
                         <div class="text-center mb-3">
                             <img src="{{ request.user.profilo.immagine.url }}" alt="{{ request.user.username }}" class="profile-image-preview" id="imagePreview">
                         </div>
-                        
+
                         {{ profile_form.immagine|as_crispy_field }}
                     </div>
-                    
+
                     <div class="form-section">
-                        <h5 class="form-section-title">Informazioni Utente</h5>
+                        <h5 class="form-section-title">{% trans "Informazioni Utente" %}</h5>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 {{ user_form.username|as_crispy_field }}
@@ -59,7 +59,7 @@
                                 {{ user_form.email|as_crispy_field }}
                             </div>
                         </div>
-                        
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 {{ user_form.first_name|as_crispy_field }}
@@ -69,9 +69,9 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="form-section">
-                        <h5 class="form-section-title">Dettagli Profilo</h5>
+                        <h5 class="form-section-title">{% trans "Dettagli Profilo" %}</h5>
                         <div class="mb-3">
                             {{ profile_form.data_nascita|as_crispy_field }}
                         </div>
@@ -81,18 +81,18 @@
                     </div>
 
                     <div class="form-section">
-                        <h5 class="form-section-title"><i class="bi bi-cpu me-2"></i>Intelligenza Artificiale</h5>
+                        <h5 class="form-section-title"><i class="bi bi-cpu me-2"></i>{% trans "Intelligenza Artificiale" %}</h5>
                         <p class="text-muted small mb-3">
-                            Inserisci la tua chiave API personale di Google Gemini per usare le funzioni AI
-                            (inserimento vocale, chat, analisi telaino).<br>
-                            Ottienila gratuitamente su
+                            {% blocktrans %}Inserisci la tua chiave API personale di Google Gemini per usare le funzioni AI
+                            (inserimento vocale, chat, analisi telaino).{% endblocktrans %}<br>
+                            {% trans "Ottienila gratuitamente su" %}
                             <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a>.
                         </p>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">{{ profile_form.gemini_api_key.label }}</label>
                             <div class="input-group">
                                 {{ profile_form.gemini_api_key }}
-                                <button type="button" class="btn btn-outline-secondary" id="toggleApiKey" title="Mostra/Nascondi">
+                                <button type="button" class="btn btn-outline-secondary" id="toggleApiKey" title="{% trans 'Mostra/Nascondi' %}">
                                     <i class="bi bi-eye" id="toggleApiKeyIcon"></i>
                                 </button>
                             </div>
@@ -101,10 +101,10 @@
                             {% endif %}
                         </div>
                     </div>
-                    
+
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-circle me-1"></i> Salva Modifiche
+                            <i class="bi bi-check-circle me-1"></i> {% trans "Salva Modifiche" %}
                         </button>
                     </div>
                 </form>
@@ -117,7 +117,6 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Anteprima immagine profilo
         const imageInput = document.getElementById('id_immagine');
         const imagePreview = document.getElementById('imagePreview');
         imageInput.addEventListener('change', function() {
@@ -129,7 +128,6 @@
             }
         });
 
-        // Toggle visibilità API key
         const toggleBtn = document.getElementById('toggleApiKey');
         const toggleIcon = document.getElementById('toggleApiKeyIcon');
         const apiKeyInput = document.getElementById('id_gemini_api_key');

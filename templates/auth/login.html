@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Accedi - Apiary{% endblock %}
+{% block title %}{% trans "Accedi" %} - Apiary{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -239,7 +239,7 @@
         <img src="{% static 'images/logo.svg' %}" alt="Apiary">
       </div>
       <h1 class="auth-title">Apiary</h1>
-      <p class="auth-subtitle">Accedi al tuo account</p>
+      <p class="auth-subtitle">{% trans "Accedi al tuo account" %}</p>
 
       <!-- Contextual error messages -->
       {% if error_type %}
@@ -250,11 +250,11 @@
           <div class="error-hint">
             {% if error_type == 'user_not_found' %}
               <a href="{% url 'register' %}">
-                <i class="bi bi-person-plus me-1"></i>Crea un account
+                <i class="bi bi-person-plus me-1"></i>{% trans "Crea un account" %}
               </a>
             {% elif error_type == 'wrong_password' %}
               <a href="{% url 'forgot_password' %}">
-                <i class="bi bi-key me-1"></i>Hai dimenticato la password?
+                <i class="bi bi-key me-1"></i>{% trans "Hai dimenticato la password?" %}
               </a>
             {% endif %}
           </div>
@@ -268,39 +268,39 @@
         <input type="hidden" name="next" value="{{ next }}">
 
         <div class="form-group">
-          <label for="id_username">Username o Email</label>
+          <label for="id_username">{% trans "Username o Email" %}</label>
           <input type="text" name="username" id="id_username" class="form-control"
-                 value="{{ username }}" placeholder="Inserisci username o email"
+                 value="{{ username }}" placeholder="{% trans 'Inserisci username o email' %}"
                  autocomplete="username" required>
         </div>
 
         <div class="form-group">
-          <label for="id_password">Password</label>
+          <label for="id_password">{% trans "Password" %}</label>
           <div class="input-wrapper">
             <input type="password" name="password" id="id_password" class="form-control has-toggle"
-                   placeholder="Inserisci la password" autocomplete="current-password" required>
+                   placeholder="{% trans 'Inserisci la password' %}" autocomplete="current-password" required>
             <button type="button" class="password-toggle" onclick="togglePassword('id_password', this)">
               <i class="bi bi-eye"></i>
             </button>
           </div>
         </div>
 
-        <a href="{% url 'forgot_password' %}" class="forgot-link">Dimenticato la password?</a>
+        <a href="{% url 'forgot_password' %}" class="forgot-link">{% trans "Dimenticato la password?" %}</a>
 
         <button type="submit" class="btn-auth" id="submitBtn">
-          <span class="btn-text">Accedi</span>
+          <span class="btn-text">{% trans "Accedi" %}</span>
           <span class="spinner-border text-light d-none" id="submitSpinner" role="status"></span>
         </button>
       </form>
 
       <!-- Divider -->
-      <div class="auth-divider"><span>oppure</span></div>
+      <div class="auth-divider"><span>{% trans "oppure" %}</span></div>
 
       <!-- Google Sign-In -->
       <div id="googleBtnContainer">
         <button type="button" class="btn-google" id="googleBtn" onclick="triggerGoogleLogin()">
           <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-          <span id="googleBtnText">Accedi con Google</span>
+          <span id="googleBtnText">{% trans "Accedi con Google" %}</span>
           <span class="spinner-border text-secondary d-none" id="googleSpinner"
                 style="width:18px;height:18px;border-width:2px;" role="status"></span>
         </button>
@@ -317,7 +317,7 @@
     </div>
 
     <div class="auth-footer">
-      Non hai un account? <a href="{% url 'register' %}">Registrati</a>
+      {% trans "Non hai un account?" %} <a href="{% url 'register' %}">{% trans "Registrati" %}</a>
     </div>
   </div>
 </div>

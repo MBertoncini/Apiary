@@ -5,6 +5,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.db.models import Sum, Count, Q
 from django.http import JsonResponse, HttpResponse
 from datetime import datetime, timedelta

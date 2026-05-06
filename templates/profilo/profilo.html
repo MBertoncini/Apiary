@@ -1,7 +1,8 @@
 <!-- templates/profilo/profilo.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Profilo di {{ user_profile.username }} - Apiary{% endblock %}
+{% block title %}{% trans "Profilo" %} - {{ user_profile.username }} - Apiary{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -25,12 +26,12 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">👤 {% if user_profile == request.user %}Il tuo Profilo{% else %}Profilo di {{ user_profile.username }}{% endif %}</h1>
-    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › Profilo</p>
+    <h1 class="page-title">👤 {% if user_profile == request.user %}{% trans "Il tuo Profilo" %}{% else %}{% blocktrans with username=user_profile.username %}Profilo di {{ username }}{% endblocktrans %}{% endif %}</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a> › {% trans "Profilo" %}</p>
   </div>
   {% if can_edit %}
   <a href="{% url 'modifica_profilo' %}" class="btn btn-primary">
-    <i class="bi bi-pencil me-1"></i> Modifica Profilo
+    <i class="bi bi-pencil me-1"></i> {% trans "Modifica Profilo" %}
   </a>
   {% endif %}
 </div>
@@ -58,7 +59,7 @@
         {% if user_profile.profilo.bio %}
           <p class="mt-2 mb-0 text-muted fst-italic">{{ user_profile.profilo.bio }}</p>
         {% elif can_edit %}
-          <p class="mt-2 mb-0 text-muted fst-italic small">Aggiungi una bio per descrivere la tua esperienza con l'apicoltura.</p>
+          <p class="mt-2 mb-0 text-muted fst-italic small">{% trans "Aggiungi una bio per descrivere la tua esperienza con l'apicoltura." %}</p>
         {% endif %}
       </div>
     </div>
@@ -71,21 +72,21 @@
     <div class="stat-card">
       <div class="stat-icon">🏡</div>
       <div class="stat-value">{{ apiari.count }}</div>
-      <div class="stat-label">Apiari</div>
+      <div class="stat-label">{% trans "Apiari" %}</div>
     </div>
   </div>
   <div class="col-md-4">
     <div class="stat-card">
       <div class="stat-icon">👥</div>
       <div class="stat-value">{{ gruppi.count }}</div>
-      <div class="stat-label">Gruppi</div>
+      <div class="stat-label">{% trans "Gruppi" %}</div>
     </div>
   </div>
   <div class="col-md-4">
     <div class="stat-card">
       <div class="stat-icon">📅</div>
       <div class="stat-value" style="font-size:1.1rem;">{{ user_profile.date_joined|date:"d/m/Y" }}</div>
-      <div class="stat-label">Iscritto dal</div>
+      <div class="stat-label">{% trans "Iscritto dal" %}</div>
     </div>
   </div>
 </div>
@@ -94,7 +95,7 @@
     <div class="col-md-6 mb-4">
         <div class="card h-100">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-grid me-2"></i>Apiari</h5>
+                <h5 class="mb-0"><i class="bi bi-grid me-2"></i>{% trans "Apiari" %}</h5>
             </div>
             <div class="card-body">
                 {% if apiari %}
@@ -103,23 +104,23 @@
                             <a href="{% url 'visualizza_apiario' apiario.id %}" class="list-group-item list-group-item-action">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">{{ apiario.nome }}</h5>
-                                    <small>{{ apiario.arnie.count }} arnie</small>
+                                    <small>{% blocktrans with count=apiario.arnie.count %}{{ count }} arnie{% endblocktrans %}</small>
                                 </div>
                                 <p class="mb-1">{{ apiario.posizione }}</p>
                             </a>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="text-center text-muted py-3">Nessun apiario trovato.</p>
+                    <p class="text-center text-muted py-3">{% trans "Nessun apiario trovato." %}</p>
                 {% endif %}
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-6 mb-4">
         <div class="card h-100">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-people me-2"></i>Gruppi</h5>
+                <h5 class="mb-0"><i class="bi bi-people me-2"></i>{% trans "Gruppi" %}</h5>
             </div>
             <div class="card-body">
                 {% if gruppi %}
@@ -137,10 +138,10 @@
                                         {% endif %}
                                         <div>
                                             <h5 class="mb-1">{{ gruppo.nome }}</h5>
-                                            <small class="text-muted">{{ gruppo.membri.count }} membri</small>
+                                            <small class="text-muted">{% blocktrans with count=gruppo.membri.count %}{{ count }} membri{% endblocktrans %}</small>
                                         </div>
                                     </div>
-                                    
+
                                     {% for membro in gruppo.membrogruppo_set.all %}
                                         {% if membro.utente == user_profile %}
                                             <span class="badge {% if membro.ruolo == 'admin' %}bg-danger{% elif membro.ruolo == 'editor' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
@@ -153,7 +154,7 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="text-center text-muted py-3">Nessun gruppo trovato.</p>
+                    <p class="text-center text-muted py-3">{% trans "Nessun gruppo trovato." %}</p>
                 {% endif %}
             </div>
         </div>
@@ -163,13 +164,13 @@
 {% if can_edit %}
 <div class="card mt-3" style="border:1px solid #EAD9BF; border-radius:12px;">
     <div class="card-body">
-        <h6 style="font-family:'Caveat',cursive; font-size:1.2rem; color:#2C1810;">Guida &amp; Tutorial</h6>
+        <h6 style="font-family:'Caveat',cursive; font-size:1.2rem; color:#2C1810;">{% trans "Guida & Tutorial" %}</h6>
         <div class="d-flex gap-2 flex-wrap">
             <a href="{% url 'onboarding' %}" class="btn btn-sm btn-outline-warning">
-                <i class="bi bi-play-circle me-1"></i>Rivedi il tutorial
+                <i class="bi bi-play-circle me-1"></i>{% trans "Rivedi il tutorial" %}
             </a>
             <a href="{% url 'guida' %}" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-book me-1"></i>Guida completa
+                <i class="bi bi-book me-1"></i>{% trans "Guida completa" %}
             </a>
         </div>
     </div>

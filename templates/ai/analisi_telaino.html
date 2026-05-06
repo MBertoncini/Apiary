@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Analisi Telaino AI — Apiary{% endblock %}
+{% block title %}{% trans "Analisi Telaino AI — Apiary" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -141,8 +141,8 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title"><i class="bi bi-camera me-2"></i>Analisi Telaino AI</h1>
-    <p class="page-subtitle">Seleziona un telaino di una tua arnia, scatta/carica la foto — il modello locale rileva api, fuchi, regine e celle reali</p>
+    <h1 class="page-title"><i class="bi bi-camera me-2"></i>{% trans "Analisi Telaino AI" %}</h1>
+    <p class="page-subtitle">{% trans "Seleziona un telaino di una tua arnia, scatta/carica la foto — il modello locale rileva api, fuchi, regine e celle reali" %}</p>
   </div>
 </div>
 
@@ -151,7 +151,7 @@
     <span class="animated-coffee">☕</span>
   </div>
   <div style="font-size: 0.9rem;">
-    <strong>Nota sull'utilizzo:</strong> L'attuale versione supporta un modello AI ancora molto <em>debole, impreciso ed embrionale</em>, ad ora inadatto a scopi pratici o professionali. Tuttavia, in futuro questa funzionalità potrebbe essere notevolmente migliorata! Se questa funzione ti interessa e vuoi vederla crescere, faccelo sapere supportandoci con una piccola donazione: 
+    <strong>{% trans "Nota sull'utilizzo:" %}</strong> {% trans "L'attuale versione supporta un modello AI ancora molto" %} <em>{% trans "debole, impreciso ed embrionale" %}</em>, {% trans "ad ora inadatto a scopi pratici o professionali. Tuttavia, in futuro questa funzionalità potrebbe essere notevolmente migliorata! Se questa funzione ti interessa e vuoi vederla crescere, faccelo sapere supportandoci con una piccola donazione:" %}
     <a href="https://buymeacoffee.com/apiary" target="_blank" class="coffee-link">buymeacoffee.com/apiary</a>.
   </div>
 </div>
@@ -163,44 +163,44 @@
       <div class="card-body" style="position:relative;">
 
         <div class="step-wizard mb-3">
-          <div class="step active" id="wz1"><span class="step-num">1</span>Arnia</div>
-          <div class="step"        id="wz2"><span class="step-num">2</span>Telaino</div>
-          <div class="step"        id="wz3"><span class="step-num">3</span>Foto</div>
+          <div class="step active" id="wz1"><span class="step-num">1</span>{% trans "Arnia" %}</div>
+          <div class="step"        id="wz2"><span class="step-num">2</span>{% trans "Telaino" %}</div>
+          <div class="step"        id="wz3"><span class="step-num">3</span>{% trans "Foto" %}</div>
         </div>
 
         <div id="panelArnia">
           {% if apiari %}
-            <label class="form-label fw-semibold mb-1">Apiario</label>
+            <label class="form-label fw-semibold mb-1">{% trans "Apiario" %}</label>
             <select class="form-select form-select-sm mb-3" id="selApiario">
-              <option value="">— seleziona apiario —</option>
+              <option value="">{% trans "— seleziona apiario —" %}</option>
               {% for ap in apiari %}
                 <option value="{{ ap.id }}" {% if preselect_apiario == ap.id|stringformat:"s" %}selected{% endif %}>{{ ap.nome }}</option>
               {% endfor %}
             </select>
 
-            <label class="form-label fw-semibold mb-1">Arnia</label>
+            <label class="form-label fw-semibold mb-1">{% trans "Arnia" %}</label>
             <div id="arnieLoading" class="text-muted small" style="display:none">
-              <span class="spinner-border spinner-border-sm me-1"></span>Caricamento arnie…
+              <span class="spinner-border spinner-border-sm me-1"></span>{% trans "Caricamento arnie…" %}
             </div>
             <div class="arnia-grid" id="arnieGrid"></div>
             <input type="hidden" id="selectedArniaId">
           {% else %}
-            <div class="alert alert-warning">Non hai ancora apiari. <a href="{% url 'crea_apiario' %}">Crea il primo apiario</a>.</div>
+            <div class="alert alert-warning">{% trans "Non hai ancora apiari." %} <a href="{% url 'crea_apiario' %}">{% trans "Crea il primo apiario" %}</a>.</div>
           {% endif %}
         </div>
 
         <div id="panelTelaino" style="display:none">
           <div class="d-flex align-items-center justify-content-between mb-2">
-            <span class="fw-semibold">Telaino</span>
+            <span class="fw-semibold">{% trans "Telaino" %}</span>
             <button class="btn btn-sm btn-link p-0 text-muted" id="btnBackArnia">
-              <i class="bi bi-arrow-left me-1"></i>Cambia arnia
+              <i class="bi bi-arrow-left me-1"></i>{% trans "Cambia arnia" %}
             </button>
           </div>
           <div class="telaino-grid mb-3" id="telainoGrid"></div>
           <input type="hidden" id="selectedTelaino">
 
           <div class="d-flex align-items-center gap-3 mt-2">
-            <span class="fw-semibold me-1">Facciata:</span>
+            <span class="fw-semibold me-1">{% trans "Facciata:" %}</span>
             <div class="btn-group btn-group-sm" role="group">
               <input type="radio" class="btn-check" name="facciata" id="facA" value="A" checked>
               <label class="btn btn-outline-warning" for="facA">A</label>
@@ -213,41 +213,41 @@
 
           <div class="d-grid mt-3">
             <button class="btn btn-primary" id="btnGoFoto" disabled>
-              Avanti: carica foto <i class="bi bi-arrow-right ms-1"></i>
+              {% trans "Avanti: carica foto" %} <i class="bi bi-arrow-right ms-1"></i>
             </button>
           </div>
         </div>
 
         <div id="panelFoto" style="display:none">
           <div class="d-flex align-items-center justify-content-between mb-2">
-            <span class="fw-semibold" id="telainoLabel">Telaino</span>
+            <span class="fw-semibold" id="telainoLabel">{% trans "Telaino" %}</span>
             <button class="btn btn-sm btn-link p-0 text-muted" id="btnBackTelaino">
-              <i class="bi bi-arrow-left me-1"></i>Cambia telaino
+              <i class="bi bi-arrow-left me-1"></i>{% trans "Cambia telaino" %}
             </button>
           </div>
 
           <div class="drop-zone mb-3" id="dropZone">
-            <img id="previewImg" alt="Anteprima">
+            <img id="previewImg" alt="{% trans "Anteprima" %}">
             <div id="dropPlaceholder">
               <i class="bi bi-image" style="font-size:2.5rem;color:#F5A623;"></i>
-              <p class="mt-2 mb-1 fw-medium">Trascina la foto del telaino</p>
-              <p class="small text-muted mb-0">oppure clicca per scegliere</p>
+              <p class="mt-2 mb-1 fw-medium">{% trans "Trascina la foto del telaino" %}</p>
+              <p class="small text-muted mb-0">{% trans "oppure clicca per scegliere" %}</p>
             </div>
             <div id="loadingOverlay">
               <div class="spinner-border text-warning" style="width:2.2rem;height:2.2rem;"></div>
-              <div class="small fw-semibold mt-1" style="color:#F5A623" id="loadingMsg">Analisi in corso…</div>
+              <div class="small fw-semibold mt-1" style="color:#F5A623" id="loadingMsg">{% trans "Analisi in corso…" %}</div>
             </div>
           </div>
           <input type="file" id="imageInput" accept="image/*" style="display:none">
 
           <div class="mb-3">
-            <label class="form-label small fw-semibold">Note (opzionale)</label>
-            <textarea class="form-control form-control-sm" id="noteInput" rows="2" placeholder="Osservazioni sul telaino…"></textarea>
+            <label class="form-label small fw-semibold">{% trans "Note (opzionale)" %}</label>
+            <textarea class="form-control form-control-sm" id="noteInput" rows="2" placeholder="{% trans "Osservazioni sul telaino…" %}"></textarea>
           </div>
 
           <div class="d-grid">
             <button class="btn btn-primary" id="analyzeBtn" disabled>
-              <i class="bi bi-cpu me-2"></i>Analizza e salva
+              <i class="bi bi-cpu me-2"></i>{% trans "Analizza e salva" %}
             </button>
           </div>
         </div>
@@ -257,12 +257,12 @@
 
     <div class="card mt-3">
       <div class="card-body">
-        <h6 class="fw-semibold mb-2" style="font-size:.8rem;color:#aaa;text-transform:uppercase;letter-spacing:.05em;">Classi rilevate dal modello</h6>
+        <h6 class="fw-semibold mb-2" style="font-size:.8rem;color:#aaa;text-transform:uppercase;letter-spacing:.05em;">{% trans "Classi rilevate dal modello" %}</h6>
         <div>
-          <span class="det-badge"><span>🐝</span> Operaie</span>
-          <span class="det-badge"><span>🐝</span> Fuchi</span>
-          <span class="det-badge"><span>👑</span> Regine</span>
-          <span class="det-badge"><span>🔷</span> Celle reali</span>
+          <span class="det-badge"><span>🐝</span> {% trans "Operaie" %}</span>
+          <span class="det-badge"><span>🐝</span> {% trans "Fuchi" %}</span>
+          <span class="det-badge"><span>👑</span> {% trans "Regine" %}</span>
+          <span class="det-badge"><span>🔷</span> {% trans "Celle reali" %}</span>
         </div>
       </div>
     </div>
@@ -273,15 +273,15 @@
     <div id="savedBanner" class="saved-banner mb-3" style="display:none">
       <i class="bi bi-check-circle-fill fs-5"></i>
       <div>
-        <strong>Analisi salvata!</strong>
+        <strong>{% trans "Analisi salvata!" %}</strong>
         <span id="savedBannerText"></span>
       </div>
       <div class="ms-auto d-flex gap-2">
         <a id="btnCreaControllo" href="#" class="btn btn-sm btn-success">
-          <i class="bi bi-clipboard-plus me-1"></i>Crea controllo
+          <i class="bi bi-clipboard-plus me-1"></i>{% trans "Crea controllo" %}
         </a>
         <a id="btnListaAnalisi" href="#" class="btn btn-sm btn-outline-secondary">
-          <i class="bi bi-clock-history me-1"></i>Storico
+          <i class="bi bi-clock-history me-1"></i>{% trans "Storico" %}
         </a>
       </div>
     </div>
@@ -290,15 +290,15 @@
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <h6 class="fw-semibold mb-0">
-            <i class="bi bi-grid-3x3-gap me-2 text-amber"></i>Rilevamento
+            <i class="bi bi-grid-3x3-gap me-2 text-amber"></i>{% trans "Rilevamento" %}
           </h6>
           <div id="detBadges"></div>
         </div>
-        <img id="annotatedImg" alt="Immagine annotata">
+        <img id="annotatedImg" alt="{% trans "Immagine annotata" %}">
         <div class="d-flex align-items-center gap-2 mt-2">
           <span class="small text-muted" id="detSubtitle"></span>
           <div class="ms-auto d-flex align-items-center gap-2" id="confRow" style="display:none">
-            <span class="small text-muted">Conf. media:</span>
+            <span class="small text-muted">{% trans "Conf. media:" %}</span>
             <div class="conf-bar-wrap" style="width:80px"><div class="conf-bar" id="confBar"></div></div>
             <span class="small fw-semibold" id="confVal"></span>
           </div>
@@ -308,7 +308,7 @@
 
     <div class="card result-card mb-3" id="detCountsCard" style="display:none">
       <div class="card-body">
-        <h6 class="fw-semibold mb-2"><i class="bi bi-grid-3x3-gap me-2 text-amber"></i>Rilevamento</h6>
+        <h6 class="fw-semibold mb-2"><i class="bi bi-grid-3x3-gap me-2 text-amber"></i>{% trans "Rilevamento" %}</h6>
         <div id="detCountsContent"></div>
       </div>
     </div>
@@ -317,7 +317,7 @@
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-2">
           <h6 class="fw-semibold mb-0">
-            <i class="bi bi-clipboard2-pulse me-2 text-amber"></i>Analisi diagnostica
+            <i class="bi bi-clipboard2-pulse me-2 text-amber"></i>{% trans "Analisi diagnostica" %}
           </h6>
           <span class="model-badge" id="modelUsed"></span>
         </div>
@@ -327,7 +327,7 @@
 
     <div class="text-end mt-3" id="btnNewWrap" style="display:none">
       <button class="btn btn-outline-secondary btn-sm" id="btnNewAnalysis">
-        <i class="bi bi-plus-circle me-1"></i>Nuova analisi
+        <i class="bi bi-plus-circle me-1"></i>{% trans "Nuova analisi" %}
       </button>
     </div>
   </div>

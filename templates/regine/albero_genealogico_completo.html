@@ -1,7 +1,8 @@
 <!-- templates/regine/albero_genealogico_completo.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Albero Genealogico Completo - {{ regina.arnia.numero }}{% endblock %}
+{% block title %}{% trans "Albero Genealogico Completo" %} - {{ regina.arnia.numero }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -109,12 +110,12 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">🌳 Albero Genealogico Completo</h1>
-    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'visualizza_regina' arnia.id %}">Regina #{{ arnia.numero }}</a> › Genealogia</p>
+    <h1 class="page-title">🌳 {% trans "Albero Genealogico Completo" %}</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'visualizza_regina' arnia.id %}">{% blocktrans with num=arnia.numero %}Regina #{{ num }}{% endblocktrans %}</a> › {% trans "Genealogia" %}</p>
   </div>
   <div class="d-flex gap-2">
-    <a href="{% url 'ricerca_regine' %}" class="btn btn-outline-secondary"><i class="bi bi-search me-1"></i> Ricerca</a>
-    <a href="{% url 'visualizza_regina' arnia.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Torna alla Regina</a>
+    <a href="{% url 'ricerca_regine' %}" class="btn btn-outline-secondary"><i class="bi bi-search me-1"></i> {% trans "Ricerca" %}</a>
+    <a href="{% url 'visualizza_regina' arnia.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Torna alla Regina" %}</a>
   </div>
 </div>
 
@@ -124,23 +125,23 @@
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <i class="bi bi-gem"></i> Regina Arnia #{{ regina.arnia.numero }}
+                    <i class="bi bi-gem"></i> {% blocktrans with num=regina.arnia.numero %}Regina Arnia #{{ num }}{% endblocktrans %}
                 </h5>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-3">
-                        <strong>Razza:</strong> {{ regina.get_razza_display }}
+                        <strong>{% trans "Razza:" %}</strong> {{ regina.get_razza_display }}
                     </div>
                     <div class="col-md-3">
-                        <strong>Origine:</strong> {{ regina.get_origine_display }}
+                        <strong>{% trans "Origine:" %}</strong> {{ regina.get_origine_display }}
                     </div>
                     <div class="col-md-3">
-                        <strong>Eta:</strong>
-                        {% if regina.get_eta_anni %}{{ regina.get_eta_anni }} anni{% else %}-{% endif %}
+                        <strong>{% trans "Età:" %}</strong>
+                        {% if regina.get_eta_anni %}{% blocktrans with anni=regina.get_eta_anni %}{{ anni }} anni{% endblocktrans %}{% else %}-{% endif %}
                     </div>
                     <div class="col-md-3">
-                        <strong>Marcatura:</strong>
+                        <strong>{% trans "Marcatura:" %}</strong>
                         {% if regina.marcata %}
                             <span class="marcatore" style="background-color:
                                 {% if regina.colore_marcatura == 'bianco' %}white
@@ -151,7 +152,7 @@
                                 {% else %}#f8f9fa{% endif %};"></span>
                             {{ regina.get_colore_marcatura_display }}
                         {% else %}
-                            Non marcata
+                            {% trans "Non marcata" %}
                         {% endif %}
                     </div>
                 </div>
@@ -162,8 +163,8 @@
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <i class="bi bi-arrow-up-circle"></i> Linea Ascendente
-                    <span class="badge bg-light text-dark">{{ num_generazioni_su }} generazioni</span>
+                    <i class="bi bi-arrow-up-circle"></i> {% trans "Linea Ascendente" %}
+                    <span class="badge bg-light text-dark">{% blocktrans with n=num_generazioni_su %}{{ n }} generazioni{% endblocktrans %}</span>
                 </h5>
             </div>
             <div class="card-body">
@@ -174,7 +175,7 @@
                         {% endwith %}
                     {% else %}
                         <div class="alert alert-info">
-                            Nessuna informazione genealogica disponibile per questa regina.
+                            {% trans "Nessuna informazione genealogica disponibile per questa regina." %}
                         </div>
                     {% endif %}
                 </div>
@@ -186,8 +187,8 @@
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <i class="bi bi-arrow-down-circle"></i> Linea Discendente
-                    <span class="badge bg-light text-dark">{{ num_generazioni_giu }} generazioni</span>
+                    <i class="bi bi-arrow-down-circle"></i> {% trans "Linea Discendente" %}
+                    <span class="badge bg-light text-dark">{% blocktrans with n=num_generazioni_giu %}{{ n }} generazioni{% endblocktrans %}</span>
                 </h5>
             </div>
             <div class="card-body">
@@ -198,7 +199,7 @@
                             <div class="descendant-card">
                                 <h6>
                                     <a href="{% url 'visualizza_regina' figlia_data.regina.arnia.id %}">
-                                        Arnia #{{ figlia_data.regina.arnia.numero }}
+                                        {% blocktrans with num=figlia_data.regina.arnia.numero %}Arnia #{{ num }}{% endblocktrans %}
                                     </a>
                                 </h6>
                                 <small class="text-muted">{{ figlia_data.regina.get_razza_display }}</small>
@@ -211,13 +212,13 @@
                                 {% if figlia_data.figlie %}
                                     <br>
                                     <span class="badge bg-success mt-2">
-                                        {{ figlia_data.figlie|length }} figlie
+                                        {% blocktrans with n=figlia_data.figlie|length %}{{ n }} figlie{% endblocktrans %}
                                     </span>
                                 {% endif %}
                                 <div class="mt-2">
                                     <a href="{% url 'albero_genealogico_completo' figlia_data.regina.id %}"
                                        class="btn btn-sm btn-outline-info">
-                                        <i class="bi bi-diagram-3"></i> Vedi albero
+                                        <i class="bi bi-diagram-3"></i> {% trans "Vedi albero" %}
                                     </a>
                                 </div>
                             </div>
@@ -234,37 +235,37 @@
     <div class="col-lg-3">
         <div class="card mb-4">
             <div class="card-header">
-                <h6 class="mb-0"><i class="bi bi-bar-chart"></i> Statistiche Linea</h6>
+                <h6 class="mb-0"><i class="bi bi-bar-chart"></i> {% trans "Statistiche Linea" %}</h6>
             </div>
             <div class="card-body">
                 <table class="table table-sm">
                     <tr>
-                        <td>Regine nella linea:</td>
+                        <td>{% trans "Regine nella linea:" %}</td>
                         <td class="text-end"><strong>{{ stats_linea.num_regine }}</strong></td>
                     </tr>
                     <tr>
-                        <td>Generazioni su:</td>
+                        <td>{% trans "Generazioni su:" %}</td>
                         <td class="text-end"><strong>{{ num_generazioni_su }}</strong></td>
                     </tr>
                     <tr>
-                        <td>Generazioni giu:</td>
+                        <td>{% trans "Generazioni giù:" %}</td>
                         <td class="text-end"><strong>{{ num_generazioni_giu }}</strong></td>
                     </tr>
                 </table>
 
                 <hr>
 
-                <h6>Razze nella linea</h6>
+                <h6>{% trans "Razze nella linea" %}</h6>
                 {% for razza in stats_linea.razze %}
                     <span class="badge bg-secondary mb-1">{{ razza }}</span>
                 {% endfor %}
 
                 <hr>
 
-                <h6>Medie Valutazioni</h6>
+                <h6>{% trans "Medie Valutazioni" %}</h6>
                 <table class="table table-sm">
                     <tr>
-                        <td>Docilita:</td>
+                        <td>{% trans "Docilità:" %}</td>
                         <td class="text-end">
                             {% if stats_linea.media_docilita %}
                                 {{ stats_linea.media_docilita|floatformat:1 }}/5
@@ -272,7 +273,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>Produttivita:</td>
+                        <td>{% trans "Produttività:" %}</td>
                         <td class="text-end">
                             {% if stats_linea.media_produttivita %}
                                 {{ stats_linea.media_produttivita|floatformat:1 }}/5
@@ -285,14 +286,14 @@
 
         <div class="card">
             <div class="card-header">
-                <h6 class="mb-0"><i class="bi bi-lightning"></i> Azioni</h6>
+                <h6 class="mb-0"><i class="bi bi-lightning"></i> {% trans "Azioni" %}</h6>
             </div>
             <div class="card-body d-grid gap-2">
                 <a href="{% url 'modifica_regina' regina.id %}" class="btn btn-outline-primary">
-                    <i class="bi bi-pencil"></i> Modifica Regina
+                    <i class="bi bi-pencil"></i> {% trans "Modifica Regina" %}
                 </a>
                 <a href="{% url 'ricerca_regine' %}?razza={{ regina.razza }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-search"></i> Cerca stessa razza
+                    <i class="bi bi-search"></i> {% trans "Cerca stessa razza" %}
                 </a>
             </div>
         </div>

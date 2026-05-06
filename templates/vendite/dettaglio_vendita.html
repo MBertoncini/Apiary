@@ -1,22 +1,23 @@
 {% extends 'base.html' %}
-{% block title %}Vendita {{ vendita.data|date:"d/m/Y" }} - Apiary{% endblock %}
+{% load i18n %}
+{% block title %}{% blocktrans with data=vendita.data|date:"d/m/Y" %}Vendita {{ data }}{% endblocktrans %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title"><i class="bi bi-bag-heart me-2" style="color:var(--honey);"></i>Vendita del {{ vendita.data|date:"d/m/Y" }}</h1>
+    <h1 class="page-title"><i class="bi bi-bag-heart me-2" style="color:var(--honey);"></i>{% blocktrans with data=vendita.data|date:"d/m/Y" %}Vendita del {{ data }}{% endblocktrans %}</h1>
     <p class="page-subtitle">
-      {% if vendita.cliente %}Cliente: {{ vendita.cliente.nome }}
-      {% elif vendita.acquirente_nome %}Acquirente: {{ vendita.acquirente_nome }}
-      {% else %}Acquirente non specificato{% endif %}
+      {% if vendita.cliente %}{% blocktrans with nome=vendita.cliente.nome %}Cliente: {{ nome }}{% endblocktrans %}
+      {% elif vendita.acquirente_nome %}{% blocktrans with nome=vendita.acquirente_nome %}Acquirente: {{ nome }}{% endblocktrans %}
+      {% else %}{% trans "Acquirente non specificato" %}{% endif %}
     </p>
   </div>
   <div class="d-flex gap-2">
     <a href="{% url 'modifica_vendita' vendita.pk %}" class="btn btn-outline-primary">
-      <i class="bi bi-pencil me-1"></i>Modifica
+      <i class="bi bi-pencil me-1"></i>{% trans "Modifica" %}
     </a>
     <a href="{% url 'gestione_vendite' %}" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i>Indietro
+      <i class="bi bi-arrow-left me-1"></i>{% trans "Indietro" %}
     </a>
   </div>
 </div>
@@ -24,16 +25,16 @@
 <div class="row g-4">
   <div class="col-lg-8">
     <div class="card">
-      <div class="card-header"><h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>Prodotti venduti</h6></div>
+      <div class="card-header"><h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>{% trans "Prodotti venduti" %}</h6></div>
       <div class="card-body p-0">
         <div class="table-responsive">
           <table class="table mb-0">
             <thead>
               <tr>
-                <th>Prodotto</th>
-                <th class="text-center">Qta</th>
-                <th class="text-end">Prezzo unit.</th>
-                <th class="text-end">Subtotale</th>
+                <th>{% trans "Prodotto" %}</th>
+                <th class="text-center">{% trans "Qta" %}</th>
+                <th class="text-end">{% trans "Prezzo unit." %}</th>
+                <th class="text-end">{% trans "Subtotale" %}</th>
               </tr>
             </thead>
             <tbody>
@@ -56,7 +57,7 @@
             </tbody>
             <tfoot>
               <tr>
-                <td colspan="3" class="text-end fw-bold">Totale</td>
+                <td colspan="3" class="text-end fw-bold">{% trans "Totale" %}</td>
                 <td class="text-end fw-bold fs-5" style="color:var(--honey);">€ {{ vendita.totale|floatformat:2 }}</td>
               </tr>
             </tfoot>
@@ -68,21 +69,21 @@
 
   <div class="col-lg-4">
     <div class="card">
-      <div class="card-header"><h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Dettagli</h6></div>
+      <div class="card-header"><h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>{% trans "Dettagli" %}</h6></div>
       <div class="card-body">
         <dl class="row mb-0">
-          <dt class="col-5">Canale</dt>
+          <dt class="col-5">{% trans "Canale" %}</dt>
           <dd class="col-7">{{ vendita.get_canale_display }}</dd>
-          <dt class="col-5">Pagamento</dt>
+          <dt class="col-5">{% trans "Pagamento" %}</dt>
           <dd class="col-7">{{ vendita.get_pagamento_display }}</dd>
           {% if vendita.cliente %}
-          <dt class="col-5">Cliente</dt>
+          <dt class="col-5">{% trans "Cliente" %}</dt>
           <dd class="col-7">
             <a href="{% url 'dettaglio_cliente' vendita.cliente.pk %}">{{ vendita.cliente.nome }}</a>
           </dd>
           {% endif %}
           {% if vendita.note %}
-          <dt class="col-5">Note</dt>
+          <dt class="col-5">{% trans "Note" %}</dt>
           <dd class="col-7">{{ vendita.note }}</dd>
           {% endif %}
         </dl>
@@ -92,10 +93,10 @@
     <div class="card mt-3">
       <div class="card-body d-grid gap-2">
         <a href="{% url 'modifica_vendita' vendita.pk %}" class="btn btn-outline-primary">
-          <i class="bi bi-pencil me-1"></i>Modifica vendita
+          <i class="bi bi-pencil me-1"></i>{% trans "Modifica vendita" %}
         </a>
         <a href="{% url 'elimina_vendita' vendita.pk %}" class="btn btn-outline-danger">
-          <i class="bi bi-trash me-1"></i>Elimina vendita
+          <i class="bi bi-trash me-1"></i>{% trans "Elimina vendita" %}
         </a>
       </div>
     </div>

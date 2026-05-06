@@ -1,20 +1,20 @@
 <!-- templates/apiari/form_apiario.html -->
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags i18n %}
 
-{% block title %}{% if form.instance.pk %}Modifica{% else %}Nuovo{% endif %} Apiario - Apiary{% endblock %}
+{% block title %}{% if form.instance.pk %}{% trans "Modifica" %}{% else %}{% trans "Nuovo" %}{% endif %} {% trans "Apiario" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">{% if form.instance.pk %}✏️ Modifica Apiario{% else %}🏡 Nuovo Apiario{% endif %}</h1>
+    <h1 class="page-title">{% if form.instance.pk %}✏️ {% trans "Modifica Apiario" %}{% else %}🏡 {% trans "Nuovo Apiario" %}{% endif %}</h1>
     <p class="page-subtitle">
-      <a href="{% url 'dashboard' %}">Dashboard</a>
-      {% if form.instance.pk %} › <a href="{% url 'visualizza_apiario' form.instance.pk %}">{{ form.instance.nome }}</a> › Modifica{% else %} › Nuovo Apiario{% endif %}
+      <a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a>
+      {% if form.instance.pk %} › <a href="{% url 'visualizza_apiario' form.instance.pk %}">{{ form.instance.nome }}</a> › {% trans "Modifica" %}{% else %} › {% trans "Nuovo Apiario" %}{% endif %}
     </p>
   </div>
   <a href="{% if form.instance.pk %}{% url 'visualizza_apiario' form.instance.pk %}{% else %}{% url 'dashboard' %}{% endif %}" class="btn btn-outline-secondary">
-    <i class="bi bi-arrow-left me-1"></i> Annulla
+    <i class="bi bi-arrow-left me-1"></i> {% trans "Annulla" %}
   </a>
 </div>
 
@@ -22,12 +22,12 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informazioni Apiario</h5>
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>{% trans "Informazioni Apiario" %}</h5>
             </div>
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             {{ form.nome|as_crispy_field }}
@@ -36,34 +36,34 @@
                             {{ form.posizione|as_crispy_field }}
                         </div>
                     </div>
-                    
+
                     <div class="row mb-3">
                         <div class="col-12">
-                            <label class="form-label">Posizione Geografica</label>
+                            <label class="form-label">{% trans "Posizione Geografica" %}</label>
                             <div class="input-group">
-                                <span class="input-group-text">Lat</span>
+                                <span class="input-group-text">{% trans "Lat" %}</span>
                                 {{ form.latitudine }}
-                                <span class="input-group-text">Lng</span>
+                                <span class="input-group-text">{% trans "Lng" %}</span>
                                 {{ form.longitudine }}
                                 <button type="button" class="btn btn-outline-secondary" id="selectOnMap">
-                                    <i class="bi bi-geo-alt"></i> Seleziona sulla mappa
+                                    <i class="bi bi-geo-alt"></i> {% trans "Seleziona sulla mappa" %}
                                 </button>
                             </div>
-                            <div class="form-text">Coordinate geografiche dell'apiario</div>
+                            <div class="form-text">{% trans "Coordinate geografiche dell'apiario" %}</div>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         {{ form.note|as_crispy_field }}
                     </div>
-                    
+
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-circle"></i> 
+                            <i class="bi bi-check-circle"></i>
                             {% if form.instance.pk %}
-                                Aggiorna Apiario
+                                {% trans "Aggiorna Apiario" %}
                             {% else %}
-                                Crea Apiario
+                                {% trans "Crea Apiario" %}
                             {% endif %}
                         </button>
                     </div>
@@ -71,26 +71,26 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Suggerimenti</h5>
+                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>{% trans "Suggerimenti" %}</h5>
             </div>
             <div class="card-body">
                 <p>
-                    <strong>Apiario</strong> è il luogo dove sono posizionate le arnie.
+                    <strong>{% trans "Apiario" %}</strong> {% trans "è il luogo dove sono posizionate le arnie." %}
                 </p>
                 <p>
-                    Fornisci un nome descrittivo e la posizione dell'apiario.
+                    {% trans "Fornisci un nome descrittivo e la posizione dell'apiario." %}
                 </p>
                 <p>
-                    Le coordinate geografiche sono opzionali ma consigliate per la visualizzazione dell'apiario sulla mappa.
+                    {% trans "Le coordinate geografiche sono opzionali ma consigliate per la visualizzazione dell'apiario sulla mappa." %}
                 </p>
-                
+
                 <div class="alert alert-primary mt-3">
-                    <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong>
-                    Puoi selezionare la posizione esatta dell'apiario sulla mappa cliccando sul pulsante "Seleziona sulla mappa".
+                    <i class="bi bi-lightbulb"></i> <strong>{% trans "Suggerimento" %}:</strong>
+                    {% trans "Puoi selezionare la posizione esatta dell'apiario sulla mappa cliccando sul pulsante \"Seleziona sulla mappa\"." %}
                 </div>
             </div>
         </div>
@@ -101,19 +101,13 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Gestione del pulsante "Seleziona sulla mappa"
         document.getElementById('selectOnMap').addEventListener('click', function() {
-            // Recupera le coordinate attuali (se presenti)
             var lat = document.querySelector('.lat-input').value;
             var lng = document.querySelector('.lng-input').value;
-            
-            // Costruisci l'URL con i parametri
             var url = '{% url "seleziona_posizione" %}';
             if (lat && lng) {
                 url += '?lat=' + lat + '&lng=' + lng;
             }
-            
-            // Apri la finestra di selezione mappa
             window.open(url, 'mapWindow', 'width=800,height=600');
         });
     });

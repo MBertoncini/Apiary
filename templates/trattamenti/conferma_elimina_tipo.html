@@ -1,37 +1,41 @@
 <!-- templates/trattamenti/conferma_elimina_tipo.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Conferma Eliminazione Tipo - Apiary{% endblock %}
+{% block title %}{% trans "Conferma Eliminazione Tipo" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-6 offset-md-3">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Conferma Eliminazione</h5>
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> {% trans "Conferma Eliminazione" %}</h5>
             </div>
             <div class="card-body">
-                <p>Sei sicuro di voler eliminare questo tipo di trattamento?</p>
-                
+                <p>{% trans "Sei sicuro di voler eliminare questo tipo di trattamento?" %}</p>
+
                 <div class="alert alert-warning">
-                    <strong>Attenzione:</strong> Questa operazione non può essere annullata e potrebbe influire sui trattamenti esistenti.
+                    <strong>{% trans "Attenzione:" %}</strong> {% trans "Questa operazione non può essere annullata e potrebbe influire sui trattamenti esistenti." %}
                 </div>
-                
-                <h6>Dettagli tipo trattamento:</h6>
+
+                <h6>{% trans "Dettagli tipo trattamento:" %}</h6>
                 <ul>
-                    <li><strong>Nome:</strong> {{ tipo.nome }}</li>
-                    <li><strong>Principio attivo:</strong> {{ tipo.principio_attivo }}</li>
-                    <li><strong>Tempo sospensione:</strong> {{ tipo.tempo_sospensione }} giorni</li>
+                    <li><strong>{% trans "Nome:" %}</strong> {{ tipo.nome }}</li>
+                    <li><strong>{% trans "Principio attivo:" %}</strong> {{ tipo.principio_attivo }}</li>
+                    <li>
+                        <strong>{% trans "Tempo sospensione:" %}</strong>
+                        {% blocktrans with giorni=tipo.tempo_sospensione %}{{ giorni }} giorni{% endblocktrans %}
+                    </li>
                 </ul>
             </div>
             <div class="card-footer d-flex justify-content-between">
                 <form method="post">
                     {% csrf_token %}
                     <a href="{% url 'tipi_trattamento' %}" class="btn btn-secondary">
-                        <i class="bi bi-x-circle"></i> Annulla
+                        <i class="bi bi-x-circle"></i> {% trans "Annulla" %}
                     </a>
                     <button type="submit" class="btn btn-danger ms-2">
-                        <i class="bi bi-trash"></i> Elimina
+                        <i class="bi bi-trash"></i> {% trans "Elimina" %}
                     </button>
                 </form>
             </div>

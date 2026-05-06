@@ -1,93 +1,94 @@
 <!-- templates/arnie/copia_controllo.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Copia Controllo - Apiary{% endblock %}
+{% block title %}{% trans "Copia Controllo" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">📋 Copia Controllo</h1>
-    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' controllo.arnia.apiario.id %}">{{ controllo.arnia.apiario.nome }}</a> › Copia Controllo</p>
+    <h1 class="page-title">📋 {% trans "Copia Controllo" %}</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a> › <a href="{% url 'visualizza_apiario' controllo.arnia.apiario.id %}">{{ controllo.arnia.apiario.nome }}</a> › {% trans "Copia Controllo" %}</p>
   </div>
-  <a href="{% url 'visualizza_apiario' controllo.arnia.apiario.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Torna all'Apiario</a>
+  <a href="{% url 'visualizza_apiario' controllo.arnia.apiario.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Torna all'Apiario" %}</a>
 </div>
 
 <div class="row">
     <div class="col-md-4">
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">Dettagli Controllo da Copiare</h5>
+                <h5 class="mb-0">{% trans "Dettagli Controllo da Copiare" %}</h5>
             </div>
             <div class="card-body">
-                <p><strong>Arnia origine:</strong> {{ controllo.arnia.numero }} ({{ controllo.arnia.get_colore_display }})</p>
-                <p><strong>Data controllo origine:</strong> {{ controllo.data|date:"d/m/Y" }}</p>
-                <p><strong>Telaini scorte:</strong> {{ controllo.telaini_scorte }}</p>
-                <p><strong>Telaini covata:</strong> {{ controllo.telaini_covata }}</p>
-                <p><strong>Presenza regina:</strong> {% if controllo.presenza_regina %}Sì{% else %}No{% endif %}</p>
-                
+                <p><strong>{% trans "Arnia origine:" %}</strong> {{ controllo.arnia.numero }} ({{ controllo.arnia.get_colore_display }})</p>
+                <p><strong>{% trans "Data controllo origine:" %}</strong> {{ controllo.data|date:"d/m/Y" }}</p>
+                <p><strong>{% trans "Telaini scorte:" %}</strong> {{ controllo.telaini_scorte }}</p>
+                <p><strong>{% trans "Telaini covata:" %}</strong> {{ controllo.telaini_covata }}</p>
+                <p><strong>{% trans "Presenza regina:" %}</strong> {% if controllo.presenza_regina %}{% trans "Sì" %}{% else %}{% trans "No" %}{% endif %}</p>
+
                 {% if controllo.sciamatura %}
                     <div class="alert alert-warning">
-                        <p><strong>Sciamatura:</strong> Sì</p>
+                        <p><strong>{% trans "Sciamatura:" %}</strong> {% trans "Sì" %}</p>
                         {% if controllo.data_sciamatura %}
-                            <p><strong>Data sciamatura:</strong> {{ controllo.data_sciamatura|date:"d/m/Y" }}</p>
+                            <p><strong>{% trans "Data sciamatura:" %}</strong> {{ controllo.data_sciamatura|date:"d/m/Y" }}</p>
                         {% endif %}
                         {% if controllo.note_sciamatura %}
-                            <p><strong>Note sciamatura:</strong> {{ controllo.note_sciamatura }}</p>
+                            <p><strong>{% trans "Note sciamatura:" %}</strong> {{ controllo.note_sciamatura }}</p>
                         {% endif %}
                     </div>
                 {% endif %}
-                
+
                 {% if controllo.problemi_sanitari %}
                     <div class="alert alert-danger">
-                        <p><strong>Problemi sanitari:</strong> Sì</p>
+                        <p><strong>{% trans "Problemi sanitari:" %}</strong> {% trans "Sì" %}</p>
                         {% if controllo.note_problemi %}
-                            <p><strong>Dettagli:</strong> {{ controllo.note_problemi }}</p>
+                            <p><strong>{% trans "Dettagli:" %}</strong> {{ controllo.note_problemi }}</p>
                         {% endif %}
                     </div>
                 {% endif %}
-                
+
                 {% if controllo.note %}
                     <div class="mt-3">
-                        <p><strong>Note:</strong> {{ controllo.note }}</p>
+                        <p><strong>{% trans "Note:" %}</strong> {{ controllo.note }}</p>
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Seleziona Arnie di Destinazione</h5>
+                <h5 class="mb-0">{% trans "Seleziona Arnie di Destinazione" %}</h5>
             </div>
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
-                    
+
                     <div class="mb-3">
-                        <label class="form-label">Data del nuovo controllo:</label>
+                        <label class="form-label">{% trans "Data del nuovo controllo:" %}</label>
                         <input type="date" name="data" class="form-control" value="{{ data_corrente|date:'Y-m-d' }}" required>
                     </div>
-                    
+
                     <div class="mb-4">
-                        <label class="form-label">Seleziona quali informazioni copiare:</label>
+                        <label class="form-label">{% trans "Seleziona quali informazioni copiare:" %}</label>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="copia_telaini" checked disabled>
                             <label class="form-check-label" for="copia_telaini">
-                                Telaini (scorte e covata) <small class="text-muted">(sempre copiati)</small>
+                                {% trans "Telaini (scorte e covata)" %} <small class="text-muted">({% trans "sempre copiati" %})</small>
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="copia_regina" name="copia_regina" checked>
                             <label class="form-check-label" for="copia_regina">
-                                Presenza regina
+                                {% trans "Presenza regina" %}
                             </label>
                         </div>
                         {% if controllo.sciamatura %}
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="copia_sciamatura" name="copia_sciamatura">
                                 <label class="form-check-label" for="copia_sciamatura">
-                                    Sciamatura (inclusi data e note)
+                                    {% trans "Sciamatura (inclusi data e note)" %}
                                 </label>
                             </div>
                         {% endif %}
@@ -95,7 +96,7 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="copia_problemi" name="copia_problemi">
                                 <label class="form-check-label" for="copia_problemi">
-                                    Problemi sanitari (incluse note)
+                                    {% trans "Problemi sanitari (incluse note)" %}
                                 </label>
                             </div>
                         {% endif %}
@@ -103,27 +104,27 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="copia_note" name="copia_note">
                                 <label class="form-check-label" for="copia_note">
-                                    Note generali
+                                    {% trans "Note generali" %}
                                 </label>
                             </div>
                         {% endif %}
                     </div>
-                    
+
                     <div class="mb-4">
-                        <label class="form-label">Seleziona le arnie su cui copiare il controllo:</label>
-                        
+                        <label class="form-label">{% trans "Seleziona le arnie su cui copiare il controllo:" %}</label>
+
                         <div class="mb-2">
-                            <button type="button" class="btn btn-sm btn-outline-primary" id="seleziona-tutte">Seleziona tutte</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="deseleziona-tutte">Deseleziona tutte</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="seleziona-tutte">{% trans "Seleziona tutte" %}</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="deseleziona-tutte">{% trans "Deseleziona tutte" %}</button>
                         </div>
-                        
+
                         <div class="row">
                             {% for arnia in arnie %}
                                 <div class="col-md-6 mb-2">
                                     <div class="form-check">
                                         <input class="form-check-input arnia-checkbox" type="checkbox" name="arnie" value="{{ arnia.id }}" id="arnia-{{ arnia.id }}">
                                         <label class="form-check-label" for="arnia-{{ arnia.id }}">
-                                            Arnia #{{ arnia.numero }} 
+                                            {% blocktrans with numero=arnia.numero %}Arnia #{{ numero }}{% endblocktrans %}
                                             <span class="badge {% if arnia.colore == 'giallo' %}bg-warning text-dark{% elif arnia.colore == 'blu' %}bg-primary{% elif arnia.colore == 'verde' %}bg-success{% elif arnia.colore == 'rosso' %}bg-danger{% elif arnia.colore == 'bianco' %}bg-light text-dark{% elif arnia.colore == 'nero' %}bg-dark{% elif arnia.colore == 'arancione' %}bg-warning{% elif arnia.colore == 'viola' %}bg-purple{% else %}bg-secondary{% endif %}">
                                                 {{ arnia.get_colore_display }}
                                             </span>
@@ -133,20 +134,20 @@
                             {% empty %}
                                 <div class="col-12">
                                     <div class="alert alert-warning">
-                                        Non ci sono altre arnie attive in questo apiario.
+                                        {% trans "Non ci sono altre arnie attive in questo apiario." %}
                                     </div>
                                 </div>
                             {% endfor %}
                         </div>
                     </div>
-                    
+
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'visualizza_apiario' controllo.arnia.apiario.id %}" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Torna all'apiario
+                            <i class="bi bi-arrow-left"></i> {% trans "Torna all'apiario" %}
                         </a>
-                        
+
                         <button type="submit" class="btn btn-success" {% if not arnie %}disabled{% endif %}>
-                            <i class="bi bi-files"></i> Copia su arnie selezionate
+                            <i class="bi bi-files"></i> {% trans "Copia su arnie selezionate" %}
                         </button>
                     </div>
                 </form>

@@ -156,11 +156,11 @@
 <!-- ======= AUTHENTICATED: redirect-style card ======= -->
 <div class="page-header">
   <div>
-    <h1 class="page-title">Benvenuto su Apiary</h1>
-    <p class="page-subtitle">La piattaforma professionale per la gestione dell'apiario</p>
+    <h1 class="page-title">{% trans "Benvenuto su Apiary" %}</h1>
+    <p class="page-subtitle">{% trans "La piattaforma professionale per la gestione dell'apiario" %}</p>
   </div>
   <a href="{% url 'dashboard' %}" class="btn btn-primary">
-    <i class="bi bi-speedometer2 me-1"></i> Vai alla Dashboard
+    <i class="bi bi-speedometer2 me-1"></i> {% trans "Vai alla Dashboard" %}
   </a>
 </div>
 
@@ -179,7 +179,7 @@
     <a href="{% url 'dashboard' %}" class="text-decoration-none">
       <div class="card card-honey h-100 text-center p-4">
         <span style="font-size:2.5rem;">🏡</span>
-        <h5 class="mt-2">I miei Apiari</h5>
+        <h5 class="mt-2">{% trans "I miei Apiari" %}</h5>
       </div>
     </a>
   </div>
@@ -187,7 +187,7 @@
     <a href="{% url 'mappa_apiari' %}" class="text-decoration-none">
       <div class="card card-info h-100 text-center p-4">
         <span style="font-size:2.5rem;">🗺️</span>
-        <h5 class="mt-2">Mappa</h5>
+        <h5 class="mt-2">{% trans "Mappa" %}</h5>
       </div>
     </a>
   </div>
@@ -195,7 +195,7 @@
     <a href="{% url 'gestione_fioriture' %}" class="text-decoration-none">
       <div class="card card-success h-100 text-center p-4">
         <span style="font-size:2.5rem;">🌸</span>
-        <h5 class="mt-2">Fioriture</h5>
+        <h5 class="mt-2">{% trans "Fioriture" %}</h5>
       </div>
     </a>
   </div>
@@ -214,13 +214,13 @@
   <div style="max-width: 700px; margin: 0 auto; padding: 0 20px;">
     <div style="font-size: 4rem; margin-bottom: 16px;">🐝</div>
     <h1>Apiary</h1>
-    <p class="lead">La piattaforma completa per gestire il tuo apiario in modo collaborativo, efficiente e professionale.</p>
+    <p class="lead">{% trans "La piattaforma completa per gestire il tuo apiario in modo collaborativo, efficiente e professionale." %}</p>
     <div class="d-flex gap-3 justify-content-center flex-wrap">
       <a href="{% url 'login' %}" class="btn-hero">
-        <i class="bi bi-box-arrow-in-right me-2"></i>Accedi
+        <i class="bi bi-box-arrow-in-right me-2"></i>{% trans "Accedi" %}
       </a>
       <a href="{% url 'register' %}" class="btn-secondary-hero">
-        <i class="bi bi-person-plus me-2"></i>Registrati
+        <i class="bi bi-person-plus me-2"></i>{% trans "Registrati" %}
       </a>
     </div>
   </div>
@@ -232,51 +232,51 @@
 <section class="features-section">
   <div class="container" style="max-width: 1100px !important; padding: 0 20px !important;">
     <div class="text-center mb-50" style="margin-bottom: 48px;">
-      <h2 style="font-family: var(--font-display,'Caveat',cursive); font-size: 2.4rem; color: #2C1810;">Tutto quello che ti serve</h2>
-      <p style="color: #7A5C45; max-width: 500px; margin: 8px auto 0;">Una suite completa di strumenti pensati per l'apicoltore moderno.</p>
+      <h2 style="font-family: var(--font-display,'Caveat',cursive); font-size: 2.4rem; color: #2C1810;">{% trans "Tutto quello che ti serve" %}</h2>
+      <p style="color: #7A5C45; max-width: 500px; margin: 8px auto 0;">{% trans "Una suite completa di strumenti pensati per l'apicoltore moderno." %}</p>
     </div>
 
     <div class="row g-4">
       <div class="col-md-4 col-sm-6">
         <div class="feature-card">
           <span class="feature-icon">🏡</span>
-          <h4>Gestione Apiari & Arnie</h4>
-          <p>Monitora ogni arnia con colori, telaini visuali e storico completo dei controlli.</p>
+          <h4>{% trans "Gestione Apiari & Arnie" %}</h4>
+          <p>{% trans "Monitora ogni arnia con colori, telaini visuali e storico completo dei controlli." %}</p>
         </div>
       </div>
       <div class="col-md-4 col-sm-6">
         <div class="feature-card">
           <span class="feature-icon">👑</span>
-          <h4>Tracciamento Regine</h4>
-          <p>Genealogia, marcatura, razza e performance — tieni traccia di ogni regina nel dettaglio.</p>
+          <h4>{% trans "Tracciamento Regine" %}</h4>
+          <p>{% trans "Genealogia, marcatura, razza e performance — tieni traccia di ogni regina nel dettaglio." %}</p>
         </div>
       </div>
       <div class="col-md-4 col-sm-6">
         <div class="feature-card">
           <span class="feature-icon">🍯</span>
-          <h4>Produzione Miele</h4>
-          <p>Gestisci melari, smielature e invasettamento con tracciabilità completa della produzione.</p>
+          <h4>{% trans "Produzione Miele" %}</h4>
+          <p>{% trans "Gestisci melari, smielature e invasettamento con tracciabilità completa della produzione." %}</p>
         </div>
       </div>
       <div class="col-md-4 col-sm-6">
         <div class="feature-card">
           <span class="feature-icon">💊</span>
-          <h4>Trattamenti Sanitari</h4>
-          <p>Pianifica e monitora i trattamenti con calcolo automatico del periodo di sospensione.</p>
+          <h4>{% trans "Trattamenti Sanitari" %}</h4>
+          <p>{% trans "Pianifica e monitora i trattamenti con calcolo automatico del periodo di sospensione." %}</p>
         </div>
       </div>
       <div class="col-md-4 col-sm-6">
         <div class="feature-card">
           <span class="feature-icon">🌸</span>
-          <h4>Fioriture & Pascolo</h4>
-          <p>Mappa le fioriture locali e condividile con la community degli apicoltori.</p>
+          <h4>{% trans "Fioriture & Pascolo" %}</h4>
+          <p>{% trans "Mappa le fioriture locali e condividile con la community degli apicoltori." %}</p>
         </div>
       </div>
       <div class="col-md-4 col-sm-6">
         <div class="feature-card">
           <span class="feature-icon">👥</span>
-          <h4>Collaborazione</h4>
-          <p>Condividi apiari, gestisci quote e pagamenti con il tuo team in modo trasparente.</p>
+          <h4>{% trans "Collaborazione" %}</h4>
+          <p>{% trans "Condividi apiari, gestisci quote e pagamenti con il tuo team in modo trasparente." %}</p>
         </div>
       </div>
     </div>
@@ -291,25 +291,25 @@
       <div class="col-3">
         <div class="stat-block">
           <div class="val">{{ stats.arnie_count }}</div>
-          <div class="lbl">Arnie gestite</div>
+          <div class="lbl">{% trans "Arnie gestite" %}</div>
         </div>
       </div>
       <div class="col-3">
         <div class="stat-block">
           <div class="val">{{ stats.controlli_count }}</div>
-          <div class="lbl">Controlli questo mese</div>
+          <div class="lbl">{% trans "Controlli questo mese" %}</div>
         </div>
       </div>
       <div class="col-3">
         <div class="stat-block">
           <div class="val">{{ stats.fioriture_attive }}</div>
-          <div class="lbl">Fioriture attive</div>
+          <div class="lbl">{% trans "Fioriture attive" %}</div>
         </div>
       </div>
       <div class="col-3">
         <div class="stat-block">
           <div class="val">{{ stats.trattamenti_attivi }}</div>
-          <div class="lbl">Trattamenti attivi</div>
+          <div class="lbl">{% trans "Trattamenti attivi" %}</div>
         </div>
       </div>
     </div>
@@ -319,10 +319,10 @@
 
 <!-- CTA -->
 <section class="cta-section">
-  <h2>Pronto a gestire il tuo apiario?</h2>
-  <p>Unisciti agli apicoltori che usano Apiary per tenere tutto sotto controllo.</p>
+  <h2>{% trans "Pronto a gestire il tuo apiario?" %}</h2>
+  <p>{% trans "Unisciti agli apicoltori che usano Apiary per tenere tutto sotto controllo." %}</p>
   <a href="{% url 'register' %}" class="btn btn-primary btn-lg">
-    <i class="bi bi-person-plus me-2"></i> Crea il tuo account gratuito
+    <i class="bi bi-person-plus me-2"></i> {% trans "Crea il tuo account gratuito" %}
   </a>
 </section>
 
