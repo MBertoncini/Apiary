@@ -504,7 +504,7 @@ class ArniaViewSet(viewsets.ModelViewSet):
     serializer_class = ArniaSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrGroupRole]
     filter_backends = [filters.SearchFilter]
-    search_fields = ['numero', 'apiario__nome']
+    search_fields = ['numero', 'apiario__nome', 'nfc_id']
 
     def get_queryset(self):
         """
