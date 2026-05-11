@@ -413,8 +413,10 @@ class MelarioSerializer(serializers.ModelSerializer):
             'apiario_id', 'apiario_nome', 'apiario_gruppo_nome',
             'numero_telaini', 'posizione', 'data_posizionamento',
             'data_rimozione', 'stato', 'tipo_melario', 'stato_favi',
-            'escludi_regina', 'peso_stimato', 'note'
+            'escludi_regina', 'peso_stimato', 'note',
+            'numero_progressivo',
         ]
+        read_only_fields = ['numero_progressivo']
 
     def _colonia(self, obj):
         if obj.colonia_id:

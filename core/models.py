@@ -572,6 +572,13 @@ class Melario(models.Model):
     )
     numero_telaini = models.IntegerField(default=10, help_text="Numero di telaini nel melario")
     posizione = models.IntegerField(help_text="Posizione del melario (1 = più vicino al nido, ecc.)")
+    numero_progressivo = models.IntegerField(
+        null=True, blank=True, db_index=True,
+        help_text=(
+            "Numero progressivo per-utente (1..N nell'ordine di creazione). "
+            "Indipendente dal pk SQL globale. Auto-assegnato al create."
+        ),
+    )
     data_posizionamento = models.DateField()
     data_rimozione = models.DateField(null=True, blank=True)
     stato = models.CharField(max_length=20, choices=STATO_CHOICES, default='posizionato')
@@ -1587,6 +1594,32 @@ def _cattura_vecchio_stato_melario(sender, instance, **kwargs):
         instance._stato_prev = None
         return
     instance._stato_prev = prev
+
+
+@receiver(pre_save, sender=Melario)
+def _assegna_numero_progressivo_melario(sender, instance, **kwargs):
+    """Auto-assegna numero_progressivo per-utente al create.
+
+    Il proprietario è derivato dalla catena Melario -> Colonia -> Apiario.proprietario.
+    Se non determinabile (es. colonia mancante) si lascia NULL.
+    """
+    if not instance._state.adding or instance.numero_progressivo:
+        return
+    if not instance.colonia_id:
+        return
+    try:
+        proprietario_id = Colonia.objects.values_list(
+            'apiario__proprietario_id', flat=True
+        ).get(pk=instance.colonia_id)
+    except Colonia.DoesNotExist:
+        return
+    if not proprietario_id:
+        return
+    last = Melario.objects.filter(
+        colonia__apiario__proprietario_id=proprietario_id,
+        numero_progressivo__isnull=False,
+    ).aggregate(models.Max('numero_progressivo'))['numero_progressivo__max'] or 0
+    instance.numero_progressivo = last + 1
 
 
 @receiver(post_save, sender=Melario)
