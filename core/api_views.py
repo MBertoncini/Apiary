@@ -1095,11 +1095,23 @@ class MelarioViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         apiari_accessibili = get_apiari_accessibili(self.request.user)
-        return Melario.objects.filter(
+        qs = Melario.objects.filter(
             colonia__apiario__in=apiari_accessibili
         ).select_related(
             'colonia', 'colonia__arnia', 'colonia__apiario', 'colonia__apiario__gruppo'
         ).distinct()
+        # Filtro opzionale ?ids=1,2,3 per re-fetch puntuale di un sottoinsieme
+        # (es. client dopo DELETE di una smielatura, per leggere lo stato vero
+        # dei melari ripristinati dal signal pre_delete invece di assumerlo).
+        ids_param = self.request.query_params.get('ids')
+        if ids_param:
+            try:
+                ids = [int(x) for x in ids_param.split(',') if x.strip()]
+            except ValueError:
+                ids = []
+            if ids:
+                qs = qs.filter(pk__in=ids)
+        return qs
 
 class SmielaturaViewSet(viewsets.ModelViewSet):
     """
