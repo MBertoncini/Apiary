@@ -1,0 +1,199 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block content %}
+{% if app_stats %}
+<style>
+  .stats-wrap { margin-bottom: 28px; }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--body-bg, #fff);
+    border: 1px solid var(--border-color, #e5e5e5);
+    border-radius: 6px;
+    padding: 12px 14px;
+  }
+  .stat-card .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--body-quiet-color, #666);
+    margin-bottom: 4px;
+  }
+  .stat-card .value {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+  .stat-card .delta {
+    font-size: 12px;
+    color: var(--link-fg, #447e9b);
+    margin-top: 2px;
+  }
+  .stats-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--body-quiet-color, #666);
+    margin: 18px 0 10px;
+  }
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .stats-row { grid-template-columns: 1fr; } }
+  .stats-chart, .stats-top {
+    background: var(--body-bg, #fff);
+    border: 1px solid var(--border-color, #e5e5e5);
+    border-radius: 6px;
+    padding: 14px;
+  }
+  .stats-top table { width: 100%; border-collapse: collapse; }
+  .stats-top th, .stats-top td {
+    text-align: left; padding: 6px 4px; font-size: 13px;
+    border-bottom: 1px solid var(--border-color, #eee);
+  }
+  .stats-top th { color: var(--body-quiet-color, #666); font-weight: 600; }
+  .stats-top td.num { text-align: right; font-variant-numeric: tabular-nums; }
+</style>
+
+<div class="stats-wrap module">
+  <h2>Statistiche</h2>
+
+  <div class="stats-section-title">Utenti</div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="label">Totali</div>
+      <div class="value">{{ app_stats.users.total }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Nuovi 7gg</div>
+      <div class="value">{{ app_stats.users.new_7d }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Nuovi 30gg</div>
+      <div class="value">{{ app_stats.users.new_30d }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Attivi 7gg</div>
+      <div class="value">{{ app_stats.users.active_7d }}</div>
+      <div class="delta">su {{ app_stats.users.total }} totali</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Mai attivi</div>
+      <div class="value">{{ app_stats.users.never_active }}</div>
+      <div class="delta">last_login NULL</div>
+    </div>
+  </div>
+
+  <div class="stats-section-title">Dominio</div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="label">Apiari</div>
+      <div class="value">{{ app_stats.domain.apiari }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Arnie</div>
+      <div class="value">{{ app_stats.domain.arnie }}</div>
+      <div class="delta">{{ app_stats.domain.arnie_attive }} attive</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Colonie attive</div>
+      <div class="value">{{ app_stats.domain.colonie_attive }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Controlli</div>
+      <div class="value">{{ app_stats.domain.controlli_total }}</div>
+      <div class="delta">+{{ app_stats.domain.controlli_7d }} ultimi 7gg</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Analisi telaini</div>
+      <div class="value">{{ app_stats.domain.analisi_total }}</div>
+      <div class="delta">+{{ app_stats.domain.analisi_7d }} ultimi 7gg</div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stats-chart">
+      <div class="stats-section-title" style="margin-top:0">Crescita ultimi 30gg</div>
+      <canvas id="growthChart" height="120"></canvas>
+    </div>
+    <div class="stats-top">
+      <div class="stats-section-title" style="margin-top:0">Top utenti per arnie</div>
+      <table>
+        <thead><tr><th>Utente</th><th class="num">Arnie</th></tr></thead>
+        <tbody>
+        {% for row in app_stats.top_arnie %}
+          <tr><td>{{ row.username }}</td><td class="num">{{ row.n_arnie }}</td></tr>
+        {% empty %}
+          <tr><td colspan="2" style="color:#999">Nessun dato</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="stats-section-title">Top utenti per controlli (ultimi 30gg)</div>
+      <table>
+        <thead><tr><th>Utente</th><th class="num">Controlli</th></tr></thead>
+        <tbody>
+        {% for row in app_stats.top_controlli %}
+          <tr><td>{{ row.username }}</td><td class="num">{{ row.n_controlli }}</td></tr>
+        {% empty %}
+          <tr><td colspan="2" style="color:#999">Nessun dato</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{{ app_stats.growth.labels|json_script:"growth-labels" }}
+{{ app_stats.growth.users|json_script:"growth-users" }}
+{{ app_stats.growth.controlli|json_script:"growth-controlli" }}
+<script>
+  (function () {
+    var labels = JSON.parse(document.getElementById('growth-labels').textContent);
+    var users = JSON.parse(document.getElementById('growth-users').textContent);
+    var controlli = JSON.parse(document.getElementById('growth-controlli').textContent);
+    var ctx = document.getElementById('growthChart');
+    if (!ctx || typeof Chart === 'undefined') return;
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Nuovi utenti',
+            data: users,
+            borderColor: '#447e9b',
+            backgroundColor: 'rgba(68,126,155,0.15)',
+            tension: 0.25,
+            yAxisID: 'y',
+          },
+          {
+            label: 'Nuovi controlli',
+            data: controlli,
+            borderColor: '#e6a817',
+            backgroundColor: 'rgba(230,168,23,0.15)',
+            tension: 0.25,
+            yAxisID: 'y1',
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          y:  { beginAtZero: true, position: 'left',  title: { display: true, text: 'Utenti' } },
+          y1: { beginAtZero: true, position: 'right', title: { display: true, text: 'Controlli' }, grid: { drawOnChartArea: false } },
+        },
+      },
+    });
+  })();
+</script>
+{% endif %}
+
+{{ block.super }}
+{% endblock %}

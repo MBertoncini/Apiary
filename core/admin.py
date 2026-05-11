@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin
+from .admin_stats import build_admin_stats
 from .models import (
     Apiario, Arnia, Colonia, ControlloArnia, Regina, StoriaRegine,
     Fioritura, FiorituraConferma,
@@ -10,6 +13,39 @@ from .models import (
     AnalisiTelaino, Nucleo, ControlloNucleo,
     Profilo, AI_TIER_LIMITS, ActivationCode,
 )
+
+
+# ── Admin index esteso con statistiche ───────────────────────────────────────
+_original_admin_index = admin.site.__class__.index
+
+
+def _admin_index_with_stats(self, request, extra_context=None):
+    extra_context = dict(extra_context or {})
+    try:
+        extra_context['app_stats'] = build_admin_stats()
+    except Exception:
+        extra_context['app_stats'] = None
+    return _original_admin_index(self, request, extra_context=extra_context)
+
+
+admin.site.__class__.index = _admin_index_with_stats
+admin.site.index_template = 'admin/custom_index.html'
+
+
+# ── User admin con last_login visibile in changelist ─────────────────────────
+User = get_user_model()
+try:
+    admin.site.unregister(User)
+except admin.sites.NotRegistered:
+    pass
+
+
+@admin.register(User)
+class UserAdminWithActivity(UserAdmin):
+    list_display = ('username', 'email', 'first_name', 'last_name',
+                    'is_staff', 'date_joined', 'last_login')
+    list_filter = UserAdmin.list_filter + ('date_joined', 'last_login')
+    ordering = ('-last_login',)
 
 
 @admin.register(Profilo)

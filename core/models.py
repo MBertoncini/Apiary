@@ -591,11 +591,82 @@ class Melario(models.Model):
         verbose_name_plural = "Melari"
         ordering = ['colonia', 'posizione']
 
+
+class StoricoPosizioneMelario(models.Model):
+    """Storico delle posizioni occupate da un Melario nel tempo.
+
+    Ogni riga rappresenta un intervallo [data_inizio, data_fine] in cui il
+    melario era posizionato in una specifica (colonia, posizione) con uno
+    specifico stato. La riga "attiva" ha data_fine=None.
+    """
+    MOTIVO_CHOICES = [
+        ('posizionamento', 'Posizionamento iniziale'),
+        ('riposizionamento', 'Riposizionamento'),
+        ('shift_posizione', 'Spostamento di posizione'),
+        ('cambio_colonia', 'Spostato su altra colonia'),
+        ('cambio_stato', 'Cambio stato'),
+        ('rimosso', 'Rimosso dalla colonia'),
+        ('smielatura', 'Linkato a smielatura'),
+        ('ripristino_smielatura', 'Ripristino da smielatura'),
+        ('seed_legacy', 'Inizializzazione dato preesistente'),
+    ]
+    melario = models.ForeignKey(
+        Melario, on_delete=models.CASCADE, related_name='storico_posizioni'
+    )
+    colonia = models.ForeignKey(
+        Colonia, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='storico_melari',
+        help_text="Colonia su cui il melario era posizionato in questo intervallo (NULL se non posizionato)"
+    )
+    posizione = models.IntegerField(
+        null=True, blank=True,
+        help_text="Posizione occupata (NULL se non posizionato)"
+    )
+    stato = models.CharField(
+        max_length=20, choices=Melario.STATO_CHOICES,
+        help_text="Stato del melario in questo intervallo"
+    )
+    data_inizio = models.DateField()
+    data_fine = models.DateField(
+        null=True, blank=True,
+        help_text="NULL se il periodo è quello corrente"
+    )
+    motivo = models.CharField(
+        max_length=30, choices=MOTIVO_CHOICES, blank=True,
+        help_text="Evento che ha aperto questa riga"
+    )
+    note = models.CharField(max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Storico posizione melario"
+        verbose_name_plural = "Storico posizioni melari"
+        ordering = ['melario_id', '-data_inizio', '-id']
+        indexes = [
+            models.Index(fields=['melario', 'data_fine']),
+            models.Index(fields=['colonia', 'posizione', 'data_fine']),
+        ]
+
+    def __str__(self):
+        if self.colonia_id and self.posizione is not None:
+            return (
+                f"Melario {self.melario_id} – Colonia {self.colonia_id} "
+                f"pos {self.posizione} "
+                f"({self.data_inizio} → {self.data_fine or 'oggi'})"
+            )
+        return (
+            f"Melario {self.melario_id} – {self.stato} "
+            f"({self.data_inizio} → {self.data_fine or 'oggi'})"
+        )
+
+
 class Smielatura(models.Model):
     """Modello per gestire le operazioni di smielatura"""
     data = models.DateField()
     apiario = models.ForeignKey(Apiario, on_delete=models.CASCADE, related_name='smielature')
-    melari = models.ManyToManyField(Melario, related_name='smielature')
+    melari = models.ManyToManyField(
+        Melario, through='SmielaturaMelario', related_name='smielature'
+    )
     quantita_miele = models.DecimalField(max_digits=7, decimal_places=2, help_text="Quantità di miele in kg")
     tipo_miele = models.CharField(max_length=100, help_text="Tipo di miele/origine botanica principale")
     utente = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -635,6 +706,34 @@ class Smielatura(models.Model):
         verbose_name = "Smielatura"
         verbose_name_plural = "Smielature"
         ordering = ['-data']
+
+
+class SmielaturaMelario(models.Model):
+    """Through table per Smielatura.melari con snapshot dello stato originale.
+
+    `stato_origine` cattura lo stato che il Melario aveva PRIMA del link alla
+    smielatura, in modo da poterlo ripristinare quando il melario viene
+    scollegato (edit della smielatura) o la smielatura viene cancellata.
+
+    Riusa la tabella `core_smielatura_melari` già esistente (in passato
+    auto-generata dal M2M senza through). La migrazione aggiunge solo le
+    colonne extra e popola `stato_origine` con un default conservativo.
+    """
+    smielatura = models.ForeignKey(Smielatura, on_delete=models.CASCADE)
+    melario = models.ForeignKey(Melario, on_delete=models.CASCADE)
+    stato_origine = models.CharField(
+        max_length=20, choices=Melario.STATO_CHOICES,
+        blank=True, default='',
+        help_text="Stato che il melario aveva prima del link; usato per il ripristino"
+    )
+    data_link = models.DateTimeField(null=True, blank=True, auto_now_add=True)
+
+    class Meta:
+        db_table = 'core_smielatura_melari'
+        unique_together = ('smielatura', 'melario')
+        verbose_name = 'Link Smielatura-Melario'
+        verbose_name_plural = 'Link Smielatura-Melario'
+
 
 STATO_VASETTI_CHOICES = [
     ('disponibile', 'Disponibile'),
@@ -1160,7 +1259,9 @@ class TrattamentoSanitario(models.Model):
 from django.db import models
 from django.contrib.auth.models import User
 from django.dispatch import receiver
-from django.db.models.signals import post_save, m2m_changed
+from django.db.models.signals import (
+    pre_save, post_save, pre_delete, m2m_changed,
+)
 from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -1355,22 +1456,205 @@ def aggiorna_kg_trasferiti_smielatura(sender, instance, created, **kwargs):
     )
 
 
+def _registra_transizione_storico(melario_id, colonia_id, posizione, stato, motivo):
+    """Chiude la riga di storico attualmente aperta e ne crea una nuova.
+
+    Usato dai signal/azioni che fanno UPDATE bulk dello stato del Melario
+    (i quali bypassano `pre_save`/`post_save` su Melario).
+    """
+    oggi = timezone.now().date()
+    StoricoPosizioneMelario.objects.filter(
+        melario_id=melario_id, data_fine__isnull=True
+    ).update(data_fine=oggi)
+    StoricoPosizioneMelario.objects.create(
+        melario_id=melario_id,
+        colonia_id=colonia_id,
+        posizione=posizione,
+        stato=stato,
+        data_inizio=oggi,
+        data_fine=None,
+        motivo=motivo,
+    )
+
+
+@receiver(pre_save, sender=SmielaturaMelario)
+def _snapshot_stato_origine_su_link_smielatura(sender, instance, **kwargs):
+    """Popola `stato_origine` quando si crea una riga della through via `.save()`.
+
+    NOTA: `s.melari.add(...)` di Django bypassa questo signal (usa bulk_create
+    sul through manager). Quel caso è gestito dal signal m2m_changed `post_add`
+    qui sotto, che fa un UPDATE esplicito dopo la creazione. Questo signal
+    serve solo come fallback per crei la through tramite ORM diretto.
+    """
+    if not instance._state.adding or instance.stato_origine:
+        return
+    try:
+        instance.stato_origine = Melario.objects.values_list(
+            'stato', flat=True
+        ).get(pk=instance.melario_id)
+    except Melario.DoesNotExist:
+        instance.stato_origine = ''
+
+
+def _ripristina_stato_origine(rows, motivo='ripristino_smielatura'):
+    """Ripristina i melari allo stato_origine salvato e registra lo storico."""
+    for row in rows:
+        if not row.stato_origine:
+            continue
+        m = Melario.objects.filter(pk=row.melario_id).values(
+            'colonia_id', 'posizione'
+        ).first()
+        if m is None:
+            continue
+        Melario.objects.filter(pk=row.melario_id).update(stato=row.stato_origine)
+        _registra_transizione_storico(
+            row.melario_id, m['colonia_id'], m['posizione'],
+            row.stato_origine, motivo,
+        )
+
+
 @receiver(m2m_changed, sender=Smielatura.melari.through)
 def aggiorna_stato_melari_smielatura(sender, instance, action, pk_set, **kwargs):
-    """Aggiorna lo stato dei melari quando vengono linkati/scollegati da una smielatura.
+    """Gestisce lo stato dei melari sui cambi della M2M Smielatura.melari.
 
-    Sostituisce la logica nell'override Smielatura.save(), che non funzionava via
-    DRF: serializer.create() popola la M2M dopo Model.save(), quindi self.melari.all()
-    era sempre vuoto al momento dell'iterazione.
+    Sostituisce la vecchia logica che forzava sempre 'rimosso' su unlink/clear:
+    ora il vero stato originale viene ripristinato leggendolo dalla through
+    table `SmielaturaMelario.stato_origine`.
+
+    Nota: con through custom Django NON fa fire `pre_clear` al `Smielatura.delete()`:
+    quel caso è coperto dal signal `pre_delete` su Smielatura più sotto.
     """
     if action == 'post_add' and pk_set:
+        # 1) Le righe della through sono state appena INSERT-ate con il default
+        #    DB di stato_origine='rimosso' (Django bypassa pre_save sul through).
+        #    Catturo lo stato CORRENTE del Melario (ancora pre-link) e lo
+        #    scrivo in stato_origine.
+        melari = list(Melario.objects.filter(pk__in=pk_set).values(
+            'pk', 'stato', 'colonia_id', 'posizione'
+        ))
+        for m in melari:
+            SmielaturaMelario.objects.filter(
+                smielatura=instance, melario_id=m['pk']
+            ).update(stato_origine=m['stato'])
+        # 2) Forza i melari a 'smielato' e logga la transizione storica.
         Melario.objects.filter(pk__in=pk_set).update(stato='smielato')
-    elif action == 'post_remove' and pk_set:
-        # Edit di una smielatura: melari rimossi tornano disponibili (rimosso).
-        Melario.objects.filter(pk__in=pk_set).update(stato='rimosso')
+        for m in melari:
+            if m['stato'] != 'smielato':
+                _registra_transizione_storico(
+                    m['pk'], m['colonia_id'], m['posizione'],
+                    'smielato', 'smielatura',
+                )
+    elif action == 'pre_remove' and pk_set:
+        rows = SmielaturaMelario.objects.filter(
+            smielatura=instance, melario__in=pk_set
+        )
+        _ripristina_stato_origine(rows)
     elif action == 'pre_clear':
-        # Cancellazione smielatura o set([]) : melari linkati tornano rimossi.
-        instance.melari.all().update(stato='rimosso')
+        rows = SmielaturaMelario.objects.filter(smielatura=instance)
+        _ripristina_stato_origine(rows)
+
+
+@receiver(pre_delete, sender=Smielatura)
+def _ripristina_melari_su_delete_smielatura(sender, instance, **kwargs):
+    """Al delete della Smielatura, ripristina lo stato_origine dei melari linkati.
+
+    Con through= esplicita Django NON triggera m2m_changed pre_clear quando si
+    elimina l'oggetto: le righe della through vengono rimosse via CASCADE
+    senza passare dal descriptor M2M. Si gestisce qui.
+    """
+    rows = SmielaturaMelario.objects.filter(smielatura=instance)
+    _ripristina_stato_origine(rows)
+
+
+# ── Storico posizioni melario ───────────────────────────────────────────────
+
+def _melario_posizione_attiva(melario_id):
+    """Riga di storico attualmente aperta per il melario, se esiste."""
+    return StoricoPosizioneMelario.objects.filter(
+        melario_id=melario_id, data_fine__isnull=True
+    ).order_by('-data_inizio', '-id').first()
+
+
+@receiver(pre_save, sender=Melario)
+def _cattura_vecchio_stato_melario(sender, instance, **kwargs):
+    """Cattura colonia/posizione/stato precedenti per confronto in post_save."""
+    if instance._state.adding or not instance.pk:
+        instance._stato_prev = None
+        return
+    try:
+        prev = Melario.objects.values('colonia_id', 'posizione', 'stato').get(pk=instance.pk)
+    except Melario.DoesNotExist:
+        instance._stato_prev = None
+        return
+    instance._stato_prev = prev
+
+
+@receiver(post_save, sender=Melario)
+def _aggiorna_storico_posizione_melario(sender, instance, created, **kwargs):
+    """Mantiene lo storico delle posizioni del Melario.
+
+    Apre una nuova riga ad ogni transizione di (colonia, posizione, stato),
+    chiudendo la riga aperta corrente con `data_fine = oggi`.
+    """
+    oggi = timezone.now().date()
+    if created:
+        StoricoPosizioneMelario.objects.create(
+            melario=instance,
+            colonia=instance.colonia,
+            posizione=instance.posizione,
+            stato=instance.stato,
+            data_inizio=oggi,
+            data_fine=None,
+            motivo='posizionamento',
+        )
+        return
+
+    prev = getattr(instance, '_stato_prev', None)
+    if prev is None:
+        return
+    cambia_colonia = prev['colonia_id'] != instance.colonia_id
+    cambia_posizione = prev['posizione'] != instance.posizione
+    cambia_stato = prev['stato'] != instance.stato
+    if not (cambia_colonia or cambia_posizione or cambia_stato):
+        return
+
+    if cambia_colonia:
+        motivo = 'cambio_colonia'
+    elif cambia_stato and not cambia_posizione:
+        motivo = 'cambio_stato'
+    elif cambia_posizione and not cambia_stato:
+        motivo = 'shift_posizione'
+    else:
+        motivo = 'riposizionamento'
+
+    attiva = _melario_posizione_attiva(instance.pk)
+    if attiva is not None:
+        # Chiudi la riga corrente. data_fine = oggi (anche se data_inizio == oggi
+        # va bene: l'intervallo è zero-day ma documenta la transizione).
+        StoricoPosizioneMelario.objects.filter(pk=attiva.pk).update(data_fine=oggi)
+
+    StoricoPosizioneMelario.objects.create(
+        melario=instance,
+        colonia=instance.colonia,
+        posizione=instance.posizione,
+        stato=instance.stato,
+        data_inizio=oggi,
+        data_fine=None,
+        motivo=motivo,
+    )
+
+
+@receiver(pre_delete, sender=Melario)
+def _chiudi_storico_su_delete_melario(sender, instance, **kwargs):
+    """Quando un Melario viene cancellato, chiudi la sua riga di storico aperta.
+
+    Le righe storiche restano per audit ma non saranno più "attive". La
+    CASCADE dell'FK le elimina comunque a valle: questo è solo nel caso
+    in cui in futuro si passi a SET_NULL o si voglia conservare l'audit.
+    """
+    StoricoPosizioneMelario.objects.filter(
+        melario=instance, data_fine__isnull=True
+    ).update(data_fine=timezone.now().date())
 
 
 class DatiMeteo(models.Model):
