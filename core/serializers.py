@@ -1,4 +1,9 @@
+import hashlib
+import hmac
+import math
+
 from rest_framework import serializers
+from django.conf import settings
 from django.contrib.auth.models import User
 from .models import (
     Apiario, Arnia, Colonia, Nucleo, ControlloNucleo, ControlloArnia,
@@ -79,6 +84,86 @@ class ApiarioSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['proprietario'] = self.context['request'].user
         return super().create(validated_data)
+
+
+# Offuscamento server-side della posizione degli apiari "pubblici" mostrati
+# sulla mappa community (anti-furto / anti-doxxing).
+#
+# - Seed = HMAC-SHA256(SECRET_KEY, "apiario-community-fuzz:<id>"). Senza
+#   conoscere SECRET_KEY l'offset non è invertibile dall'id pubblico.
+# - Offset uniforme nel quadrato [-_FUZZ_MAX_DEG, +_FUZZ_MAX_DEG] applicato a
+#   lat e lon. A 45°N ≈ ±330 m in latitudine, ±230 m in longitudine; distanza
+#   massima dalla posizione vera ≈ 400 m.
+# - Coordinate troncate a 3 decimali (~110 m), così neppure intercettando la
+#   risposta si ricava precisione sub-isolato.
+_FUZZ_MAX_DEG = 0.003
+_FUZZ_SALT = b'apiario-community-fuzz'
+
+
+def _community_fuzz_offsets(apiario_id: int) -> tuple[float, float]:
+    msg = _FUZZ_SALT + b':' + str(apiario_id).encode('ascii')
+    digest = hmac.new(
+        settings.SECRET_KEY.encode('utf-8'), msg, hashlib.sha256
+    ).digest()
+    # Prendo due int 32 bit indipendenti dai primi 8 byte del digest.
+    r1 = int.from_bytes(digest[0:4], 'big') / 0xFFFFFFFF  # [0, 1]
+    r2 = int.from_bytes(digest[4:8], 'big') / 0xFFFFFFFF
+    lat_off = (r1 - 0.5) * 2.0 * _FUZZ_MAX_DEG
+    lon_off = (r2 - 0.5) * 2.0 * _FUZZ_MAX_DEG
+    return lat_off, lon_off
+
+
+class ApiarioCommunitySerializer(serializers.ModelSerializer):
+    """Versione "privacy-safe" di ApiarioSerializer per la mappa community.
+
+    Espone il minimo necessario al rendering del marker e applica fuzzing
+    server-side delle coordinate. NON include `posizione` (indirizzo
+    testuale), `note`, `gruppo`, `visibilita_mappa` né l'id del proprietario.
+    """
+
+    proprietario_username = serializers.ReadOnlyField(source='proprietario.username')
+    proprietario_immagine_profilo = serializers.SerializerMethodField()
+    latitudine = serializers.SerializerMethodField()
+    longitudine = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Apiario
+        fields = [
+            'id', 'nome', 'latitudine', 'longitudine',
+            'proprietario_username', 'proprietario_immagine_profilo',
+        ]
+
+    def _fuzzed(self, obj):
+        if obj.latitudine is None or obj.longitudine is None:
+            return None, None
+        lat_off, lon_off = _community_fuzz_offsets(obj.id)
+        lat = float(obj.latitudine) + lat_off
+        lon = float(obj.longitudine) + lon_off
+        # Troncamento (non round) a 3 decimali per non rivelare la precisione
+        # originale del valore: ~110 m di risoluzione finale.
+        lat = math.trunc(lat * 1000) / 1000.0
+        lon = math.trunc(lon * 1000) / 1000.0
+        return lat, lon
+
+    def get_latitudine(self, obj):
+        return self._fuzzed(obj)[0]
+
+    def get_longitudine(self, obj):
+        return self._fuzzed(obj)[1]
+
+    def get_proprietario_immagine_profilo(self, obj):
+        try:
+            immagine = obj.proprietario.profilo.immagine
+            if not immagine:
+                return None
+            request = self.context.get('request')
+            url = immagine.url
+            if request:
+                return request.build_absolute_uri(url)
+            return url
+        except Exception:
+            return None
+
 
 # Serializzatore Arnia
 class ArniaSerializer(serializers.ModelSerializer):

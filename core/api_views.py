@@ -30,7 +30,7 @@ from .models import (
 )
 
 from .serializers import (
-    ApiarioSerializer, ArniaSerializer,
+    ApiarioSerializer, ApiarioCommunitySerializer, ArniaSerializer,
     ColoniaListSerializer, ColoniaDetailSerializer,
     ColoniaChiudiSerializer, ColoniaSpostaSerializer,
     ControlloArniaDetailSerializer, ControlloArniaListSerializer,
@@ -357,6 +357,9 @@ class ApiarioViewSet(viewsets.ModelViewSet):
         Restituisce gli apiari pubblici (visibilita_mappa='pubblico') di altri utenti,
         con coordinate valide, per la visualizzazione sulla mappa community.
         Esclude gli apiari già accessibili all'utente (propri o di gruppo).
+
+        Le coordinate sono offuscate server-side (vedi ApiarioCommunitySerializer):
+        l'endpoint NON espone mai la posizione precisa degli apiari di terzi.
         """
         accessibili_ids = get_apiari_accessibili(request.user).values_list('id', flat=True)
         apiari = Apiario.objects.filter(
@@ -364,7 +367,9 @@ class ApiarioViewSet(viewsets.ModelViewSet):
             latitudine__isnull=False,
             longitudine__isnull=False,
         ).exclude(id__in=accessibili_ids)
-        serializer = self.get_serializer(apiari, many=True)
+        serializer = ApiarioCommunitySerializer(
+            apiari, many=True, context={'request': request}
+        )
         return Response(serializer.data)
 
 
@@ -1075,6 +1080,123 @@ class TrattamentoSanitarioViewSet(viewsets.ModelViewSet):
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def split(self, request, pk=None):
+        """
+        Rimuove un sottoinsieme di arnie dal trattamento in corso e crea un nuovo
+        record 'completato' per quelle arnie con data_fine = data_rimozione.
+
+        Payload: { "arnie": [int, ...], "data_rimozione": "YYYY-MM-DD" }
+
+        Caso d'uso: l'apicoltore mette strisce a N arnie e ne toglie a un sottoinsieme
+        prima delle altre. Lo split lascia il trattamento attivo per le arnie residue.
+
+        Se le arnie rimosse coincidono con tutte le arnie del trattamento, il record
+        originale viene completato anziché creare uno split.
+
+        Response: { "original": <trattamento>, "split_off": <trattamento|null> }
+        """
+        from django.db import transaction
+
+        trattamento = self.get_object()
+
+        if trattamento.stato not in ('programmato', 'in_corso'):
+            return Response(
+                {'detail': "Lo split è consentito solo su trattamenti programmati o in corso."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        arnie_ids = request.data.get('arnie')
+        data_rimozione_str = request.data.get('data_rimozione')
+
+        if not isinstance(arnie_ids, list) or not arnie_ids:
+            return Response(
+                {'detail': "Campo 'arnie' richiesto: lista non vuota di id arnia."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            arnie_ids = [int(a) for a in arnie_ids]
+        except (TypeError, ValueError):
+            return Response({'detail': "'arnie' deve contenere id interi."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not data_rimozione_str:
+            return Response({'detail': "Campo 'data_rimozione' richiesto."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            data_rimozione = datetime.strptime(data_rimozione_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response(
+                {'detail': "Formato 'data_rimozione' non valido (atteso YYYY-MM-DD)."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if data_rimozione < trattamento.data_inizio:
+            return Response(
+                {'detail': "La data di rimozione non può precedere la data di inizio del trattamento."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        arnie_correnti = set(trattamento.arnie.values_list('id', flat=True))
+        if not arnie_correnti:
+            return Response(
+                {'detail': "Il trattamento non ha una lista esplicita di arnie. Modificalo prima dello split."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        arnie_da_rimuovere = set(arnie_ids)
+        non_appartenenti = arnie_da_rimuovere - arnie_correnti
+        if non_appartenenti:
+            return Response(
+                {'detail': f"Arnie non appartenenti al trattamento: {sorted(non_appartenenti)}."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            # Caso 1: rimuovo TUTTE le arnie → completo l'originale senza creare split.
+            if arnie_da_rimuovere == arnie_correnti:
+                trattamento.stato = 'completato'
+                trattamento.data_fine = data_rimozione
+                trattamento.save()
+                original_data = self.get_serializer(trattamento).data
+                return Response({'original': original_data, 'split_off': None}, status=status.HTTP_200_OK)
+
+            # Caso 2: split parziale → crea record figlio completato.
+            split_off = TrattamentoSanitario.objects.create(
+                apiario=trattamento.apiario,
+                tipo_trattamento=trattamento.tipo_trattamento,
+                utente=trattamento.utente,
+                data_inizio=trattamento.data_inizio,
+                data_fine=data_rimozione,
+                stato='completato',
+                metodo_applicazione=trattamento.metodo_applicazione,
+                note=trattamento.note,
+                blocco_covata_attivo=trattamento.blocco_covata_attivo,
+                data_inizio_blocco=trattamento.data_inizio_blocco,
+                data_fine_blocco=trattamento.data_fine_blocco,
+                metodo_blocco=trattamento.metodo_blocco,
+                note_blocco=trattamento.note_blocco,
+            )
+            split_off.arnie.set(arnie_da_rimuovere)
+            # Mirror sulle colonie: se le arnie rimosse hanno colonie associate nel trattamento,
+            # spostiamo anche quelle sul record figlio.
+            colonie_da_spostare = list(
+                trattamento.colonie.filter(arnia_id__in=arnie_da_rimuovere)
+                .values_list('id', flat=True)
+            ) if hasattr(trattamento, 'colonie') else []
+            if colonie_da_spostare:
+                split_off.colonie.set(colonie_da_spostare)
+                trattamento.colonie.remove(*colonie_da_spostare)
+
+            # Rimuovi le arnie dal record originale (resta in_corso/programmato).
+            trattamento.arnie.remove(*arnie_da_rimuovere)
+            trattamento.save()  # triggera ricalcolo data_fine_sospensione se necessario
+
+        original_data = self.get_serializer(trattamento).data
+        split_off_data = self.get_serializer(split_off).data
+        return Response(
+            {'original': original_data, 'split_off': split_off_data},
+            status=status.HTTP_201_CREATED,
+        )
 
 class TipoTrattamentoViewSet(viewsets.ModelViewSet):
     """
