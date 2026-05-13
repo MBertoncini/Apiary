@@ -117,6 +117,12 @@
                           <button type="button" class="frame-tool" data-tool="nutritore" title="Nutritore  [N]">
                             <span class="frame-tool-dot" style="background:linear-gradient(135deg,#a1887f,#e8d4b9)"></span>Nutritore
                           </button>
+                          <button type="button" class="frame-tool" data-tool="trappola_varroa" title="Telaino trappola varroa (3 scomparti)  [T]">
+                            <span class="frame-tool-dot" style="background:repeating-linear-gradient(180deg,#6D4C41 0 6px,#3E2723 6px 8px)"></span>Trappola Varroa
+                          </button>
+                          <button type="button" class="frame-tool" data-tool="gabbia_regina" title="Telaino gabbia regina (blocco covata)  [G]">
+                            <span class="frame-tool-dot" style="background:linear-gradient(135deg,#7E57C2,#B39DDB)"></span>Gabbia Regina
+                          </button>
                           <button type="button" class="frame-tool" data-tool="vuoto"     title="Vuoto  [V]">
                             <span class="frame-tool-dot" style="background:#f5f5f5;border:1.5px solid #ccc;"></span>Vuoto
                           </button>
@@ -169,6 +175,20 @@
                               <span class="fc-dot" style="background:#a1887f"></span>
                               <span class="fc-label">Nutritori</span>
                               <span class="fc-val" id="cnt-nutritore">0</span>
+                            </div>
+                          </div>
+                          <div class="col-6 col-sm">
+                            <div class="frame-counter-card" style="border-color:#6D4C41">
+                              <span class="fc-dot" style="background:#6D4C41"></span>
+                              <span class="fc-label">Trapp. Varroa</span>
+                              <span class="fc-val" id="cnt-trappola_varroa">0</span>
+                            </div>
+                          </div>
+                          <div class="col-6 col-sm">
+                            <div class="frame-counter-card" style="border-color:#7E57C2">
+                              <span class="fc-dot" style="background:#7E57C2"></span>
+                              <span class="fc-label">Gabbia Regina</span>
+                              <span class="fc-val" id="cnt-gabbia_regina">0</span>
                             </div>
                           </div>
                         </div>
@@ -382,6 +402,22 @@
 .hive-frame[data-type="diaframma"] .frame-body { background: linear-gradient(180deg,#546e7a,#263238); border-color: #263238; }
 .hive-frame[data-type="nutritore"] .frame-body { background: linear-gradient(180deg,#e8d4b9,#a1887f); border-color: #a1887f; }
 .hive-frame[data-type="foglio_cereo"] .frame-body { background: linear-gradient(180deg,#e8f5d0,#c5e0a0); border-color: #8fbc5a; }
+.hive-frame[data-type="trappola_varroa"] .frame-body {
+  background: repeating-linear-gradient(180deg,#6D4C41 0 28%,#3E2723 28% 33%,#6D4C41 33% 61%,#3E2723 61% 66%,#6D4C41 66% 100%);
+  border-color: #3E2723;
+}
+.hive-frame[data-type="gabbia_regina"] .frame-body {
+  background: linear-gradient(180deg,#B39DDB,#7E57C2 35%,#5E35B1 60%,#7E57C2);
+  border-color: #4527A0;
+}
+.hive-frame[data-type="gabbia_regina"] .frame-body::after {
+  content: '';
+  position: absolute;
+  top: 40%; left: 25%; right: 25%; height: 30%;
+  border: 1.5px solid rgba(255,255,255,.7);
+  border-radius: 2px;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(255,255,255,.55) 3px 4px);
+}
 .hive-frame[data-type="vuoto"]     .frame-body {
   background: repeating-linear-gradient(45deg, #f5f5f5, #f5f5f5 3px, #e0e0e0 3px, #e0e0e0 6px);
   border: 1.5px dashed #bbb;
@@ -430,19 +466,21 @@ document.addEventListener('DOMContentLoaded', function () {
   const MIN_FRAMES = 5, MAX_FRAMES = 20, DEFAULT_FRAMES = 10;
 
   // Ordina telaini secondo la regola canonica:
-  // scorte(sx) | covata(sx) | foglio_cereo(centro) | covata(dx) | scorte(dx) | nutritore | diaframma | vuoto
+  // scorte(sx) | covata(sx) | foglio_cereo | trappola_varroa | gabbia_regina | covata(dx) | scorte(dx) | nutritore | diaframma | vuoto
   function sortTelaini(frames) {
-    const vuoti      = frames.filter(f => f === 'vuoto');
-    const diaframmi  = frames.filter(f => f === 'diaframma');
-    const fogliCerei = frames.filter(f => f === 'foglio_cereo');
-    const covata     = frames.filter(f => f === 'covata' || f === 'misto');
-    const scorte     = frames.filter(f => f === 'scorte');
-    const nutritori  = frames.filter(f => f === 'nutritore');
+    const vuoti          = frames.filter(f => f === 'vuoto');
+    const diaframmi      = frames.filter(f => f === 'diaframma');
+    const fogliCerei     = frames.filter(f => f === 'foglio_cereo');
+    const trappVarroa    = frames.filter(f => f === 'trappola_varroa');
+    const gabbieRegina   = frames.filter(f => f === 'gabbia_regina');
+    const covata         = frames.filter(f => f === 'covata' || f === 'misto');
+    const scorte         = frames.filter(f => f === 'scorte');
+    const nutritori      = frames.filter(f => f === 'nutritore');
     const halfC = Math.ceil(covata.length / 2);
     const halfS = Math.ceil(scorte.length / 2);
     return [
       ...scorte.slice(0, halfS), ...covata.slice(0, halfC),
-      ...fogliCerei,
+      ...fogliCerei, ...trappVarroa, ...gabbieRegina,
       ...covata.slice(halfC), ...scorte.slice(halfS),
       ...nutritori, ...diaframmi, ...vuoti
     ];
@@ -450,13 +488,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Colori / stili per tipo
   const FRAME_META = {
-    covata:       { label: 'Covata',       countKey: 'covata'       },
-    scorte:       { label: 'Scorte',       countKey: 'scorte'       },
-    misto:        { label: 'Misto',        countKey: 'covata'       },  // conta come covata
-    foglio_cereo: { label: 'Foglio Cereo', countKey: 'foglio_cereo' },
-    diaframma:    { label: 'Diaframma',    countKey: 'diaframma'    },
-    nutritore:    { label: 'Nutritore',    countKey: 'nutritore'    },
-    vuoto:        { label: 'Vuoto',        countKey: null           },
+    covata:          { label: 'Covata',          countKey: 'covata'          },
+    scorte:          { label: 'Scorte',          countKey: 'scorte'          },
+    misto:           { label: 'Misto',           countKey: 'covata'          },  // conta come covata
+    foglio_cereo:    { label: 'Foglio Cereo',    countKey: 'foglio_cereo'    },
+    diaframma:       { label: 'Diaframma',       countKey: 'diaframma'       },
+    nutritore:       { label: 'Nutritore',       countKey: 'nutritore'       },
+    trappola_varroa: { label: 'Trappola Varroa', countKey: 'trappola_varroa' },
+    gabbia_regina:   { label: 'Gabbia Regina',   countKey: 'gabbia_regina'   },
+    vuoto:           { label: 'Vuoto',           countKey: null              },
   };
 
   let numFrames  = DEFAULT_FRAMES;
@@ -471,11 +511,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Contatori
   const cntEls = {
-    covata:       document.getElementById('cnt-covata'),
-    scorte:       document.getElementById('cnt-scorte'),
-    foglio_cereo: document.getElementById('cnt-foglio_cereo'),
-    diaframma:    document.getElementById('cnt-diaframma'),
-    nutritore:    document.getElementById('cnt-nutritore'),
+    covata:          document.getElementById('cnt-covata'),
+    scorte:          document.getElementById('cnt-scorte'),
+    foglio_cereo:    document.getElementById('cnt-foglio_cereo'),
+    diaframma:       document.getElementById('cnt-diaframma'),
+    nutritore:       document.getElementById('cnt-nutritore'),
+    trappola_varroa: document.getElementById('cnt-trappola_varroa'),
+    gabbia_regina:   document.getElementById('cnt-gabbia_regina'),
   };
 
   /* --- Render ---- */
@@ -518,13 +560,15 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function syncCounters() {
-    const counts = { covata: 0, scorte: 0, foglio_cereo: 0, diaframma: 0, nutritore: 0 };
+    const counts = { covata: 0, scorte: 0, foglio_cereo: 0, diaframma: 0, nutritore: 0, trappola_varroa: 0, gabbia_regina: 0 };
     frameTypes.forEach(t => {
       if (t === 'covata' || t === 'misto') counts.covata++;
       if (t === 'scorte' || t === 'misto') counts.scorte++;
       if (t === 'foglio_cereo') counts.foglio_cereo++;
       if (t === 'diaframma') counts.diaframma++;
       if (t === 'nutritore') counts.nutritore++;
+      if (t === 'trappola_varroa') counts.trappola_varroa++;
+      if (t === 'gabbia_regina') counts.gabbia_regina++;
     });
     for (const k in cntEls) if (cntEls[k]) cntEls[k].textContent = counts[k];
 
@@ -606,7 +650,7 @@ document.addEventListener('DOMContentLoaded', function () {
   /* --- Keyboard shortcuts --- */
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    const map = { c:'covata', s:'scorte', f:'foglio_cereo', m:'misto', d:'diaframma', n:'nutritore', v:'vuoto' };
+    const map = { c:'covata', s:'scorte', f:'foglio_cereo', m:'misto', d:'diaframma', n:'nutritore', t:'trappola_varroa', g:'gabbia_regina', v:'vuoto' };
     const tool = map[e.key.toLowerCase()];
     if (tool) {
       currentTool = tool;

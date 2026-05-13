@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load static %}
 
-{% block title %}Controllo Vocale — Apiary{% endblock %}
+{% block title %}{% trans "Controllo Vocale" %} — Apiary{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -185,7 +186,7 @@ mark.vc-mark {
 }
 /* tooltip sul bubble */
 .vc-bubble::after {
-  content: "Guida";
+  content: "{% trans 'Guida' %}";
   position: absolute; right: calc(100% + 8px); top: 50%;
   transform: translateY(-50%);
   background: #2C1810; color: #fff;
@@ -201,11 +202,11 @@ mark.vc-mark {
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title"><i class="bi bi-mic-fill me-2"></i>Controllo Vocale</h1>
-    <p class="page-subtitle">Registra i controlli di più arnie a voce, l'AI estrae i dati automaticamente</p>
+    <h1 class="page-title"><i class="bi bi-mic-fill me-2"></i>{% trans "Controllo Vocale" %}</h1>
+    <p class="page-subtitle">{% trans "Registra i controlli di più arnie a voce, l'AI estrae i dati automaticamente" %}</p>
   </div>
   <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
-    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+    <i class="bi bi-speedometer2 me-1"></i> {% trans "Dashboard" %}
   </a>
 </div>
 
@@ -214,10 +215,10 @@ mark.vc-mark {
      id="vc-restore-banner" role="alert">
   <i class="bi bi-arrow-counterclockwise fs-5 flex-shrink-0"></i>
   <div class="flex-grow-1">
-    <strong>Sessione precedente ripristinata</strong> — hai trascrizioni in coda e/o controlli già elaborati da Gemini.
+    <strong>{% trans "Sessione precedente ripristinata" %}</strong> — {% trans "hai trascrizioni in coda e/o controlli già elaborati da Gemini." %}
   </div>
   <button class="btn btn-sm btn-outline-danger flex-shrink-0" id="vc-clear-session-btn">
-    <i class="bi bi-trash3 me-1"></i>Nuova sessione
+    <i class="bi bi-trash3 me-1"></i>{% trans "Nuova sessione" %}
   </button>
 </div>
 
@@ -231,9 +232,9 @@ mark.vc-mark {
       <div class="card-body">
 
         <div class="mb-3">
-          <label class="form-label fw-semibold">Apiario</label>
+          <label class="form-label fw-semibold">{% trans "Apiario" %}</label>
           <select class="form-select" id="vc-apiario">
-            <option value="">— Seleziona apiario —</option>
+            <option value="">{% trans "— Seleziona apiario —" %}</option>
             {% for a in apiari %}
             <option value="{{ a.id }}">{{ a.nome }}</option>
             {% endfor %}
@@ -244,36 +245,36 @@ mark.vc-mark {
           <div class="form-check form-switch mb-0">
             <input class="form-check-input" type="checkbox" id="vc-batch-toggle">
             <label class="form-check-label fw-semibold" for="vc-batch-toggle">
-              Modalità batch (più arnie)
+              {% trans "Modalità batch (più arnie)" %}
             </label>
           </div>
           <div class="form-check form-switch mb-0">
             <input class="form-check-input" type="checkbox" id="vc-autosend-toggle">
             <label class="form-check-label fw-semibold" for="vc-autosend-toggle">
-              Invia a Gemini automaticamente
+              {% trans "Invia a Gemini automaticamente" %}
             </label>
           </div>
         </div>
 
         <!-- Trigger hint (batch mode) -->
         <div class="trigger-hint mb-3" id="vc-trigger-hint" style="display:none">
-          <strong>Comandi vocali:</strong><br>
-          <span class="trigger-pill">avanti</span>
-          <span class="trigger-pill">prossima</span>
-          <span class="trigger-pill">continua</span>
-          → passa all'arnia successiva<br>
-          <span class="trigger-pill">stop</span>
-          <span class="trigger-pill">fine</span>
-          <span class="trigger-pill">ho finito</span>
-          → termina e processa
+          <strong>{% trans "Comandi vocali:" %}</strong><br>
+          <span class="trigger-pill">{% trans "avanti" %}</span>
+          <span class="trigger-pill">{% trans "prossima" %}</span>
+          <span class="trigger-pill">{% trans "continua" %}</span>
+          → {% trans "passa all'arnia successiva" %}<br>
+          <span class="trigger-pill">{% trans "stop" %}</span>
+          <span class="trigger-pill">{% trans "fine" %}</span>
+          <span class="trigger-pill">{% trans "ho finito" %}</span>
+          → {% trans "termina e processa" %}
         </div>
 
         <!-- Mic buttons -->
         <div class="d-flex justify-content-center gap-3 my-3">
-          <button class="vc-record-btn" id="vc-start-btn" title="Inizia registrazione">
+          <button class="vc-record-btn" id="vc-start-btn" title="{% trans 'Inizia registrazione' %}">
             <i class="bi bi-mic-fill"></i>
           </button>
-          <button class="vc-stop-btn" id="vc-stop-btn" title="Ferma registrazione">
+          <button class="vc-stop-btn" id="vc-stop-btn" title="{% trans 'Ferma registrazione' %}">
             <i class="bi bi-stop-fill"></i>
           </button>
         </div>
@@ -281,7 +282,7 @@ mark.vc-mark {
         <!-- Status -->
         <div class="d-flex align-items-center justify-content-center mb-3">
           <span class="vc-status-dot" id="vc-status-dot"></span>
-          <span class="small text-muted" id="vc-status-text">Pronto</span>
+          <span class="small text-muted" id="vc-status-text">{% trans "Pronto" %}</span>
         </div>
 
       </div>
@@ -291,12 +292,12 @@ mark.vc-mark {
     <div class="card mb-3">
       <div class="card-body">
         <h6 class="fw-semibold mb-2" style="font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:#888;">
-          Trascrizione
+          {% trans "Trascrizione" %}
         </h6>
         <div class="vc-transcript-box mb-2" id="vc-transcript">…</div>
 
         <h6 class="fw-semibold mb-2" style="font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:#888;">
-          Testo corretto (vocabolario apicolo)
+          {% trans "Testo corretto (vocabolario apicolo)" %}
         </h6>
         <div class="vc-corrected-box" id="vc-corrected"></div>
       </div>
@@ -307,17 +308,16 @@ mark.vc-mark {
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-1">
           <h6 class="fw-semibold mb-0">
-            <i class="bi bi-list-ol me-2 text-amber"></i>Trascrizioni in attesa
+            <i class="bi bi-list-ol me-2 text-amber"></i>{% trans "Trascrizioni in attesa" %}
           </h6>
           <button class="btn btn-sm btn-primary" id="vc-process-btn" disabled>
-            <i class="bi bi-cpu me-1"></i>Invia a Gemini AI
+            <i class="bi bi-cpu me-1"></i>{% trans "Invia a Gemini AI" %}
           </button>
         </div>
         <p class="small text-muted mb-2">
           <i class="bi bi-pencil-square me-1"></i>
-          Clicca <i class="bi bi-pencil-square text-primary"></i> per correggere un trascritto,
-          poi invia con il pulsante.
-          Le parole <mark class="vc-mark">evidenziate</mark> sono state corrette automaticamente.
+          {% trans "Clicca" %} <i class="bi bi-pencil-square text-primary"></i> {% trans "per correggere un trascritto, poi invia con il pulsante." %}
+          {% trans "Le parole" %} <mark class="vc-mark">{% trans "evidenziate" %}</mark> {% trans "sono state corrette automaticamente." %}
         </p>
         <ul class="list-group list-group-flush" id="vc-queue"></ul>
       </div>
@@ -330,10 +330,10 @@ mark.vc-mark {
 
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="mb-0 fw-bold">
-        <i class="bi bi-clipboard-check me-2 text-amber"></i>Verifica e salva
+        <i class="bi bi-clipboard-check me-2 text-amber"></i>{% trans "Verifica e salva" %}
       </h5>
       <button class="btn btn-success" id="vc-save-btn">
-        <i class="bi bi-cloud-check me-2"></i>Salva tutti i controlli
+        <i class="bi bi-cloud-check me-2"></i>{% trans "Salva tutti i controlli" %}
       </button>
     </div>
 
@@ -349,7 +349,7 @@ mark.vc-mark {
   <div class="col-12">
     <div class="card">
       <div class="card-body">
-        <h6 class="fw-semibold mb-2"><i class="bi bi-lightbulb me-2 text-amber"></i>Esempi di frasi riconosciute</h6>
+        <h6 class="fw-semibold mb-2"><i class="bi bi-lightbulb me-2 text-amber"></i>{% trans "Esempi di frasi riconosciute" %}</h6>
         <div class="row g-2">
           <div class="col-md-6 small text-muted">
             <em>"Arnia 5, famiglia forte, 4 telaini covata, 3 telaini scorte, regina presente, tutto ok"</em>
@@ -372,40 +372,40 @@ mark.vc-mark {
 <!-- ══ Info panel prima visita ══════════════════════════════════════════ -->
 <div class="vc-info-backdrop" id="vc-info-backdrop">
   <div class="vc-info-panel" id="vc-info-panel">
-    <button class="vc-info-close" id="vc-info-close" title="Chiudi" aria-label="Chiudi">
+    <button class="vc-info-close" id="vc-info-close" title="{% trans 'Chiudi' %}" aria-label="{% trans 'Chiudi' %}">
       <i class="bi bi-x-lg"></i>
     </button>
     <div class="vc-info-title">
       <i class="bi bi-mic-fill" style="color:#F5A623"></i>
-      Come funziona il Controllo Vocale
+      {% trans "Come funziona il Controllo Vocale" %}
     </div>
     <ol class="mb-2 small" style="color:#5a3a1a;padding-left:18px;line-height:1.8">
-      <li>Seleziona l'<strong>apiario</strong> e abilita la <strong>modalità batch</strong> se vuoi registrare più arnie di fila.</li>
-      <li>Premi <i class="bi bi-mic-fill text-amber"></i> e parla — la trascrizione appare in tempo reale.</li>
-      <li>Usa i <strong>comandi vocali</strong> per passare all'arnia successiva:
-        <span class="trigger-pill">avanti</span>
-        <span class="trigger-pill">prossima</span>
-        <span class="trigger-pill">continua</span>
+      <li>{% trans "Seleziona l'<strong>apiario</strong> e abilita la <strong>modalità batch</strong> se vuoi registrare più arnie di fila." %}</li>
+      <li>{% trans "Premi" %} <i class="bi bi-mic-fill text-amber"></i> {% trans "e parla — la trascrizione appare in tempo reale." %}</li>
+      <li>{% trans "Usa i <strong>comandi vocali</strong> per passare all'arnia successiva:" %}
+        <span class="trigger-pill">{% trans "avanti" %}</span>
+        <span class="trigger-pill">{% trans "prossima" %}</span>
+        <span class="trigger-pill">{% trans "continua" %}</span>
       </li>
-      <li>Premi <span class="trigger-pill" style="background:#dc3545">stop</span> o dì <em>"ho finito"</em> per terminare.</li>
-      <li>Rivedi i dati estratti da <strong>Gemini AI</strong> e salva i controlli.</li>
+      <li>{% trans "Premi" %} <span class="trigger-pill" style="background:#dc3545">{% trans "stop" %}</span> {% trans "o dì" %} <em>"{% trans "ho finito" %}"</em> {% trans "per terminare." %}</li>
+      <li>{% trans "Rivedi i dati estratti da <strong>Gemini AI</strong> e salva i controlli." %}</li>
     </ol>
     <div class="vc-info-examples">
-      <strong><i class="bi bi-lightbulb me-1"></i>Esempi di frasi:</strong>
-      <em>"Arnia 5, famiglia forte, 4 telaini covata, 3 scorte, regina presente"</em>
-      <em>"Arnia 12, regina assente, celle reali 2, rischio sciamatura"</em>
-      <em>"Arnia 7, varroa visibile, 5 telaini covata, trattamento necessario"</em>
+      <strong><i class="bi bi-lightbulb me-1"></i>{% trans "Esempi di frasi:" %}</strong>
+      <em>"{% trans "Arnia 5, famiglia forte, 4 telaini covata, 3 scorte, regina presente" %}"</em>
+      <em>"{% trans "Arnia 12, regina assente, celle reali 2, rischio sciamatura" %}"</em>
+      <em>"{% trans "Arnia 7, varroa visibile, 5 telaini covata, trattamento necessario" %}"</em>
     </div>
     <div class="text-end mt-3">
       <button class="btn btn-primary btn-sm" id="vc-info-got-it">
-        <i class="bi bi-check2 me-1"></i>Ho capito, iniziamo!
+        <i class="bi bi-check2 me-1"></i>{% trans "Ho capito, iniziamo!" %}
       </button>
     </div>
   </div>
 </div>
 
 <!-- Cerchio galleggiante (guida rapida) -->
-<button class="vc-bubble" id="vc-bubble" title="Guida" aria-label="Riapri guida">
+<button class="vc-bubble" id="vc-bubble" title="{% trans 'Guida' %}" aria-label="{% trans 'Riapri guida' %}">
   <i class="bi bi-question-lg"></i>
 </button>
 

@@ -1,9 +1,10 @@
+{% load i18n %}
 <!doctype html>
 <html lang="it">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Apri arnia · Apiary</title>
+  <title>{% trans "Apri arnia · Apiary" %}</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
            margin: 0; padding: 24px; background: #FFF8E1; color: #1a1a1a; }
@@ -21,16 +22,16 @@
 </head>
 <body>
   <div class="card">
-    <h1>🐝 Tag arnia rilevato</h1>
-    <p>Hai scansionato un tag NFC associato a un'arnia. Per visualizzare i dettagli, apri l'app Apiary.</p>
+    <h1>🐝 {% trans "Tag arnia rilevato" %}</h1>
+    <p>{% trans "Hai scansionato un tag NFC associato a un'arnia. Per visualizzare i dettagli, apri l'app Apiary." %}</p>
 
-    <a class="btn btn-primary" href="{{ deep_link_custom }}">Apri in Apiary App</a>
+    <a class="btn btn-primary" href="{{ deep_link_custom }}">{% trans "Apri in Apiary App" %}</a>
 
-    <p style="margin-top: 24px;">Non hai ancora l'app?</p>
-    <a class="btn btn-secondary" href="{{ play_store_url }}">Scarica su Google Play</a>
-    <a class="btn btn-secondary" href="{{ app_store_url }}">Scarica su App Store</a>
+    <p style="margin-top: 24px;">{% trans "Non hai ancora l'app?" %}</p>
+    <a class="btn btn-secondary" href="{{ play_store_url }}">{% trans "Scarica su Google Play" %}</a>
+    <a class="btn btn-secondary" href="{{ app_store_url }}">{% trans "Scarica su App Store" %}</a>
 
-    <p class="nfc">ID tag: {{ nfc_id }}</p>
+    <p class="nfc">{% trans "ID tag:" %} {{ nfc_id }}</p>
   </div>
 
   <script>

@@ -1,14 +1,15 @@
 {% extends 'base.html' %}
-{% block title %}Converti Nucleo #{{ nucleo.numero }} — Apiary{% endblock %}
+{% load i18n %}
+{% block title %}{% blocktrans with n=nucleo.numero %}Converti Nucleo #{{ n }}{% endblocktrans %} — Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title"><i class="bi bi-arrow-up-circle me-2" style="color:#198754;"></i>Converti in Arnia</h1>
-    <p class="page-subtitle">Nucleo #{{ nucleo.numero }} — {{ nucleo.apiario.nome }}</p>
+    <h1 class="page-title"><i class="bi bi-arrow-up-circle me-2" style="color:#198754;"></i>{% trans "Converti in Arnia" %}</h1>
+    <p class="page-subtitle">{% blocktrans with n=nucleo.numero a=nucleo.apiario.nome %}Nucleo #{{ n }} — {{ a }}{% endblocktrans %}</p>
   </div>
   <a href="{% url 'dettaglio_nucleo' nucleo.pk %}" class="btn btn-outline-secondary">
-    <i class="bi bi-arrow-left me-1"></i>Annulla
+    <i class="bi bi-arrow-left me-1"></i>{% trans "Annulla" %}
   </a>
 </div>
 
@@ -17,25 +18,24 @@
     <div class="card border-success">
       <div class="card-body text-center py-5">
         <div style="font-size:3rem;" class="mb-3">🐝</div>
-        <h4 class="fw-bold mb-2">Promuovi il Nucleo #{{ nucleo.numero }}</h4>
-        <p class="text-muted mb-1">Apiario: <strong>{{ nucleo.apiario.nome }}</strong></p>
-        <p class="text-muted mb-4">Installato il: <strong>{{ nucleo.data_installazione|date:"d/m/Y" }}</strong></p>
+        <h4 class="fw-bold mb-2">{% blocktrans with n=nucleo.numero %}Promuovi il Nucleo #{{ n }}{% endblocktrans %}</h4>
+        <p class="text-muted mb-1">{% trans "Apiario:" %} <strong>{{ nucleo.apiario.nome }}</strong></p>
+        <p class="text-muted mb-4">{% trans "Installato il:" %} <strong>{{ nucleo.data_installazione|date:"d/m/Y" }}</strong></p>
 
         <div class="alert alert-info text-start mb-4">
           <i class="bi bi-info-circle me-1"></i>
-          Verrà creata una nuova <strong>Arnia #{{ nucleo.numero }}</strong> nell'apiario
-          <strong>{{ nucleo.apiario.nome }}</strong> con la data di oggi.<br>
-          Il nucleo verrà marcato come <em>convertito</em> e non sarà più modificabile.
+          {% blocktrans with n=nucleo.numero a=nucleo.apiario.nome %}Verrà creata una nuova <strong>Arnia #{{ n }}</strong> nell'apiario <strong>{{ a }}</strong> con la data di oggi.{% endblocktrans %}<br>
+          {% trans "Il nucleo verrà marcato come <em>convertito</em> e non sarà più modificabile." %}
         </div>
 
         <form method="post">
           {% csrf_token %}
           <div class="d-flex gap-3 justify-content-center">
             <a href="{% url 'dettaglio_nucleo' nucleo.pk %}" class="btn btn-outline-secondary">
-              <i class="bi bi-x me-1"></i>Annulla
+              <i class="bi bi-x me-1"></i>{% trans "Annulla" %}
             </a>
             <button type="submit" class="btn btn-success">
-              <i class="bi bi-arrow-up-circle me-1"></i>Sì, converti in Arnia
+              <i class="bi bi-arrow-up-circle me-1"></i>{% trans "Sì, converti in Arnia" %}
             </button>
           </div>
         </form>

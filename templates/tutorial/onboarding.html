@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load static %}
 
-{% block title %}Benvenuto in Apiary{% endblock %}
+{% block title %}{% trans "Benvenuto in Apiary" %}{% endblock %}
 
 {% block content %}
 <div class="onboarding-overlay">
@@ -17,7 +18,7 @@
         </div>
 
         <!-- Skip button -->
-        <button class="onboarding-skip" id="skipBtn">Salta</button>
+        <button class="onboarding-skip" id="skipBtn">{% trans "Salta" %}</button>
 
         <!-- Steps -->
         <div class="onboarding-steps">
@@ -25,46 +26,46 @@
             <!-- Step 1 -->
             <div class="onboarding-step active" data-step="1">
                 <div class="step-icon">🐝</div>
-                <h1 class="step-title">Benvenuto in Apiary</h1>
-                <p class="step-text">Il tuo diario digitale da apicoltore. Registra, monitora e gestisci tutto ciò che riguarda le tue api — dai controlli alle vendite, dalla genealogia delle regine all'analisi AI dei telai.</p>
+                <h1 class="step-title">{% trans "Benvenuto in Apiary" %}</h1>
+                <p class="step-text">{% trans "Il tuo diario digitale da apicoltore. Registra, monitora e gestisci tutto ciò che riguarda le tue api — dai controlli alle vendite, dalla genealogia delle regine all'analisi AI dei telai." %}</p>
             </div>
 
             <!-- Step 2 -->
             <div class="onboarding-step" data-step="2">
                 <div class="step-icon">📍</div>
-                <h2 class="step-title">I tuoi Apiari</h2>
-                <p class="step-text">Un apiario è la tua postazione fisica — un campo, un bosco, un terreno. Dentro ogni apiario trovi le tue arnie. Puoi avere più apiari in luoghi diversi e gestirli tutti da qui.</p>
+                <h2 class="step-title">{% trans "I tuoi Apiari" %}</h2>
+                <p class="step-text">{% trans "Un apiario è la tua postazione fisica — un campo, un bosco, un terreno. Dentro ogni apiario trovi le tue arnie. Puoi avere più apiari in luoghi diversi e gestirli tutti da qui." %}</p>
             </div>
 
             <!-- Step 3 -->
             <div class="onboarding-step" data-step="3">
                 <div class="step-icon">🏠</div>
-                <h2 class="step-title">Arnie &amp; Controlli</h2>
-                <p class="step-text">Ogni arnia ha la sua storia: regina, trattamenti, melari, raccolti. Registra i controlli periodici per tenere traccia della forza della colonia, della presenza della regina e dello stato sanitario.</p>
+                <h2 class="step-title">{% trans "Arnie & Controlli" %}</h2>
+                <p class="step-text">{% trans "Ogni arnia ha la sua storia: regina, trattamenti, melari, raccolti. Registra i controlli periodici per tenere traccia della forza della colonia, della presenza della regina e dello stato sanitario." %}</p>
             </div>
 
             <!-- Step 4 -->
             <div class="onboarding-step" data-step="4">
                 <div class="step-icon">✨</div>
-                <h2 class="step-title">Funzioni Avanzate</h2>
+                <h2 class="step-title">{% trans "Funzioni Avanzate" %}</h2>
                 <ul class="step-features">
-                    <li><span class="feature-icon">🎤</span> <strong>Controllo Vocale</strong> — Registra un'ispezione completa semplicemente parlando</li>
-                    <li><span class="feature-icon">🤖</span> <strong>Analisi AI</strong> — Fotografa un telaio e scopri subito api, covata e celle reali</li>
-                    <li><span class="feature-icon">📊</span> <strong>Statistiche</strong> — Grafici di produzione, salute e andamento nel tempo</li>
-                    <li><span class="feature-icon">👥</span> <strong>Collaborazione</strong> — Condividi gli apiari con soci o collaboratori</li>
+                    <li><span class="feature-icon">🎤</span> <strong>{% trans "Controllo Vocale" %}</strong> — {% trans "Registra un'ispezione completa semplicemente parlando" %}</li>
+                    <li><span class="feature-icon">🤖</span> <strong>{% trans "Analisi AI" %}</strong> — {% trans "Fotografa un telaio e scopri subito api, covata e celle reali" %}</li>
+                    <li><span class="feature-icon">📊</span> <strong>{% trans "Statistiche" %}</strong> — {% trans "Grafici di produzione, salute e andamento nel tempo" %}</li>
+                    <li><span class="feature-icon">👥</span> <strong>{% trans "Collaborazione" %}</strong> — {% trans "Condividi gli apiari con soci o collaboratori" %}</li>
                 </ul>
             </div>
 
             <!-- Step 5 -->
             <div class="onboarding-step" data-step="5">
                 <div class="step-icon">🚀</div>
-                <h2 class="step-title">Sei pronto!</h2>
-                <p class="step-text">Inizia creando il tuo primo apiario. Ci vorranno meno di un minuto. Potrai sempre rivedere questa guida dalla pagina del tuo profilo.</p>
+                <h2 class="step-title">{% trans "Sei pronto!" %}</h2>
+                <p class="step-text">{% trans "Inizia creando il tuo primo apiario. Ci vorranno meno di un minuto. Potrai sempre rivedere questa guida dalla pagina del tuo profilo." %}</p>
                 <div class="step-actions">
                     <a href="{% url 'crea_apiario' %}" class="btn btn-primary btn-lg" id="createApiarioBtn">
-                        <i class="bi bi-plus-circle me-2"></i>Crea il mio primo apiario
+                        <i class="bi bi-plus-circle me-2"></i>{% trans "Crea il mio primo apiario" %}
                     </a>
-                    <button class="btn btn-link" id="explorFirstBtn">Esplora prima</button>
+                    <button class="btn btn-link" id="explorFirstBtn">{% trans "Esplora prima" %}</button>
                 </div>
             </div>
 
@@ -73,10 +74,10 @@
         <!-- Navigation buttons -->
         <div class="onboarding-nav">
             <button class="btn btn-outline-secondary" id="prevBtn" style="display:none;">
-                <i class="bi bi-arrow-left"></i> Indietro
+                <i class="bi bi-arrow-left"></i> {% trans "Indietro" %}
             </button>
             <button class="btn btn-primary" id="nextBtn">
-                Avanti <i class="bi bi-arrow-right"></i>
+                {% trans "Avanti" %} <i class="bi bi-arrow-right"></i>
             </button>
         </div>
 

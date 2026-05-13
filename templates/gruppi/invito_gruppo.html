@@ -1,10 +1,11 @@
 <!-- templates/email/invito_gruppo.html -->
+{% load i18n %}
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invito a unirti al gruppo {{ invito.gruppo.nome }}</title>
+    <title>{% blocktrans with nome=invito.gruppo.nome %}Invito a unirti al gruppo {{ nome }}{% endblocktrans %}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -46,37 +47,37 @@
 </head>
 <body>
     <div class="header">
-        <h1>Sei stato invitato a un gruppo su Apiary</h1>
+        <h1>{% trans "Sei stato invitato a un gruppo su Apiary" %}</h1>
     </div>
     <div class="content">
-        <p>Ciao,</p>
-        <p><strong>{{ invito.invitato_da.username }}</strong> ti ha invitato a unirti al gruppo <strong>{{ invito.gruppo.nome }}</strong> su Apiary.</p>
-        
-        <h3>Informazioni sul gruppo:</h3>
-        <p><strong>Nome:</strong> {{ invito.gruppo.nome }}</p>
-        <p><strong>Descrizione:</strong> {{ invito.gruppo.descrizione }}</p>
-        <p><strong>Ruolo proposto:</strong> {{ invito.get_ruolo_proposto_display }}</p>
-        <p><strong>Invito valido fino al:</strong> {{ invito.data_scadenza|date:"d/m/Y" }}</p>
-        
-        <p>Unendoti a questo gruppo, potrai collaborare con altri apicoltori nella gestione condivisa degli apiari, arnie, fioriture, trattamenti sanitari e molto altro.</p>
-        
-        <p>Per accettare questo invito, clicca sul pulsante qui sotto o copia il link nel tuo browser:</p>
-        
+        <p>{% trans "Ciao," %}</p>
+        <p>{% blocktrans with u=invito.invitato_da.username g=invito.gruppo.nome %}<strong>{{ u }}</strong> ti ha invitato a unirti al gruppo <strong>{{ g }}</strong> su Apiary.{% endblocktrans %}</p>
+
+        <h3>{% trans "Informazioni sul gruppo:" %}</h3>
+        <p><strong>{% trans "Nome:" %}</strong> {{ invito.gruppo.nome }}</p>
+        <p><strong>{% trans "Descrizione:" %}</strong> {{ invito.gruppo.descrizione }}</p>
+        <p><strong>{% trans "Ruolo proposto:" %}</strong> {{ invito.get_ruolo_proposto_display }}</p>
+        <p><strong>{% trans "Invito valido fino al:" %}</strong> {{ invito.data_scadenza|date:"d/m/Y" }}</p>
+
+        <p>{% trans "Unendoti a questo gruppo, potrai collaborare con altri apicoltori nella gestione condivisa degli apiari, arnie, fioriture, trattamenti sanitari e molto altro." %}</p>
+
+        <p>{% trans "Per accettare questo invito, clicca sul pulsante qui sotto o copia il link nel tuo browser:" %}</p>
+
         <div style="text-align: center;">
-            <a href="http://{{ request.get_host }}{{ accept_url }}" class="button">Accetta Invito</a>
+            <a href="http://{{ request.get_host }}{{ accept_url }}" class="button">{% trans "Accetta Invito" %}</a>
         </div>
-        
+
         <p style="margin-top: 20px; word-break: break-all;">
-            <small>Link: <a href="http://{{ request.get_host }}{{ accept_url }}">http://{{ request.get_host }}{{ accept_url }}</a></small>
+            <small>{% trans "Link:" %} <a href="http://{{ request.get_host }}{{ accept_url }}">http://{{ request.get_host }}{{ accept_url }}</a></small>
         </p>
-        
-        <p>Se non hai un account su Apiary, dovrai registrarti con questo indirizzo email prima di poter accettare l'invito.</p>
-        
-        <p>Grazie,<br>Il team di Apiary</p>
+
+        <p>{% trans "Se non hai un account su Apiary, dovrai registrarti con questo indirizzo email prima di poter accettare l'invito." %}</p>
+
+        <p>{% trans "Grazie," %}<br>{% trans "Il team di Apiary" %}</p>
     </div>
     <div class="footer">
-        <p>Questo è un messaggio automatico. Si prega di non rispondere a questa email.</p>
-        <p>Se non hai richiesto questo invito, puoi ignorare questo messaggio.</p>
+        <p>{% trans "Questo è un messaggio automatico. Si prega di non rispondere a questa email." %}</p>
+        <p>{% trans "Se non hai richiesto questo invito, puoi ignorare questo messaggio." %}</p>
     </div>
 </body>
 </html>

@@ -1,14 +1,15 @@
 {% extends 'base.html' %}
-{% block title %}Clienti - Apiary{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Clienti" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title"><i class="bi bi-people me-2" style="color:var(--honey);"></i>Clienti</h1>
-    <p class="page-subtitle">Rubrica clienti e storico acquisti</p>
+    <h1 class="page-title"><i class="bi bi-people me-2" style="color:var(--honey);"></i>{% trans "Clienti" %}</h1>
+    <p class="page-subtitle">{% trans "Rubrica clienti e storico acquisti" %}</p>
   </div>
   <a href="{% url 'gestione_vendite' %}" class="btn btn-outline-secondary">
-    <i class="bi bi-bag-heart me-1"></i>Vendite
+    <i class="bi bi-bag-heart me-1"></i>{% trans "Vendite" %}
   </a>
 </div>
 
@@ -16,17 +17,17 @@
   <!-- Lista clienti -->
   <div class="col-lg-8">
     <div class="card">
-      <div class="card-header"><h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>Lista clienti ({{ clienti.count }})</h6></div>
+      <div class="card-header"><h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>{% blocktrans with n=clienti.count %}Lista clienti ({{ n }}){% endblocktrans %}</h6></div>
       <div class="card-body p-0">
         {% if clienti %}
         <div class="table-responsive">
           <table class="table table-hover mb-0">
             <thead>
               <tr>
-                <th>Nome</th>
-                <th>Email</th>
-                <th>Telefono</th>
-                <th class="text-center">Acquisti</th>
+                <th>{% trans "Nome" %}</th>
+                <th>{% trans "Email" %}</th>
+                <th>{% trans "Telefono" %}</th>
+                <th class="text-center">{% trans "Acquisti" %}</th>
                 <th></th>
               </tr>
             </thead>
@@ -52,7 +53,7 @@
         {% else %}
         <div class="text-center py-5 text-muted">
           <i class="bi bi-people fs-1 d-block mb-2"></i>
-          Nessun cliente registrato.
+          {% trans "Nessun cliente registrato." %}
         </div>
         {% endif %}
       </div>
@@ -62,7 +63,7 @@
   <!-- Form nuovo cliente -->
   <div class="col-lg-4">
     <div class="card sticky-top" style="top:80px;">
-      <div class="card-header"><h6 class="mb-0"><i class="bi bi-person-plus me-2"></i>Nuovo cliente</h6></div>
+      <div class="card-header"><h6 class="mb-0"><i class="bi bi-person-plus me-2"></i>{% trans "Nuovo cliente" %}</h6></div>
       <div class="card-body">
         <form method="post">
           {% csrf_token %}
@@ -73,7 +74,7 @@
           </div>
           {% endfor %}
           <button type="submit" class="btn btn-primary w-100">
-            <i class="bi bi-plus-lg me-1"></i>Aggiungi cliente
+            <i class="bi bi-plus-lg me-1"></i>{% trans "Aggiungi cliente" %}
           </button>
         </form>
       </div>

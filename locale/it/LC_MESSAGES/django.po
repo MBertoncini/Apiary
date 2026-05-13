@@ -935,3 +935,4708 @@ msgstr "Non ci sono arnie registrate per questo apiario."
 
 msgid "Aggiungi la prima arnia"
 msgstr "Aggiungi la prima arnia"
+
+# === Auto-aggiunte ===
+
+#, python-format
+msgid "%(anni)s anni"
+msgstr "%(anni)s anni"
+
+#, python-format
+msgid "%(c)s% conf."
+msgstr "%(c)s% conf."
+
+#, python-format
+msgid "%(g)sgg"
+msgstr "%(g)sgg"
+
+#, python-format
+msgid "%(giorni)s giorni"
+msgstr "%(giorni)s giorni"
+
+#, python-format
+msgid "%(n)s celle reali"
+msgstr "%(n)s celle reali"
+
+#, python-format
+msgid "%(n)s el."
+msgstr "%(n)s el."
+
+#, python-format
+msgid "%(n)s favi"
+msgstr "%(n)s favi"
+
+#, python-format
+msgid "%(n)s figlie"
+msgstr "%(n)s figlie"
+
+#, python-format
+msgid "%(n)s fuchi"
+msgstr "%(n)s fuchi"
+
+#, python-format
+msgid "%(n)s generazioni"
+msgstr "%(n)s generazioni"
+
+#, python-format
+msgid "%(n)s op."
+msgstr "%(n)s op."
+
+#, python-format
+msgid "%(n)s pz"
+msgstr "%(n)s pz"
+
+#, python-format
+msgid "%(n)s reg."
+msgstr "%(n)s reg."
+
+#, python-format
+msgid "%(n)s tel."
+msgstr "%(n)s tel."
+
+#, python-format
+msgid "%(p)s% ammortato — %(v)s anni vita utile"
+msgstr "%(p)s% ammortato — %(v)s anni vita utile"
+
+#, python-format
+msgid "%(p)s% prob. pioggia"
+msgstr "%(p)s% prob. pioggia"
+
+#, python-format
+msgid "%(t)s telaini - Pos. %(p)s"
+msgstr "%(t)s telaini - Pos. %(p)s"
+
+#, python-format
+msgid "%(v)s venduti"
+msgstr "%(v)s venduti"
+
+msgid "(in smielatura)"
+msgstr "(in smielatura)"
+
+#, python-format
+msgid "-%(v)s vend."
+msgstr "-%(v)s vend."
+
+msgid "1 = colonia debolissima, 5 = colonia media, 10 = colonia fortissima che occupa tutti i favi."
+msgstr "1 = colonia debolissima, 5 = colonia media, 10 = colonia fortissima che occupa tutti i favi."
+
+msgid "1 = più vicino al nido, 2 = sopra il primo melario, ecc."
+msgstr "1 = più vicino al nido, 2 = sopra il primo melario, ecc."
+
+msgid "1 = vicino al nido"
+msgstr "1 = vicino al nido"
+
+msgid "1 kg"
+msgstr "1 kg"
+
+msgid "1. Dall'app mobile"
+msgstr "1. Dall'app mobile"
+
+msgid "1/2"
+msgstr "1/2"
+
+msgid "100% Open Source"
+msgstr "100% Open Source"
+
+msgid "2. Via email"
+msgstr "2. Via email"
+
+msgid "250g"
+msgstr "250g"
+
+msgid "3/4"
+msgstr "3/4"
+
+msgid "30 giorni"
+msgstr "30 giorni"
+
+msgid "500g"
+msgstr "500g"
+
+msgid "7 giorni"
+msgstr "7 giorni"
+
+msgid "90 giorni"
+msgstr "90 giorni"
+
+#, python-format
+msgid "<strong>%(u)s</strong> ti ha invitato a unirti al gruppo <strong>%(g)s</strong> su Apiary."
+msgstr "<strong>%(u)s</strong> ti ha invitato a unirti al gruppo <strong>%(g)s</strong> su Apiary."
+
+#, python-format
+msgid "<strong>%(u)s</strong> ti ha invitato a unirti al gruppo <strong>%(g)s</strong> sulla piattaforma di Gestione Apiario."
+msgstr "<strong>%(u)s</strong> ti ha invitato a unirti al gruppo <strong>%(g)s</strong> sulla piattaforma di Gestione Apiario."
+
+msgid "AI/YOLO"
+msgstr "AI/YOLO"
+
+msgid "Accedi all'app <strong>Apiary Manager</strong>."
+msgstr "Accedi all'app <strong>Apiary Manager</strong>."
+
+msgid "Accetta"
+msgstr "Accetta"
+
+msgid "Accetta Invito"
+msgstr "Accetta Invito"
+
+msgid "Accetta l'invito"
+msgstr "Accetta l'invito"
+
+msgid "Accetto l'<a href=\"/app/privacy/\" target=\"_blank\">informativa sulla privacy</a> e i termini di servizio"
+msgstr "Accetto l'<a href=\"/app/privacy/\" target=\"_blank\">informativa sulla privacy</a> e i termini di servizio"
+
+msgid "Account utente e credenziali"
+msgstr "Account utente e credenziali"
+
+msgid "Acquirente (nome libero)"
+msgstr "Acquirente (nome libero)"
+
+msgid "Acquirente non specificato"
+msgstr "Acquirente non specificato"
+
+#, python-format
+msgid "Acquirente: %(nome)s"
+msgstr "Acquirente: %(nome)s"
+
+msgid "Acquistato dal"
+msgstr "Acquistato dal"
+
+msgid "Acquistato fino al"
+msgstr "Acquistato fino al"
+
+msgid "Acquisti"
+msgstr "Acquisti"
+
+msgid "Acquisti totali"
+msgstr "Acquisti totali"
+
+msgid "Acquisto"
+msgstr "Acquisto"
+
+msgid "Acquisto:"
+msgstr "Acquisto:"
+
+msgid "Adatta vista"
+msgstr "Adatta vista"
+
+msgid "Aggiorna Fioritura"
+msgstr "Aggiorna Fioritura"
+
+msgid "Aggiorna Melario"
+msgstr "Aggiorna Melario"
+
+msgid "Aggiorna Pagamento"
+msgstr "Aggiorna Pagamento"
+
+msgid "Aggiorna Presenza Regina"
+msgstr "Aggiorna Presenza Regina"
+
+msgid "Aggiorna Quota"
+msgstr "Aggiorna Quota"
+
+msgid "Aggiorna Trattamento"
+msgstr "Aggiorna Trattamento"
+
+#, python-format
+msgid "Aggiornato: %(d)s"
+msgstr "Aggiornato: %(d)s"
+
+msgid "Aggiungi Controllo"
+msgstr "Aggiungi Controllo"
+
+msgid "Aggiungi Fioritura"
+msgstr "Aggiungi Fioritura"
+
+msgid "Aggiungi Melario"
+msgstr "Aggiungi Melario"
+
+#, python-format
+msgid "Aggiungi Melario - Arnia #%(n)s"
+msgstr "Aggiungi Melario - Arnia #%(n)s"
+
+#, python-format
+msgid "Aggiungi Melario — Arnia #%(n)s"
+msgstr "Aggiungi Melario — Arnia #%(n)s"
+
+msgid "Aggiungi Quota"
+msgstr "Aggiungi Quota"
+
+msgid "Aggiungi Regina"
+msgstr "Aggiungi Regina"
+
+msgid "Aggiungi Tipo di Trattamento"
+msgstr "Aggiungi Tipo di Trattamento"
+
+msgid "Aggiungi cliente"
+msgstr "Aggiungi cliente"
+
+msgid "Aggiungi il primo invasettamento"
+msgstr "Aggiungi il primo invasettamento"
+
+msgid "Aggiungi la prima attrezzatura"
+msgstr "Aggiungi la prima attrezzatura"
+
+msgid "Aggiungi melario"
+msgstr "Aggiungi melario"
+
+msgid "Aggiungi note libere per qualsiasi osservazione specifica"
+msgstr "Aggiungi note libere per qualsiasi osservazione specifica"
+
+msgid "Aggiungi nuovo tipo"
+msgstr "Aggiungi nuovo tipo"
+
+msgid "Aggiungi riga"
+msgstr "Aggiungi riga"
+
+msgid "Aggiungi un <strong>melario</strong> all'arnia quando è il momento della raccolta"
+msgstr "Aggiungi un <strong>melario</strong> all'arnia quando è il momento della raccolta"
+
+msgid "Aggiungi una nuova arnia"
+msgstr "Aggiungi una nuova arnia"
+
+msgid "Aggiungi uno dopo una smielatura"
+msgstr "Aggiungi uno dopo una smielatura"
+
+#, python-format
+msgid "Al %(d)s"
+msgstr "Al %(d)s"
+
+msgid "Albero Genealogico"
+msgstr "Albero Genealogico"
+
+msgid "Albero Genealogico Completo"
+msgstr "Albero Genealogico Completo"
+
+msgid "Albero Genealogico Regina"
+msgstr "Albero Genealogico Regina"
+
+msgid "Albero genealogico completo"
+msgstr "Albero genealogico completo"
+
+#, python-format
+msgid "Alta probabilità di pioggia (%(p)s%): Considerare di posticipare operazioni non urgenti."
+msgstr "Alta probabilità di pioggia (%(p)s%): Considerare di posticipare operazioni non urgenti."
+
+msgid "Altro"
+msgstr "Altro"
+
+msgid "Alveari"
+msgstr "Alveari"
+
+msgid "Amministratore"
+msgstr "Amministratore"
+
+msgid "Amministratore:"
+msgstr "Amministratore:"
+
+msgid "Ammort. %"
+msgstr "Ammort. %"
+
+msgid "Ammortamento"
+msgstr "Ammortamento"
+
+msgid "Analisi AI"
+msgstr "Analisi AI"
+
+#, python-format
+msgid "Analisi Telaini — %(a)s"
+msgstr "Analisi Telaini — %(a)s"
+
+msgid "Analisi Telaino AI"
+msgstr "Analisi Telaino AI"
+
+msgid "Analisi Telaino AI — Apiary"
+msgstr "Analisi Telaino AI — Apiary"
+
+msgid "Analisi diagnostica"
+msgstr "Analisi diagnostica"
+
+msgid "Analisi in corso…"
+msgstr "Analisi in corso…"
+
+msgid "Analisi salvata!"
+msgstr "Analisi salvata!"
+
+msgid "Analisi telaini e immagini caricate"
+msgstr "Analisi telaini e immagini caricate"
+
+msgid "Analizza e salva"
+msgstr "Analizza e salva"
+
+msgid "Analizza punto (5 km)"
+msgstr "Analizza punto (5 km)"
+
+msgid "Anche un piccolo gesto conta 🍯"
+msgstr "Anche un piccolo gesto conta 🍯"
+
+msgid "Anni terminanti in 1, 6"
+msgstr "Anni terminanti in 1, 6"
+
+msgid "Anni terminanti in 2, 7"
+msgstr "Anni terminanti in 2, 7"
+
+msgid "Anni terminanti in 3, 8"
+msgstr "Anni terminanti in 3, 8"
+
+msgid "Anni terminanti in 4, 9"
+msgstr "Anni terminanti in 4, 9"
+
+msgid "Anni terminanti in 5, 0"
+msgstr "Anni terminanti in 5, 0"
+
+msgid "Anno Nascita"
+msgstr "Anno Nascita"
+
+msgid "Anno corrente"
+msgstr "Anno corrente"
+
+msgid "Annullato"
+msgstr "Annullato"
+
+msgid "Anteprima"
+msgstr "Anteprima"
+
+msgid "Api agitate o \\\"urlanti\\\" (può indicare assenza di regina)"
+msgstr "Api agitate o \\\"urlanti\\\" (può indicare assenza di regina)"
+
+#, python-format
+msgid "Apiari (%(n)s)"
+msgstr "Apiari (%(n)s)"
+
+msgid "Apiari Condivisi"
+msgstr "Apiari Condivisi"
+
+msgid "Apiari condivisi"
+msgstr "Apiari condivisi"
+
+msgid "Apiari del gruppo"
+msgstr "Apiari del gruppo"
+
+msgid "Apiari e arnie"
+msgstr "Apiari e arnie"
+
+msgid "Apiari pubblici"
+msgstr "Apiari pubblici"
+
+msgid "Apiari, arnie, controlli e tutti i dati di apicoltura"
+msgstr "Apiari, arnie, controlli e tutti i dati di apicoltura"
+
+msgid "Apiario (opzionale)"
+msgstr "Apiario (opzionale)"
+
+msgid "Apiario:"
+msgstr "Apiario:"
+
+msgid "Apiary Manager"
+msgstr "Apiary Manager"
+
+msgid "Apiary è sviluppato con passione nel tempo libero da appassionati di apicoltura e tecnologia."
+msgstr "Apiary è sviluppato con passione nel tempo libero da appassionati di apicoltura e tecnologia."
+
+msgid "Apiary — Apiary"
+msgstr "Apiary — Apiary"
+
+msgid "Applica filtri"
+msgstr "Applica filtri"
+
+msgid "Approva"
+msgstr "Approva"
+
+msgid "Apri Cantina"
+msgstr "Apri Cantina"
+
+msgid "Apri Cantina →"
+msgstr "Apri Cantina →"
+
+msgid "Apri arnia · Apiary"
+msgstr "Apri arnia · Apiary"
+
+msgid "Apri in Apiary App"
+msgstr "Apri in Apiary App"
+
+msgid "Area approssimativa della fioritura"
+msgstr "Area approssimativa della fioritura"
+
+#, python-format
+msgid "Arnia #%(n)s - %(a)s"
+msgstr "Arnia #%(n)s - %(a)s"
+
+#, python-format
+msgid "Arnia #%(num)s"
+msgstr "Arnia #%(num)s"
+
+#, python-format
+msgid "Arnia #%(numero)s"
+msgstr "Arnia #%(numero)s"
+
+#, python-format
+msgid "Arnia %(n)s"
+msgstr "Arnia %(n)s"
+
+#, python-format
+msgid "Arnia %(numero)s"
+msgstr "Arnia %(numero)s"
+
+msgid "Arnia 12, regina assente, celle reali 2, rischio sciamatura"
+msgstr "Arnia 12, regina assente, celle reali 2, rischio sciamatura"
+
+msgid "Arnia 5, famiglia forte, 4 telaini covata, 3 scorte, regina presente"
+msgstr "Arnia 5, famiglia forte, 4 telaini covata, 3 scorte, regina presente"
+
+msgid "Arnia 7, varroa visibile, 5 telaini covata, trattamento necessario"
+msgstr "Arnia 7, varroa visibile, 5 telaini covata, trattamento necessario"
+
+msgid "Arnia origine:"
+msgstr "Arnia origine:"
+
+msgid "Arnia risultante"
+msgstr "Arnia risultante"
+
+msgid "Arnia:"
+msgstr "Arnia:"
+
+msgid "Arnie"
+msgstr "Arnie"
+
+msgid "Arnie & Controlli"
+msgstr "Arnie & Controlli"
+
+msgid "Arnie & Controlli — Registrare un'ispezione"
+msgstr "Arnie & Controlli — Registrare un'ispezione"
+
+msgid "Arnie Controllate"
+msgstr "Arnie Controllate"
+
+msgid "Arnie da trattare"
+msgstr "Arnie da trattare"
+
+#, python-format
+msgid "Arnie trattate — %(nome)s"
+msgstr "Arnie trattate — %(nome)s"
+
+msgid "Arnie:"
+msgstr "Arnie:"
+
+msgid "Assegna ruoli: <em>Proprietario</em> (controllo totale), <em>Collaboratore</em> (può modificare), <em>Visualizzatore</em> (solo lettura)"
+msgstr "Assegna ruoli: <em>Proprietario</em> (controllo totale), <em>Collaboratore</em> (può modificare), <em>Visualizzatore</em> (solo lettura)"
+
+msgid "Assenza di uova e larve giovani"
+msgstr "Assenza di uova e larve giovani"
+
+msgid "Attenzione"
+msgstr "Attenzione"
+
+msgid "Attenzione:"
+msgstr "Attenzione:"
+
+msgid "Attenzione: il totale delle percentuali dovrebbe essere 100%."
+msgstr "Attenzione: il totale delle percentuali dovrebbe essere 100%."
+
+msgid "Attenzione: modificare il ruolo di un membro influisce sui suoi permessi all'interno del gruppo."
+msgstr "Attenzione: modificare il ruolo di un membro influisce sui suoi permessi all'interno del gruppo."
+
+msgid "Attenzione: operazione irreversibile"
+msgstr "Attenzione: operazione irreversibile"
+
+msgid "Attiva Invito"
+msgstr "Attiva Invito"
+
+msgid "Attiva:"
+msgstr "Attiva:"
+
+msgid "Attive"
+msgstr "Attive"
+
+msgid "Attrezzatura:"
+msgstr "Attrezzatura:"
+
+msgid "Attuale"
+msgstr "Attuale"
+
+msgid "Avanti"
+msgstr "Avanti"
+
+msgid "Avanti: carica foto"
+msgstr "Avanti: carica foto"
+
+msgid "Azioni"
+msgstr "Azioni"
+
+msgid "Azioni Rapide"
+msgstr "Azioni Rapide"
+
+msgid "Azioni rapide"
+msgstr "Azioni rapide"
+
+msgid "Azzera"
+msgstr "Azzera"
+
+msgid "Benvenuto in Apiary"
+msgstr "Benvenuto in Apiary"
+
+msgid "Bianco"
+msgstr "Bianco"
+
+msgid "Bianco (anni che finiscono in 1/6), Giallo (2/7), Rosso (3/8), Verde (4/9), Blu (5/0)."
+msgstr "Bianco (anni che finiscono in 1/6), Giallo (2/7), Rosso (3/8), Verde (4/9), Blu (5/0)."
+
+msgid "Bidone inox"
+msgstr "Bidone inox"
+
+msgid "Bisnonna"
+msgstr "Bisnonna"
+
+msgid "Blocco Covata"
+msgstr "Blocco Covata"
+
+msgid "Blocco covata richiesto:"
+msgstr "Blocco covata richiesto:"
+
+msgid "Blocco di Covata"
+msgstr "Blocco di Covata"
+
+msgid "Blocco di Covata:"
+msgstr "Blocco di Covata:"
+
+msgid "Blu"
+msgstr "Blu"
+
+msgid "Box"
+msgstr "Box"
+
+msgid "Buy Me a Coffee"
+msgstr "Buy Me a Coffee"
+
+msgid "Calendario Apiario"
+msgstr "Calendario Apiario"
+
+msgid "Calendario Eventi"
+msgstr "Calendario Eventi"
+
+msgid "Cambia arnia"
+msgstr "Cambia arnia"
+
+msgid "Cambia telaino"
+msgstr "Cambia telaino"
+
+msgid "Canale"
+msgstr "Canale"
+
+msgid "Canale di vendita"
+msgstr "Canale di vendita"
+
+msgid "Capacità (kg)"
+msgstr "Capacità (kg)"
+
+msgid "Capacità contenitore"
+msgstr "Capacità contenitore"
+
+msgid "Caratteristica"
+msgstr "Caratteristica"
+
+msgid "Caricamento arnie…"
+msgstr "Caricamento arnie…"
+
+msgid "Categoria"
+msgstr "Categoria"
+
+msgid "Categoria a cui appartiene l\\'attrezzo"
+msgstr "Categoria a cui appartiene l\\'attrezzo"
+
+msgid "Categoria:"
+msgstr "Categoria:"
+
+msgid "Categorie"
+msgstr "Categorie"
+
+msgid "Categorie Attrezzature"
+msgstr "Categorie Attrezzature"
+
+msgid "Categorie Esistenti"
+msgstr "Categorie Esistenti"
+
+msgid "Celle reali"
+msgstr "Celle reali"
+
+msgid "Celle reali presenti"
+msgstr "Celle reali presenti"
+
+msgid "Centro Notifiche"
+msgstr "Centro Notifiche"
+
+msgid "Cerca"
+msgstr "Cerca"
+
+msgid "Cerca apiari, arnie, trattamenti, fioriture, utenti…"
+msgstr "Cerca apiari, arnie, trattamenti, fioriture, utenti…"
+
+msgid "Cerca località:"
+msgstr "Cerca località:"
+
+msgid "Cerca stessa razza"
+msgstr "Cerca stessa razza"
+
+msgid "Ciao,"
+msgstr "Ciao,"
+
+msgid "Classi rilevate dal modello"
+msgstr "Classi rilevate dal modello"
+
+msgid "Clicca"
+msgstr "Clicca"
+
+msgid "Clicca su <strong>Nuovo Apiario</strong> nella barra laterale o dal pulsante in alto a destra"
+msgstr "Clicca su <strong>Nuovo Apiario</strong> nella barra laterale o dal pulsante in alto a destra"
+
+msgid "Clicca su <strong>Nuovo Controllo</strong>"
+msgstr "Clicca su <strong>Nuovo Controllo</strong>"
+
+msgid "Clicca sul pulsante qui sotto per accettare l'invito e accedere al gruppo:"
+msgstr "Clicca sul pulsante qui sotto per accettare l'invito e accedere al gruppo:"
+
+msgid "Clicca sul widget chat in basso a destra per fare domande sull'apicoltura all'assistente Gemini. Puoi chiedere consigli su trattamenti, interpretare i tuoi dati o avere supporto decisionale."
+msgstr "Clicca sul widget chat in basso a destra per fare domande sull'apicoltura all'assistente Gemini. Puoi chiedere consigli su trattamenti, interpretare i tuoi dati o avere supporto decisionale."
+
+msgid "Clicca sull'icona genealogia per vedere l'albero completo"
+msgstr "Clicca sull'icona genealogia per vedere l'albero completo"
+
+msgid "Clicca sulla mappa per analizzare un punto"
+msgstr "Clicca sulla mappa per analizzare un punto"
+
+msgid "Clicca sulla mappa per vedere le specie mellifere in quel raggio"
+msgstr "Clicca sulla mappa per vedere le specie mellifere in quel raggio"
+
+msgid "Cliente"
+msgstr "Cliente"
+
+msgid "Cliente / Acquirente"
+msgstr "Cliente / Acquirente"
+
+msgid "Cliente registrato"
+msgstr "Cliente registrato"
+
+#, python-format
+msgid "Cliente: %(nome)s"
+msgstr "Cliente: %(nome)s"
+
+msgid "Close"
+msgstr "Close"
+
+msgid "Codici Colore Standard"
+msgstr "Codici Colore Standard"
+
+msgid "Codici Colore Standard:"
+msgstr "Codici Colore Standard:"
+
+msgid "Collabora con altri apicoltori condividendo apiari e risorse"
+msgstr "Collabora con altri apicoltori condividendo apiari e risorse"
+
+msgid "Collaborazione — Condividere con altri apicoltori"
+msgstr "Collaborazione — Condividere con altri apicoltori"
+
+msgid "Colore:"
+msgstr "Colore:"
+
+msgid "Colori di marcatura internazionali:"
+msgstr "Colori di marcatura internazionali:"
+
+msgid "Comandi vocali:"
+msgstr "Comandi vocali:"
+
+msgid "Come funziona il Controllo Vocale"
+msgstr "Come funziona il Controllo Vocale"
+
+msgid "Come funziona la smielatura?"
+msgstr "Come funziona la smielatura?"
+
+msgid "Come membro di un gruppo, potrai:"
+msgstr "Come membro di un gruppo, potrai:"
+
+msgid "Come richiedere l'eliminazione dei dati"
+msgstr "Come richiedere l'eliminazione dei dati"
+
+msgid "Compila i campi principali: <em>data, forza della colonia (1–10), presenza della regina, stato sanitario</em>"
+msgstr "Compila i campi principali: <em>data, forza della colonia (1–10), presenza della regina, stato sanitario</em>"
+
+msgid "Compila i dati della vendita e i prodotti venduti"
+msgstr "Compila i dati della vendita e i prodotti venduti"
+
+msgid "Completa Sostituzione"
+msgstr "Completa Sostituzione"
+
+#, python-format
+msgid "Completa le informazioni sulla regina durante il controllo del <strong>%(data)s</strong>."
+msgstr "Completa le informazioni sulla regina durante il controllo del <strong>%(data)s</strong>."
+
+msgid "Completa trattamento"
+msgstr "Completa trattamento"
+
+msgid "Completato"
+msgstr "Completato"
+
+msgid "Completato il"
+msgstr "Completato il"
+
+msgid "Comportamento tranquillo delle api"
+msgstr "Comportamento tranquillo delle api"
+
+msgid "Con genealogia:"
+msgstr "Con genealogia:"
+
+msgid "Condividendo questo apiario, i membri del gruppo potranno visualizzarne i dettagli, le arnie, i controlli, le fioriture e i trattamenti sanitari, in base al loro ruolo nel gruppo."
+msgstr "Condividendo questo apiario, i membri del gruppo potranno visualizzarne i dettagli, le arnie, i controlli, le fioriture e i trattamenti sanitari, in base al loro ruolo nel gruppo."
+
+msgid "Condividere apiari e arnie"
+msgstr "Condividere apiari e arnie"
+
+msgid "Condividi Apiario"
+msgstr "Condividi Apiario"
+
+msgid "Condividi con il gruppo"
+msgstr "Condividi con il gruppo"
+
+msgid "Condividi gli apiari con soci o collaboratori"
+msgstr "Condividi gli apiari con soci o collaboratori"
+
+msgid "Condividi uno o più apiari con il gruppo dall'interno dell'apiario → <em>Condividi</em>"
+msgstr "Condividi uno o più apiari con il gruppo dall'interno dell'apiario → <em>Condividi</em>"
+
+msgid "Condiviso"
+msgstr "Condiviso"
+
+msgid "Condiviso con il gruppo"
+msgstr "Condiviso con il gruppo"
+
+msgid "Condizione"
+msgstr "Condizione"
+
+msgid "Condizione Attuale"
+msgstr "Condizione Attuale"
+
+msgid "Condizione fisica dell\\'attrezzo: Nuovo → Ottimo → Buono → Discreto → Usurato → Da Riparare"
+msgstr "Condizione fisica dell\\'attrezzo: Nuovo → Ottimo → Buono → Discreto → Usurato → Da Riparare"
+
+msgid "Condizione:"
+msgstr "Condizione:"
+
+msgid "Condizioni Meteo (Icone)"
+msgstr "Condizioni Meteo (Icone)"
+
+msgid "Condizioni ottimali per l'attività delle api, aspettarsi un'intensa bottinatura."
+msgstr "Condizioni ottimali per l'attività delle api, aspettarsi un'intensa bottinatura."
+
+msgid "Conf. media:"
+msgstr "Conf. media:"
+
+msgid "Conferma"
+msgstr "Conferma"
+
+msgid "Conferma Eliminazione"
+msgstr "Conferma Eliminazione"
+
+msgid "Conferma Eliminazione Fioritura"
+msgstr "Conferma Eliminazione Fioritura"
+
+msgid "Conferma Eliminazione Gruppo"
+msgstr "Conferma Eliminazione Gruppo"
+
+msgid "Conferma Eliminazione Quota"
+msgstr "Conferma Eliminazione Quota"
+
+msgid "Conferma Eliminazione Tipo"
+msgstr "Conferma Eliminazione Tipo"
+
+msgid "Conferma Posizione"
+msgstr "Conferma Posizione"
+
+msgid "Conferma Restituzione"
+msgstr "Conferma Restituzione"
+
+msgid "Conferma Rimozione"
+msgstr "Conferma Rimozione"
+
+msgid "Conferma Rimozione Membro"
+msgstr "Conferma Rimozione Membro"
+
+msgid "Conferma Uscita dal Gruppo"
+msgstr "Conferma Uscita dal Gruppo"
+
+msgid "Conferma digitando la tua password"
+msgstr "Conferma digitando la tua password"
+
+msgid "Confronta"
+msgstr "Confronta"
+
+msgid "Confronta Selezionate"
+msgstr "Confronta Selezionate"
+
+msgid "Confronto Temperatura e Attività Arnie"
+msgstr "Confronto Temperatura e Attività Arnie"
+
+msgid "Consigli per l'Apiario in base al Meteo"
+msgstr "Consigli per l'Apiario in base al Meteo"
+
+msgid "Consiglio:"
+msgstr "Consiglio:"
+
+msgid "Controlli"
+msgstr "Controlli"
+
+msgid "Controlli Apiario"
+msgstr "Controlli Apiario"
+
+msgid "Controlli Arnie"
+msgstr "Controlli Arnie"
+
+msgid "Controlli, trattamenti sanitari, melari"
+msgstr "Controlli, trattamenti sanitari, melari"
+
+#, python-format
+msgid "Controllo #%(num)s"
+msgstr "Controllo #%(num)s"
+
+#, python-format
+msgid "Converti Nucleo #%(n)s"
+msgstr "Converti Nucleo #%(n)s"
+
+msgid "Converti in Arnia"
+msgstr "Converti in Arnia"
+
+msgid "Converti in arnia"
+msgstr "Converti in arnia"
+
+msgid "Convertiti in Arnia"
+msgstr "Convertiti in Arnia"
+
+msgid "Convertiti in arnia"
+msgstr "Convertiti in arnia"
+
+msgid "Convertito"
+msgstr "Convertito"
+
+#, python-format
+msgid "Convertito il %(d)s"
+msgstr "Convertito il %(d)s"
+
+msgid "Coordinate:"
+msgstr "Coordinate:"
+
+msgid "Copia Controllo"
+msgstr "Copia Controllo"
+
+msgid "Copia su arnie selezionate"
+msgstr "Copia su arnie selezionate"
+
+msgid "Costo"
+msgstr "Costo"
+
+msgid "Costo (€)"
+msgstr "Costo (€)"
+
+#, python-format
+msgid "Cov: %(c)s · Sc: %(s)s"
+msgstr "Cov: %(c)s · Sc: %(s)s"
+
+msgid "Covata compatta e ben distribuita nei telaini"
+msgstr "Covata compatta e ben distribuita nei telaini"
+
+msgid "Covata sparsa o irregolare"
+msgstr "Covata sparsa o irregolare"
+
+msgid "Crea Apiario"
+msgstr "Crea Apiario"
+
+msgid "Crea Categoria"
+msgstr "Crea Categoria"
+
+msgid "Crea Fioritura"
+msgstr "Crea Fioritura"
+
+msgid "Crea Gruppo"
+msgstr "Crea Gruppo"
+
+msgid "Crea Nuovo Gruppo"
+msgstr "Crea Nuovo Gruppo"
+
+msgid "Crea Tipo di Trattamento"
+msgstr "Crea Tipo di Trattamento"
+
+msgid "Crea Trattamento"
+msgstr "Crea Trattamento"
+
+msgid "Crea contenitore"
+msgstr "Crea contenitore"
+
+msgid "Crea controllo"
+msgstr "Crea controllo"
+
+msgid "Crea controllo arnia da questa analisi"
+msgstr "Crea controllo arnia da questa analisi"
+
+msgid "Crea il mio primo apiario"
+msgstr "Crea il mio primo apiario"
+
+msgid "Crea il primo apiario"
+msgstr "Crea il primo apiario"
+
+msgid "Crea maturatore"
+msgstr "Crea maturatore"
+
+msgid "Crea prima un apiario con delle arnie attive."
+msgstr "Crea prima un apiario con delle arnie attive."
+
+msgid "Crea un gruppo e invita altri apicoltori via email o link"
+msgstr "Crea un gruppo e invita altri apicoltori via email o link"
+
+msgid "Crea un maturatore per questa smielatura"
+msgstr "Crea un maturatore per questa smielatura"
+
+msgid "Creato:"
+msgstr "Creato:"
+
+msgid "Creatore"
+msgstr "Creatore"
+
+msgid "Creatore:"
+msgstr "Creatore:"
+
+msgid "Cronologia chat AI"
+msgstr "Cronologia chat AI"
+
+#, python-format
+msgid "Da qui puoi gestire la condivisione dell'apiario \"%(nome)s\" con un gruppo di collaboratori."
+msgstr "Da qui puoi gestire la condivisione dell'apiario \"%(nome)s\" con un gruppo di collaboratori."
+
+msgid "Dai un nome descrittivo alle arnie (es: \\\"Arnia 1 — Ligustica\\\", \\\"Arnia Nucleo Primavera\\\") per ritrovarle facilmente."
+msgstr "Dai un nome descrittivo alle arnie (es: \\\"Arnia 1 — Ligustica\\\", \\\"Arnia Nucleo Primavera\\\") per ritrovarle facilmente."
+
+#, python-format
+msgid "Dal %(d)s"
+msgstr "Dal %(d)s"
+
+msgid "Dal:"
+msgstr "Dal:"
+
+msgid "Dall'interno dell'apiario, clicca <strong>Nuova Arnia</strong> per aggiungere le tue arnie"
+msgstr "Dall'interno dell'apiario, clicca <strong>Nuova Arnia</strong> per aggiungere le tue arnie"
+
+msgid "Dall'invasettamento, tracccia i vasetti prodotti e il peso finale"
+msgstr "Dall'invasettamento, tracccia i vasetti prodotti e il peso finale"
+
+msgid "Data Acquisto"
+msgstr "Data Acquisto"
+
+msgid "Data Acquisto:"
+msgstr "Data Acquisto:"
+
+msgid "Data Esecuzione"
+msgstr "Data Esecuzione"
+
+msgid "Data Fine"
+msgstr "Data Fine"
+
+msgid "Data Fine Prevista"
+msgstr "Data Fine Prevista"
+
+msgid "Data Inizio"
+msgstr "Data Inizio"
+
+msgid "Data Inizio Prestito"
+msgstr "Data Inizio Prestito"
+
+msgid "Data Introduzione"
+msgstr "Data Introduzione"
+
+msgid "Data Programmata"
+msgstr "Data Programmata"
+
+msgid "Data Restituzione"
+msgstr "Data Restituzione"
+
+msgid "Data aggiunta"
+msgstr "Data aggiunta"
+
+msgid "Data controllo origine:"
+msgstr "Data controllo origine:"
+
+msgid "Data controllo:"
+msgstr "Data controllo:"
+
+msgid "Data conversione"
+msgstr "Data conversione"
+
+msgid "Data creazione:"
+msgstr "Data creazione:"
+
+msgid "Data del nuovo controllo:"
+msgstr "Data del nuovo controllo:"
+
+msgid "Data di nascita:"
+msgstr "Data di nascita:"
+
+msgid "Data fine:"
+msgstr "Data fine:"
+
+msgid "Data inizio"
+msgstr "Data inizio"
+
+msgid "Data inizio:"
+msgstr "Data inizio:"
+
+msgid "Data installazione"
+msgstr "Data installazione"
+
+msgid "Data installazione:"
+msgstr "Data installazione:"
+
+msgid "Data intro:"
+msgstr "Data intro:"
+
+msgid "Data introduzione:"
+msgstr "Data introduzione:"
+
+msgid "Data nascita:"
+msgstr "Data nascita:"
+
+msgid "Data posizionamento"
+msgstr "Data posizionamento"
+
+msgid "Data posizionamento:"
+msgstr "Data posizionamento:"
+
+msgid "Data riempimento"
+msgstr "Data riempimento"
+
+msgid "Data rimozione"
+msgstr "Data rimozione"
+
+msgid "Data scadenza:"
+msgstr "Data scadenza:"
+
+msgid "Data sciamatura:"
+msgstr "Data sciamatura:"
+
+msgid "Data smielatura"
+msgstr "Data smielatura"
+
+msgid "Data suggerita per la prossima manutenzione"
+msgstr "Data suggerita per la prossima manutenzione"
+
+msgid "Data:"
+msgstr "Data:"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Dati AI e cronologia chat"
+msgstr "Dati AI e cronologia chat"
+
+msgid "Dati Economici"
+msgstr "Dati Economici"
+
+msgid "Dati GBIF 2000–2025"
+msgstr "Dati GBIF 2000–2025"
+
+msgid "Dati Nucleo"
+msgstr "Dati Nucleo"
+
+msgid "Dati Regina"
+msgstr "Dati Regina"
+
+msgid "Dati Smielatura"
+msgstr "Dati Smielatura"
+
+msgid "Dati Sostituzione"
+msgstr "Dati Sostituzione"
+
+msgid "Dati conservati"
+msgstr "Dati conservati"
+
+msgid "Dati conservati dopo l'eliminazione"
+msgstr "Dati conservati dopo l'eliminazione"
+
+msgid "Dati eliminati"
+msgstr "Dati eliminati"
+
+msgid "Dati meteo"
+msgstr "Dati meteo"
+
+msgid "Dati meteo associati agli apiari"
+msgstr "Dati meteo associati agli apiari"
+
+msgid "Dati non disponibili."
+msgstr "Dati non disponibili."
+
+msgid "Dati vendita"
+msgstr "Dati vendita"
+
+#, python-format
+msgid "Del gruppo (%(n)s)"
+msgstr "Del gruppo (%(n)s)"
+
+msgid "Densità GBIF (milioni di osservazioni aggregate)"
+msgstr "Densità GBIF (milioni di osservazioni aggregate)"
+
+msgid "Descrizione"
+msgstr "Descrizione"
+
+msgid "Descrizione breve dello scopo del pagamento"
+msgstr "Descrizione breve dello scopo del pagamento"
+
+msgid "Descrizione:"
+msgstr "Descrizione:"
+
+msgid "Deseleziona tutte"
+msgstr "Deseleziona tutte"
+
+msgid "Deseleziona tutti"
+msgstr "Deseleziona tutti"
+
+msgid "Dettagli Blocco Covata"
+msgstr "Dettagli Blocco Covata"
+
+msgid "Dettagli Controllo da Copiare"
+msgstr "Dettagli Controllo da Copiare"
+
+msgid "Dettagli Evento"
+msgstr "Dettagli Evento"
+
+msgid "Dettagli Regina"
+msgstr "Dettagli Regina"
+
+msgid "Dettagli completi"
+msgstr "Dettagli completi"
+
+msgid "Dettagli controllo:"
+msgstr "Dettagli controllo:"
+
+msgid "Dettagli del gruppo:"
+msgstr "Dettagli del gruppo:"
+
+msgid "Dettagli dell'invito:"
+msgstr "Dettagli dell'invito:"
+
+msgid "Dettagli fioritura:"
+msgstr "Dettagli fioritura:"
+
+msgid "Dettagli quota:"
+msgstr "Dettagli quota:"
+
+msgid "Dettagli su come applicare correttamente il trattamento"
+msgstr "Dettagli su come applicare correttamente il trattamento"
+
+msgid "Dettagli tipo trattamento:"
+msgstr "Dettagli tipo trattamento:"
+
+msgid "Dettagli trattamento:"
+msgstr "Dettagli trattamento:"
+
+msgid "Dettagli:"
+msgstr "Dettagli:"
+
+msgid "Dettaglio"
+msgstr "Dettaglio"
+
+msgid "Dettaglio Regina"
+msgstr "Dettaglio Regina"
+
+msgid "Dettaglio Smielatura"
+msgstr "Dettaglio Smielatura"
+
+msgid "Discendenza:"
+msgstr "Discendenza:"
+
+msgid "Disponibili"
+msgstr "Disponibili"
+
+msgid "Distribuzione delle specie mellifere per pianificare gli spostamenti"
+msgstr "Distribuzione delle specie mellifere per pianificare gli spostamenti"
+
+msgid "Django"
+msgstr "Django"
+
+#, python-format
+msgid "Doc: %(doc)s/5 | Prod: %(prod)s/5"
+msgstr "Doc: %(doc)s/5 | Prod: %(prod)s/5"
+
+msgid "Docilità"
+msgstr "Docilità"
+
+msgid "Docilità:"
+msgstr "Docilità:"
+
+msgid "Dovuto"
+msgstr "Dovuto"
+
+msgid "Droplet"
+msgstr "Droplet"
+
+msgid "Durante il periodo di sospensione non è possibile raccogliere il miele."
+msgstr "Durante il periodo di sospensione non è possibile raccogliere il miele."
+
+msgid "Editor:"
+msgstr "Editor:"
+
+msgid "Elenco Completo"
+msgstr "Elenco Completo"
+
+msgid "Elimina Account – Apiary Manager"
+msgstr "Elimina Account – Apiary Manager"
+
+msgid "Elimina Arnia"
+msgstr "Elimina Arnia"
+
+#, python-format
+msgid "Elimina Arnia #%(numero)s"
+msgstr "Elimina Arnia #%(numero)s"
+
+msgid "Elimina Attrezzatura"
+msgstr "Elimina Attrezzatura"
+
+msgid "Elimina Cliente"
+msgstr "Elimina Cliente"
+
+msgid "Elimina Dati – Apiary Manager"
+msgstr "Elimina Dati – Apiary Manager"
+
+msgid "Elimina Definitivamente"
+msgstr "Elimina Definitivamente"
+
+msgid "Elimina Fioritura"
+msgstr "Elimina Fioritura"
+
+msgid "Elimina Gruppo"
+msgstr "Elimina Gruppo"
+
+#, python-format
+msgid "Elimina Melario #%(i)s"
+msgstr "Elimina Melario #%(i)s"
+
+msgid "Elimina Nucleo"
+msgstr "Elimina Nucleo"
+
+#, python-format
+msgid "Elimina Nucleo #%(n)s"
+msgstr "Elimina Nucleo #%(n)s"
+
+msgid "Elimina Vendita"
+msgstr "Elimina Vendita"
+
+msgid "Elimina definitivamente"
+msgstr "Elimina definitivamente"
+
+msgid "Elimina definitivamente il mio account"
+msgstr "Elimina definitivamente il mio account"
+
+msgid "Elimina il tuo account ora"
+msgstr "Elimina il tuo account ora"
+
+msgid "Elimina lotto"
+msgstr "Elimina lotto"
+
+msgid "Elimina melario"
+msgstr "Elimina melario"
+
+msgid "Elimina nucleo"
+msgstr "Elimina nucleo"
+
+msgid "Elimina tutti i miei dati"
+msgstr "Elimina tutti i miei dati"
+
+msgid "Elimina tutti i tuoi dati ora"
+msgstr "Elimina tutti i tuoi dati ora"
+
+msgid "Elimina vendita"
+msgstr "Elimina vendita"
+
+#, python-format
+msgid "Eliminare definitivamente il melario #%(mi)s <strong>(%(t)s telaini)</strong>?"
+msgstr "Eliminare definitivamente il melario #%(mi)s <strong>(%(t)s telaini)</strong>?"
+
+#, python-format
+msgid "Eliminare il Nucleo #%(n)s?"
+msgstr "Eliminare il Nucleo #%(n)s?"
+
+#, python-format
+msgid "Eliminare il cliente <strong>%(n)s</strong>?"
+msgstr "Eliminare il cliente <strong>%(n)s</strong>?"
+
+msgid "Eliminare questa analisi?"
+msgstr "Eliminare questa analisi?"
+
+msgid "Eliminare questo invasettamento?"
+msgstr "Eliminare questo invasettamento?"
+
+msgid "Eliminare questo lotto? L'operazione non può essere annullata."
+msgstr "Eliminare questo lotto? L'operazione non può essere annullata."
+
+msgid "Eliminazione account e dati personali"
+msgstr "Eliminazione account e dati personali"
+
+msgid "Eliminazione dati personali"
+msgstr "Eliminazione dati personali"
+
+msgid "Email (opzionale, per risponderti)"
+msgstr "Email (opzionale, per risponderti)"
+
+msgid "Entra nell'arnia che vuoi controllare"
+msgstr "Entra nell'arnia che vuoi controllare"
+
+msgid "Errore di rete."
+msgstr "Errore di rete."
+
+msgid "Es. 500"
+msgstr "Es. 500"
+
+msgid "Es. Inventario annuale 2025"
+msgstr "Es. Inventario annuale 2025"
+
+msgid "Es. Mann Lake…"
+msgstr "Es. Mann Lake…"
+
+msgid "Escludi-regina"
+msgstr "Escludi-regina"
+
+msgid "Escludi-regina (QE)"
+msgstr "Escludi-regina (QE)"
+
+msgid "Eseguito Da"
+msgstr "Eseguito Da"
+
+msgid "Esempi di frasi riconosciute"
+msgstr "Esempi di frasi riconosciute"
+
+msgid "Esempi di frasi:"
+msgstr "Esempi di frasi:"
+
+msgid "Esplora prima"
+msgstr "Esplora prima"
+
+msgid "Esporta CSV"
+msgstr "Esporta CSV"
+
+msgid "Esporta eventi (.ics)"
+msgstr "Esporta eventi (.ics)"
+
+msgid "Esporta produzione"
+msgstr "Esporta produzione"
+
+msgid "Esporta produzione miele"
+msgstr "Esporta produzione miele"
+
+msgid "Esportazioni — PDF e CSV"
+msgstr "Esportazioni — PDF e CSV"
+
+msgid "Età"
+msgstr "Età"
+
+msgid "Età (giorni)"
+msgstr "Età (giorni)"
+
+msgid "Età sconosciuta"
+msgstr "Età sconosciuta"
+
+msgid "Età:"
+msgstr "Età:"
+
+msgid "Eventi Regina"
+msgstr "Eventi Regina"
+
+msgid "Eyedropper"
+msgstr "Eyedropper"
+
+msgid "Facciata:"
+msgstr "Facciata:"
+
+msgid "Fai click su un apiario per visualizzare i dettagli meteo."
+msgstr "Fai click su un apiario per visualizzare i dettagli meteo."
+
+msgid "Fai click sulla mappa per selezionare il punto esatto, oppure cerca una località."
+msgstr "Fai click sulla mappa per selezionare il punto esatto, oppure cerca una località."
+
+msgid "Fai click sulla mappa per selezionare la posizione"
+msgstr "Fai click sulla mappa per selezionare la posizione"
+
+msgid "Fatto da apicoltori"
+msgstr "Fatto da apicoltori"
+
+msgid "Fecondata"
+msgstr "Fecondata"
+
+msgid "Ferma registrazione"
+msgstr "Ferma registrazione"
+
+msgid "Figlie"
+msgstr "Figlie"
+
+msgid "Filtra Inventario"
+msgstr "Filtra Inventario"
+
+msgid "Filtra e confronta le regine dei tuoi apiari"
+msgstr "Filtra e confronta le regine dei tuoi apiari"
+
+msgid "Filtri"
+msgstr "Filtri"
+
+msgid "Filtri attivi:"
+msgstr "Filtri attivi:"
+
+msgid "Filtri di Ricerca"
+msgstr "Filtri di Ricerca"
+
+msgid "Fine Sospensione"
+msgstr "Fine Sospensione"
+
+msgid "Fioritura"
+msgstr "Fioritura"
+
+msgid "Fioritura attiva"
+msgstr "Fioritura attiva"
+
+msgid "Fioriture Registrate"
+msgstr "Fioriture Registrate"
+
+#, python-format
+msgid "Fioriture attive (%(n)s)"
+msgstr "Fioriture attive (%(n)s)"
+
+msgid "Flora mellifera"
+msgstr "Flora mellifera"
+
+msgid "Flutter"
+msgstr "Flutter"
+
+msgid "Fogli cerei"
+msgstr "Fogli cerei"
+
+msgid "Formato"
+msgstr "Formato"
+
+msgid "Formato (g)"
+msgstr "Formato (g)"
+
+msgid "Formato vasetto"
+msgstr "Formato vasetto"
+
+msgid "Fornitore"
+msgstr "Fornitore"
+
+msgid "Fornitore:"
+msgstr "Fornitore:"
+
+msgid "Forza"
+msgstr "Forza"
+
+msgid "Forza colonia:"
+msgstr "Forza colonia:"
+
+msgid "Foto"
+msgstr "Foto"
+
+msgid "Fotografa un telaio e scopri subito api, covata e celle reali"
+msgstr "Fotografa un telaio e scopri subito api, covata e celle reali"
+
+msgid "Fuchi"
+msgstr "Fuchi"
+
+msgid "Funzioni AI — Chat, voce, analisi telaino"
+msgstr "Funzioni AI — Chat, voce, analisi telaino"
+
+msgid "Funzioni Avanzate"
+msgstr "Funzioni Avanzate"
+
+msgid "Fusto"
+msgstr "Fusto"
+
+msgid "Garanzia Fino A"
+msgstr "Garanzia Fino A"
+
+msgid "Garanzia:"
+msgstr "Garanzia:"
+
+msgid "Gear"
+msgstr "Gear"
+
+msgid "Gemini"
+msgstr "Gemini"
+
+#, python-format
+msgid "Gen. %(livello)s"
+msgstr "Gen. %(livello)s"
+
+msgid "Genealogia"
+msgstr "Genealogia"
+
+msgid "Genera Inventario"
+msgstr "Genera Inventario"
+
+msgid "Generazioni giù:"
+msgstr "Generazioni giù:"
+
+msgid "Generazioni su:"
+msgstr "Generazioni su:"
+
+msgid "Gestione Apiario"
+msgstr "Gestione Apiario"
+
+msgid "Gestione Attrezzature"
+msgstr "Gestione Attrezzature"
+
+msgid "Gestione Blocco di Covata"
+msgstr "Gestione Blocco di Covata"
+
+msgid "Gestione Categorie Attrezzature"
+msgstr "Gestione Categorie Attrezzature"
+
+msgid "Gestione Fioriture"
+msgstr "Gestione Fioriture"
+
+msgid "Gestione Melari"
+msgstr "Gestione Melari"
+
+#, python-format
+msgid "Gestione Melari - %(a)s"
+msgstr "Gestione Melari - %(a)s"
+
+msgid "Gestione Pagamenti"
+msgstr "Gestione Pagamenti"
+
+msgid "Gestione Quote"
+msgstr "Gestione Quote"
+
+msgid "Gestione Tipi di Trattamento"
+msgstr "Gestione Tipi di Trattamento"
+
+msgid "Gestione completa del gruppo"
+msgstr "Gestione completa del gruppo"
+
+msgid "Gestione completa."
+msgstr "Gestione completa."
+
+msgid "Gestione professionale dell'apiario"
+msgstr "Gestione professionale dell'apiario"
+
+msgid "Gestisci Categorie"
+msgstr "Gestisci Categorie"
+
+msgid "Gestisci Quote"
+msgstr "Gestisci Quote"
+
+msgid "Gestisci clienti"
+msgstr "Gestisci clienti"
+
+msgid "Gestisci i nuclei e convertili in arnie quando pronti"
+msgstr "Gestisci i nuclei e convertili in arnie quando pronti"
+
+msgid "Gestisci inventario, manutenzioni e prestiti"
+msgstr "Gestisci inventario, manutenzioni e prestiti"
+
+msgid "Gestisci le spese e le quote del tuo apiario"
+msgstr "Gestisci le spese e le quote del tuo apiario"
+
+msgid "Giallo"
+msgstr "Giallo"
+
+msgid "Giorni maturazione"
+msgstr "Giorni maturazione"
+
+msgid "Giorno"
+msgstr "Giorno"
+
+msgid "Già costruiti"
+msgstr "Già costruiti"
+
+msgid "Grafici Meteo"
+msgstr "Grafici Meteo"
+
+#, python-format
+msgid "Grafici Meteo - %(a)s"
+msgstr "Grafici Meteo - %(a)s"
+
+msgid "Grafici di produzione, salute e andamento nel tempo"
+msgstr "Grafici di produzione, salute e andamento nel tempo"
+
+msgid "Grazie,"
+msgstr "Grazie,"
+
+msgid "Gruppo"
+msgstr "Gruppo"
+
+msgid "Gruppo:"
+msgstr "Gruppo:"
+
+msgid "Guida Completa"
+msgstr "Guida Completa"
+
+msgid "Guida alla Regina"
+msgstr "Guida alla Regina"
+
+msgid "Hai scansionato un tag NFC associato a un'arnia. Per visualizzare i dettagli, apri l'app Apiary."
+msgstr "Hai scansionato un tag NFC associato a un'arnia. Per visualizzare i dettagli, apri l'app Apiary."
+
+msgid "Ho capito, iniziamo!"
+msgstr "Ho capito, iniziamo!"
+
+msgid "I CSV sono compatibili con Excel e Google Sheets per la tua contabilità o tracciabilità biologica."
+msgstr "I CSV sono compatibili con Excel e Google Sheets per la tua contabilità o tracciabilità biologica."
+
+msgid "I Miei Gruppi"
+msgstr "I Miei Gruppi"
+
+msgid "I costi di hosting, dominio e server vengono sostenuti di tasca propria ogni anno."
+msgstr "I costi di hosting, dominio e server vengono sostenuti di tasca propria ogni anno."
+
+msgid "I dati della regina sostituita vengono archiviati nella cronologia"
+msgstr "I dati della regina sostituita vengono archiviati nella cronologia"
+
+msgid "I gruppi ti permettono di collaborare con altri utenti nella gestione degli apiari."
+msgstr "I gruppi ti permettono di collaborare con altri utenti nella gestione degli apiari."
+
+msgid "I melari selezionati verranno contrassegnati come \\\"Smielati\\\" e non saranno più disponibili per altre smielature."
+msgstr "I melari selezionati verranno contrassegnati come \\\"Smielati\\\" e non saranno più disponibili per altre smielature."
+
+msgid "I melari sono strutture che vengono poste sopra il nido dell'arnia per la raccolta del miele."
+msgstr "I melari sono strutture che vengono poste sopra il nido dell'arnia per la raccolta del miele."
+
+msgid "I membri hanno diversi livelli di accesso:"
+msgstr "I membri hanno diversi livelli di accesso:"
+
+msgid "I miei Gruppi"
+msgstr "I miei Gruppi"
+
+msgid "I miei apiari"
+msgstr "I miei apiari"
+
+msgid "I pagamenti registrati vengono utilizzati per il calcolo delle quote e dei saldi tra utenti."
+msgstr "I pagamenti registrati vengono utilizzati per il calcolo delle quote e dei saldi tra utenti."
+
+msgid "I tipi di trattamento definiscono le diverse opzioni di trattamenti sanitari che possono essere applicati alle arnie."
+msgstr "I tipi di trattamento definiscono le diverse opzioni di trattamenti sanitari che possono essere applicati alle arnie."
+
+msgid "I trattamenti completati o annullati appariranno qui."
+msgstr "I trattamenti completati o annullati appariranno qui."
+
+msgid "I trattamenti sanitari sono essenziali per la salute delle api."
+msgstr "I trattamenti sanitari sono essenziali per la salute delle api."
+
+msgid "ID tag:"
+msgstr "ID tag:"
+
+msgid "Icona"
+msgstr "Icona"
+
+msgid "Icone Suggerite"
+msgstr "Icone Suggerite"
+
+msgid "Il colore della marcatura segue lo standard internazionale in base all'anno di nascita"
+msgstr "Il colore della marcatura segue lo standard internazionale in base all'anno di nascita"
+
+msgid "Il colore della marcatura segue lo standard internazionale in base all'anno di nascita della regina:"
+msgstr "Il colore della marcatura segue lo standard internazionale in base all'anno di nascita della regina:"
+
+msgid "Il melario verrà contrassegnato come \\\"In Smielatura\\\"."
+msgstr "Il melario verrà contrassegnato come \\\"In Smielatura\\\"."
+
+msgid "Il melario verrà rimosso dall'arnia e contrassegnato come \\\"In Smielatura\\\"."
+msgstr "Il melario verrà rimosso dall'arnia e contrassegnato come \\\"In Smielatura\\\"."
+
+msgid "Il miele estratto va in <strong>Cantina</strong>: maturatori e contenitori di stoccaggio"
+msgstr "Il miele estratto va in <strong>Cantina</strong>: maturatori e contenitori di stoccaggio"
+
+msgid "Il nome del trattamento (es. \\\"Trattamento antivarroa\\\")"
+msgstr "Il nome del trattamento (es. \\\"Trattamento antivarroa\\\")"
+
+msgid "Il nome della pianta o del tipo di fioritura"
+msgstr "Il nome della pianta o del tipo di fioritura"
+
+msgid "Il nome è obbligatorio."
+msgstr "Il nome è obbligatorio."
+
+msgid "Il nucleo verrà marcato come <em>convertito</em> e non sarà più modificabile."
+msgstr "Il nucleo verrà marcato come <em>convertito</em> e non sarà più modificabile."
+
+msgid "Il numero di giorni dopo il trattamento durante i quali non è possibile raccogliere il miele"
+msgstr "Il numero di giorni dopo il trattamento durante i quali non è possibile raccogliere il miele"
+
+msgid "Il processo di registrazione della smielatura è composto da due fasi:"
+msgstr "Il processo di registrazione della smielatura è composto da due fasi:"
+
+msgid "Il team di Apiary"
+msgstr "Il team di Apiary"
+
+msgid "Il tuo diario digitale da apicoltore. Registra, monitora e gestisci tutto ciò che riguarda le tue api — dai controlli alle vendite, dalla genealogia delle regine all'analisi AI dei telai."
+msgstr "Il tuo diario digitale da apicoltore. Registra, monitora e gestisci tutto ciò che riguarda le tue api — dai controlli alle vendite, dalla genealogia delle regine all'analisi AI dei telai."
+
+msgid "Il tuo nome *"
+msgstr "Il tuo nome *"
+
+msgid "Il tuo ruolo:"
+msgstr "Il tuo ruolo:"
+
+msgid "Immagine"
+msgstr "Immagine"
+
+msgid "Immagine Gruppo"
+msgstr "Immagine Gruppo"
+
+msgid "Immagine Profilo Gruppo"
+msgstr "Immagine Profilo Gruppo"
+
+msgid "Immagine annotata"
+msgstr "Immagine annotata"
+
+msgid "Immagini e allegati caricati"
+msgstr "Immagini e allegati caricati"
+
+msgid "Importo"
+msgstr "Importo"
+
+msgid "Importo (€)"
+msgstr "Importo (€)"
+
+msgid "Importo:"
+msgstr "Importo:"
+
+msgid "In Corso"
+msgstr "In Corso"
+
+msgid "In base alle quote impostate, il sistema calcolerà automaticamente quanto ogni utente deve contribuire alle spese comuni."
+msgstr "In base alle quote impostate, il sistema calcolerà automaticamente quanto ogni utente deve contribuire alle spese comuni."
+
+msgid "In corso"
+msgstr "In corso"
+
+msgid "In smielatura"
+msgstr "In smielatura"
+
+msgid "In<br>smiel."
+msgstr "In<br>smiel."
+
+msgid "Incl. dismessi"
+msgstr "Incl. dismessi"
+
+msgid "Includi attrezzature dismesse"
+msgstr "Includi attrezzature dismesse"
+
+msgid "Includi il nome utente o l'indirizzo email associato all'account."
+msgstr "Includi il nome utente o l'indirizzo email associato all'account."
+
+msgid "Includi istruzioni dettagliate per garantire che tutti gli apicoltori seguano lo stesso protocollo."
+msgstr "Includi istruzioni dettagliate per garantire che tutti gli apicoltori seguano lo stesso protocollo."
+
+msgid "Indica la posizione del melario sull'arnia, dove 1 = più vicino al nido"
+msgstr "Indica la posizione del melario sull'arnia, dove 1 = più vicino al nido"
+
+msgid "Indica la varietà predominante (Millefiori, Acacia, ecc.)"
+msgstr "Indica la varietà predominante (Millefiori, Acacia, ecc.)"
+
+msgid "Indica quanti telaini sono presenti nel melario (solitamente 9-10)"
+msgstr "Indica quanti telaini sono presenti nel melario (solitamente 9-10)"
+
+msgid "Indica se hai visto la regina durante il controllo o se hai osservato altri segni della sua presenza."
+msgstr "Indica se hai visto la regina durante il controllo o se hai osservato altri segni della sua presenza."
+
+msgid "Indietro"
+msgstr "Indietro"
+
+msgid "Indipendente"
+msgstr "Indipendente"
+
+msgid "Indirizzo"
+msgstr "Indirizzo"
+
+msgid "Info"
+msgstr "Info"
+
+msgid "Informazioni"
+msgstr "Informazioni"
+
+msgid "Informazioni Base"
+msgstr "Informazioni Base"
+
+msgid "Informazioni Fioritura"
+msgstr "Informazioni Fioritura"
+
+msgid "Informazioni Generali"
+msgstr "Informazioni Generali"
+
+msgid "Informazioni Gruppo"
+msgstr "Informazioni Gruppo"
+
+msgid "Informazioni Melario"
+msgstr "Informazioni Melario"
+
+msgid "Informazioni Pagamento"
+msgstr "Informazioni Pagamento"
+
+msgid "Informazioni Quota"
+msgstr "Informazioni Quota"
+
+msgid "Informazioni Regina"
+msgstr "Informazioni Regina"
+
+msgid "Informazioni Tipo di Trattamento"
+msgstr "Informazioni Tipo di Trattamento"
+
+msgid "Informazioni Trattamento"
+msgstr "Informazioni Trattamento"
+
+msgid "Informazioni sui Ruoli"
+msgstr "Informazioni sui Ruoli"
+
+msgid "Informazioni sul gruppo:"
+msgstr "Informazioni sul gruppo:"
+
+msgid "Informazioni sul tipo di trattamento selezionato:"
+msgstr "Informazioni sul tipo di trattamento selezionato:"
+
+msgid "Informazioni sulla Regina Attuale"
+msgstr "Informazioni sulla Regina Attuale"
+
+msgid "Infrastruttura"
+msgstr "Infrastruttura"
+
+msgid "Inizia creando il tuo primo apiario. Ci vorranno meno di un minuto. Potrai sempre rivedere questa guida dalla pagina del tuo profilo."
+msgstr "Inizia creando il tuo primo apiario. Ci vorranno meno di un minuto. Potrai sempre rivedere questa guida dalla pagina del tuo profilo."
+
+msgid "Inizia registrazione"
+msgstr "Inizia registrazione"
+
+msgid "Inizia trattamento"
+msgstr "Inizia trattamento"
+
+msgid "Inserisci indirizzo o località"
+msgstr "Inserisci indirizzo o località"
+
+msgid "Inserisci la tua chiave API personale di Google Gemini per usare le funzioni AI"
+msgstr "Inserisci la tua chiave API personale di Google Gemini per usare le funzioni AI"
+
+msgid "                            (inserimento vocale, chat, analisi telaino)."
+msgstr "                            (inserimento vocale, chat, analisi telaino)."
+
+msgid "Inserisci un nome (es: \\\"Apiario Collina\\\"), seleziona la posizione sulla mappa e scegli il tipo"
+msgstr "Inserisci un nome (es: \\\"Apiario Collina\\\"), seleziona la posizione sulla mappa e scegli il tipo"
+
+msgid "Inserisci un termine per cercare apiari, arnie, trattamenti, fioriture, utenti e gruppi."
+msgstr "Inserisci un termine per cercare apiari, arnie, trattamenti, fioriture, utenti e gruppi."
+
+msgid "Installata il:"
+msgstr "Installata il:"
+
+msgid "Installato"
+msgstr "Installato"
+
+msgid "Installato il"
+msgstr "Installato il"
+
+#, python-format
+msgid "Installato il %(d)s"
+msgstr "Installato il %(d)s"
+
+msgid "Installato il:"
+msgstr "Installato il:"
+
+msgid "Invasetta"
+msgstr "Invasetta"
+
+msgid "Invasetta da un contenitore di stoccaggio."
+msgstr "Invasetta da un contenitore di stoccaggio."
+
+msgid "Invasettamenti da questa smielatura"
+msgstr "Invasettamenti da questa smielatura"
+
+msgid "Invasettato"
+msgstr "Invasettato"
+
+msgid "Inventari Precedenti"
+msgstr "Inventari Precedenti"
+
+msgid "Inventario Attrezzature"
+msgstr "Inventario Attrezzature"
+
+msgid "Invia Invito"
+msgstr "Invia Invito"
+
+msgid "Invia Richiesta"
+msgstr "Invia Richiesta"
+
+msgid "Invia a Gemini AI"
+msgstr "Invia a Gemini AI"
+
+msgid "Invia a Gemini automaticamente"
+msgstr "Invia a Gemini automaticamente"
+
+msgid "Invia feedback"
+msgstr "Invia feedback"
+
+msgid "Invia i melari in smielatura dalla scheda \\\"Melari\\\""
+msgstr "Invia i melari in smielatura dalla scheda \\\"Melari\\\""
+
+msgid "Invia in Smielatura"
+msgstr "Invia in Smielatura"
+
+#, python-format
+msgid "Invia in Smielatura - Melario #%(i)s"
+msgstr "Invia in Smielatura - Melario #%(i)s"
+
+#, python-format
+msgid "Invia in Smielatura — Melario #%(i)s"
+msgstr "Invia in Smielatura — Melario #%(i)s"
+
+msgid "Invia in smielatura"
+msgstr "Invia in smielatura"
+
+msgid "Invia prima i melari in smielatura dagli alveari."
+msgstr "Invia prima i melari in smielatura dagli alveari."
+
+msgid "Invia una richiesta a:"
+msgstr "Invia una richiesta a:"
+
+msgid "Invia una richiesta di eliminazione a:"
+msgstr "Invia una richiesta di eliminazione a:"
+
+#, python-format
+msgid "Inviare il melario #%(mi)s <strong>(%(t)s telaini, posizione %(p)s)</strong> dell'arnia #%(an)s in smielatura?"
+msgstr "Inviare il melario #%(mi)s <strong>(%(t)s telaini, posizione %(p)s)</strong> dell'arnia #%(an)s in smielatura?"
+
+#, python-format
+msgid "Invita %(u)s a un gruppo"
+msgstr "Invita %(u)s a un gruppo"
+
+msgid "Invita Nuovi Membri"
+msgstr "Invita Nuovi Membri"
+
+msgid "Invitato da:"
+msgstr "Invitato da:"
+
+#, python-format
+msgid "Invitato da: %(u)s"
+msgstr "Invitato da: %(u)s"
+
+msgid "Inviti Ricevuti"
+msgstr "Inviti Ricevuti"
+
+msgid "Inviti in Attesa"
+msgstr "Inviti in Attesa"
+
+msgid "Invito a Unirsi al Gruppo"
+msgstr "Invito a Unirsi al Gruppo"
+
+msgid "Invito a unirsi a un gruppo"
+msgstr "Invito a unirsi a un gruppo"
+
+#, python-format
+msgid "Invito a unirti al gruppo %(nome)s"
+msgstr "Invito a unirti al gruppo %(nome)s"
+
+#, python-format
+msgid "Invito al gruppo %(nome)s"
+msgstr "Invito al gruppo %(nome)s"
+
+msgid "Invito valido fino al:"
+msgstr "Invito valido fino al:"
+
+msgid "Ispezioni PDF"
+msgstr "Ispezioni PDF"
+
+msgid "Istruzioni:"
+msgstr "Istruzioni:"
+
+msgid "Kg attuali"
+msgstr "Kg attuali"
+
+msgid "Kg da trasferire"
+msgstr "Kg da trasferire"
+
+msgid "L'account rimarrà attivo ma sarà vuoto. Questa azione è <strong>irreversibile</strong>."
+msgstr "L'account rimarrà attivo ma sarà vuoto. Questa azione è <strong>irreversibile</strong>."
+
+msgid "L'area approssimativa della fioritura"
+msgstr "L'area approssimativa della fioritura"
+
+msgid "L'attuale versione supporta un modello AI ancora molto"
+msgstr "L'attuale versione supporta un modello AI ancora molto"
+
+msgid "L'eliminazione di questo gruppo comporterà:"
+msgstr "L'eliminazione di questo gruppo comporterà:"
+
+msgid "L'età della regina è importante per prevedere quando potrebbe essere necessaria una sostituzione"
+msgstr "L'età della regina è importante per prevedere quando potrebbe essere necessaria una sostituzione"
+
+msgid "L'immagine verrà automaticamente ridimensionata e compressa per ottimizzare lo spazio di archiviazione."
+msgstr "L'immagine verrà automaticamente ridimensionata e compressa per ottimizzare lo spazio di archiviazione."
+
+msgid "L'operazione è irreversibile."
+msgstr "L'operazione è irreversibile."
+
+msgid "L'utente a cui assegnare la quota"
+msgstr "L'utente a cui assegnare la quota"
+
+msgid "L'utente che ha effettuato il pagamento"
+msgstr "L'utente che ha effettuato il pagamento"
+
+msgid "La cancellazione di tutti gli inviti attivi"
+msgstr "La cancellazione di tutti gli inviti attivi"
+
+msgid "La data in cui il melario è stato posizionato sull'arnia"
+msgstr "La data in cui il melario è stato posizionato sull'arnia"
+
+msgid "La data in cui si inizia il trattamento"
+msgstr "La data in cui si inizia il trattamento"
+
+msgid "La data in cui è avvenuta l'estrazione del miele"
+msgstr "La data in cui è avvenuta l'estrazione del miele"
+
+msgid "La data in cui è stato effettuato il pagamento"
+msgstr "La data in cui è stato effettuato il pagamento"
+
+msgid "La percentuale di partecipazione (da 0 a 100)"
+msgstr "La percentuale di partecipazione (da 0 a 100)"
+
+msgid "La percentuale di partecipazione alle spese (0-100)"
+msgstr "La percentuale di partecipazione alle spese (0-100)"
+
+msgid "La perdita di accesso alle risorse condivise per tutti i membri"
+msgstr "La perdita di accesso alle risorse condivise per tutti i membri"
+
+msgid "La posizione geografica della fioritura"
+msgstr "La posizione geografica della fioritura"
+
+msgid "La regina attuale verrà segnata come \\\"non attiva\\\" nel sistema"
+msgstr "La regina attuale verrà segnata come \\\"non attiva\\\" nel sistema"
+
+msgid "La regina può richiedere alcuni giorni per essere accettata dalla colonia. Si consiglia di monitorare la situazione con controlli più frequenti nei giorni successivi."
+msgstr "La regina può richiedere alcuni giorni per essere accettata dalla colonia. Si consiglia di monitorare la situazione con controlli più frequenti nei giorni successivi."
+
+msgid "La registrazione della smielatura ti permette di tenere traccia della produzione di miele del tuo apiario."
+msgstr "La registrazione della smielatura ti permette di tenere traccia della produzione di miele del tuo apiario."
+
+msgid "La rimozione del gruppo da tutti gli apiari condivisi"
+msgstr "La rimozione del gruppo da tutti gli apiari condivisi"
+
+msgid "La rimozione di un melario ne modificherà lo stato in \\\"Rimosso\\\" e registrerà la data di rimozione."
+msgstr "La rimozione di un melario ne modificherà lo stato in \\\"Rimosso\\\" e registrerà la data di rimozione."
+
+msgid "La scelta della razza della nuova regina è importante per le caratteristiche future della colonia"
+msgstr "La scelta della razza della nuova regina è importante per le caratteristiche future della colonia"
+
+msgid "La somma di tutte le percentuali dovrebbe essere 100%."
+msgstr "La somma di tutte le percentuali dovrebbe essere 100%."
+
+msgid "La somma pagata (in euro)"
+msgstr "La somma pagata (in euro)"
+
+msgid "La sostanza attiva del trattamento (es. \\\"Acido ossalico\\\")"
+msgstr "La sostanza attiva del trattamento (es. \\\"Acido ossalico\\\")"
+
+msgid "La sostituzione di una regina è un'operazione importante che influisce direttamente sulla salute e produttività della colonia."
+msgstr "La sostituzione di una regina è un'operazione importante che influisce direttamente sulla salute e produttività della colonia."
+
+msgid "La sottospecie o la razza della regina"
+msgstr "La sottospecie o la razza della regina"
+
+msgid "Lascia Gruppo"
+msgstr "Lascia Gruppo"
+
+msgid "Lascia vuoto per inserire il nome manualmente."
+msgstr "Lascia vuoto per inserire il nome manualmente."
+
+msgid "Latitudine:"
+msgstr "Latitudine:"
+
+msgid "Le api rimangono nell'arnia, attività di bottinatura ridotta."
+msgstr "Le api rimangono nell'arnia, attività di bottinatura ridotta."
+
+msgid "Le credenziali dell'account (username/email/password) rimangono se hai scelto solo l'eliminazione dei dati e non dell'account. I log di sistema anonimi possono essere conservati per un massimo di 30 giorni per motivi di sicurezza."
+msgstr "Le credenziali dell'account (username/email/password) rimangono se hai scelto solo l'eliminazione dei dati e non dell'account. I log di sistema anonimi possono essere conservati per un massimo di 30 giorni per motivi di sicurezza."
+
+msgid "Le donazioni vengono gestite tramite"
+msgstr "Le donazioni vengono gestite tramite"
+
+msgid "Le fioriture ti permettono di tenere traccia delle risorse nettarifere disponibili nell'area."
+msgstr "Le fioriture ti permettono di tenere traccia delle risorse nettarifere disponibili nell'area."
+
+#, python-format
+msgid "Le mie (%(n)s)"
+msgstr "Le mie (%(n)s)"
+
+msgid "Le parole"
+msgstr "Le parole"
+
+msgid "Le quote sono correttamente distribuite."
+msgstr "Le quote sono correttamente distribuite."
+
+msgid "Le quote utente definiscono la percentuale di partecipazione di ciascun utente alle spese dell'apiario."
+msgstr "Le quote utente definiscono la percentuale di partecipazione di ciascun utente alle spese dell'apiario."
+
+msgid "Le quote utenti servono per ripartire le spese tra i vari collaboratori dell'apiario."
+msgstr "Le quote utenti servono per ripartire le spese tra i vari collaboratori dell'apiario."
+
+msgid "Le regine di età superiore a 2-3 anni normalmente richiedono una sostituzione."
+msgstr "Le regine di età superiore a 2-3 anni normalmente richiedono una sostituzione."
+
+msgid "Le richieste via email vengono elaborate entro <strong>7 giorni lavorativi</strong>."
+msgstr "Le richieste via email vengono elaborate entro <strong>7 giorni lavorativi</strong>."
+
+msgid "Le spese per attrezzature vengono registrate automaticamente nei pagamenti."
+msgstr "Le spese per attrezzature vengono registrate automaticamente nei pagamenti."
+
+msgid "Le statistiche possono essere utilizzate per valutare la produttività delle diverse arnie e la qualità della stagione."
+msgstr "Le statistiche possono essere utilizzate per valutare la produttività delle diverse arnie e la qualità della stagione."
+
+msgid "Le vendite associate non verranno eliminate ma perderanno il collegamento al cliente."
+msgstr "Le vendite associate non verranno eliminate ma perderanno il collegamento al cliente."
+
+msgid "Legenda"
+msgstr "Legenda"
+
+msgid "Legenda:"
+msgstr "Legenda:"
+
+msgid "Linea Ascendente"
+msgstr "Linea Ascendente"
+
+msgid "Linea Discendente"
+msgstr "Linea Discendente"
+
+msgid "Link Rapidi"
+msgstr "Link Rapidi"
+
+msgid "Link:"
+msgstr "Link:"
+
+msgid "Lista"
+msgstr "Lista"
+
+#, python-format
+msgid "Lista clienti (%(n)s)"
+msgstr "Lista clienti (%(n)s)"
+
+msgid "Lista vendite"
+msgstr "Lista vendite"
+
+msgid "Longitudine:"
+msgstr "Longitudine:"
+
+#, python-format
+msgid "Lotti (%(n)s)"
+msgstr "Lotti (%(n)s)"
+
+msgid "Lotto"
+msgstr "Lotto"
+
+msgid "Madre"
+msgstr "Madre"
+
+msgid "Manutenzione"
+msgstr "Manutenzione"
+
+msgid "Manutenzioni Programmate"
+msgstr "Manutenzioni Programmate"
+
+msgid "Mappa Apiari"
+msgstr "Mappa Apiari"
+
+msgid "Mappa Meteo"
+msgstr "Mappa Meteo"
+
+msgid "Mappa Meteo degli Apiari"
+msgstr "Mappa Meteo degli Apiari"
+
+msgid "Mappa Nomadismo"
+msgstr "Mappa Nomadismo"
+
+msgid "Marca"
+msgstr "Marca"
+
+msgid "Marca:"
+msgstr "Marca:"
+
+msgid "Marcatura"
+msgstr "Marcatura"
+
+msgid "Marcatura:"
+msgstr "Marcatura:"
+
+msgid "Maturatore"
+msgstr "Maturatore"
+
+msgid "Maturatore collegato"
+msgstr "Maturatore collegato"
+
+msgid "Maturatori"
+msgstr "Maturatori"
+
+msgid "Maturazione, stoccaggio e invasettamento del miele"
+msgstr "Maturazione, stoccaggio e invasettamento del miele"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Media Telaini Covata"
+msgstr "Media Telaini Covata"
+
+msgid "Media Telaini Scorte"
+msgstr "Media Telaini Scorte"
+
+msgid "Media Valutazione"
+msgstr "Media Valutazione"
+
+msgid "Media per arnia:"
+msgstr "Media per arnia:"
+
+msgid "Media per melario:"
+msgstr "Media per melario:"
+
+msgid "Media per telaino:"
+msgstr "Media per telaino:"
+
+msgid "Medie Valutazioni"
+msgstr "Medie Valutazioni"
+
+msgid "Melari & Raccolti — Dal melario alla cantina"
+msgstr "Melari & Raccolti — Dal melario alla cantina"
+
+msgid "Melari Smielati"
+msgstr "Melari Smielati"
+
+msgid "Melari da smielatura"
+msgstr "Melari da smielatura"
+
+msgid "Melari smielati"
+msgstr "Melari smielati"
+
+msgid "Melari smielati:"
+msgstr "Melari smielati:"
+
+msgid "Melari:"
+msgstr "Melari:"
+
+msgid "Melario"
+msgstr "Melario"
+
+#, python-format
+msgid "Melario #%(i)s"
+msgstr "Melario #%(i)s"
+
+#, python-format
+msgid "Melario #%(i)s - Posizione %(p)s (%(t)s telaini)"
+msgstr "Melario #%(i)s - Posizione %(p)s (%(t)s telaini)"
+
+#, python-format
+msgid "Melario #%(i)s — %(t)s — %(n)s telaini — Pos. %(p)s"
+msgstr "Melario #%(i)s — %(t)s — %(n)s telaini — Pos. %(p)s"
+
+msgid "Membri del Gruppo"
+msgstr "Membri del Gruppo"
+
+msgid "Membri:"
+msgstr "Membri:"
+
+msgid "Mese"
+msgstr "Mese"
+
+msgid "Messaggio, suggerimento o segnalazione bug... *"
+msgstr "Messaggio, suggerimento o segnalazione bug... *"
+
+msgid "Meteo"
+msgstr "Meteo"
+
+#, python-format
+msgid "Meteo - %(a)s"
+msgstr "Meteo - %(a)s"
+
+msgid "Meteo Apiari"
+msgstr "Meteo Apiari"
+
+msgid "Meteo Attuale"
+msgstr "Meteo Attuale"
+
+msgid "Metodo di pagamento"
+msgstr "Metodo di pagamento"
+
+msgid "Min"
+msgstr "Min"
+
+msgid "Modalità batch (più arnie)"
+msgstr "Modalità batch (più arnie)"
+
+msgid "Modello"
+msgstr "Modello"
+
+msgid "Modello:"
+msgstr "Modello:"
+
+#, python-format
+msgid "Modifica %(nome)s"
+msgstr "Modifica %(nome)s"
+
+#, python-format
+msgid "Modifica Arnia #%(numero)s"
+msgstr "Modifica Arnia #%(numero)s"
+
+msgid "Modifica Cliente"
+msgstr "Modifica Cliente"
+
+msgid "Modifica Contenitore"
+msgstr "Modifica Contenitore"
+
+msgid "Modifica Fioritura"
+msgstr "Modifica Fioritura"
+
+msgid "Modifica Gruppo"
+msgstr "Modifica Gruppo"
+
+msgid "Modifica Immagine Gruppo"
+msgstr "Modifica Immagine Gruppo"
+
+msgid "Modifica Maturatore"
+msgstr "Modifica Maturatore"
+
+msgid "Modifica Melario"
+msgstr "Modifica Melario"
+
+msgid "Modifica Pagamento"
+msgstr "Modifica Pagamento"
+
+msgid "Modifica Quota"
+msgstr "Modifica Quota"
+
+msgid "Modifica Regina"
+msgstr "Modifica Regina"
+
+msgid "Modifica Ruolo"
+msgstr "Modifica Ruolo"
+
+msgid "Modifica Ruolo Membro"
+msgstr "Modifica Ruolo Membro"
+
+msgid "Modifica Tipo Trattamento"
+msgstr "Modifica Tipo Trattamento"
+
+msgid "Modifica Trattamento"
+msgstr "Modifica Trattamento"
+
+msgid "Modifica risorse condivise."
+msgstr "Modifica risorse condivise."
+
+msgid "Modifica vendita"
+msgstr "Modifica vendita"
+
+msgid "Modificato:"
+msgstr "Modificato:"
+
+msgid "Moisture"
+msgstr "Moisture"
+
+msgid "Monitora il pascolo e condividi le fioriture con la community"
+msgstr "Monitora il pascolo e condividi le fioriture con la community"
+
+msgid "Mostra delta telaini"
+msgstr "Mostra delta telaini"
+
+msgid "Mostra dettagli nei titoli"
+msgstr "Mostra dettagli nei titoli"
+
+msgid "Mostra meteo"
+msgstr "Mostra meteo"
+
+msgid "Mostra previsioni"
+msgstr "Mostra previsioni"
+
+msgid "Mostra tutte"
+msgstr "Mostra tutte"
+
+msgid "Motivo della Richiesta"
+msgstr "Motivo della Richiesta"
+
+msgid "Motivo rimozione:"
+msgstr "Motivo rimozione:"
+
+#, python-format
+msgid "Nata: %(data)s"
+msgstr "Nata: %(data)s"
+
+msgid "Nessun apiario trovato"
+msgstr "Nessun apiario trovato"
+
+msgid "Nessun apiario."
+msgstr "Nessun apiario."
+
+msgid "Nessun cliente registrato."
+msgstr "Nessun cliente registrato."
+
+msgid "Nessun compenso, nessun finanziamento - solo amore per le api e il codice."
+msgstr "Nessun compenso, nessun finanziamento - solo amore per le api e il codice."
+
+msgid "Nessun contenitore con miele."
+msgstr "Nessun contenitore con miele."
+
+msgid "Nessun controllo registrato."
+msgstr "Nessun controllo registrato."
+
+msgid "Nessun dato meteo disponibile al momento."
+msgstr "Nessun dato meteo disponibile al momento."
+
+msgid "Nessun dato meteo disponibile."
+msgstr "Nessun dato meteo disponibile."
+
+msgid "Nessun dato personale viene conservato dopo l'eliminazione. I log di sistema anonimi (senza riferimento all'utente) possono essere conservati per un massimo di 30 giorni per motivi di sicurezza."
+msgstr "Nessun dato personale viene conservato dopo l'eliminazione. I log di sistema anonimi (senza riferimento all'utente) possono essere conservati per un massimo di 30 giorni per motivi di sicurezza."
+
+msgid "Nessun dettaglio disponibile sui melari smielati."
+msgstr "Nessun dettaglio disponibile sui melari smielati."
+
+msgid "Nessun invasettamento registrato."
+msgstr "Nessun invasettamento registrato."
+
+msgid "Nessun inventario precedente."
+msgstr "Nessun inventario precedente."
+
+msgid "Nessun maturatore attivo."
+msgstr "Nessun maturatore attivo."
+
+msgid "Nessun melario posizionato"
+msgstr "Nessun melario posizionato"
+
+msgid "Nessun nucleo attivo."
+msgstr "Nessun nucleo attivo."
+
+msgid "Nessun prestito in corso."
+msgstr "Nessun prestito in corso."
+
+msgid "Nessun prestito registrato."
+msgstr "Nessun prestito registrato."
+
+#, python-format
+msgid "Nessun risultato trovato per \"<strong>%(q)s</strong>\"."
+msgstr "Nessun risultato trovato per \"<strong>%(q)s</strong>\"."
+
+msgid "Nessun trattamento attivo"
+msgstr "Nessun trattamento attivo"
+
+msgid "Nessun vasetto registrato."
+msgstr "Nessun vasetto registrato."
+
+msgid "Nessun<br>controllo"
+msgstr "Nessun<br>controllo"
+
+msgid "Nessuna"
+msgstr "Nessuna"
+
+msgid "Nessuna analisi telaino ancora registrata per questa arnia."
+msgstr "Nessuna analisi telaino ancora registrata per questa arnia."
+
+msgid "Nessuna arnia attiva in questo apiario."
+msgstr "Nessuna arnia attiva in questo apiario."
+
+msgid "Nessuna attrezzatura condivisa dai gruppi."
+msgstr "Nessuna attrezzatura condivisa dai gruppi."
+
+msgid "Nessuna attrezzatura personale."
+msgstr "Nessuna attrezzatura personale."
+
+msgid "Nessuna attrezzatura trovata con i filtri selezionati."
+msgstr "Nessuna attrezzatura trovata con i filtri selezionati."
+
+msgid "Nessuna attrezzatura trovata."
+msgstr "Nessuna attrezzatura trovata."
+
+msgid "Nessuna categoria definita."
+msgstr "Nessuna categoria definita."
+
+msgid "Nessuna informazione genealogica disponibile per questa regina."
+msgstr "Nessuna informazione genealogica disponibile per questa regina."
+
+msgid "Nessuna manutenzione programmata."
+msgstr "Nessuna manutenzione programmata."
+
+msgid "Nessuna manutenzione registrata."
+msgstr "Nessuna manutenzione registrata."
+
+msgid "Nessuna notifica corrisponde ai filtri selezionati."
+msgstr "Nessuna notifica corrisponde ai filtri selezionati."
+
+msgid "Nessuna previsione disponibile."
+msgstr "Nessuna previsione disponibile."
+
+msgid "Nessuna previsione meteo disponibile al momento."
+msgstr "Nessuna previsione meteo disponibile al momento."
+
+msgid "Nessuna quota personale impostata."
+msgstr "Nessuna quota personale impostata."
+
+msgid "Nessuna regina registrata per questa arnia"
+msgstr "Nessuna regina registrata per questa arnia"
+
+msgid "Nessuna regina trovata con i filtri selezionati."
+msgstr "Nessuna regina trovata con i filtri selezionati."
+
+msgid "Nessuna smielatura registrata per questo apiario."
+msgstr "Nessuna smielatura registrata per questo apiario."
+
+msgid "Nessuna smielatura registrata."
+msgstr "Nessuna smielatura registrata."
+
+msgid "Nessuna spesa registrata."
+msgstr "Nessuna spesa registrata."
+
+msgid "Nessuna vendita per questo cliente."
+msgstr "Nessuna vendita per questo cliente."
+
+msgid "Nessuna vendita registrata."
+msgstr "Nessuna vendita registrata."
+
+msgid "Nessuno storico"
+msgstr "Nessuno storico"
+
+msgid "Neve"
+msgstr "Neve"
+
+msgid "Nido"
+msgstr "Nido"
+
+#, python-format
+msgid "Nido: %(c)s covata, %(s)s scorte"
+msgstr "Nido: %(c)s covata, %(s)s scorte"
+
+msgid "Nome"
+msgstr "Nome"
+
+msgid "Nome contenitore"
+msgstr "Nome contenitore"
+
+msgid "Nome dell\\'attrezzatura"
+msgstr "Nome dell\\'attrezzatura"
+
+msgid "Nome fornitore…"
+msgstr "Nome fornitore…"
+
+msgid "Nome:"
+msgstr "Nome:"
+
+msgid "Non associato"
+msgstr "Non associato"
+
+msgid "Non avrai più accesso alle risorse condivise in questo gruppo."
+msgstr "Non avrai più accesso alle risorse condivise in questo gruppo."
+
+msgid "Non ci sono altre arnie attive in questo apiario."
+msgstr "Non ci sono altre arnie attive in questo apiario."
+
+msgid "Non ci sono apiari condivisi in questo gruppo."
+msgstr "Non ci sono apiari condivisi in questo gruppo."
+
+msgid "Non ci sono arnie attive in questo apiario."
+msgstr "Non ci sono arnie attive in questo apiario."
+
+msgid "Non ci sono dati relativi alla regina di questa arnia."
+msgstr "Non ci sono dati relativi alla regina di questa arnia."
+
+msgid "Non ci sono dati sulla regina per questa arnia."
+msgstr "Non ci sono dati sulla regina per questa arnia."
+
+msgid "Non ci sono fioriture registrate."
+msgstr "Non ci sono fioriture registrate."
+
+msgid "Non ci sono melari in attesa di smielatura. Puoi inviare i melari in smielatura dalla sezione \\\"Melari\\\"."
+msgstr "Non ci sono melari in attesa di smielatura. Puoi inviare i melari in smielatura dalla sezione \\\"Melari\\\"."
+
+msgid "Non ci sono pagamenti registrati."
+msgstr "Non ci sono pagamenti registrati."
+
+msgid "Non ci sono tipi di trattamento configurati."
+msgstr "Non ci sono tipi di trattamento configurati."
+
+msgid "Non ci sono trattamenti attivi o programmati al momento."
+msgstr "Non ci sono trattamenti attivi o programmati al momento."
+
+msgid "Non hai ancora apiari."
+msgstr "Non hai ancora apiari."
+
+msgid "Non hai ancora l'app?"
+msgstr "Non hai ancora l'app?"
+
+msgid "Non hai i permessi per aggiungere pagamenti in questo gruppo."
+msgstr "Non hai i permessi per aggiungere pagamenti in questo gruppo."
+
+msgid "Non hai i permessi per aggiungere quote in questo gruppo."
+msgstr "Non hai i permessi per aggiungere quote in questo gruppo."
+
+msgid "Non lette"
+msgstr "Non lette"
+
+msgid "Non marcata"
+msgstr "Non marcata"
+
+msgid "Non puoi donare? Nessun problema! Puoi comunque supportarci condividendo l'app con altri apicoltori, segnalando bug o suggerendo nuove funzionalità."
+msgstr "Non puoi donare? Nessun problema! Puoi comunque supportarci condividendo l'app con altri apicoltori, segnalando bug o suggerendo nuove funzionalità."
+
+msgid "Non può essere annullata."
+msgstr "Non può essere annullata."
+
+msgid "Non sono disponibili informazioni sulla genealogia di questa regina."
+msgstr "Non sono disponibili informazioni sulla genealogia di questa regina."
+
+msgid "Non sono disponibili informazioni sulla regina di questa arnia."
+msgstr "Non sono disponibili informazioni sulla regina di questa arnia."
+
+msgid "Non sono state impostate quote per gli utenti."
+msgstr "Non sono state impostate quote per gli utenti."
+
+msgid "Non sono state impostate quote per questo gruppo."
+msgstr "Non sono state impostate quote per questo gruppo."
+
+msgid "Non specificata"
+msgstr "Non specificata"
+
+msgid "Non valutata"
+msgstr "Non valutata"
+
+msgid "Nonna"
+msgstr "Nonna"
+
+msgid "Nota sull'utilizzo:"
+msgstr "Nota sull'utilizzo:"
+
+msgid "Nota:"
+msgstr "Nota:"
+
+msgid "Note (opzionale)"
+msgstr "Note (opzionale)"
+
+msgid "Note aggiuntive…"
+msgstr "Note aggiuntive…"
+
+msgid "Note generali"
+msgstr "Note generali"
+
+msgid "Note sciamatura:"
+msgstr "Note sciamatura:"
+
+msgid "Note sulla Restituzione"
+msgstr "Note sulla Restituzione"
+
+msgid "Note:"
+msgstr "Note:"
+
+msgid "Nuclei Attivi"
+msgstr "Nuclei Attivi"
+
+msgid "Nuclei attivi"
+msgstr "Nuclei attivi"
+
+#, python-format
+msgid "Nucleo #%(n)s"
+msgstr "Nucleo #%(n)s"
+
+#, python-format
+msgid "Nucleo #%(n)s — %(a)s"
+msgstr "Nucleo #%(n)s — %(a)s"
+
+msgid "Numero Fattura"
+msgstr "Numero Fattura"
+
+msgid "Numero Figlie"
+msgstr "Numero Figlie"
+
+msgid "Numero Serie"
+msgstr "Numero Serie"
+
+msgid "Numero Serie:"
+msgstr "Numero Serie:"
+
+msgid "Numero di attrezzature in questa categoria"
+msgstr "Numero di attrezzature in questa categoria"
+
+msgid "Numero di celle reali trovate:"
+msgstr "Numero di celle reali trovate:"
+
+msgid "Numero membri:"
+msgstr "Numero membri:"
+
+msgid "Numero telaini"
+msgstr "Numero telaini"
+
+msgid "Numero telaini:"
+msgstr "Numero telaini:"
+
+msgid "Numero vasetti"
+msgstr "Numero vasetti"
+
+msgid "Numero:"
+msgstr "Numero:"
+
+msgid "Nuova Categoria"
+msgstr "Nuova Categoria"
+
+msgid "Nuova Fioritura"
+msgstr "Nuova Fioritura"
+
+msgid "Nuova Quota"
+msgstr "Nuova Quota"
+
+msgid "Nuova Regina"
+msgstr "Nuova Regina"
+
+msgid "Nuova Vendita"
+msgstr "Nuova Vendita"
+
+msgid "Nuova analisi"
+msgstr "Nuova analisi"
+
+msgid "Nuova sessione"
+msgstr "Nuova sessione"
+
+msgid "Nuova smielatura"
+msgstr "Nuova smielatura"
+
+msgid "Nuova vendita"
+msgstr "Nuova vendita"
+
+msgid "Nuove funzionalità: AI, mappe, analisi dei telaini, app mobile e molto altro."
+msgstr "Nuove funzionalità: AI, mappe, analisi dei telaini, app mobile e molto altro."
+
+msgid "Nuovo Contenitore di Stoccaggio"
+msgstr "Nuovo Contenitore di Stoccaggio"
+
+msgid "Nuovo Maturatore"
+msgstr "Nuovo Maturatore"
+
+msgid "Nuovo Melario"
+msgstr "Nuovo Melario"
+
+msgid "Nuovo Pagamento"
+msgstr "Nuovo Pagamento"
+
+msgid "Nuovo Tipo Trattamento"
+msgstr "Nuovo Tipo Trattamento"
+
+msgid "Nuovo Tipo di Trattamento"
+msgstr "Nuovo Tipo di Trattamento"
+
+msgid "Nuovo Trattamento"
+msgstr "Nuovo Trattamento"
+
+msgid "Nuovo cliente"
+msgstr "Nuovo cliente"
+
+msgid "Nuovo contenitore"
+msgstr "Nuovo contenitore"
+
+msgid "Nuovo maturatore"
+msgstr "Nuovo maturatore"
+
+msgid "Nuvoloso"
+msgstr "Nuvoloso"
+
+msgid "N°"
+msgstr "N°"
+
+msgid "N° telaini"
+msgstr "N° telaini"
+
+msgid "Offrici un caffè!"
+msgstr "Offrici un caffè!"
+
+msgid "Oggetto:"
+msgstr "Oggetto:"
+
+msgid "Oggi"
+msgstr "Oggi"
+
+msgid "Ogni arnia ha la sua storia: regina, trattamenti, melari, raccolti. Registra i controlli periodici per tenere traccia della forza della colonia, della presenza della regina e dello stato sanitario."
+msgstr "Ogni arnia ha la sua storia: regina, trattamenti, melari, raccolti. Registra i controlli periodici per tenere traccia della forza della colonia, della presenza della regina e dello stato sanitario."
+
+msgid "Ogni arnia può avere una regina associata — aggiungila dalla scheda dell'arnia"
+msgstr "Ogni arnia può avere una regina associata — aggiungila dalla scheda dell'arnia"
+
+msgid "Ogni membro può avere ruoli diversi:"
+msgstr "Ogni membro può avere ruoli diversi:"
+
+msgid "Ogni utente può avere una percentuale diversa in base alla sua partecipazione. La somma delle percentuali dovrebbe essere 100%."
+msgstr "Ogni utente può avere una percentuale diversa in base alla sua partecipazione. La somma delle percentuali dovrebbe essere 100%."
+
+msgid "Operaie"
+msgstr "Operaie"
+
+msgid "Operatore:"
+msgstr "Operatore:"
+
+msgid "Opzionale se in corso"
+msgstr "Opzionale se in corso"
+
+msgid "Opzionale, la data in cui termina il trattamento"
+msgstr "Opzionale, la data in cui termina il trattamento"
+
+msgid "Opzionale, quando termina la fioritura"
+msgstr "Opzionale, quando termina la fioritura"
+
+msgid "Opzioni visualizzazione"
+msgstr "Opzioni visualizzazione"
+
+msgid "Origine"
+msgstr "Origine"
+
+msgid "Origine:"
+msgstr "Origine:"
+
+msgid "Osservazioni sul telaino…"
+msgstr "Osservazioni sul telaino…"
+
+msgid "Pagamenti Personali"
+msgstr "Pagamenti Personali"
+
+msgid "Pagamento"
+msgstr "Pagamento"
+
+msgid "Pagato"
+msgstr "Pagato"
+
+msgid "Parziale"
+msgstr "Parziale"
+
+msgid "Passa il mouse per le azioni"
+msgstr "Passa il mouse per le azioni"
+
+msgid "Passata"
+msgstr "Passata"
+
+msgid "Passate"
+msgstr "Passate"
+
+msgid "Password attuale"
+msgstr "Password attuale"
+
+msgid "Per Origine"
+msgstr "Per Origine"
+
+msgid "Per Razza"
+msgstr "Per Razza"
+
+msgid "Per accettare questo invito, clicca sul pulsante qui sotto o copia il link nel tuo browser:"
+msgstr "Per accettare questo invito, clicca sul pulsante qui sotto o copia il link nel tuo browser:"
+
+msgid "Per canale"
+msgstr "Per canale"
+
+msgid "Per condividere un apiario, vai nella pagina dell'apiario e seleziona \\\"Condividi con gruppo\\\"."
+msgstr "Per condividere un apiario, vai nella pagina dell'apiario e seleziona \\\"Condividi con gruppo\\\"."
+
+msgid "Per l'analisi telaino usa luce naturale diffusa e tieni il telaio parallelo alla fotocamera per risultati ottimali."
+msgstr "Per l'analisi telaino usa luce naturale diffusa e tieni il telaio parallelo alla fotocamera per risultati ottimali."
+
+msgid "Per un'analisi accurata della produttività, cerca di registrare separatamente le smielature di diversi tipi di miele."
+msgstr "Per un'analisi accurata della produttività, cerca di registrare separatamente le smielature di diversi tipi di miele."
+
+msgid "Per una distribuzione equa, puoi assegnare a ciascun membro una quota uguale (ad es. 5 membri = 20% ciascuno)."
+msgstr "Per una distribuzione equa, puoi assegnare a ciascun membro una quota uguale (ad es. 5 membri = 20% ciascuno)."
+
+msgid "Per vedere le quote del gruppo, seleziona un gruppo dal menu in alto a destra."
+msgstr "Per vedere le quote del gruppo, seleziona un gruppo dal menu in alto a destra."
+
+msgid "Percentuale"
+msgstr "Percentuale"
+
+msgid "Percentuale (%)"
+msgstr "Percentuale (%)"
+
+msgid "Percentuale del valore già consumata nel tempo. Es. 60% = l\\'attrezzo ha perso 3/5 del suo valore originale."
+msgstr "Percentuale del valore già consumata nel tempo. Es. 60% = l\\'attrezzo ha perso 3/5 del suo valore originale."
+
+msgid "Percentuale:"
+msgstr "Percentuale:"
+
+msgid "Periodo"
+msgstr "Periodo"
+
+msgid "Periodo di Sospensione Attivo"
+msgstr "Periodo di Sospensione Attivo"
+
+msgid "Periodo:"
+msgstr "Periodo:"
+
+msgid "Personali"
+msgstr "Personali"
+
+msgid "Peso totale del miele estratto in chilogrammi"
+msgstr "Peso totale del miele estratto in chilogrammi"
+
+msgid "Pianifica e monitora i trattamenti per il benessere delle tue api"
+msgstr "Pianifica e monitora i trattamenti per il benessere delle tue api"
+
+msgid "Pianificazione in base alle previsioni:"
+msgstr "Pianificazione in base alle previsioni:"
+
+msgid "Pianta"
+msgstr "Pianta"
+
+msgid "Pianta/Fioritura"
+msgstr "Pianta/Fioritura"
+
+msgid "Pianta:"
+msgstr "Pianta:"
+
+msgid "Pieno"
+msgstr "Pieno"
+
+msgid "Pioggia"
+msgstr "Pioggia"
+
+#, python-format
+msgid "Pioggia rilevata (%(p)s mm): Verificare che l'acqua non entri nelle arnie e che il terreno circostante non sia troppo fangoso."
+msgstr "Pioggia rilevata (%(p)s mm): Verificare che l'acqua non entri nelle arnie e che il terreno circostante non sia troppo fangoso."
+
+msgid "Poco nuvoloso"
+msgstr "Poco nuvoloso"
+
+#, python-format
+msgid "Pos. %(p)s · %(t)s"
+msgstr "Pos. %(p)s · %(t)s"
+
+msgid "Posiziona i melari quando la famiglia è forte e ci sono abbondanti fioriture nell'area. Rimuovili prima di eseguire trattamenti sanitari."
+msgstr "Posiziona i melari quando la famiglia è forte e ci sono abbondanti fioriture nell'area. Rimuovili prima di eseguire trattamenti sanitari."
+
+msgid "Posizionati"
+msgstr "Posizionati"
+
+msgid "Posizionato"
+msgstr "Posizionato"
+
+msgid "Posizione"
+msgstr "Posizione"
+
+msgid "Posizione Specifica"
+msgstr "Posizione Specifica"
+
+msgid "Posizione:"
+msgstr "Posizione:"
+
+msgid "Precedente"
+msgstr "Precedente"
+
+msgid "Premi"
+msgstr "Premi"
+
+msgid "Presenza Regina"
+msgstr "Presenza Regina"
+
+msgid "Presenza di celle reali (può indicare sostituzione spontanea o sciamatura)"
+msgstr "Presenza di celle reali (può indicare sostituzione spontanea o sciamatura)"
+
+msgid "Presenza di uova fresche (deposte nelle ultime 24-48 ore)"
+msgstr "Presenza di uova fresche (deposte nelle ultime 24-48 ore)"
+
+msgid "Presenza regina:"
+msgstr "Presenza regina:"
+
+msgid "Pressione"
+msgstr "Pressione"
+
+msgid "Prestata a:"
+msgstr "Prestata a:"
+
+msgid "Prestate"
+msgstr "Prestate"
+
+#, python-format
+msgid "Prestato a %(u)s"
+msgstr "Prestato a %(u)s"
+
+#, python-format
+msgid "Prestato da %(u)s"
+msgstr "Prestato da %(u)s"
+
+msgid "Prestiti in Corso"
+msgstr "Prestiti in Corso"
+
+msgid "Previsioni Domani"
+msgstr "Previsioni Domani"
+
+msgid "Previsioni Meteo"
+msgstr "Previsioni Meteo"
+
+msgid "Previsti più giorni consecutivi di maltempo: verificare che le scorte di cibo nelle arnie siano sufficienti."
+msgstr "Previsti più giorni consecutivi di maltempo: verificare che le scorte di cibo nelle arnie siano sufficienti."
+
+msgid "Previsto maltempo nelle prossime ore: pianificare le attività all'apiario di conseguenza."
+msgstr "Previsto maltempo nelle prossime ore: pianificare le attività all'apiario di conseguenza."
+
+msgid "Prezzo Acquisto"
+msgstr "Prezzo Acquisto"
+
+msgid "Prezzo Acquisto (€)"
+msgstr "Prezzo Acquisto (€)"
+
+msgid "Prezzo max (€)"
+msgstr "Prezzo max (€)"
+
+msgid "Prezzo min (€)"
+msgstr "Prezzo min (€)"
+
+msgid "Prezzo pagato al momento dell\\'acquisto"
+msgstr "Prezzo pagato al momento dell\\'acquisto"
+
+msgid "Prezzo pagato al momento dell\\'acquisto, sommato per categoria"
+msgstr "Prezzo pagato al momento dell\\'acquisto, sommato per categoria"
+
+msgid "Prezzo unit."
+msgstr "Prezzo unit."
+
+msgid "Prezzo unitario (€)"
+msgstr "Prezzo unitario (€)"
+
+#, python-format
+msgid "Prezzo ≤ €%(p)s"
+msgstr "Prezzo ≤ €%(p)s"
+
+#, python-format
+msgid "Prezzo ≥ €%(p)s"
+msgstr "Prezzo ≥ €%(p)s"
+
+msgid "Prima analisi"
+msgstr "Prima analisi"
+
+msgid "Prima vendita"
+msgstr "Prima vendita"
+
+msgid "Primi Passi — Creare il primo apiario"
+msgstr "Primi Passi — Creare il primo apiario"
+
+msgid "Principio Attivo"
+msgstr "Principio Attivo"
+
+msgid "Principio Attivo:"
+msgstr "Principio Attivo:"
+
+msgid "Principio attivo:"
+msgstr "Principio attivo:"
+
+msgid "Prob. pioggia"
+msgstr "Prob. pioggia"
+
+msgid "Problemi sanitari"
+msgstr "Problemi sanitari"
+
+msgid "Problemi sanitari (incluse note)"
+msgstr "Problemi sanitari (incluse note)"
+
+msgid "Problemi sanitari:"
+msgstr "Problemi sanitari:"
+
+msgid "Prodotti"
+msgstr "Prodotti"
+
+msgid "Prodotti venduti"
+msgstr "Prodotti venduti"
+
+msgid "Prodotto"
+msgstr "Prodotto"
+
+msgid "Produttività"
+msgstr "Produttività"
+
+msgid "Produttività:"
+msgstr "Produttività:"
+
+msgid "Produzione CSV"
+msgstr "Produzione CSV"
+
+msgid "Programmata"
+msgstr "Programmata"
+
+msgid "Programmate"
+msgstr "Programmate"
+
+msgid "Programmato"
+msgstr "Programmato"
+
+#, python-format
+msgid "Promuovi il Nucleo #%(n)s"
+msgstr "Promuovi il Nucleo #%(n)s"
+
+msgid "Pronto"
+msgstr "Pronto"
+
+msgid "Pronto oggi"
+msgstr "Pronto oggi"
+
+#, python-format
+msgid "Pronto tra %(g)s giorni · %(d)s"
+msgstr "Pronto tra %(g)s giorni · %(d)s"
+
+msgid "Proprietario"
+msgstr "Proprietario"
+
+msgid "Proprietario:"
+msgstr "Proprietario:"
+
+#, python-format
+msgid "Proprietario: %(owner)s"
+msgstr "Proprietario: %(owner)s"
+
+msgid "Prossima Manutenzione"
+msgstr "Prossima Manutenzione"
+
+msgid "Pubblico"
+msgstr "Pubblico"
+
+msgid "Pulisci"
+msgstr "Pulisci"
+
+msgid "Punti da considerare:"
+msgstr "Punti da considerare:"
+
+msgid "Puoi lasciare vuoto se la fioritura non è associata a un apiario specifico"
+msgstr "Puoi lasciare vuoto se la fioritura non è associata a un apiario specifico"
+
+msgid "Puoi richiedere l'eliminazione dei tuoi dati personali senza necessariamente eliminare l'account, oppure richiedere l'eliminazione completa di tutti i dati."
+msgstr "Puoi richiedere l'eliminazione dei tuoi dati personali senza necessariamente eliminare l'account, oppure richiedere l'eliminazione completa di tutti i dati."
+
+msgid "Puoi richiedere l'eliminazione del tuo account e di tutti i dati associati in uno dei seguenti modi:"
+msgstr "Puoi richiedere l'eliminazione del tuo account e di tutti i dati associati in uno dei seguenti modi:"
+
+msgid "Può gestire membri, invitare nuovi utenti, modificare e eliminare il gruppo."
+msgstr "Può gestire membri, invitare nuovi utenti, modificare e eliminare il gruppo."
+
+msgid "Può modificare le risorse condivise, ma non può gestire i membri del gruppo."
+msgstr "Può modificare le risorse condivise, ma non può gestire i membri del gruppo."
+
+msgid "Può modificare risorse condivise"
+msgstr "Può modificare risorse condivise"
+
+msgid "Può solo visualizzare le risorse condivise, senza apportare modifiche."
+msgstr "Può solo visualizzare le risorse condivise, senza apportare modifiche."
+
+msgid "Qta"
+msgstr "Qta"
+
+msgid "Qtà"
+msgstr "Qtà"
+
+msgid "Quando inizia la fioritura"
+msgstr "Quando inizia la fioritura"
+
+msgid "Quando è pronto, registra la <strong>smielatura</strong>: data, peso grezzo, qualità, note"
+msgstr "Quando è pronto, registra la <strong>smielatura</strong>: data, peso grezzo, qualità, note"
+
+msgid "Quantità"
+msgstr "Quantità"
+
+msgid "Quantità (kg)"
+msgstr "Quantità (kg)"
+
+msgid "Quantità:"
+msgstr "Quantità:"
+
+msgid "Questa azione elimina il nucleo e tutti i suoi controlli."
+msgstr "Questa azione elimina il nucleo e tutti i suoi controlli."
+
+msgid "Questa azione eliminerà anche:"
+msgstr "Questa azione eliminerà anche:"
+
+msgid "Questa email è stata inviata automaticamente, non rispondere a questo messaggio."
+msgstr "Questa email è stata inviata automaticamente, non rispondere a questo messaggio."
+
+msgid "Questa operazione non può essere annullata e potrebbe influire sui trattamenti esistenti."
+msgstr "Questa operazione non può essere annullata e potrebbe influire sui trattamenti esistenti."
+
+msgid "Questa operazione non può essere annullata."
+msgstr "Questa operazione non può essere annullata."
+
+msgid "Questa operazione è irreversibile."
+msgstr "Questa operazione è irreversibile."
+
+msgid "Questo grafico mostra la relazione tra temperatura ambientale e sviluppo della covata/raccolta di scorte."
+msgstr "Questo grafico mostra la relazione tra temperatura ambientale e sviluppo della covata/raccolta di scorte."
+
+msgid "Questo trattamento richiede un blocco di covata."
+msgstr "Questo trattamento richiede un blocco di covata."
+
+msgid "Questo utente non avrà più accesso alle risorse condivise in questo gruppo."
+msgstr "Questo utente non avrà più accesso alle risorse condivise in questo gruppo."
+
+msgid "Questo è un messaggio automatico. Si prega di non rispondere a questa email."
+msgstr "Questo è un messaggio automatico. Si prega di non rispondere a questa email."
+
+msgid "Quota"
+msgstr "Quota"
+
+msgid "Quota %"
+msgstr "Quota %"
+
+msgid "Quote Personali"
+msgstr "Quote Personali"
+
+msgid "Quote Utenti"
+msgstr "Quote Utenti"
+
+msgid "Raggio (metri)"
+msgstr "Raggio (metri)"
+
+msgid "Raggio (metri):"
+msgstr "Raggio (metri):"
+
+msgid "Raggio di volo (3 km)"
+msgstr "Raggio di volo (3 km)"
+
+msgid "Raggio volo 3km"
+msgstr "Raggio volo 3km"
+
+msgid "Raggio:"
+msgstr "Raggio:"
+
+msgid "Raggruppa controlli stesso giorno"
+msgstr "Raggruppa controlli stesso giorno"
+
+msgid "Razza"
+msgstr "Razza"
+
+msgid "Razza:"
+msgstr "Razza:"
+
+msgid "Razze nella linea"
+msgstr "Razze nella linea"
+
+#, python-format
+msgid "Regina #%(n)s"
+msgstr "Regina #%(n)s"
+
+#, python-format
+msgid "Regina #%(num)s"
+msgstr "Regina #%(num)s"
+
+#, python-format
+msgid "Regina #%(numero)s"
+msgstr "Regina #%(numero)s"
+
+#, python-format
+msgid "Regina Arnia #%(num)s"
+msgstr "Regina Arnia #%(num)s"
+
+msgid "Regina Attuale"
+msgstr "Regina Attuale"
+
+msgid "Regina Madre"
+msgstr "Regina Madre"
+
+msgid "Regina attuale:"
+msgstr "Regina attuale:"
+
+#, python-format
+msgid "Regina dal %(data)s"
+msgstr "Regina dal %(data)s"
+
+msgid "Regina sostituita/da sostituire"
+msgstr "Regina sostituita/da sostituire"
+
+msgid "Regina vista durante il controllo"
+msgstr "Regina vista durante il controllo"
+
+msgid "Regina ✓"
+msgstr "Regina ✓"
+
+msgid "Regina ✗"
+msgstr "Regina ✗"
+
+msgid "Regine nella linea:"
+msgstr "Regine nella linea:"
+
+msgid "Regine — Gestire e tracciare le regine"
+msgstr "Regine — Gestire e tracciare le regine"
+
+msgid "Regine, nuclei e movimenti"
+msgstr "Regine, nuclei e movimenti"
+
+msgid "Registra Invasettamento"
+msgstr "Registra Invasettamento"
+
+msgid "Registra Manutenzione"
+msgstr "Registra Manutenzione"
+
+#, python-format
+msgid "Registra Manutenzione - %(n)s"
+msgstr "Registra Manutenzione - %(n)s"
+
+msgid "Registra Pagamento"
+msgstr "Registra Pagamento"
+
+msgid "Registra Restituzione"
+msgstr "Registra Restituzione"
+
+msgid "Registra Smielatura"
+msgstr "Registra Smielatura"
+
+msgid "Registra Spesa"
+msgstr "Registra Spesa"
+
+#, python-format
+msgid "Registra Spesa - %(n)s"
+msgstr "Registra Spesa - %(n)s"
+
+msgid "Registra i controlli di più arnie a voce, l'AI estrae i dati automaticamente"
+msgstr "Registra i controlli di più arnie a voce, l'AI estrae i dati automaticamente"
+
+msgid "Registra la smielatura con la quantità di miele effettivamente estratta in questa scheda"
+msgstr "Registra la smielatura con la quantità di miele effettivamente estratta in questa scheda"
+
+msgid "Registra le informazioni sulla regina dell'arnia:"
+msgstr "Registra le informazioni sulla regina dell'arnia:"
+
+msgid "Registra sempre con precisione il tipo di miele e la quantità ottenuta per mantenere un'accurata traccia della produzione."
+msgstr "Registra sempre con precisione il tipo di miele e la quantità ottenuta per mantenere un'accurata traccia della produzione."
+
+msgid "Registra smielatura"
+msgstr "Registra smielatura"
+
+msgid "Registra tutti i pagamenti relativi all'apiario per mantenere una contabilità accurata."
+msgstr "Registra tutti i pagamenti relativi all'apiario per mantenere una contabilità accurata."
+
+msgid "Registra un nuovo nucleo o modifica i dati esistenti"
+msgstr "Registra un nuovo nucleo o modifica i dati esistenti"
+
+msgid "Registra un'ispezione completa semplicemente parlando"
+msgstr "Registra un'ispezione completa semplicemente parlando"
+
+msgid "Registra: data di nascita, razza, colore di marcatura, origine (allevata, acquistata, sciamatura)"
+msgstr "Registra: data di nascita, razza, colore di marcatura, origine (allevata, acquistata, sciamatura)"
+
+msgid "Registrare pagamenti e quote di partecipazione"
+msgstr "Registrare pagamenti e quote di partecipazione"
+
+msgid "Registrazione Smielatura"
+msgstr "Registrazione Smielatura"
+
+#, python-format
+msgid "Registrazione Smielatura - %(a)s"
+msgstr "Registrazione Smielatura - %(a)s"
+
+msgid "Registro Pagamenti"
+msgstr "Registro Pagamenti"
+
+msgid "Residuo:"
+msgstr "Residuo:"
+
+msgid "Resist. malattie:"
+msgstr "Resist. malattie:"
+
+msgid "Resistenza Malattie"
+msgstr "Resistenza Malattie"
+
+msgid "Restituzione Attrezzatura"
+msgstr "Restituzione Attrezzatura"
+
+msgid "Riapri guida"
+msgstr "Riapri guida"
+
+msgid "Ricavi (€)"
+msgstr "Ricavi (€)"
+
+msgid "Ricavi mensili (ultimi 12 mesi)"
+msgstr "Ricavi mensili (ultimi 12 mesi)"
+
+msgid "Ricavo totale"
+msgstr "Ricavo totale"
+
+msgid "Ricerca"
+msgstr "Ricerca"
+
+msgid "Ricerca specie…"
+msgstr "Ricerca specie…"
+
+msgid "Richiedi"
+msgstr "Richiedi"
+
+msgid "Richiedi Prestito"
+msgstr "Richiedi Prestito"
+
+#, python-format
+msgid "Richiedi Prestito - %(n)s"
+msgstr "Richiedi Prestito - %(n)s"
+
+msgid "Richiesta eliminazione account"
+msgstr "Richiesta eliminazione account"
+
+msgid "Richiesta eliminazione dati"
+msgstr "Richiesta eliminazione dati"
+
+msgid "Ricorda di rispettare i periodi di sospensione dopo il trattamento prima di raccogliere il miele."
+msgstr "Ricorda di rispettare i periodi di sospensione dopo il trattamento prima di raccogliere il miele."
+
+msgid "Riepilogo"
+msgstr "Riepilogo"
+
+msgid "Riepilogo Quote Utenti"
+msgstr "Riepilogo Quote Utenti"
+
+msgid "Riepilogo per Categoria"
+msgstr "Riepilogo per Categoria"
+
+msgid "Riferimento per distanze"
+msgstr "Riferimento per distanze"
+
+msgid "Rifiuta"
+msgstr "Rifiuta"
+
+msgid "Rifiuta Invito"
+msgstr "Rifiuta Invito"
+
+msgid "Rilevamento"
+msgstr "Rilevamento"
+
+msgid "Rimozione Melario"
+msgstr "Rimozione Melario"
+
+#, python-format
+msgid "Rimuovere il melario #%(mi)s <strong>(%(t)s telaini, posizione %(p)s)</strong> dall'arnia #%(an)s?"
+msgstr "Rimuovere il melario #%(mi)s <strong>(%(t)s telaini, posizione %(p)s)</strong> dall'arnia #%(an)s?"
+
+msgid "Rimuovi"
+msgstr "Rimuovi"
+
+msgid "Rimuovi Melario"
+msgstr "Rimuovi Melario"
+
+#, python-format
+msgid "Rimuovi Melario #%(i)s"
+msgstr "Rimuovi Melario #%(i)s"
+
+#, python-format
+msgid "Rimuovi Melario - Arnia #%(n)s"
+msgstr "Rimuovi Melario - Arnia #%(n)s"
+
+msgid "Rimuovi Membro"
+msgstr "Rimuovi Membro"
+
+msgid "Rimuovi filtro"
+msgstr "Rimuovi filtro"
+
+msgid "Rimuovi i filtri"
+msgstr "Rimuovi i filtri"
+
+msgid "Rimuovi melario"
+msgstr "Rimuovi melario"
+
+msgid "Rimuovi tutti i filtri"
+msgstr "Rimuovi tutti i filtri"
+
+msgid "Risultati"
+msgstr "Risultati"
+
+#, python-format
+msgid "Risultati per \"<strong>%(q)s</strong>\""
+msgstr "Risultati per \"<strong>%(q)s</strong>\""
+
+msgid "Rivedi i dati estratti da <strong>Gemini AI</strong> e salva i controlli."
+msgstr "Rivedi i dati estratti da <strong>Gemini AI</strong> e salva i controlli."
+
+msgid "Rosso"
+msgstr "Rosso"
+
+msgid "Rubrica clienti e storico acquisti"
+msgstr "Rubrica clienti e storico acquisti"
+
+msgid "Ruoli del Gruppo"
+msgstr "Ruoli del Gruppo"
+
+msgid "Ruolo"
+msgstr "Ruolo"
+
+msgid "Ruolo proposto:"
+msgstr "Ruolo proposto:"
+
+#, python-format
+msgid "Ruolo proposto: %(r)s"
+msgstr "Ruolo proposto: %(r)s"
+
+#, python-format
+msgid "Ruolo: %(ruolo)s"
+msgstr "Ruolo: %(ruolo)s"
+
+msgid "Saldo"
+msgstr "Saldo"
+
+msgid "Salta"
+msgstr "Salta"
+
+msgid "Salva Immagine"
+msgstr "Salva Immagine"
+
+msgid "Salva Manutenzione"
+msgstr "Salva Manutenzione"
+
+msgid "Salva Pagamento"
+msgstr "Salva Pagamento"
+
+msgid "Salva Quota"
+msgstr "Salva Quota"
+
+msgid "Salva Spesa"
+msgstr "Salva Spesa"
+
+msgid "Salva controllo"
+msgstr "Salva controllo"
+
+msgid "Salva e Seleziona"
+msgstr "Salva e Seleziona"
+
+msgid "Salva invasettamento"
+msgstr "Salva invasettamento"
+
+msgid "Salva tutti i controlli"
+msgstr "Salva tutti i controlli"
+
+msgid "Salva uno snapshot dei valori"
+msgstr "Salva uno snapshot dei valori"
+
+msgid "Salva vendita"
+msgstr "Salva vendita"
+
+msgid "Salva — il controllo appare nella cronologia dell'arnia"
+msgstr "Salva — il controllo appare nella cronologia dell'arnia"
+
+msgid "Salva — il tuo apiario è pronto"
+msgstr "Salva — il tuo apiario è pronto"
+
+#, python-format
+msgid "Scade il %(d)s"
+msgstr "Scade il %(d)s"
+
+#, python-format
+msgid "Scade: %(d)s"
+msgstr "Scade: %(d)s"
+
+#, python-format
+msgid "Scade: %(data)s"
+msgstr "Scade: %(data)s"
+
+msgid "Scadenza:"
+msgstr "Scadenza:"
+
+msgid "Scaduta"
+msgstr "Scaduta"
+
+msgid "Scarica su App Store"
+msgstr "Scarica su App Store"
+
+msgid "Scarica su Google Play"
+msgstr "Scarica su Google Play"
+
+msgid "Scegli <strong>\\\"Elimina dati\\\"</strong> per i soli dati o <strong>\\\"Elimina account\\\"</strong> per tutto."
+msgstr "Scegli <strong>\\\"Elimina dati\\\"</strong> per i soli dati o <strong>\\\"Elimina account\\\"</strong> per tutto."
+
+msgid "Sciamatura (inclusi data e note)"
+msgstr "Sciamatura (inclusi data e note)"
+
+msgid "Sciamatura:"
+msgstr "Sciamatura:"
+
+msgid "Sconosciuta"
+msgstr "Sconosciuta"
+
+msgid "Sconosciuto"
+msgstr "Sconosciuto"
+
+msgid "Se il pulsante non funziona, copia e incolla questo link nel tuo browser:"
+msgstr "Se il pulsante non funziona, copia e incolla questo link nel tuo browser:"
+
+msgid "Se il trattamento richiede un blocco di covata, indica la durata consigliata e fornisci istruzioni specifiche. Questo sarà utile per programmare adeguatamente i trattamenti."
+msgstr "Se il trattamento richiede un blocco di covata, indica la durata consigliata e fornisci istruzioni specifiche. Questo sarà utile per programmare adeguatamente i trattamenti."
+
+msgid "Se la condizione è cambiata rispetto al prestito"
+msgstr "Se la condizione è cambiata rispetto al prestito"
+
+msgid "Se non hai richiesto questo invito, puoi ignorare questo messaggio."
+msgstr "Se non hai richiesto questo invito, puoi ignorare questo messaggio."
+
+msgid "Se non hai un account su Apiary, dovrai registrarti con questo indirizzo email prima di poter accettare l'invito."
+msgstr "Se non hai un account su Apiary, dovrai registrarti con questo indirizzo email prima di poter accettare l'invito."
+
+#, python-format
+msgid "Se non ti aspettavi questo invito, puoi semplicemente ignorare questa email. L'invito scadrà automaticamente il %(d)s."
+msgstr "Se non ti aspettavi questo invito, puoi semplicemente ignorare questa email. L'invito scadrà automaticamente il %(d)s."
+
+msgid "Se selezionato, tutti i membri del gruppo potranno vedere questa attrezzatura."
+msgstr "Se selezionato, tutti i membri del gruppo potranno vedere questa attrezzatura."
+
+msgid "Se ti è utile, un piccolo gesto fa la differenza!"
+msgstr "Se ti è utile, un piccolo gesto fa la differenza!"
+
+msgid "Se è stata acquistata, allevata, o da sciamatura naturale"
+msgstr "Se è stata acquistata, allevata, o da sciamatura naturale"
+
+msgid "Secchio"
+msgstr "Secchio"
+
+msgid "Segna come letta"
+msgstr "Segna come letta"
+
+msgid "Segna venduto"
+msgstr "Segna venduto"
+
+msgid "Segni della presenza della regina:"
+msgstr "Segni della presenza della regina:"
+
+msgid "Segni di possibili problemi:"
+msgstr "Segni di possibili problemi:"
+
+msgid "Sei in pari! Non hai notifiche al momento."
+msgstr "Sei in pari! Non hai notifiche al momento."
+
+msgid "Sei pronto!"
+msgstr "Sei pronto!"
+
+#, python-format
+msgid "Sei sicuro di voler eliminare il gruppo \"%(nome)s\"?"
+msgstr "Sei sicuro di voler eliminare il gruppo \"%(nome)s\"?"
+
+#, python-format
+msgid "Sei sicuro di voler eliminare il gruppo <strong>%(nome)s</strong>?"
+msgstr "Sei sicuro di voler eliminare il gruppo <strong>%(nome)s</strong>?"
+
+#, python-format
+msgid "Sei sicuro di voler eliminare l'attrezzatura <strong>%(n)s</strong>?"
+msgstr "Sei sicuro di voler eliminare l'attrezzatura <strong>%(n)s</strong>?"
+
+#, python-format
+msgid "Sei sicuro di voler eliminare la fioritura di <strong>%(p)s</strong>?"
+msgstr "Sei sicuro di voler eliminare la fioritura di <strong>%(p)s</strong>?"
+
+#, python-format
+msgid "Sei sicuro di voler eliminare la vendita del <strong>%(data)s</strong>?"
+msgstr "Sei sicuro di voler eliminare la vendita del <strong>%(data)s</strong>?"
+
+msgid "Sei sicuro di voler eliminare questa fioritura?"
+msgstr "Sei sicuro di voler eliminare questa fioritura?"
+
+msgid "Sei sicuro di voler eliminare questa quota utente?"
+msgstr "Sei sicuro di voler eliminare questa quota utente?"
+
+msgid "Sei sicuro di voler eliminare questo controllo?"
+msgstr "Sei sicuro di voler eliminare questo controllo?"
+
+msgid "Sei sicuro di voler eliminare questo pagamento?"
+msgstr "Sei sicuro di voler eliminare questo pagamento?"
+
+msgid "Sei sicuro di voler eliminare questo tipo di trattamento?"
+msgstr "Sei sicuro di voler eliminare questo tipo di trattamento?"
+
+msgid "Sei sicuro di voler eliminare questo trattamento sanitario?"
+msgstr "Sei sicuro di voler eliminare questo trattamento sanitario?"
+
+#, python-format
+msgid "Sei sicuro di voler lasciare il gruppo <strong>%(nome)s</strong>?"
+msgstr "Sei sicuro di voler lasciare il gruppo <strong>%(nome)s</strong>?"
+
+#, python-format
+msgid "Sei sicuro di voler rimuovere <strong>%(username)s</strong> dal gruppo <strong>%(nome)s</strong>?"
+msgstr "Sei sicuro di voler rimuovere <strong>%(username)s</strong> dal gruppo <strong>%(nome)s</strong>?"
+
+msgid "Sei stato invitato a un gruppo su Apiary"
+msgstr "Sei stato invitato a un gruppo su Apiary"
+
+msgid "Sei stato invitato a unirti al gruppo"
+msgstr "Sei stato invitato a unirti al gruppo"
+
+msgid "Sei stato invitato!"
+msgstr "Sei stato invitato!"
+
+msgid "Sei un amministratore del gruppo. Se lasci il gruppo, verrà automaticamente assegnato un nuovo amministratore o il gruppo sarà eliminato se non ci sono altri membri."
+msgstr "Sei un amministratore del gruppo. Se lasci il gruppo, verrà automaticamente assegnato un nuovo amministratore o il gruppo sarà eliminato se non ci sono altri membri."
+
+msgid "Seleziona 2+ regine per confrontarle"
+msgstr "Seleziona 2+ regine per confrontarle"
+
+msgid "Seleziona Arnie di Destinazione"
+msgstr "Seleziona Arnie di Destinazione"
+
+msgid "Seleziona Posizione"
+msgstr "Seleziona Posizione"
+
+msgid "Seleziona il tipo di miele:"
+msgstr "Seleziona il tipo di miele:"
+
+msgid "Seleziona il tipo di trattamento da applicare"
+msgstr "Seleziona il tipo di trattamento da applicare"
+
+msgid "Seleziona l'<strong>apiario</strong> e abilita la <strong>modalità batch</strong> se vuoi registrare più arnie di fila."
+msgstr "Seleziona l'<strong>apiario</strong> e abilita la <strong>modalità batch</strong> se vuoi registrare più arnie di fila."
+
+msgid "Seleziona l'apiario dove verrà applicato il trattamento"
+msgstr "Seleziona l'apiario dove verrà applicato il trattamento"
+
+msgid "Seleziona le arnie da trattare o applica a tutte"
+msgstr "Seleziona le arnie da trattare o applica a tutte"
+
+msgid "Seleziona le arnie su cui copiare il controllo:"
+msgstr "Seleziona le arnie su cui copiare il controllo:"
+
+msgid "Seleziona prima un apiario…"
+msgstr "Seleziona prima un apiario…"
+
+msgid "Seleziona quali informazioni copiare:"
+msgstr "Seleziona quali informazioni copiare:"
+
+msgid "Seleziona tutte"
+msgstr "Seleziona tutte"
+
+msgid "Seleziona tutti"
+msgstr "Seleziona tutti"
+
+msgid "Seleziona tutti i melari da cui è stato estratto il miele"
+msgstr "Seleziona tutti i melari da cui è stato estratto il miele"
+
+msgid "Seleziona un gruppo con cui condividere questo apiario e i suoi dati."
+msgstr "Seleziona un gruppo con cui condividere questo apiario e i suoi dati."
+
+msgid "Seleziona un gruppo..."
+msgstr "Seleziona un gruppo..."
+
+msgid "Seleziona un telaino di una tua arnia, scatta/carica la foto — il modello locale rileva api, fuchi, regine e celle reali"
+msgstr "Seleziona un telaino di una tua arnia, scatta/carica la foto — il modello locale rileva api, fuchi, regine e celle reali"
+
+msgid "Selezionando questa opzione, verrai reindirizzato alla pagina di sostituzione regina dopo il salvataggio."
+msgstr "Selezionando questa opzione, verrai reindirizzato alla pagina di sostituzione regina dopo il salvataggio."
+
+msgid "Selezionata"
+msgstr "Selezionata"
+
+msgid "Sempre in crescita"
+msgstr "Sempre in crescita"
+
+msgid "Senza apiario"
+msgstr "Senza apiario"
+
+msgid "Sereno"
+msgstr "Sereno"
+
+msgid "Sessione precedente ripristinata"
+msgstr "Sessione precedente ripristinata"
+
+msgid "Settimana"
+msgstr "Settimana"
+
+msgid "Shield"
+msgstr "Shield"
+
+msgid "Smielato"
+msgstr "Smielato"
+
+msgid "Smielatura"
+msgstr "Smielatura"
+
+msgid "Smielatura collegata"
+msgstr "Smielatura collegata"
+
+#, python-format
+msgid "Smielatura del %(d)s"
+msgstr "Smielatura del %(d)s"
+
+msgid "Smielature"
+msgstr "Smielature"
+
+msgid "Solo Lettura"
+msgstr "Solo Lettura"
+
+msgid "Solo apiari"
+msgstr "Solo apiari"
+
+msgid "Solo con discendenza registrata"
+msgstr "Solo con discendenza registrata"
+
+msgid "Solo gli amministratori e gli editor possono aggiungere pagamenti."
+msgstr "Solo gli amministratori e gli editor possono aggiungere pagamenti."
+
+msgid "Solo gli amministratori e gli editor possono gestire le quote."
+msgstr "Solo gli amministratori e gli editor possono gestire le quote."
+
+msgid "Solo lettura."
+msgstr "Solo lettura."
+
+msgid "Solo per fioriture: area approssimativa."
+msgstr "Solo per fioriture: area approssimativa."
+
+msgid "Somma dei prezzi di acquisto originali di tutte le attrezzature filtrate, senza considerare l\\'usura nel tempo."
+msgstr "Somma dei prezzi di acquisto originali di tutte le attrezzature filtrate, senza considerare l\\'usura nel tempo."
+
+msgid "Sospensione"
+msgstr "Sospensione"
+
+msgid "Sostituisci"
+msgstr "Sostituisci"
+
+msgid "Sostituzione"
+msgstr "Sostituzione"
+
+msgid "Sostituzione Regina"
+msgstr "Sostituzione Regina"
+
+msgid "Specifica il nome utente o l'email dell'account e i dati che desideri eliminare."
+msgstr "Specifica il nome utente o l'email dell'account e i dati che desideri eliminare."
+
+msgid "Spesa attrezzatura"
+msgstr "Spesa attrezzatura"
+
+msgid "Spesa totale"
+msgstr "Spesa totale"
+
+msgid "Spese"
+msgstr "Spese"
+
+msgid "Spese Totali"
+msgstr "Spese Totali"
+
+msgid "Spiega perché hai bisogno di questa attrezzatura"
+msgstr "Spiega perché hai bisogno di questa attrezzatura"
+
+#, python-format
+msgid "Stai modificando il ruolo di <strong>%(u)s</strong> nel gruppo <strong>%(g)s</strong>."
+msgstr "Stai modificando il ruolo di <strong>%(u)s</strong> nel gruppo <strong>%(g)s</strong>."
+
+#, python-format
+msgid "Stai per eliminare <strong>tutti i dati di apicoltura</strong> dell'account <strong>%(u)s</strong> (apiari, arnie, controlli, trattamenti, ecc.)."
+msgstr "Stai per eliminare <strong>tutti i dati di apicoltura</strong> dell'account <strong>%(u)s</strong> (apiari, arnie, controlli, trattamenti, ecc.)."
+
+msgid "Stai per eliminare definitivamente l'arnia:"
+msgstr "Stai per eliminare definitivamente l'arnia:"
+
+#, python-format
+msgid "Stai per eliminare l'account <strong>%(u)s</strong>. Questa azione è <strong>irreversibile</strong>."
+msgstr "Stai per eliminare l'account <strong>%(u)s</strong>. Questa azione è <strong>irreversibile</strong>."
+
+#, python-format
+msgid "Stai per inviare il melario #%(i)s (%(t)s telaini) in smielatura."
+msgstr "Stai per inviare il melario #%(i)s (%(t)s telaini) in smielatura."
+
+#, python-format
+msgid "Stai per rimuovere il melario #%(i)s (posizione %(p)s)."
+msgstr "Stai per rimuovere il melario #%(i)s (posizione %(p)s)."
+
+#, python-format
+msgid "Stai per rimuovere il melario #%(mi)s dall'arnia #%(an)s."
+msgstr "Stai per rimuovere il melario #%(mi)s dall'arnia #%(an)s."
+
+msgid "Stai rimuovendo un amministratore del gruppo. Assicurati che ci siano altri amministratori disponibili."
+msgstr "Stai rimuovendo un amministratore del gruppo. Assicurati che ci siano altri amministratori disponibili."
+
+#, python-format
+msgid "Stai sostituendo la regina dell'arnia <strong>#%(n)s</strong>. La regina attuale verrà archiviata e sarà registrata una nuova regina al suo posto."
+msgstr "Stai sostituendo la regina dell'arnia <strong>#%(n)s</strong>. La regina attuale verrà archiviata e sarà registrata una nuova regina al suo posto."
+
+msgid "Stampa calendario"
+msgstr "Stampa calendario"
+
+msgid "Standard (Dadan)"
+msgstr "Standard (Dadan)"
+
+msgid "Statistiche"
+msgstr "Statistiche"
+
+msgid "Statistiche Linea"
+msgstr "Statistiche Linea"
+
+msgid "Stato attuale del trattamento"
+msgstr "Stato attuale del trattamento"
+
+msgid "Stato attuale: Disponibile, In Uso, In Manutenzione, Prestato, Dismesso"
+msgstr "Stato attuale: Disponibile, In Uso, In Manutenzione, Prestato, Dismesso"
+
+msgid "Stato e Posizione"
+msgstr "Stato e Posizione"
+
+msgid "Stato favi"
+msgstr "Stato favi"
+
+msgid "Stato:"
+msgstr "Stato:"
+
+msgid "Stima di quanto valgono oggi le attrezzature, sottraendo l\\'ammortamento annuo maturato. Un attrezzo da €100 con vita utile 5 anni vale €20 in meno ogni anno."
+msgstr "Stima di quanto valgono oggi le attrezzature, sottraendo l\\'ammortamento annuo maturato. Un attrezzo da €100 con vita utile 5 anni vale €20 in meno ogni anno."
+
+msgid "Stoccaggio"
+msgstr "Stoccaggio"
+
+msgid "Storia Regine"
+msgstr "Storia Regine"
+
+msgid "Storico"
+msgstr "Storico"
+
+msgid "Storico Analisi Telaini"
+msgstr "Storico Analisi Telaini"
+
+msgid "Storico Controlli"
+msgstr "Storico Controlli"
+
+msgid "Storico Manutenzioni"
+msgstr "Storico Manutenzioni"
+
+msgid "Storico Prestiti"
+msgstr "Storico Prestiti"
+
+msgid "Storico Smielature"
+msgstr "Storico Smielature"
+
+msgid "Storico Trattamenti"
+msgstr "Storico Trattamenti"
+
+msgid "Storico acquisti cliente"
+msgstr "Storico acquisti cliente"
+
+msgid "Storico vendite"
+msgstr "Storico vendite"
+
+msgid "Storico vendite e fatturato prodotti"
+msgstr "Storico vendite e fatturato prodotti"
+
+#, python-format
+msgid "Su %(count)s arnie"
+msgstr "Su %(count)s arnie"
+
+msgid "Subtotale"
+msgstr "Subtotale"
+
+msgid "Suggerimenti basati sul meteo attuale:"
+msgstr "Suggerimenti basati sul meteo attuale:"
+
+msgid "Suggerimento:"
+msgstr "Suggerimento:"
+
+msgid "Supporta Apiary — Offrici un Caffè"
+msgstr "Supporta Apiary — Offrici un Caffè"
+
+msgid "Sviluppato da chi alleva api e conosce le reali esigenze di chi lavora in campo."
+msgstr "Sviluppato da chi alleva api e conosce le reali esigenze di chi lavora in campo."
+
+msgid "Sviluppatore: Apiary Manager"
+msgstr "Sviluppatore: Apiary Manager"
+
+msgid "Sì, converti in Arnia"
+msgstr "Sì, converti in Arnia"
+
+msgid "Sì, elimina"
+msgstr "Sì, elimina"
+
+msgid "TOTALE"
+msgstr "TOTALE"
+
+msgid "Tabella Dati"
+msgstr "Tabella Dati"
+
+msgid "Tag arnia rilevato"
+msgstr "Tag arnia rilevato"
+
+msgid "Telaini"
+msgstr "Telaini"
+
+msgid "Telaini (scorte e covata)"
+msgstr "Telaini (scorte e covata)"
+
+msgid "Telaini covata:"
+msgstr "Telaini covata:"
+
+msgid "Telaini scorte:"
+msgstr "Telaini scorte:"
+
+msgid "Telaino"
+msgstr "Telaino"
+
+#, python-format
+msgid "Telaino %(n)s%(f)s"
+msgstr "Telaino %(n)s%(f)s"
+
+msgid "Telefono"
+msgstr "Telefono"
+
+msgid "Temperatura"
+msgstr "Temperatura"
+
+#, python-format
+msgid "Temperatura favorevole (%(t)s°C): Condizioni buone per ispezioni e lavori all'apiario."
+msgstr "Temperatura favorevole (%(t)s°C): Condizioni buone per ispezioni e lavori all'apiario."
+
+#, python-format
+msgid "Temperature basse (%(t)s°C): Le api sono in cluster invernale, evitare ispezioni non necessarie."
+msgstr "Temperature basse (%(t)s°C): Le api sono in cluster invernale, evitare ispezioni non necessarie."
+
+#, python-format
+msgid "Temperature elevate (%(t)s°C): Assicurarsi che le api abbiano accesso all'acqua e che ci sia adeguata ventilazione."
+msgstr "Temperature elevate (%(t)s°C): Assicurarsi che le api abbiano accesso all'acqua e che ci sia adeguata ventilazione."
+
+msgid "Temperature molto basse: Controllare l'isolamento delle arnie e considerare l'uso di diaframmi."
+msgstr "Temperature molto basse: Controllare l'isolamento delle arnie e considerare l'uso di diaframmi."
+
+msgid "Temperature molto elevate: Predisporre abbeveratoi e ombreggiamento aggiuntivo per le arnie."
+msgstr "Temperature molto elevate: Predisporre abbeveratoi e ombreggiamento aggiuntivo per le arnie."
+
+msgid "Tempi di elaborazione"
+msgstr "Tempi di elaborazione"
+
+msgid "Tempo Sospensione (giorni)"
+msgstr "Tempo Sospensione (giorni)"
+
+msgid "Tempo Sospensione:"
+msgstr "Tempo Sospensione:"
+
+msgid "Tempo rimanente"
+msgstr "Tempo rimanente"
+
+msgid "Tempo sospensione:"
+msgstr "Tempo sospensione:"
+
+msgid "Temporale"
+msgstr "Temporale"
+
+msgid "Tend. sciamatura:"
+msgstr "Tend. sciamatura:"
+
+msgid "Tendenza Sciamatura"
+msgstr "Tendenza Sciamatura"
+
+msgid "Terminata"
+msgstr "Terminata"
+
+msgid "Testo corretto (vocabolario apicolo)"
+msgstr "Testo corretto (vocabolario apicolo)"
+
+msgid "Thermo"
+msgstr "Thermo"
+
+msgid "Tipi"
+msgstr "Tipi"
+
+msgid "Tipi di Trattamento"
+msgstr "Tipi di Trattamento"
+
+msgid "Tipi di Trattamento Disponibili"
+msgstr "Tipi di Trattamento Disponibili"
+
+msgid "Tipi di dati eliminati su richiesta"
+msgstr "Tipi di dati eliminati su richiesta"
+
+msgid "Tipi di eventi"
+msgstr "Tipi di eventi"
+
+msgid "Tipo"
+msgstr "Tipo"
+
+msgid "Tipo Manutenzione"
+msgstr "Tipo Manutenzione"
+
+msgid "Tipo Spesa"
+msgstr "Tipo Spesa"
+
+msgid "Tipo Trattamento"
+msgstr "Tipo Trattamento"
+
+msgid "Tipo di Trattamento"
+msgstr "Tipo di Trattamento"
+
+msgid "Tipo di miele"
+msgstr "Tipo di miele"
+
+msgid "Tipo melario"
+msgstr "Tipo melario"
+
+msgid "Tipo miele"
+msgstr "Tipo miele"
+
+msgid "Tipo miele:"
+msgstr "Tipo miele:"
+
+msgid "Tipo non specificato"
+msgstr "Tipo non specificato"
+
+msgid "Tipo:"
+msgstr "Tipo:"
+
+msgid "Tocca <strong>\\\"Elimina account\\\"</strong> e conferma."
+msgstr "Tocca <strong>\\\"Elimina account\\\"</strong> e conferma."
+
+msgid "Tools"
+msgstr "Tools"
+
+msgid "Torna ai Melari"
+msgstr "Torna ai Melari"
+
+msgid "Torna ai Trattamenti"
+msgstr "Torna ai Trattamenti"
+
+msgid "Torna ai nuclei"
+msgstr "Torna ai nuclei"
+
+msgid "Torna al Controllo"
+msgstr "Torna al Controllo"
+
+msgid "Torna al Gruppo"
+msgstr "Torna al Gruppo"
+
+msgid "Torna al Meteo"
+msgstr "Torna al Meteo"
+
+msgid "Torna al controllo"
+msgstr "Torna al controllo"
+
+msgid "Torna all'apiario"
+msgstr "Torna all'apiario"
+
+msgid "Torna alla Dashboard"
+msgstr "Torna alla Dashboard"
+
+msgid "Torna alla Regina"
+msgstr "Torna alla Regina"
+
+msgid "Torna alla Ricerca"
+msgstr "Torna alla Ricerca"
+
+msgid "Torna alla dashboard"
+msgstr "Torna alla dashboard"
+
+msgid "Torna alla smielatura"
+msgstr "Torna alla smielatura"
+
+msgid "Torna alle Attrezzature"
+msgstr "Torna alle Attrezzature"
+
+msgid "Torna alle smielature"
+msgstr "Torna alle smielature"
+
+msgid "Totale"
+msgstr "Totale"
+
+msgid "Totale Pagamenti:"
+msgstr "Totale Pagamenti:"
+
+msgid "Totale percentuali:"
+msgstr "Totale percentuali:"
+
+msgid "Totale vendita:"
+msgstr "Totale vendita:"
+
+msgid "Totale:"
+msgstr "Totale:"
+
+#, python-format
+msgid "Totale: <strong>€ %(totale)s</strong>. L'operazione è irreversibile."
+msgstr "Totale: <strong>€ %(totale)s</strong>. L'operazione è irreversibile."
+
+msgid "Trascina i melari ambra per riordinarne la posizione"
+msgstr "Trascina i melari ambra per riordinarne la posizione"
+
+msgid "Trascina la foto del telaino"
+msgstr "Trascina la foto del telaino"
+
+msgid "Trascrizione"
+msgstr "Trascrizione"
+
+msgid "Trascrizioni in attesa"
+msgstr "Trascrizioni in attesa"
+
+msgid "Trasferisci da un maturatore o aggiungi manualmente."
+msgstr "Trasferisci da un maturatore o aggiungi manualmente."
+
+msgid "Trasferisci in contenitori"
+msgstr "Trasferisci in contenitori"
+
+msgid "Trasferisci ora"
+msgstr "Trasferisci ora"
+
+msgid "Trattamenti Attivi e Programmati"
+msgstr "Trattamenti Attivi e Programmati"
+
+msgid "Trattamenti CSV"
+msgstr "Trattamenti CSV"
+
+msgid "Trisavola"
+msgstr "Trisavola"
+
+msgid "Tu"
+msgstr "Tu"
+
+msgid "Tuo"
+msgstr "Tuo"
+
+msgid "Tuo apiario"
+msgstr "Tuo apiario"
+
+msgid "Tuoi apiari"
+msgstr "Tuoi apiari"
+
+msgid "Tutte"
+msgstr "Tutte"
+
+#, python-format
+msgid "Tutte (%(n)s)"
+msgstr "Tutte (%(n)s)"
+
+msgid "Tutte le arnie"
+msgstr "Tutte le arnie"
+
+msgid "Tutte le manutenzioni registrate"
+msgstr "Tutte le manutenzioni registrate"
+
+msgid "Tutte le spese registrate"
+msgstr "Tutte le spese registrate"
+
+msgid "Tutti gli anni"
+msgstr "Tutti gli anni"
+
+msgid "Tutti gli apiari"
+msgstr "Tutti gli apiari"
+
+msgid "Tutti i gruppi"
+msgstr "Tutti i gruppi"
+
+msgid "Tutti i prestiti associati"
+msgstr "Tutti i prestiti associati"
+
+msgid "Tutto il codice è scritto e mantenuto gratuitamente."
+msgstr "Tutto il codice è scritto e mantenuto gratuitamente."
+
+msgid "Tutto letto"
+msgstr "Tutto letto"
+
+msgid "Tutto quello che devi sapere per usare Apiary al meglio"
+msgstr "Tutto quello che devi sapere per usare Apiary al meglio"
+
+msgid "Ultimo controllo"
+msgstr "Ultimo controllo"
+
+msgid "Umidità"
+msgstr "Umidità"
+
+#, python-format
+msgid "Umidità elevata (%(u)s%): Attenzione a possibili problemi di condensa nelle arnie."
+msgstr "Umidità elevata (%(u)s%): Attenzione a possibili problemi di condensa nelle arnie."
+
+msgid "Un apiario è la tua postazione fisica — un campo, un bosco, un terreno. Dentro ogni apiario trovi le tue arnie. Puoi avere più apiari in luoghi diversi e gestirli tutti da qui."
+msgstr "Un apiario è la tua postazione fisica — un campo, un bosco, un terreno. Dentro ogni apiario trovi le tue arnie. Puoi avere più apiari in luoghi diversi e gestirli tutti da qui."
+
+msgid "Una breve descrizione del trattamento"
+msgstr "Una breve descrizione del trattamento"
+
+msgid "Una breve descrizione dello scopo del pagamento"
+msgstr "Una breve descrizione dello scopo del pagamento"
+
+msgid "Unendoti a questo gruppo, avrai accesso alle risorse condivise dagli altri membri e potrai collaborare nella gestione degli apiari, secondo il ruolo che ti è stato assegnato."
+msgstr "Unendoti a questo gruppo, avrai accesso alle risorse condivise dagli altri membri e potrai collaborare nella gestione degli apiari, secondo il ruolo che ti è stato assegnato."
+
+msgid "Unendoti a questo gruppo, potrai collaborare con altri apicoltori nella gestione condivisa degli apiari, arnie, fioriture, trattamenti sanitari e molto altro."
+msgstr "Unendoti a questo gruppo, potrai collaborare con altri apicoltori nella gestione condivisa degli apiari, arnie, fioriture, trattamenti sanitari e molto altro."
+
+msgid "Unità di Misura"
+msgstr "Unità di Misura"
+
+msgid "Uova fresche presenti"
+msgstr "Uova fresche presenti"
+
+msgid "Usa <strong>Confronta Regine</strong> per valutare le prestazioni side-by-side"
+msgstr "Usa <strong>Confronta Regine</strong> per valutare le prestazioni side-by-side"
+
+msgid "Usa classi Bootstrap Icons (es. bi-tools, bi-box-seam)."
+msgstr "Usa classi Bootstrap Icons (es. bi-tools, bi-box-seam)."
+
+msgid "Usa i <strong>comandi vocali</strong> per passare all'arnia successiva:"
+msgstr "Usa i <strong>comandi vocali</strong> per passare all'arnia successiva:"
+
+msgid "Usa i filtri per trovare regine con caratteristiche specifiche"
+msgstr "Usa i filtri per trovare regine con caratteristiche specifiche"
+
+msgid "Usa il form a sinistra per aggiungere il primo."
+msgstr "Usa il form a sinistra per aggiungere il primo."
+
+msgid "Utente"
+msgstr "Utente"
+
+msgid "Utente:"
+msgstr "Utente:"
+
+msgid "Utenti"
+msgstr "Utenti"
+
+msgid "Utilizza il pulsante \\\"Seleziona sulla mappa\\\" per posizionare facilmente la fioritura."
+msgstr "Utilizza il pulsante \\\"Seleziona sulla mappa\\\" per posizionare facilmente la fioritura."
+
+msgid "Vai al Gruppo"
+msgstr "Vai al Gruppo"
+
+msgid "Vai all'Apiario"
+msgstr "Vai all'Apiario"
+
+#, python-format
+msgid "Vai all'Arnia #%(n)s"
+msgstr "Vai all'Arnia #%(n)s"
+
+msgid "Vai alla pagina"
+msgstr "Vai alla pagina"
+
+msgid "Vai su <em>Analisi Telaino</em>, carica o scatta una foto di un telaio. Il modello YOLO rileva automaticamente api adulte, covata, celle reali e fuchi."
+msgstr "Vai su <em>Analisi Telaino</em>, carica o scatta una foto di un telaio. Il modello YOLO rileva automaticamente api adulte, covata, celle reali e fuchi."
+
+msgid "Vai su <em>Intelligenza Artificiale → Controllo Vocale</em> nella sidebar. Parla e l'app trascrive e struttura automaticamente un'ispezione completa."
+msgstr "Vai su <em>Intelligenza Artificiale → Controllo Vocale</em> nella sidebar. Parla e l'app trascrive e struttura automaticamente un'ispezione completa."
+
+msgid "Vai su <strong>Collaborazione → Gruppi</strong> nella sidebar"
+msgstr "Vai su <strong>Collaborazione → Gruppi</strong> nella sidebar"
+
+msgid "Vai su <strong>Profilo → Impostazioni account</strong>."
+msgstr "Vai su <strong>Profilo → Impostazioni account</strong>."
+
+msgid "Valore"
+msgstr "Valore"
+
+msgid "Valore Acquisto"
+msgstr "Valore Acquisto"
+
+msgid "Valore Residuo"
+msgstr "Valore Residuo"
+
+msgid "Valore Totale Acquisto"
+msgstr "Valore Totale Acquisto"
+
+msgid "Valore acquisto"
+msgstr "Valore acquisto"
+
+msgid "Valore attuale stimato dopo ammortamento. Calcolato come: Prezzo acquisto − (Prezzo / Vita utile anni × Anni trascorsi)"
+msgstr "Valore attuale stimato dopo ammortamento. Calcolato come: Prezzo acquisto − (Prezzo / Vita utile anni × Anni trascorsi)"
+
+msgid "Valore attuale stimato tramite ammortamento lineare: Prezzo − (Prezzo ÷ Vita Utile × Anni Trascorsi). Scende a zero a fine vita utile."
+msgstr "Valore attuale stimato tramite ammortamento lineare: Prezzo − (Prezzo ÷ Vita Utile × Anni Trascorsi). Scende a zero a fine vita utile."
+
+msgid "Valore residuo"
+msgstr "Valore residuo"
+
+msgid "Valutazione"
+msgstr "Valutazione"
+
+msgid "Valutazione Min."
+msgstr "Valutazione Min."
+
+msgid "Valutazione:"
+msgstr "Valutazione:"
+
+msgid "Valutazioni"
+msgstr "Valutazioni"
+
+msgid "Vasetti"
+msgstr "Vasetti"
+
+msgid "Vedi albero"
+msgstr "Vedi albero"
+
+msgid "Vedi arnie"
+msgstr "Vedi arnie"
+
+msgid "Vedi tutte"
+msgstr "Vedi tutte"
+
+msgid "Velocità del Vento"
+msgstr "Velocità del Vento"
+
+msgid "Vendita"
+msgstr "Vendita"
+
+#, python-format
+msgid "Vendita %(data)s"
+msgstr "Vendita %(data)s"
+
+#, python-format
+msgid "Vendita del %(data)s"
+msgstr "Vendita del %(data)s"
+
+msgid "Vendite CSV"
+msgstr "Vendite CSV"
+
+msgid "Vendite registrate"
+msgstr "Vendite registrate"
+
+msgid "Vento"
+msgstr "Vento"
+
+#, python-format
+msgid "Vento forte (%(v)s km/h): Controllare la stabilità delle arnie e posizionare eventuali ripari."
+msgstr "Vento forte (%(v)s km/h): Controllare la stabilità delle arnie e posizionare eventuali ripari."
+
+msgid "Verde"
+msgstr "Verde"
+
+msgid "Verifica e salva"
+msgstr "Verifica e salva"
+
+msgid "Verranno eliminati anche <strong>tutti i controlli, melari, dati regina e trattamenti</strong> associati a questa arnia."
+msgstr "Verranno eliminati anche <strong>tutti i controlli, melari, dati regina e trattamenti</strong> associati a questa arnia."
+
+#, python-format
+msgid "Verrà creata una nuova <strong>Arnia #%(n)s</strong> nell'apiario <strong>%(a)s</strong> con la data di oggi."
+msgstr "Verrà creata una nuova <strong>Arnia #%(n)s</strong> nell'apiario <strong>%(a)s</strong> con la data di oggi."
+
+msgid "Visibile al gruppo"
+msgstr "Visibile al gruppo"
+
+msgid "Visualizza"
+msgstr "Visualizza"
+
+msgid "Visualizza apiari, fioriture e raggio di volo delle api"
+msgstr "Visualizza apiari, fioriture e raggio di volo delle api"
+
+msgid "Visualizza l'<strong>albero genealogico</strong> per tracciare discendenze e selezione genetica"
+msgstr "Visualizza l'<strong>albero genealogico</strong> per tracciare discendenze e selezione genetica"
+
+msgid "Visualizza sulla Mappa"
+msgstr "Visualizza sulla Mappa"
+
+msgid "Visualizzare e gestire fioriture e trattamenti"
+msgstr "Visualizzare e gestire fioriture e trattamenti"
+
+msgid "Visualizzatore:"
+msgstr "Visualizzatore:"
+
+msgid "Visualizzazione grafica su tutte le arnie"
+msgstr "Visualizzazione grafica su tutte le arnie"
+
+msgid "Vita Utile (anni)"
+msgstr "Vita Utile (anni)"
+
+msgid "Vuoto"
+msgstr "Vuoto"
+
+msgid "ad ora inadatto a scopi pratici o professionali. Tuttavia, in futuro questa funzionalità potrebbe essere notevolmente migliorata! Se questa funzione ti interessa e vuoi vederla crescere, faccelo sapere supportandoci con una piccola donazione:"
+msgstr "ad ora inadatto a scopi pratici o professionali. Tuttavia, in futuro questa funzionalità potrebbe essere notevolmente migliorata! Se questa funzione ti interessa e vuoi vederla crescere, faccelo sapere supportandoci con una piccola donazione:"
+
+#, python-format
+msgid "al %(data)s"
+msgstr "al %(data)s"
+
+msgid "alla data odierna per confronti futuri."
+msgstr "alla data odierna per confronti futuri."
+
+msgid "attuali"
+msgstr "attuali"
+
+msgid "avanti"
+msgstr "avanti"
+
+msgid "continua"
+msgstr "continua"
+
+msgid "da <em>Gestione → Melari</em> → pulsante <em>Esporta CSV</em>"
+msgstr "da <em>Gestione → Melari</em> → pulsante <em>Esporta CSV</em>"
+
+msgid "da <em>Gestione → Trattamenti</em> → pulsante <em>Esporta CSV</em>"
+msgstr "da <em>Gestione → Trattamenti</em> → pulsante <em>Esporta CSV</em>"
+
+msgid "da <em>Gestione → Vendite</em> → pulsante <em>Esporta CSV</em>"
+msgstr "da <em>Gestione → Vendite</em> → pulsante <em>Esporta CSV</em>"
+
+msgid "dall'interno di un apiario → pulsante <em>Esporta PDF</em>"
+msgstr "dall'interno di un apiario → pulsante <em>Esporta PDF</em>"
+
+msgid "debole, impreciso ed embrionale"
+msgstr "debole, impreciso ed embrionale"
+
+msgid "e parla — la trascrizione appare in tempo reale."
+msgstr "e parla — la trascrizione appare in tempo reale."
+
+msgid "es. Apiguard"
+msgstr "es. Apiguard"
+
+msgid "es. LOT-2025-001"
+msgstr "es. LOT-2025-001"
+
+msgid "es. Maturatore 200L"
+msgstr "es. Maturatore 200L"
+
+msgid "es. Millefiori, Acacia"
+msgstr "es. Millefiori, Acacia"
+
+msgid "es. Millefiori, Acacia, ecc."
+msgstr "es. Millefiori, Acacia, ecc."
+
+msgid "es. Secchio 25kg #1"
+msgstr "es. Secchio 25kg #1"
+
+msgid "es. Timolo"
+msgstr "es. Timolo"
+
+msgid "evidenziate"
+msgstr "evidenziate"
+
+msgid "filtrate"
+msgstr "filtrate"
+
+msgid "filtrati"
+msgstr "filtrati"
+
+msgid "fine"
+msgstr "fine"
+
+#, python-format
+msgid "fino al %(d)s"
+msgstr "fino al %(d)s"
+
+msgid "hai trascrizioni in coda e/o controlli già elaborati da Gemini."
+msgstr "hai trascrizioni in coda e/o controlli già elaborati da Gemini."
+
+msgid "ho finito"
+msgstr "ho finito"
+
+msgid "indica presenza regina"
+msgstr "indica presenza regina"
+
+msgid "kg"
+msgstr "kg"
+
+msgid "kg confezionati"
+msgstr "kg confezionati"
+
+msgid "kg in maturazione"
+msgstr "kg in maturazione"
+
+msgid "kg stoccati"
+msgstr "kg stoccati"
+
+msgid "kg usati"
+msgstr "kg usati"
+
+msgid "nessun melario"
+msgstr "nessun melario"
+
+msgid "o dì"
+msgstr "o dì"
+
+msgid "oppure clicca per scegliere"
+msgstr "oppure clicca per scegliere"
+
+msgid "passa all'arnia successiva"
+msgstr "passa all'arnia successiva"
+
+msgid "per correggere un trascritto, poi invia con il pulsante."
+msgstr "per correggere un trascritto, poi invia con il pulsante."
+
+msgid "per terminare."
+msgstr "per terminare."
+
+msgid "piattaforma sicura e trasparente."
+msgstr "piattaforma sicura e trasparente."
+
+msgid "più basso = meglio"
+msgstr "più basso = meglio"
+
+msgid "prossima"
+msgstr "prossima"
+
+msgid "salvataggio…"
+msgstr "salvataggio…"
+
+msgid "sempre copiati"
+msgstr "sempre copiati"
+
+msgid "sono state corrette automaticamente."
+msgstr "sono state corrette automaticamente."
+
+msgid "stop"
+msgstr "stop"
+
+msgid "termina e processa"
+msgstr "termina e processa"
+
+msgid "vasetti disponibili"
+msgstr "vasetti disponibili"
+
+msgid "{n} vasetti × {fmt}g = {kg} kg confezionati"
+msgstr "{n} vasetti × {fmt}g = {kg} kg confezionati"
+
+msgid "— Nessuna —"
+msgstr "— Nessuna —"
+
+msgid "— Nessuno —"
+msgstr "— Nessuno —"
+
+msgid "— Seleziona apiario —"
+msgstr "— Seleziona apiario —"
+
+msgid "— Tutte —"
+msgstr "— Tutte —"
+
+msgid "— Tutti —"
+msgstr "— Tutti —"
+
+msgid "— seleziona apiario —"
+msgstr "— seleziona apiario —"
+
+msgid "→ Cantina"
+msgstr "→ Cantina"
+
+msgid "✅ Pronto"
+msgstr "✅ Pronto"
+
+msgid "🎤 Controllo Vocale"
+msgstr "🎤 Controllo Vocale"
+
+msgid "📷 Analisi Telaino"
+msgstr "📷 Analisi Telaino"
+
+msgid "🔷 0 celle"
+msgstr "🔷 0 celle"
+
+msgid "🗨️ Chat AI"
+msgstr "🗨️ Chat AI"
+
+#, python-format
+msgid "%(counter)s elemento"
+msgid_plural "%(counter)s elementi"
+msgstr[0] "%(counter)s elemento"
+msgstr[1] "%(counter)s elementi"
+
+#, python-format
+msgid "%(counter)s attivo"
+msgid_plural "%(counter)s attivi"
+msgstr[0] "%(counter)s attivo"
+msgstr[1] "%(counter)s attivi"
+
+#, python-format
+msgid "%(counter)s contenitore"
+msgid_plural "%(counter)s contenitori"
+msgstr[0] "%(counter)s contenitore"
+msgstr[1] "%(counter)s contenitori"
+
+#, python-format
+msgid "%(counter)s vasetto"
+msgid_plural "%(counter)s vasetti"
+msgstr[0] "%(counter)s vasetto"
+msgstr[1] "%(counter)s vasetti"
+
+#, python-format
+msgid "%(counter)s disponibile"
+msgid_plural "%(counter)s disponibili"
+msgstr[0] "%(counter)s disponibile"
+msgstr[1] "%(counter)s disponibili"
+
+#, python-format
+msgid "%(counter)s articolo"
+msgid_plural "%(counter)s articoli"
+msgstr[0] "%(counter)s articolo"
+msgstr[1] "%(counter)s articoli"
+
+#, python-format
+msgid "%(counter)s membro"
+msgid_plural "%(counter)s membri"
+msgstr[0] "%(counter)s membro"
+msgstr[1] "%(counter)s membri"
+
+#, python-format
+msgid "%(counter)s melario"
+msgid_plural "%(counter)s melari"
+msgstr[0] "%(counter)s melario"
+msgstr[1] "%(counter)s melari"
+
+msgid "non letta"
+msgid_plural "non lette"
+msgstr[0] "non letta"
+msgstr[1] "non lette"
+
+#, python-format
+msgid "%(counter)s anno"
+msgid_plural "%(counter)s anni"
+msgstr[0] "%(counter)s anno"
+msgstr[1] "%(counter)s anni"

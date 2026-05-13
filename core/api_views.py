@@ -176,8 +176,9 @@ class ApiarioViewSet(viewsets.ModelViewSet):
             'retrieve', 'arnie', 'controlli', 'meteo',
             'meteo_giornaliero', 'meteo_giornaliero_stats',
         ):
-            public_qs = Apiario.objects.filter(visibilita_mappa='pubblico')
-            return (base_qs | public_qs).distinct()
+            return Apiario.objects.filter(
+                Q(pk__in=base_qs) | Q(visibilita_mappa='pubblico')
+            ).distinct()
         return base_qs
     
     @action(detail=True, methods=['get'])

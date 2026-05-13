@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load static %}
 
-{% block title %}Centro Notifiche — Apiary{% endblock %}
+{% block title %}{% trans "Centro Notifiche" %} — Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header mb-4">
@@ -10,13 +11,13 @@
       <i class="bi bi-bell-fill text-white"></i>
     </div>
     <div>
-      <h1 class="page-title mb-0">Centro Notifiche</h1>
+      <h1 class="page-title mb-0">{% trans "Centro Notifiche" %}</h1>
       <p class="page-subtitle mb-0">
         {% if totale_non_lette > 0 %}
           <span class="badge" style="background:var(--honey);color:#fff;">{{ totale_non_lette }}</span>
-          non {{ totale_non_lette|pluralize:"letta,lette" }}
+          {% blocktrans count counter=totale_non_lette %}non letta{% plural %}non lette{% endblocktrans %}
         {% else %}
-          Tutto letto
+          {% trans "Tutto letto" %}
         {% endif %}
       </p>
     </div>
@@ -30,11 +31,11 @@
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <a href="{% url 'centro_notifiche' %}"
          class="btn btn-sm {% if not tipo_filtro and not solo_non_lette %}btn-honey{% else %}btn-outline-secondary{% endif %}">
-        Tutte
+        {% trans "Tutte" %}
       </a>
       <a href="?non_lette=1"
          class="btn btn-sm {% if solo_non_lette %}btn-honey{% else %}btn-outline-secondary{% endif %}">
-        <i class="bi bi-circle-fill me-1" style="font-size:.5rem;vertical-align:middle;"></i> Non lette
+        <i class="bi bi-circle-fill me-1" style="font-size:.5rem;vertical-align:middle;"></i> {% trans "Non lette" %}
       </a>
       {% for tipo_val, tipo_label in tipi_disponibili %}
       <a href="?tipo={{ tipo_val }}"
@@ -47,7 +48,7 @@
     <form method="post" action="{% url 'segna_tutte_notifiche_lette' %}" class="d-inline">
       {% csrf_token %}
       <button class="btn btn-sm btn-outline-success" type="submit">
-        <i class="bi bi-check2-all me-1"></i> Segna tutte come lette
+        <i class="bi bi-check2-all me-1"></i> {% trans "Segna tutte come lette" %}
       </button>
     </form>
   </div>
@@ -90,7 +91,7 @@
         <p class="mb-1 text-muted small">{{ n.messaggio }}</p>
         <div class="d-flex gap-3 align-items-center">
           <span class="text-muted" style="font-size:.75rem;">
-            <i class="bi bi-clock me-1"></i>{{ n.data_creazione|timesince }} fa
+            <i class="bi bi-clock me-1"></i>{% blocktrans with t=n.data_creazione|timesince %}{{ t }} fa{% endblocktrans %}
           </span>
           {% if n.mittente %}
           <span class="text-muted" style="font-size:.75rem;">
@@ -107,21 +108,21 @@
       <div class="d-flex flex-column gap-1 align-items-end">
         {% if n.link %}
         <a href="{{ n.link }}" class="btn btn-sm btn-outline-primary notifica-action-btn"
-           data-notifica-id="{{ n.id }}" title="Vai alla pagina">
+           data-notifica-id="{{ n.id }}" title="{% trans 'Vai alla pagina' %}">
           <i class="bi bi-arrow-right"></i>
         </a>
         {% endif %}
         {% if not n.letta %}
         <form method="post" action="{% url 'segna_notifica_letta' n.id %}">
           {% csrf_token %}
-          <button class="btn btn-sm btn-outline-success notifica-action-btn" title="Segna come letta">
+          <button class="btn btn-sm btn-outline-success notifica-action-btn" title="{% trans 'Segna come letta' %}">
             <i class="bi bi-check2"></i>
           </button>
         </form>
         {% endif %}
         <form method="post" action="{% url 'elimina_notifica' n.id %}">
           {% csrf_token %}
-          <button class="btn btn-sm btn-outline-danger notifica-action-btn" title="Elimina">
+          <button class="btn btn-sm btn-outline-danger notifica-action-btn" title="{% trans 'Elimina' %}">
             <i class="bi bi-trash"></i>
           </button>
         </form>
@@ -134,13 +135,13 @@
 <div class="card">
   <div class="card-body text-center py-5">
     <i class="bi bi-bell-slash" style="font-size:3rem;color:var(--border-warm);"></i>
-    <h5 class="mt-3 text-muted">Nessuna notifica</h5>
+    <h5 class="mt-3 text-muted">{% trans "Nessuna notifica" %}</h5>
     <p class="text-muted">
       {% if tipo_filtro or solo_non_lette %}
-        Nessuna notifica corrisponde ai filtri selezionati.
-        <a href="{% url 'centro_notifiche' %}">Mostra tutte</a>
+        {% trans "Nessuna notifica corrisponde ai filtri selezionati." %}
+        <a href="{% url 'centro_notifiche' %}">{% trans "Mostra tutte" %}</a>
       {% else %}
-        Sei in pari! Non hai notifiche al momento.
+        {% trans "Sei in pari! Non hai notifiche al momento." %}
       {% endif %}
     </p>
   </div>

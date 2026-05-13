@@ -1,8 +1,9 @@
 <!-- templates/maps/mappa_meteo.html -->
 {% extends 'maps/base_map.html' %}
+{% load i18n %}
 {% load app_filters %}
 
-{% block title %}Mappa Meteo - Apiary{% endblock %}
+{% block title %}{% trans "Mappa Meteo" %} - Apiary{% endblock %}
 
 {% block extra_css %}
 {{ block.super }}
@@ -84,13 +85,13 @@
 <div class="row">
     <div class="col-12 mb-4">
         <div class="d-flex justify-content-between align-items-center">
-            <h1><i class="bi bi-cloud"></i> Mappa Meteo</h1>
+            <h1><i class="bi bi-cloud"></i> {% trans "Mappa Meteo" %}</h1>
             <div>
                 <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Torna alla Dashboard
+                    <i class="bi bi-arrow-left"></i> {% trans "Torna alla Dashboard" %}
                 </a>
                 <a href="{% url 'mappa_apiari' %}" class="btn btn-outline-success ms-2">
-                    <i class="bi bi-geo-alt"></i> Mappa Apiari
+                    <i class="bi bi-geo-alt"></i> {% trans "Mappa Apiari" %}
                 </a>
             </div>
         </div>
@@ -101,7 +102,7 @@
     <div class="col-md-9">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-map"></i> Mappa Meteo degli Apiari</h5>
+                <h5 class="mb-0"><i class="bi bi-map"></i> {% trans "Mappa Meteo degli Apiari" %}</h5>
             </div>
             <div class="card-body">
                 <div class="weather-filters">
@@ -109,12 +110,12 @@
                         <div class="btn-group" role="group">
                             <input type="radio" class="btn-check" name="weatherType" id="weatherTypeCurrent" value="current" checked>
                             <label class="btn btn-outline-primary" for="weatherTypeCurrent">
-                                <i class="bi bi-cloud"></i> Meteo Attuale
+                                <i class="bi bi-cloud"></i> {% trans "Meteo Attuale" %}
                             </label>
-                            
+
                             <input type="radio" class="btn-check" name="weatherType" id="weatherTypeForecast" value="forecast">
                             <label class="btn btn-outline-primary" for="weatherTypeForecast">
-                                <i class="bi bi-calendar-plus"></i> Previsioni Domani
+                                <i class="bi bi-calendar-plus"></i> {% trans "Previsioni Domani" %}
                             </label>
                         </div>
                     </div>
@@ -124,7 +125,7 @@
                 <div id="map" class="mb-3"></div>
                 
                 <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i> Fai click su un apiario per visualizzare i dettagli meteo.
+                    <i class="bi bi-info-circle"></i> {% trans "Fai click su un apiario per visualizzare i dettagli meteo." %}
                 </div>
             </div>
         </div>
@@ -133,10 +134,10 @@
     <div class="col-md-3">
         <div class="card mb-3">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Legenda</h5>
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> {% trans "Legenda" %}</h5>
             </div>
             <div class="card-body">
-                <h6>Temperatura</h6>
+                <h6>{% trans "Temperatura" %}</h6>
                 <div class="d-flex justify-content-between mb-3">
                     <div>
                         <span class="badge" style="background-color: #053061;">≤ 0°C</span>
@@ -167,49 +168,49 @@
                     </div>
                 </div>
                 
-                <h6>Condizioni Meteo (Icone)</h6>
+                <h6>{% trans "Condizioni Meteo (Icone)" %}</h6>
                 <div class="row mb-3">
                     <div class="col-6">
                         <div class="d-flex align-items-center mb-1">
                             <span class="me-1" style="font-size:1.5rem;line-height:1;">☀️</span>
-                            <span>Sereno</span>
+                            <span>{% trans "Sereno" %}</span>
                         </div>
                         <div class="d-flex align-items-center mb-1">
                             <span class="me-1" style="font-size:1.5rem;line-height:1;">🌤️</span>
-                            <span>Poco nuvoloso</span>
+                            <span>{% trans "Poco nuvoloso" %}</span>
                         </div>
                         <div class="d-flex align-items-center mb-1">
                             <span class="me-1" style="font-size:1.5rem;line-height:1;">☁️</span>
-                            <span>Nuvoloso</span>
+                            <span>{% trans "Nuvoloso" %}</span>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="d-flex align-items-center mb-1">
                             <span class="me-1" style="font-size:1.5rem;line-height:1;">🌧️</span>
-                            <span>Pioggia</span>
+                            <span>{% trans "Pioggia" %}</span>
                         </div>
                         <div class="d-flex align-items-center mb-1">
                             <span class="me-1" style="font-size:1.5rem;line-height:1;">⛈️</span>
-                            <span>Temporale</span>
+                            <span>{% trans "Temporale" %}</span>
                         </div>
                         <div class="d-flex align-items-center mb-1">
                             <span class="me-1" style="font-size:1.5rem;line-height:1;">🌨️</span>
-                            <span>Neve</span>
+                            <span>{% trans "Neve" %}</span>
                         </div>
                     </div>
                 </div>
-                
-                <h6>Apiari</h6>
-                <div class="mb-1"><span class="badge bg-success">■</span> Tuoi apiari</div>
-                <div class="mb-1"><span class="badge bg-primary">■</span> Apiari condivisi</div>
-                <div class="mb-1"><span class="badge" style="background-color: #6f42c1;">■</span> Apiari del gruppo</div>
-                <div class="mb-1"><span class="badge" style="background-color: #fd7e14;">■</span> Apiari pubblici</div>
+
+                <h6>{% trans "Apiari" %}</h6>
+                <div class="mb-1"><span class="badge bg-success">■</span> {% trans "Tuoi apiari" %}</div>
+                <div class="mb-1"><span class="badge bg-primary">■</span> {% trans "Apiari condivisi" %}</div>
+                <div class="mb-1"><span class="badge" style="background-color: #6f42c1;">■</span> {% trans "Apiari del gruppo" %}</div>
+                <div class="mb-1"><span class="badge" style="background-color: #fd7e14;">■</span> {% trans "Apiari pubblici" %}</div>
             </div>
         </div>
         
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-cloud"></i> Meteo Apiari</h5>
+                <h5 class="mb-0"><i class="bi bi-cloud"></i> {% trans "Meteo Apiari" %}</h5>
             </div>
             <div class="card-body">
                 <div class="list-group" id="meteoList">
@@ -232,7 +233,7 @@
                         {% endfor %}
                     {% else %}
                         <div class="text-center py-3">
-                            <p class="mb-0">Nessun dato meteo disponibile.</p>
+                            <p class="mb-0">{% trans "Nessun dato meteo disponibile." %}</p>
                         </div>
                     {% endif %}
                 </div>
@@ -253,7 +254,7 @@
                                         </div>
                                         {% if previsione.probabilita_pioggia > 0 %}
                                             <div class="small">
-                                                <i class="bi bi-cloud-rain"></i> {{ previsione.probabilita_pioggia }}% prob. pioggia
+                                                <i class="bi bi-cloud-rain"></i> {% blocktrans with p=previsione.probabilita_pioggia %}{{ p }}% prob. pioggia{% endblocktrans %}
                                             </div>
                                         {% endif %}
                                     </a>
@@ -262,7 +263,7 @@
                         {% endfor %}
                     {% else %}
                         <div class="text-center py-3">
-                            <p class="mb-0">Nessuna previsione disponibile.</p>
+                            <p class="mb-0">{% trans "Nessuna previsione disponibile." %}</p>
                         </div>
                     {% endif %}
                 </div>

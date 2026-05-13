@@ -1,7 +1,8 @@
 <!-- templates/calendario/calendario_apiario.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Calendario Apiario - {{ apiario.nome|default:"Tutti gli apiari" }}{% endblock %}
+{% block title %}{% trans "Calendario Apiario" %} - {{ apiario.nome|default:_("Tutti gli apiari") }}{% endblock %}
 
 {% block extra_css %}
 <!-- FullCalendar CSS -->
@@ -154,20 +155,20 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">📅 Calendario Apiario</h1>
+    <h1 class="page-title">📅 {% trans "Calendario Apiario" %}</h1>
     <p class="page-subtitle">
-      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a>
       {% if apiario %} › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a>{% endif %}
-       › Calendario
+       › {% trans "Calendario" %}
     </p>
   </div>
   <div class="d-flex gap-2 align-items-center flex-wrap">
     <div class="dropdown">
       <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-        {% if apiario %}{{ apiario.nome }}{% else %}Tutti gli apiari{% endif %}
+        {% if apiario %}{{ apiario.nome }}{% else %}{% trans "Tutti gli apiari" %}{% endif %}
       </button>
       <ul class="dropdown-menu dropdown-menu-end">
-        <li><a class="dropdown-item {% if not apiario %}active{% endif %}" href="{% url 'calendario_apiario' %}">Tutti gli apiari</a></li>
+        <li><a class="dropdown-item {% if not apiario %}active{% endif %}" href="{% url 'calendario_apiario' %}">{% trans "Tutti gli apiari" %}</a></li>
         <li><hr class="dropdown-divider"></li>
         {% for ap in apiari %}
           <li><a class="dropdown-item {% if apiario and apiario.id == ap.id %}active{% endif %}" href="{% url 'calendario_apiario' ap.id %}">{{ ap.nome }}</a></li>
@@ -177,10 +178,10 @@
     {% if gruppi %}
     <div class="dropdown">
       <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-        {% if gruppo %}{{ gruppo.nome }}{% else %}Tutti i gruppi{% endif %}
+        {% if gruppo %}{{ gruppo.nome }}{% else %}{% trans "Tutti i gruppi" %}{% endif %}
       </button>
       <ul class="dropdown-menu dropdown-menu-end">
-        <li><a class="dropdown-item {% if not gruppo %}active{% endif %}" href="{% url 'calendario_apiario' %}{% if apiario %}{{ apiario.id }}{% endif %}">Tutti i gruppi</a></li>
+        <li><a class="dropdown-item {% if not gruppo %}active{% endif %}" href="{% url 'calendario_apiario' %}{% if apiario %}{{ apiario.id }}{% endif %}">{% trans "Tutti i gruppi" %}</a></li>
         <li><hr class="dropdown-divider"></li>
         {% for g in gruppi %}
           <li><a class="dropdown-item {% if gruppo.id == g.id %}active{% endif %}" href="{% url 'calendario_apiario' %}{% if apiario %}{{ apiario.id }}{% endif %}?gruppo_id={{ g.id }}">{{ g.nome }}</a></li>
@@ -188,7 +189,7 @@
       </ul>
     </div>
     {% endif %}
-    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Dashboard</a>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Dashboard" %}</a>
   </div>
 </div>
 
@@ -197,13 +198,13 @@
         <div class="card">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-calendar3"></i> Calendario Eventi</h5>
+                    <h5 class="mb-0"><i class="bi bi-calendar3"></i> {% trans "Calendario Eventi" %}</h5>
                     <div>
-                        <button id="todayButton" class="btn btn-sm btn-light me-1">Oggi</button>
+                        <button id="todayButton" class="btn btn-sm btn-light me-1">{% trans "Oggi" %}</button>
                         <div class="btn-group btn-group-sm">
-                            <button id="dayButton" class="btn btn-light">Giorno</button>
-                            <button id="weekButton" class="btn btn-light">Settimana</button>
-                            <button id="monthButton" class="btn btn-light active">Mese</button>
+                            <button id="dayButton" class="btn btn-light">{% trans "Giorno" %}</button>
+                            <button id="weekButton" class="btn btn-light">{% trans "Settimana" %}</button>
+                            <button id="monthButton" class="btn btn-light active">{% trans "Mese" %}</button>
                         </div>
                     </div>
                 </div>
@@ -213,31 +214,31 @@
                 <div class="event-legend">
                     <div class="legend-item">
                         <div class="legend-color" style="background-color: #0d6efd;"></div>
-                        <span>Controlli</span>
+                        <span>{% trans "Controlli" %}</span>
                     </div>
                     <div class="legend-item">
                         <div class="legend-color" style="background-color: #dc3545;"></div>
-                        <span>Eventi Regina</span>
+                        <span>{% trans "Eventi Regina" %}</span>
                     </div>
                     <div class="legend-item">
                         <div class="legend-color" style="background-color: #198754;"></div>
-                        <span>Melari</span>
+                        <span>{% trans "Melari" %}</span>
                     </div>
                     <div class="legend-item">
                         <div class="legend-color" style="background-color: #6f42c1;"></div>
-                        <span>Trattamenti</span>
+                        <span>{% trans "Trattamenti" %}</span>
                     </div>
                     <div class="legend-item">
                         <div class="legend-color" style="background-color: #fd7e14;"></div>
-                        <span>Fioriture</span>
+                        <span>{% trans "Fioriture" %}</span>
                     </div>
                     <div class="legend-item">
                         <div class="legend-color" style="background-color: #ffc107;"></div>
-                        <span>Smielature</span>
+                        <span>{% trans "Smielature" %}</span>
                     </div>
                     <div class="legend-item">
                         <div class="legend-color" style="background-color: #17a2b8;"></div>
-                        <span>Meteo</span>
+                        <span>{% trans "Meteo" %}</span>
                     </div>
                 </div>
                 
@@ -250,74 +251,74 @@
     <div class="col-md-3">
         <div class="card sticky-top" style="top: 20px;">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-funnel"></i> Filtri</h5>
+                <h5 class="mb-0"><i class="bi bi-funnel"></i> {% trans "Filtri" %}</h5>
             </div>
             <div class="card-body">
                 <div class="filter-section">
-                    <h6>Tipi di eventi</h6>
+                    <h6>{% trans "Tipi di eventi" %}</h6>
                     <button class="btn btn-outline-primary filter-button active" data-event-type="controllo">
-                        <i class="bi bi-check-circle"></i> Controlli Apiario
+                        <i class="bi bi-check-circle"></i> {% trans "Controlli Apiario" %}
                     </button>
                     <button class="btn btn-outline-danger filter-button active" data-event-type="regina">
-                        <i class="bi bi-crown"></i> Eventi Regina
+                        <i class="bi bi-crown"></i> {% trans "Eventi Regina" %}
                     </button>
                     <button class="btn btn-outline-success filter-button active" data-event-type="melario">
-                        <i class="bi bi-archive"></i> Melari
+                        <i class="bi bi-archive"></i> {% trans "Melari" %}
                     </button>
                     <button class="btn btn-outline-purple filter-button active" data-event-type="trattamento">
-                        <i class="bi bi-capsule"></i> Trattamenti
+                        <i class="bi bi-capsule"></i> {% trans "Trattamenti" %}
                     </button>
                     <button class="btn btn-outline-warning filter-button active" data-event-type="fioritura">
-                        <i class="bi bi-flower1"></i> Fioriture
+                        <i class="bi bi-flower1"></i> {% trans "Fioriture" %}
                     </button>
                     <button class="btn btn-outline-warning filter-button active" data-event-type="smielatura">
-                        <i class="bi bi-droplet"></i> Smielature
+                        <i class="bi bi-droplet"></i> {% trans "Smielature" %}
                     </button>
                 </div>
-                
+
                 <div class="filter-section">
-                    <h6>Opzioni visualizzazione</h6>
+                    <h6>{% trans "Opzioni visualizzazione" %}</h6>
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="filterDeltaTelaini" checked>
                         <label class="form-check-label" for="filterDeltaTelaini">
-                            Mostra delta telaini
+                            {% trans "Mostra delta telaini" %}
                         </label>
                     </div>
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="filterRaggruppaControlli" checked>
                         <label class="form-check-label" for="filterRaggruppaControlli">
-                            Raggruppa controlli stesso giorno
+                            {% trans "Raggruppa controlli stesso giorno" %}
                         </label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="filterMostraDettagli" checked>
                         <label class="form-check-label" for="filterMostraDettagli">
-                            Mostra dettagli nei titoli
+                            {% trans "Mostra dettagli nei titoli" %}
                         </label>
                     </div>
                 </div>
                 <div class="filter-section">
-                    <h6>Dati meteo</h6>
+                    <h6>{% trans "Dati meteo" %}</h6>
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="filterMeteo" checked>
                         <label class="form-check-label" for="filterMeteo">
-                            <i class="bi bi-cloud"></i> Mostra meteo
+                            <i class="bi bi-cloud"></i> {% trans "Mostra meteo" %}
                         </label>
                     </div>
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="filterPrevisioni" checked>
                         <label class="form-check-label" for="filterPrevisioni">
-                            <i class="bi bi-calendar-plus"></i> Mostra previsioni
+                            <i class="bi bi-calendar-plus"></i> {% trans "Mostra previsioni" %}
                         </label>
                     </div>
-                </div>                
+                </div>
                 <div class="filter-section">
-                    <h6>Azioni</h6>
+                    <h6>{% trans "Azioni" %}</h6>
                     <button id="exportCalendar" class="btn btn-outline-secondary w-100 mb-2">
-                        <i class="bi bi-download"></i> Esporta eventi (.ics)
+                        <i class="bi bi-download"></i> {% trans "Esporta eventi (.ics)" %}
                     </button>
                     <button id="printCalendar" class="btn btn-outline-secondary w-100">
-                        <i class="bi bi-printer"></i> Stampa calendario
+                        <i class="bi bi-printer"></i> {% trans "Stampa calendario" %}
                     </button>
                 </div>
             </div>
@@ -330,17 +331,17 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header" id="eventModalHeader">
-                <h5 class="modal-title" id="eventModalTitle">Dettagli Evento</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="eventModalTitle">{% trans "Dettagli Evento" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
             </div>
             <div class="modal-body" id="eventModalBody">
                 <!-- Il contenuto sarà inserito dinamicamente tramite JavaScript -->
             </div>
             <div class="modal-footer">
                 <a href="#" id="eventModalLink" class="btn btn-primary" style="display: none;">
-                    <i class="bi bi-eye"></i> Dettagli completi
+                    <i class="bi bi-eye"></i> {% trans "Dettagli completi" %}
                 </a>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Chiudi" %}</button>
             </div>
         </div>
     </div>

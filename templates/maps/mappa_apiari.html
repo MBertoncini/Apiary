@@ -1,23 +1,24 @@
 <!-- templates/maps/mappa_apiari.html -->
 {% extends 'maps/base_map.html' %}
+{% load i18n %}
 
-{% block title %}Mappa Apiari — Apiary{% endblock %}
+{% block title %}{% trans "Mappa Apiari" %} — Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title"><i class="bi bi-geo-alt-fill me-2" style="color:var(--honey);"></i>Mappa Apiari</h1>
-    <p class="page-subtitle">Visualizza apiari, fioriture e raggio di volo delle api</p>
+    <h1 class="page-title"><i class="bi bi-geo-alt-fill me-2" style="color:var(--honey);"></i>{% trans "Mappa Apiari" %}</h1>
+    <p class="page-subtitle">{% trans "Visualizza apiari, fioriture e raggio di volo delle api" %}</p>
   </div>
   <div class="d-flex gap-2">
     <a href="{% url 'gestione_fioriture' %}" class="btn btn-outline-secondary btn-sm">
-      <i class="bi bi-flower1 me-1"></i>Fioriture
+      <i class="bi bi-flower1 me-1"></i>{% trans "Fioriture" %}
     </a>
     <a href="{% url 'mappa_nomadismo' %}" class="btn btn-outline-success btn-sm">
-      <i class="bi bi-compass me-1"></i>Nomadismo
+      <i class="bi bi-compass me-1"></i>{% trans "Nomadismo" %}
     </a>
     <a href="{% url 'crea_apiario' %}" class="btn btn-primary">
-      <i class="bi bi-plus-circle me-1"></i>Nuovo Apiario
+      <i class="bi bi-plus-circle me-1"></i>{% trans "Nuovo Apiario" %}
     </a>
   </div>
 </div>
@@ -35,25 +36,25 @@
             <div class="form-check form-switch mb-0">
               <input class="form-check-input" type="checkbox" id="showApiari" checked>
               <label class="form-check-label small fw-semibold" for="showApiari">
-                <span class="badge rounded-pill me-1" style="background:#F5A623;">&#x2665;</span>Apiari
+                <span class="badge rounded-pill me-1" style="background:#F5A623;">&#x2665;</span>{% trans "Apiari" %}
               </label>
             </div>
             <div class="form-check form-switch mb-0">
               <input class="form-check-input" type="checkbox" id="showFioritureAttive" checked>
               <label class="form-check-label small fw-semibold" for="showFioritureAttive">
-                <span class="badge rounded-pill me-1" style="background:#20c997;">&#x273F;</span>Fioriture attive
+                <span class="badge rounded-pill me-1" style="background:#20c997;">&#x273F;</span>{% trans "Fioriture attive" %}
               </label>
             </div>
             <div class="form-check form-switch mb-0">
               <input class="form-check-input" type="checkbox" id="showFioritureProgrammate">
               <label class="form-check-label small fw-semibold" for="showFioritureProgrammate">
-                <span class="badge rounded-pill me-1" style="background:#ffc107;">&#x273F;</span>Programmate
+                <span class="badge rounded-pill me-1" style="background:#ffc107;">&#x273F;</span>{% trans "Programmate" %}
               </label>
             </div>
             <div class="form-check form-switch mb-0">
               <input class="form-check-input" type="checkbox" id="showFioriturePassate">
               <label class="form-check-label small fw-semibold" for="showFioriturePassate">
-                <span class="badge rounded-pill me-1" style="background:#adb5bd;">&#x273F;</span>Passate
+                <span class="badge rounded-pill me-1" style="background:#adb5bd;">&#x273F;</span>{% trans "Passate" %}
               </label>
             </div>
           </div>
@@ -63,10 +64,10 @@
             <div class="form-check form-switch mb-0">
               <input class="form-check-input" type="checkbox" id="showFlightRadius">
               <label class="form-check-label small fw-semibold" for="showFlightRadius">
-                <i class="bi bi-circle-fill me-1" style="color:rgba(245,166,35,.5);"></i>Raggio di volo (3 km)
+                <i class="bi bi-circle-fill me-1" style="color:rgba(245,166,35,.5);"></i>{% trans "Raggio di volo (3 km)" %}
               </label>
             </div>
-            <button class="btn btn-outline-secondary btn-sm" id="btnFitBounds" title="Adatta vista">
+            <button class="btn btn-outline-secondary btn-sm" id="btnFitBounds" title="{% trans 'Adatta vista' %}">
               <i class="bi bi-fullscreen"></i>
             </button>
           </div>
@@ -77,14 +78,14 @@
 
         <!-- Legenda -->
         <div class="d-flex flex-wrap gap-2 mt-3 small text-muted">
-          <span><span class="badge me-1" style="background:#28a745;">&#11044;</span>Tuo apiario</span>
-          <span><span class="badge me-1" style="background:#0d6efd;">&#11044;</span>Condiviso</span>
-          <span><span class="badge me-1" style="background:#6f42c1;">&#11044;</span>Visibile al gruppo</span>
-          <span><span class="badge me-1" style="background:#fd7e14;">&#11044;</span>Pubblico</span>
-          <span><span class="badge me-1" style="background:#20c997;">&#10047;</span>Fioritura attiva</span>
-          <span><span class="badge me-1" style="background:#ffc107; color:#333;">&#10047;</span>Programmata</span>
-          <span><span class="badge me-1" style="background:#adb5bd;">&#10047;</span>Passata</span>
-          <span><i class="bi bi-circle me-1" style="color:#F5A623;"></i>Raggio volo 3km</span>
+          <span><span class="badge me-1" style="background:#28a745;">&#11044;</span>{% trans "Tuo apiario" %}</span>
+          <span><span class="badge me-1" style="background:#0d6efd;">&#11044;</span>{% trans "Condiviso" %}</span>
+          <span><span class="badge me-1" style="background:#6f42c1;">&#11044;</span>{% trans "Visibile al gruppo" %}</span>
+          <span><span class="badge me-1" style="background:#fd7e14;">&#11044;</span>{% trans "Pubblico" %}</span>
+          <span><span class="badge me-1" style="background:#20c997;">&#10047;</span>{% trans "Fioritura attiva" %}</span>
+          <span><span class="badge me-1" style="background:#ffc107; color:#333;">&#10047;</span>{% trans "Programmata" %}</span>
+          <span><span class="badge me-1" style="background:#adb5bd;">&#10047;</span>{% trans "Passata" %}</span>
+          <span><i class="bi bi-circle me-1" style="color:#F5A623;"></i>{% trans "Raggio volo 3km" %}</span>
         </div>
       </div>
     </div>
@@ -95,7 +96,7 @@
     <!-- Lista apiari -->
     <div class="card mb-3">
       <div class="card-header d-flex justify-content-between align-items-center py-2">
-        <span class="fw-semibold small"><i class="bi bi-grid me-1"></i>Apiari ({{ apiari|length }})</span>
+        <span class="fw-semibold small"><i class="bi bi-grid me-1"></i>{% blocktrans with n=apiari|length %}Apiari ({{ n }}){% endblocktrans %}</span>
       </div>
       <div class="card-body p-2" style="max-height:260px;overflow-y:auto;">
         {% if apiari %}
@@ -106,11 +107,11 @@
              {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
             <div class="d-flex justify-content-between align-items-center">
               <span class="fw-semibold small">{{ apiario.nome }}</span>
-              <span class="badge" style="background:#28a745; font-size:.65rem;">Tuo</span>
+              <span class="badge" style="background:#28a745; font-size:.65rem;">{% trans "Tuo" %}</span>
             </div>
             <div class="text-muted" style="font-size:.75rem;">
               <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"—" }}
-              &nbsp;·&nbsp;{{ apiario.arnie.count }} arnie
+              &nbsp;·&nbsp;{% blocktrans count counter=apiario.arnie.count %}{{ counter }} arnia{% plural %}{{ counter }} arnie{% endblocktrans %}
             </div>
           </a>
           {% endfor %}
@@ -121,11 +122,11 @@
              {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
             <div class="d-flex justify-content-between align-items-center">
               <span class="fw-semibold small">{{ apiario.nome }}</span>
-              <span class="badge bg-primary" style="font-size:.65rem;">Condiviso</span>
+              <span class="badge bg-primary" style="font-size:.65rem;">{% trans "Condiviso" %}</span>
             </div>
             <div class="text-muted" style="font-size:.75rem;">
               <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"—" }}
-              &nbsp;·&nbsp;{{ apiario.arnie.count }} arnie
+              &nbsp;·&nbsp;{% blocktrans count counter=apiario.arnie.count %}{{ counter }} arnia{% plural %}{{ counter }} arnie{% endblocktrans %}
             </div>
           </a>
           {% endfor %}
@@ -136,11 +137,11 @@
              {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
             <div class="d-flex justify-content-between align-items-center">
               <span class="fw-semibold small">{{ apiario.nome }}</span>
-              <span class="badge" style="background:#6f42c1; font-size:.65rem;">Gruppo</span>
+              <span class="badge" style="background:#6f42c1; font-size:.65rem;">{% trans "Gruppo" %}</span>
             </div>
             <div class="text-muted" style="font-size:.75rem;">
               <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"—" }}
-              &nbsp;·&nbsp;{{ apiario.arnie.count }} arnie
+              &nbsp;·&nbsp;{% blocktrans count counter=apiario.arnie.count %}{{ counter }} arnia{% plural %}{{ counter }} arnie{% endblocktrans %}
             </div>
           </a>
           {% endfor %}
@@ -151,11 +152,11 @@
              {% if apiario.has_coordinates %}data-lat="{{ apiario.latitudine|stringformat:'.6f' }}" data-lng="{{ apiario.longitudine|stringformat:'.6f' }}"{% endif %}>
             <div class="d-flex justify-content-between align-items-center">
               <span class="fw-semibold small">{{ apiario.nome }}</span>
-              <span class="badge" style="background:#fd7e14; font-size:.65rem;">Pubblico</span>
+              <span class="badge" style="background:#fd7e14; font-size:.65rem;">{% trans "Pubblico" %}</span>
             </div>
             <div class="text-muted" style="font-size:.75rem;">
               <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"—" }}
-              &nbsp;·&nbsp;{{ apiario.arnie.count }} arnie
+              &nbsp;·&nbsp;{% blocktrans count counter=apiario.arnie.count %}{{ counter }} arnia{% plural %}{{ counter }} arnie{% endblocktrans %}
             </div>
           </a>
           {% endfor %}
@@ -163,9 +164,9 @@
         {% else %}
         <div class="text-center text-muted py-4 small">
           <i class="bi bi-geo-alt display-6 d-block mb-2 opacity-50"></i>
-          Nessun apiario trovato.<br>
+          {% trans "Nessun apiario trovato." %}<br>
           <a href="{% url 'crea_apiario' %}" class="btn btn-sm btn-primary mt-2">
-            <i class="bi bi-plus-circle me-1"></i>Crea apiario
+            <i class="bi bi-plus-circle me-1"></i>{% trans "Crea apiario" %}
           </a>
         </div>
         {% endif %}
@@ -175,7 +176,7 @@
     <!-- Lista fioriture attive -->
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center py-2">
-        <span class="fw-semibold small"><i class="bi bi-flower1 me-1"></i>Fioriture attive ({{ fioriture_attive|length }})</span>
+        <span class="fw-semibold small"><i class="bi bi-flower1 me-1"></i>{% blocktrans with n=fioriture_attive|length %}Fioriture attive ({{ n }}){% endblocktrans %}</span>
       </div>
       <div class="card-body p-2" style="max-height:240px;overflow-y:auto;">
         {% if fioriture_attive %}
@@ -186,18 +187,18 @@
              {% if f.has_coordinates %}data-lat="{{ f.latitudine|stringformat:'.6f' }}" data-lng="{{ f.longitudine|stringformat:'.6f' }}" data-raggio="{{ f.raggio }}"{% endif %}>
             <div class="d-flex justify-content-between align-items-center">
               <span class="fw-semibold small">{{ f.pianta }}</span>
-              <span class="badge" style="background:#20c997; font-size:.65rem;">Attiva</span>
+              <span class="badge" style="background:#20c997; font-size:.65rem;">{% trans "Attiva" %}</span>
             </div>
             <div class="text-muted" style="font-size:.75rem;">
-              {% if f.apiario %}<i class="bi bi-geo-alt me-1"></i>{{ f.apiario.nome }}{% else %}Senza apiario{% endif %}
-              {% if f.data_fine %} · fino al {{ f.data_fine|date:"d/m" }}{% endif %}
+              {% if f.apiario %}<i class="bi bi-geo-alt me-1"></i>{{ f.apiario.nome }}{% else %}{% trans "Senza apiario" %}{% endif %}
+              {% if f.data_fine %} · {% blocktrans with d=f.data_fine|date:"d/m" %}fino al {{ d }}{% endblocktrans %}{% endif %}
             </div>
           </a>
           {% endfor %}
         </div>
         {% else %}
         <div class="text-center text-muted py-3 small">
-          <i class="bi bi-flower1 d-block mb-1 opacity-50"></i>Nessuna fioritura attiva
+          <i class="bi bi-flower1 d-block mb-1 opacity-50"></i>{% trans "Nessuna fioritura attiva" %}
         </div>
         {% endif %}
 

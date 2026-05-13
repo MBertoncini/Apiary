@@ -1,14 +1,15 @@
 {% extends 'base.html' %}
-{% block title %}Nuclei — Apiary{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Nuclei" %} — Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title"><i class="bi bi-hexagon-half me-2" style="color:var(--honey);"></i>Nuclei</h1>
-    <p class="page-subtitle">Gestisci i nuclei e convertili in arnie quando pronti</p>
+    <h1 class="page-title"><i class="bi bi-hexagon-half me-2" style="color:var(--honey);"></i>{% trans "Nuclei" %}</h1>
+    <p class="page-subtitle">{% trans "Gestisci i nuclei e convertili in arnie quando pronti" %}</p>
   </div>
   <a href="{% url 'crea_nucleo' %}" class="btn btn-primary">
-    <i class="bi bi-plus-circle me-1"></i>Nuovo Nucleo
+    <i class="bi bi-plus-circle me-1"></i>{% trans "Nuovo Nucleo" %}
   </a>
 </div>
 
@@ -20,7 +21,7 @@
         <i class="bi bi-hexagon-half" style="color:var(--honey);"></i>
       </div>
       <div class="stat-value">{{ nuclei_attivi|length }}</div>
-      <div class="stat-label">Nuclei attivi</div>
+      <div class="stat-label">{% trans "Nuclei attivi" %}</div>
     </div>
   </div>
   <div class="col-sm-6 col-lg-3">
@@ -29,7 +30,7 @@
         <i class="bi bi-check-circle" style="color:#198754;"></i>
       </div>
       <div class="stat-value">{{ nuclei_convertiti|length }}</div>
-      <div class="stat-label">Convertiti in arnia</div>
+      <div class="stat-label">{% trans "Convertiti in arnia" %}</div>
     </div>
   </div>
 </div>
@@ -37,7 +38,7 @@
 <!-- Nuclei attivi -->
 <div class="card mb-4">
   <div class="card-header d-flex justify-content-between align-items-center">
-    <span><i class="bi bi-hexagon-half me-1"></i>Nuclei Attivi</span>
+    <span><i class="bi bi-hexagon-half me-1"></i>{% trans "Nuclei Attivi" %}</span>
     <span class="badge" style="background:var(--honey);">{{ nuclei_attivi|length }}</span>
   </div>
   <div class="card-body p-0">
@@ -46,12 +47,12 @@
       <table class="table table-hover mb-0">
         <thead>
           <tr>
-            <th>Nucleo</th>
-            <th>Apiario</th>
-            <th>Installato il</th>
-            <th>Colore</th>
-            <th>Ultimo controllo</th>
-            <th class="text-end">Azioni</th>
+            <th>{% trans "Nucleo" %}</th>
+            <th>{% trans "Apiario" %}</th>
+            <th>{% trans "Installato il" %}</th>
+            <th>{% trans "Colore" %}</th>
+            <th>{% trans "Ultimo controllo" %}</th>
+            <th class="text-end">{% trans "Azioni" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -59,7 +60,7 @@
           <tr>
             <td>
               <a href="{% url 'dettaglio_nucleo' nucleo.pk %}" class="fw-semibold text-decoration-none">
-                Nucleo #{{ nucleo.numero }}
+                {% blocktrans with n=nucleo.numero %}Nucleo #{{ n }}{% endblocktrans %}
               </a>
             </td>
             <td>
@@ -79,10 +80,10 @@
               {% endwith %}
             </td>
             <td class="text-end">
-              <a href="{% url 'dettaglio_nucleo' nucleo.pk %}" class="btn btn-sm btn-outline-secondary" title="Dettaglio">
+              <a href="{% url 'dettaglio_nucleo' nucleo.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Dettaglio' %}">
                 <i class="bi bi-eye"></i>
               </a>
-              <a href="{% url 'converti_nucleo_in_arnia' nucleo.pk %}" class="btn btn-sm btn-outline-success" title="Converti in arnia">
+              <a href="{% url 'converti_nucleo_in_arnia' nucleo.pk %}" class="btn btn-sm btn-outline-success" title="{% trans 'Converti in arnia' %}">
                 <i class="bi bi-arrow-up-circle"></i>
               </a>
             </td>
@@ -94,9 +95,9 @@
     {% else %}
     <div class="text-center py-5 text-muted">
       <i class="bi bi-hexagon-half display-4 d-block mb-2 opacity-25"></i>
-      <p>Nessun nucleo attivo.</p>
+      <p>{% trans "Nessun nucleo attivo." %}</p>
       <a href="{% url 'crea_nucleo' %}" class="btn btn-primary btn-sm">
-        <i class="bi bi-plus-circle me-1"></i>Aggiungi nucleo
+        <i class="bi bi-plus-circle me-1"></i>{% trans "Aggiungi nucleo" %}
       </a>
     </div>
     {% endif %}
@@ -107,7 +108,7 @@
 {% if nuclei_convertiti %}
 <div class="card">
   <div class="card-header d-flex justify-content-between align-items-center">
-    <span><i class="bi bi-check-circle me-1"></i>Convertiti in Arnia</span>
+    <span><i class="bi bi-check-circle me-1"></i>{% trans "Convertiti in Arnia" %}</span>
     <span class="badge bg-success">{{ nuclei_convertiti|length }}</span>
   </div>
   <div class="card-body p-0">
@@ -115,22 +116,22 @@
       <table class="table table-hover mb-0">
         <thead>
           <tr>
-            <th>Nucleo</th>
-            <th>Apiario</th>
-            <th>Data conversione</th>
-            <th>Arnia risultante</th>
+            <th>{% trans "Nucleo" %}</th>
+            <th>{% trans "Apiario" %}</th>
+            <th>{% trans "Data conversione" %}</th>
+            <th>{% trans "Arnia risultante" %}</th>
           </tr>
         </thead>
         <tbody>
           {% for nucleo in nuclei_convertiti %}
           <tr>
-            <td class="text-muted">Nucleo #{{ nucleo.numero }}</td>
+            <td class="text-muted">{% blocktrans with n=nucleo.numero %}Nucleo #{{ n }}{% endblocktrans %}</td>
             <td class="small text-muted">{{ nucleo.apiario.nome }}</td>
             <td class="small">{{ nucleo.data_conversione|date:"d/m/Y"|default:"—" }}</td>
             <td>
               {% if nucleo.arnia %}
               <a href="{% url 'visualizza_apiario' nucleo.apiario.id %}" class="text-decoration-none small">
-                Arnia #{{ nucleo.arnia.numero }}
+                {% blocktrans with n=nucleo.arnia.numero %}Arnia #{{ n }}{% endblocktrans %}
               </a>
               {% else %}—{% endif %}
             </td>

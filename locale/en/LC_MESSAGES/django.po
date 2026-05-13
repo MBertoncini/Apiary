@@ -935,3 +935,4708 @@ msgstr "There are no hives registered for this apiary."
 
 msgid "Aggiungi la prima arnia"
 msgstr "Add the first hive"
+
+# === Auto-aggiunte ===
+
+#, python-format
+msgid "%(anni)s anni"
+msgstr "%(anni)s anni"
+
+#, python-format
+msgid "%(c)s% conf."
+msgstr "%(c)s% conf."
+
+#, python-format
+msgid "%(g)sgg"
+msgstr "%(g)sgg"
+
+#, python-format
+msgid "%(giorni)s giorni"
+msgstr "%(giorni)s giorni"
+
+#, python-format
+msgid "%(n)s celle reali"
+msgstr "%(n)s celle reali"
+
+#, python-format
+msgid "%(n)s el."
+msgstr "%(n)s el."
+
+#, python-format
+msgid "%(n)s favi"
+msgstr "%(n)s favi"
+
+#, python-format
+msgid "%(n)s figlie"
+msgstr "%(n)s figlie"
+
+#, python-format
+msgid "%(n)s fuchi"
+msgstr "%(n)s fuchi"
+
+#, python-format
+msgid "%(n)s generazioni"
+msgstr "%(n)s generazioni"
+
+#, python-format
+msgid "%(n)s op."
+msgstr "%(n)s op."
+
+#, python-format
+msgid "%(n)s pz"
+msgstr "%(n)s pz"
+
+#, python-format
+msgid "%(n)s reg."
+msgstr "%(n)s reg."
+
+#, python-format
+msgid "%(n)s tel."
+msgstr "%(n)s tel."
+
+#, python-format
+msgid "%(p)s% ammortato — %(v)s anni vita utile"
+msgstr "%(p)s% ammortato — %(v)s anni vita utile"
+
+#, python-format
+msgid "%(p)s% prob. pioggia"
+msgstr "%(p)s% prob. pioggia"
+
+#, python-format
+msgid "%(t)s telaini - Pos. %(p)s"
+msgstr "%(t)s telaini - Pos. %(p)s"
+
+#, python-format
+msgid "%(v)s venduti"
+msgstr "%(v)s venduti"
+
+msgid "(in smielatura)"
+msgstr "(in extraction)"
+
+#, python-format
+msgid "-%(v)s vend."
+msgstr "-%(v)s vend."
+
+msgid "1 = colonia debolissima, 5 = colonia media, 10 = colonia fortissima che occupa tutti i favi."
+msgstr "1 = very weak, 5 = medium, 10 = very strong colony covering all combs."
+
+msgid "1 = più vicino al nido, 2 = sopra il primo melario, ecc."
+msgstr "1 = closest to brood nest, 2 = above first super, etc."
+
+msgid "1 = vicino al nido"
+msgstr "1 = near brood nest"
+
+msgid "1 kg"
+msgstr "1 kg"
+
+msgid "1. Dall'app mobile"
+msgstr "1. From the mobile app"
+
+msgid "1/2"
+msgstr "1/2"
+
+msgid "100% Open Source"
+msgstr "100% Open Source"
+
+msgid "2. Via email"
+msgstr "2. Via email"
+
+msgid "250g"
+msgstr "250g"
+
+msgid "3/4"
+msgstr "3/4"
+
+msgid "30 giorni"
+msgstr "30 days"
+
+msgid "500g"
+msgstr "500g"
+
+msgid "7 giorni"
+msgstr "7 days"
+
+msgid "90 giorni"
+msgstr "90 days"
+
+#, python-format
+msgid "<strong>%(u)s</strong> ti ha invitato a unirti al gruppo <strong>%(g)s</strong> su Apiary."
+msgstr "<strong>%(u)s</strong> ti ha invitato a unirti al gruppo <strong>%(g)s</strong> su Apiary."
+
+#, python-format
+msgid "<strong>%(u)s</strong> ti ha invitato a unirti al gruppo <strong>%(g)s</strong> sulla piattaforma di Gestione Apiario."
+msgstr "<strong>%(u)s</strong> ti ha invitato a unirti al gruppo <strong>%(g)s</strong> sulla piattaforma di Gestione Apiario."
+
+msgid "AI/YOLO"
+msgstr "AI/YOLO"
+
+msgid "Accedi all'app <strong>Apiary Manager</strong>."
+msgstr "Sign in to the <strong>Apiary Manager</strong> app."
+
+msgid "Accetta"
+msgstr "Accept"
+
+msgid "Accetta Invito"
+msgstr "Accept Invitation"
+
+msgid "Accetta l'invito"
+msgstr "Accept invitation"
+
+msgid "Accetto l'<a href=\"/app/privacy/\" target=\"_blank\">informativa sulla privacy</a> e i termini di servizio"
+msgstr "Accetto l'<a href=\"/app/privacy/\" target=\"_blank\">informativa sulla privacy</a> e i termini di servizio"
+
+msgid "Account utente e credenziali"
+msgstr "User account and credentials"
+
+msgid "Acquirente (nome libero)"
+msgstr "Acquirente (nome libero)"
+
+msgid "Acquirente non specificato"
+msgstr "Acquirente non specificato"
+
+#, python-format
+msgid "Acquirente: %(nome)s"
+msgstr "Acquirente: %(nome)s"
+
+msgid "Acquistato dal"
+msgstr "Bought from"
+
+msgid "Acquistato fino al"
+msgstr "Bought until"
+
+msgid "Acquisti"
+msgstr "Purchases"
+
+msgid "Acquisti totali"
+msgstr "Total purchases"
+
+msgid "Acquisto"
+msgstr "Purchase"
+
+msgid "Acquisto:"
+msgstr "Purchase:"
+
+msgid "Adatta vista"
+msgstr "Fit view"
+
+msgid "Aggiorna Fioritura"
+msgstr "Update Bloom"
+
+msgid "Aggiorna Melario"
+msgstr "Update Super"
+
+msgid "Aggiorna Pagamento"
+msgstr "Update Payment"
+
+msgid "Aggiorna Presenza Regina"
+msgstr "Aggiorna Presenza Regina"
+
+msgid "Aggiorna Quota"
+msgstr "Update Share"
+
+msgid "Aggiorna Trattamento"
+msgstr "Aggiorna Trattamento"
+
+#, python-format
+msgid "Aggiornato: %(d)s"
+msgstr "Aggiornato: %(d)s"
+
+msgid "Aggiungi Controllo"
+msgstr "Add Inspection"
+
+msgid "Aggiungi Fioritura"
+msgstr "Add Bloom"
+
+msgid "Aggiungi Melario"
+msgstr "Add Super"
+
+#, python-format
+msgid "Aggiungi Melario - Arnia #%(n)s"
+msgstr "Aggiungi Melario - Arnia #%(n)s"
+
+#, python-format
+msgid "Aggiungi Melario — Arnia #%(n)s"
+msgstr "Aggiungi Melario — Arnia #%(n)s"
+
+msgid "Aggiungi Quota"
+msgstr "Add Share"
+
+msgid "Aggiungi Regina"
+msgstr "Aggiungi Regina"
+
+msgid "Aggiungi Tipo di Trattamento"
+msgstr "Aggiungi Tipo di Trattamento"
+
+msgid "Aggiungi cliente"
+msgstr "Add customer"
+
+msgid "Aggiungi il primo invasettamento"
+msgstr "Add the first bottling"
+
+msgid "Aggiungi la prima attrezzatura"
+msgstr "Add first equipment"
+
+msgid "Aggiungi melario"
+msgstr "Add super"
+
+msgid "Aggiungi note libere per qualsiasi osservazione specifica"
+msgstr "Add free notes for any specific observation"
+
+msgid "Aggiungi nuovo tipo"
+msgstr "Aggiungi nuovo tipo"
+
+msgid "Aggiungi riga"
+msgstr "Aggiungi riga"
+
+msgid "Aggiungi un <strong>melario</strong> all'arnia quando è il momento della raccolta"
+msgstr "Add a <strong>super</strong> to the hive when it's harvest time"
+
+msgid "Aggiungi una nuova arnia"
+msgstr "Add a new hive"
+
+msgid "Aggiungi uno dopo una smielatura"
+msgstr "Add one after an extraction"
+
+#, python-format
+msgid "Al %(d)s"
+msgstr "Al %(d)s"
+
+msgid "Albero Genealogico"
+msgstr "Albero Genealogico"
+
+msgid "Albero Genealogico Completo"
+msgstr "Albero Genealogico Completo"
+
+msgid "Albero Genealogico Regina"
+msgstr "Albero Genealogico Regina"
+
+msgid "Albero genealogico completo"
+msgstr "Albero genealogico completo"
+
+#, python-format
+msgid "Alta probabilità di pioggia (%(p)s%): Considerare di posticipare operazioni non urgenti."
+msgstr "Alta probabilità di pioggia (%(p)s%): Considerare di posticipare operazioni non urgenti."
+
+msgid "Altro"
+msgstr "Other"
+
+msgid "Alveari"
+msgstr "Hives"
+
+msgid "Amministratore"
+msgstr "Administrator"
+
+msgid "Amministratore:"
+msgstr "Administrator:"
+
+msgid "Ammort. %"
+msgstr "Depr. %"
+
+msgid "Ammortamento"
+msgstr "Ammortamento"
+
+msgid "Analisi AI"
+msgstr "AI Analysis"
+
+#, python-format
+msgid "Analisi Telaini — %(a)s"
+msgstr "Analisi Telaini — %(a)s"
+
+msgid "Analisi Telaino AI"
+msgstr "Analisi Telaino AI"
+
+msgid "Analisi Telaino AI — Apiary"
+msgstr "Analisi Telaino AI — Apiary"
+
+msgid "Analisi diagnostica"
+msgstr "Analisi diagnostica"
+
+msgid "Analisi in corso…"
+msgstr "Analisi in corso…"
+
+msgid "Analisi salvata!"
+msgstr "Analisi salvata!"
+
+msgid "Analisi telaini e immagini caricate"
+msgstr "Frame analyses and uploaded images"
+
+msgid "Analizza e salva"
+msgstr "Analizza e salva"
+
+msgid "Analizza punto (5 km)"
+msgstr "Analyze point (5 km)"
+
+msgid "Anche un piccolo gesto conta 🍯"
+msgstr "Even a small gesture counts 🍯"
+
+msgid "Anni terminanti in 1, 6"
+msgstr "Years ending in 1, 6"
+
+msgid "Anni terminanti in 2, 7"
+msgstr "Years ending in 2, 7"
+
+msgid "Anni terminanti in 3, 8"
+msgstr "Years ending in 3, 8"
+
+msgid "Anni terminanti in 4, 9"
+msgstr "Years ending in 4, 9"
+
+msgid "Anni terminanti in 5, 0"
+msgstr "Years ending in 5, 0"
+
+msgid "Anno Nascita"
+msgstr "Birth Year"
+
+msgid "Anno corrente"
+msgstr "Current year"
+
+msgid "Annullato"
+msgstr "Cancelled"
+
+msgid "Anteprima"
+msgstr "Anteprima"
+
+msgid "Api agitate o \\\"urlanti\\\" (può indicare assenza di regina)"
+msgstr "Api agitate o \\\"urlanti\\\" (può indicare assenza di regina)"
+
+#, python-format
+msgid "Apiari (%(n)s)"
+msgstr "Apiari (%(n)s)"
+
+msgid "Apiari Condivisi"
+msgstr "Apiari Condivisi"
+
+msgid "Apiari condivisi"
+msgstr "Shared apiaries"
+
+msgid "Apiari del gruppo"
+msgstr "Group apiaries"
+
+msgid "Apiari e arnie"
+msgstr "Apiaries and hives"
+
+msgid "Apiari pubblici"
+msgstr "Public apiaries"
+
+msgid "Apiari, arnie, controlli e tutti i dati di apicoltura"
+msgstr "Apiaries, hives, inspections and all beekeeping data"
+
+msgid "Apiario (opzionale)"
+msgstr "Apiary (optional)"
+
+msgid "Apiario:"
+msgstr "Apiary:"
+
+msgid "Apiary Manager"
+msgstr "Apiary Manager"
+
+msgid "Apiary è sviluppato con passione nel tempo libero da appassionati di apicoltura e tecnologia."
+msgstr "Apiary is developed with passion in spare time by beekeeping and technology enthusiasts."
+
+msgid "Apiary — Apiary"
+msgstr "Apiary — Apiary"
+
+msgid "Applica filtri"
+msgstr "Apply filters"
+
+msgid "Approva"
+msgstr "Approva"
+
+msgid "Apri Cantina"
+msgstr "Open Honey House"
+
+msgid "Apri Cantina →"
+msgstr "Open Honey House →"
+
+msgid "Apri arnia · Apiary"
+msgstr "Open hive · Apiary"
+
+msgid "Apri in Apiary App"
+msgstr "Open in Apiary App"
+
+msgid "Area approssimativa della fioritura"
+msgstr "Approximate area of the bloom"
+
+#, python-format
+msgid "Arnia #%(n)s - %(a)s"
+msgstr "Arnia #%(n)s - %(a)s"
+
+#, python-format
+msgid "Arnia #%(num)s"
+msgstr "Arnia #%(num)s"
+
+#, python-format
+msgid "Arnia #%(numero)s"
+msgstr "Arnia #%(numero)s"
+
+#, python-format
+msgid "Arnia %(n)s"
+msgstr "Arnia %(n)s"
+
+#, python-format
+msgid "Arnia %(numero)s"
+msgstr "Arnia %(numero)s"
+
+msgid "Arnia 12, regina assente, celle reali 2, rischio sciamatura"
+msgstr "Hive 12, queen missing, 2 queen cells, swarming risk"
+
+msgid "Arnia 5, famiglia forte, 4 telaini covata, 3 scorte, regina presente"
+msgstr "Hive 5, strong family, 4 brood frames, 3 stores, queen present"
+
+msgid "Arnia 7, varroa visibile, 5 telaini covata, trattamento necessario"
+msgstr "Hive 7, varroa visible, 5 brood frames, treatment needed"
+
+msgid "Arnia origine:"
+msgstr "Arnia origine:"
+
+msgid "Arnia risultante"
+msgstr "Resulting hive"
+
+msgid "Arnia:"
+msgstr "Arnia:"
+
+msgid "Arnie"
+msgstr "Hives"
+
+msgid "Arnie & Controlli"
+msgstr "Hives & Inspections"
+
+msgid "Arnie & Controlli — Registrare un'ispezione"
+msgstr "Hives & Inspections — Record an inspection"
+
+msgid "Arnie Controllate"
+msgstr "Inspected Hives"
+
+msgid "Arnie da trattare"
+msgstr "Arnie da trattare"
+
+#, python-format
+msgid "Arnie trattate — %(nome)s"
+msgstr "Arnie trattate — %(nome)s"
+
+msgid "Arnie:"
+msgstr "Arnie:"
+
+msgid "Assegna ruoli: <em>Proprietario</em> (controllo totale), <em>Collaboratore</em> (può modificare), <em>Visualizzatore</em> (solo lettura)"
+msgstr "Assign roles: <em>Owner</em> (full control), <em>Collaborator</em> (can edit), <em>Viewer</em> (read only)"
+
+msgid "Assenza di uova e larve giovani"
+msgstr "Assenza di uova e larve giovani"
+
+msgid "Attenzione"
+msgstr "Warning"
+
+msgid "Attenzione:"
+msgstr "Warning:"
+
+msgid "Attenzione: il totale delle percentuali dovrebbe essere 100%."
+msgstr "Warning: total percentages should be 100%."
+
+msgid "Attenzione: modificare il ruolo di un membro influisce sui suoi permessi all'interno del gruppo."
+msgstr "Warning: changing a member's role affects their permissions within the group."
+
+msgid "Attenzione: operazione irreversibile"
+msgstr "Attenzione: operazione irreversibile"
+
+msgid "Attiva Invito"
+msgstr "Attiva Invito"
+
+msgid "Attiva:"
+msgstr "Attiva:"
+
+msgid "Attive"
+msgstr "Active"
+
+msgid "Attrezzatura:"
+msgstr "Equipment:"
+
+msgid "Attuale"
+msgstr "Attuale"
+
+msgid "Avanti"
+msgstr "Next"
+
+msgid "Avanti: carica foto"
+msgstr "Avanti: carica foto"
+
+msgid "Azioni"
+msgstr "Actions"
+
+msgid "Azioni Rapide"
+msgstr "Azioni Rapide"
+
+msgid "Azioni rapide"
+msgstr "Quick actions"
+
+msgid "Azzera"
+msgstr "Reset"
+
+msgid "Benvenuto in Apiary"
+msgstr "Welcome to Apiary"
+
+msgid "Bianco"
+msgstr "White"
+
+msgid "Bianco (anni che finiscono in 1/6), Giallo (2/7), Rosso (3/8), Verde (4/9), Blu (5/0)."
+msgstr "White (years ending in 1/6), Yellow (2/7), Red (3/8), Green (4/9), Blue (5/0)."
+
+msgid "Bidone inox"
+msgstr "Steel drum"
+
+msgid "Bisnonna"
+msgstr "Bisnonna"
+
+msgid "Blocco Covata"
+msgstr "Blocco Covata"
+
+msgid "Blocco covata richiesto:"
+msgstr "Blocco covata richiesto:"
+
+msgid "Blocco di Covata"
+msgstr "Blocco di Covata"
+
+msgid "Blocco di Covata:"
+msgstr "Blocco di Covata:"
+
+msgid "Blu"
+msgstr "Blue"
+
+msgid "Box"
+msgstr "Box"
+
+msgid "Buy Me a Coffee"
+msgstr "Buy Me a Coffee"
+
+msgid "Calendario Apiario"
+msgstr "Apiary Calendar"
+
+msgid "Calendario Eventi"
+msgstr "Calendar Events"
+
+msgid "Cambia arnia"
+msgstr "Cambia arnia"
+
+msgid "Cambia telaino"
+msgstr "Cambia telaino"
+
+msgid "Canale"
+msgstr "Channel"
+
+msgid "Canale di vendita"
+msgstr "Canale di vendita"
+
+msgid "Capacità (kg)"
+msgstr "Capacity (kg)"
+
+msgid "Capacità contenitore"
+msgstr "Container capacity"
+
+msgid "Caratteristica"
+msgstr "Caratteristica"
+
+msgid "Caricamento arnie…"
+msgstr "Caricamento arnie…"
+
+msgid "Categoria"
+msgstr "Category"
+
+msgid "Categoria a cui appartiene l\\'attrezzo"
+msgstr "Categoria a cui appartiene l\\'attrezzo"
+
+msgid "Categoria:"
+msgstr "Category:"
+
+msgid "Categorie"
+msgstr "Categories"
+
+msgid "Categorie Attrezzature"
+msgstr "Equipment Categories"
+
+msgid "Categorie Esistenti"
+msgstr "Existing Categories"
+
+msgid "Celle reali"
+msgstr "Celle reali"
+
+msgid "Celle reali presenti"
+msgstr "Celle reali presenti"
+
+msgid "Centro Notifiche"
+msgstr "Notification Center"
+
+msgid "Cerca"
+msgstr "Search"
+
+msgid "Cerca apiari, arnie, trattamenti, fioriture, utenti…"
+msgstr "Search apiaries, hives, treatments, blooms, users…"
+
+msgid "Cerca località:"
+msgstr "Search location:"
+
+msgid "Cerca stessa razza"
+msgstr "Cerca stessa razza"
+
+msgid "Ciao,"
+msgstr "Hello,"
+
+msgid "Classi rilevate dal modello"
+msgstr "Classi rilevate dal modello"
+
+msgid "Clicca"
+msgstr "Click"
+
+msgid "Clicca su <strong>Nuovo Apiario</strong> nella barra laterale o dal pulsante in alto a destra"
+msgstr "Click <strong>New Apiary</strong> in the sidebar or top-right button"
+
+msgid "Clicca su <strong>Nuovo Controllo</strong>"
+msgstr "Click <strong>New Inspection</strong>"
+
+msgid "Clicca sul pulsante qui sotto per accettare l'invito e accedere al gruppo:"
+msgstr "Click the button below to accept the invitation and access the group:"
+
+msgid "Clicca sul widget chat in basso a destra per fare domande sull'apicoltura all'assistente Gemini. Puoi chiedere consigli su trattamenti, interpretare i tuoi dati o avere supporto decisionale."
+msgstr "Click the chat widget in the bottom right to ask beekeeping questions to the Gemini assistant. You can ask treatment advice, interpret your data or get decision support."
+
+msgid "Clicca sull'icona genealogia per vedere l'albero completo"
+msgstr "Click the genealogy icon to see the full tree"
+
+msgid "Clicca sulla mappa per analizzare un punto"
+msgstr "Click on the map to analyze a point"
+
+msgid "Clicca sulla mappa per vedere le specie mellifere in quel raggio"
+msgstr "Click on the map to see melliferous species in that radius"
+
+msgid "Cliente"
+msgstr "Cliente"
+
+msgid "Cliente / Acquirente"
+msgstr "Customer / Buyer"
+
+msgid "Cliente registrato"
+msgstr "Cliente registrato"
+
+#, python-format
+msgid "Cliente: %(nome)s"
+msgstr "Cliente: %(nome)s"
+
+msgid "Close"
+msgstr "Close"
+
+msgid "Codici Colore Standard"
+msgstr "Standard Color Codes"
+
+msgid "Codici Colore Standard:"
+msgstr "Codici Colore Standard:"
+
+msgid "Collabora con altri apicoltori condividendo apiari e risorse"
+msgstr "Collaborate with other beekeepers by sharing apiaries and resources"
+
+msgid "Collaborazione — Condividere con altri apicoltori"
+msgstr "Collaboration — Share with other beekeepers"
+
+msgid "Colore:"
+msgstr "Colore:"
+
+msgid "Colori di marcatura internazionali:"
+msgstr "International marking colors:"
+
+msgid "Comandi vocali:"
+msgstr "Voice commands:"
+
+msgid "Come funziona il Controllo Vocale"
+msgstr "How Voice Control works"
+
+msgid "Come funziona la smielatura?"
+msgstr "How does extraction work?"
+
+msgid "Come membro di un gruppo, potrai:"
+msgstr "As a group member, you can:"
+
+msgid "Come richiedere l'eliminazione dei dati"
+msgstr "How to request data deletion"
+
+msgid "Compila i campi principali: <em>data, forza della colonia (1–10), presenza della regina, stato sanitario</em>"
+msgstr "Fill main fields: <em>date, colony strength (1–10), queen presence, health status</em>"
+
+msgid "Compila i dati della vendita e i prodotti venduti"
+msgstr "Compila i dati della vendita e i prodotti venduti"
+
+msgid "Completa Sostituzione"
+msgstr "Complete Replacement"
+
+#, python-format
+msgid "Completa le informazioni sulla regina durante il controllo del <strong>%(data)s</strong>."
+msgstr "Completa le informazioni sulla regina durante il controllo del <strong>%(data)s</strong>."
+
+msgid "Completa trattamento"
+msgstr "Complete treatment"
+
+msgid "Completato"
+msgstr "Completed"
+
+msgid "Completato il"
+msgstr "Completed on"
+
+msgid "Comportamento tranquillo delle api"
+msgstr "Comportamento tranquillo delle api"
+
+msgid "Con genealogia:"
+msgstr "With genealogy:"
+
+msgid "Condividendo questo apiario, i membri del gruppo potranno visualizzarne i dettagli, le arnie, i controlli, le fioriture e i trattamenti sanitari, in base al loro ruolo nel gruppo."
+msgstr "Condividendo questo apiario, i membri del gruppo potranno visualizzarne i dettagli, le arnie, i controlli, le fioriture e i trattamenti sanitari, in base al loro ruolo nel gruppo."
+
+msgid "Condividere apiari e arnie"
+msgstr "Share apiaries and hives"
+
+msgid "Condividi Apiario"
+msgstr "Condividi Apiario"
+
+msgid "Condividi con il gruppo"
+msgstr "Share with group"
+
+msgid "Condividi gli apiari con soci o collaboratori"
+msgstr "Share apiaries with partners or collaborators"
+
+msgid "Condividi uno o più apiari con il gruppo dall'interno dell'apiario → <em>Condividi</em>"
+msgstr "Share one or more apiaries with the group from inside the apiary → <em>Share</em>"
+
+msgid "Condiviso"
+msgstr "Shared"
+
+msgid "Condiviso con il gruppo"
+msgstr "Shared with the group"
+
+msgid "Condizione"
+msgstr "Condition"
+
+msgid "Condizione Attuale"
+msgstr "Current Condition"
+
+msgid "Condizione fisica dell\\'attrezzo: Nuovo → Ottimo → Buono → Discreto → Usurato → Da Riparare"
+msgstr "Condizione fisica dell\\'attrezzo: Nuovo → Ottimo → Buono → Discreto → Usurato → Da Riparare"
+
+msgid "Condizione:"
+msgstr "Condition:"
+
+msgid "Condizioni Meteo (Icone)"
+msgstr "Weather Conditions (Icons)"
+
+msgid "Condizioni ottimali per l'attività delle api, aspettarsi un'intensa bottinatura."
+msgstr "Optimal conditions for bee activity, expect intense foraging."
+
+msgid "Conf. media:"
+msgstr "Conf. media:"
+
+msgid "Conferma"
+msgstr "Conferma"
+
+msgid "Conferma Eliminazione"
+msgstr "Confirm Deletion"
+
+msgid "Conferma Eliminazione Fioritura"
+msgstr "Confirm Bloom Deletion"
+
+msgid "Conferma Eliminazione Gruppo"
+msgstr "Conferma Eliminazione Gruppo"
+
+msgid "Conferma Eliminazione Quota"
+msgstr "Confirm Share Deletion"
+
+msgid "Conferma Eliminazione Tipo"
+msgstr "Conferma Eliminazione Tipo"
+
+msgid "Conferma Posizione"
+msgstr "Confirm Position"
+
+msgid "Conferma Restituzione"
+msgstr "Confirm Return"
+
+msgid "Conferma Rimozione"
+msgstr "Conferma Rimozione"
+
+msgid "Conferma Rimozione Membro"
+msgstr "Conferma Rimozione Membro"
+
+msgid "Conferma Uscita dal Gruppo"
+msgstr "Conferma Uscita dal Gruppo"
+
+msgid "Conferma digitando la tua password"
+msgstr "Confirm by typing your password"
+
+msgid "Confronta"
+msgstr "Compare"
+
+msgid "Confronta Selezionate"
+msgstr "Compare Selected"
+
+msgid "Confronto Temperatura e Attività Arnie"
+msgstr "Temperature vs Hive Activity"
+
+msgid "Consigli per l'Apiario in base al Meteo"
+msgstr "Apiary tips based on weather"
+
+msgid "Consiglio:"
+msgstr "Tip:"
+
+msgid "Controlli"
+msgstr "Inspections"
+
+msgid "Controlli Apiario"
+msgstr "Apiary Inspections"
+
+msgid "Controlli Arnie"
+msgstr "Hive Inspections"
+
+msgid "Controlli, trattamenti sanitari, melari"
+msgstr "Inspections, health treatments, supers"
+
+#, python-format
+msgid "Controllo #%(num)s"
+msgstr "Controllo #%(num)s"
+
+#, python-format
+msgid "Converti Nucleo #%(n)s"
+msgstr "Converti Nucleo #%(n)s"
+
+msgid "Converti in Arnia"
+msgstr "Convert to Hive"
+
+msgid "Converti in arnia"
+msgstr "Convert to hive"
+
+msgid "Convertiti in Arnia"
+msgstr "Converted to Hive"
+
+msgid "Convertiti in arnia"
+msgstr "Converted to hive"
+
+msgid "Convertito"
+msgstr "Converted"
+
+#, python-format
+msgid "Convertito il %(d)s"
+msgstr "Convertito il %(d)s"
+
+msgid "Coordinate:"
+msgstr "Coordinates:"
+
+msgid "Copia Controllo"
+msgstr "Copia Controllo"
+
+msgid "Copia su arnie selezionate"
+msgstr "Copia su arnie selezionate"
+
+msgid "Costo"
+msgstr "Costo"
+
+msgid "Costo (€)"
+msgstr "Cost (€)"
+
+#, python-format
+msgid "Cov: %(c)s · Sc: %(s)s"
+msgstr "Cov: %(c)s · Sc: %(s)s"
+
+msgid "Covata compatta e ben distribuita nei telaini"
+msgstr "Covata compatta e ben distribuita nei telaini"
+
+msgid "Covata sparsa o irregolare"
+msgstr "Covata sparsa o irregolare"
+
+msgid "Crea Apiario"
+msgstr "Crea Apiario"
+
+msgid "Crea Categoria"
+msgstr "Create Category"
+
+msgid "Crea Fioritura"
+msgstr "Create Bloom"
+
+msgid "Crea Gruppo"
+msgstr "Create Group"
+
+msgid "Crea Nuovo Gruppo"
+msgstr "Create New Group"
+
+msgid "Crea Tipo di Trattamento"
+msgstr "Crea Tipo di Trattamento"
+
+msgid "Crea Trattamento"
+msgstr "Crea Trattamento"
+
+msgid "Crea contenitore"
+msgstr "Create container"
+
+msgid "Crea controllo"
+msgstr "Create inspection"
+
+msgid "Crea controllo arnia da questa analisi"
+msgstr "Create hive inspection from this analysis"
+
+msgid "Crea il mio primo apiario"
+msgstr "Create my first apiary"
+
+msgid "Crea il primo apiario"
+msgstr "Crea il primo apiario"
+
+msgid "Crea maturatore"
+msgstr "Create maturator"
+
+msgid "Crea prima un apiario con delle arnie attive."
+msgstr "First create an apiary with active hives."
+
+msgid "Crea un gruppo e invita altri apicoltori via email o link"
+msgstr "Create a group and invite other beekeepers via email or link"
+
+msgid "Crea un maturatore per questa smielatura"
+msgstr "Create a maturator for this extraction"
+
+msgid "Creato:"
+msgstr "Creato:"
+
+msgid "Creatore"
+msgstr "Creator"
+
+msgid "Creatore:"
+msgstr "Creatore:"
+
+msgid "Cronologia chat AI"
+msgstr "AI chat history"
+
+#, python-format
+msgid "Da qui puoi gestire la condivisione dell'apiario \"%(nome)s\" con un gruppo di collaboratori."
+msgstr "Da qui puoi gestire la condivisione dell'apiario \"%(nome)s\" con un gruppo di collaboratori."
+
+msgid "Dai un nome descrittivo alle arnie (es: \\\"Arnia 1 — Ligustica\\\", \\\"Arnia Nucleo Primavera\\\") per ritrovarle facilmente."
+msgstr "Dai un nome descrittivo alle arnie (es: \\\"Arnia 1 — Ligustica\\\", \\\"Arnia Nucleo Primavera\\\") per ritrovarle facilmente."
+
+#, python-format
+msgid "Dal %(d)s"
+msgstr "Dal %(d)s"
+
+msgid "Dal:"
+msgstr "From:"
+
+msgid "Dall'interno dell'apiario, clicca <strong>Nuova Arnia</strong> per aggiungere le tue arnie"
+msgstr "From inside the apiary, click <strong>New Hive</strong> to add your hives"
+
+msgid "Dall'invasettamento, tracccia i vasetti prodotti e il peso finale"
+msgstr "From bottling, track produced jars and final weight"
+
+msgid "Data Acquisto"
+msgstr "Purchase Date"
+
+msgid "Data Acquisto:"
+msgstr "Data Acquisto:"
+
+msgid "Data Esecuzione"
+msgstr "Execution Date"
+
+msgid "Data Fine"
+msgstr "End Date"
+
+msgid "Data Fine Prevista"
+msgstr "Expected End Date"
+
+msgid "Data Inizio"
+msgstr "Start Date"
+
+msgid "Data Inizio Prestito"
+msgstr "Loan Start Date"
+
+msgid "Data Introduzione"
+msgstr "Data Introduzione"
+
+msgid "Data Programmata"
+msgstr "Scheduled Date"
+
+msgid "Data Restituzione"
+msgstr "Return Date"
+
+msgid "Data aggiunta"
+msgstr "Data aggiunta"
+
+msgid "Data controllo origine:"
+msgstr "Data controllo origine:"
+
+msgid "Data controllo:"
+msgstr "Data controllo:"
+
+msgid "Data conversione"
+msgstr "Conversion date"
+
+msgid "Data creazione:"
+msgstr "Data creazione:"
+
+msgid "Data del nuovo controllo:"
+msgstr "Data del nuovo controllo:"
+
+msgid "Data di nascita:"
+msgstr "Data di nascita:"
+
+msgid "Data fine:"
+msgstr "End date:"
+
+msgid "Data inizio"
+msgstr "Start date"
+
+msgid "Data inizio:"
+msgstr "Start date:"
+
+msgid "Data installazione"
+msgstr "Data installazione"
+
+msgid "Data installazione:"
+msgstr "Data installazione:"
+
+msgid "Data intro:"
+msgstr "Data intro:"
+
+msgid "Data introduzione:"
+msgstr "Introduction Date:"
+
+msgid "Data nascita:"
+msgstr "Data nascita:"
+
+msgid "Data posizionamento"
+msgstr "Placement date"
+
+msgid "Data posizionamento:"
+msgstr "Placement date:"
+
+msgid "Data riempimento"
+msgstr "Fill date"
+
+msgid "Data rimozione"
+msgstr "Removal date"
+
+msgid "Data scadenza:"
+msgstr "Data scadenza:"
+
+msgid "Data sciamatura:"
+msgstr "Data sciamatura:"
+
+msgid "Data smielatura"
+msgstr "Extraction date"
+
+msgid "Data suggerita per la prossima manutenzione"
+msgstr "Suggested date for next maintenance"
+
+msgid "Data:"
+msgstr "Date:"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Dati AI e cronologia chat"
+msgstr "AI data and chat history"
+
+msgid "Dati Economici"
+msgstr "Financial Data"
+
+msgid "Dati GBIF 2000–2025"
+msgstr "GBIF data 2000–2025"
+
+msgid "Dati Nucleo"
+msgstr "Nucleus Data"
+
+msgid "Dati Regina"
+msgstr "Dati Regina"
+
+msgid "Dati Smielatura"
+msgstr "Extraction Data"
+
+msgid "Dati Sostituzione"
+msgstr "Replacement Data"
+
+msgid "Dati conservati"
+msgstr "Retained data"
+
+msgid "Dati conservati dopo l'eliminazione"
+msgstr "Data retained after deletion"
+
+msgid "Dati eliminati"
+msgstr "Deleted data"
+
+msgid "Dati meteo"
+msgstr "Weather data"
+
+msgid "Dati meteo associati agli apiari"
+msgstr "Weather data associated with apiaries"
+
+msgid "Dati non disponibili."
+msgstr "Data not available."
+
+msgid "Dati vendita"
+msgstr "Dati vendita"
+
+#, python-format
+msgid "Del gruppo (%(n)s)"
+msgstr "Del gruppo (%(n)s)"
+
+msgid "Densità GBIF (milioni di osservazioni aggregate)"
+msgstr "GBIF density (millions of aggregated observations)"
+
+msgid "Descrizione"
+msgstr "Description"
+
+msgid "Descrizione breve dello scopo del pagamento"
+msgstr "Brief description of the payment's purpose"
+
+msgid "Descrizione:"
+msgstr "Description:"
+
+msgid "Deseleziona tutte"
+msgstr "Deseleziona tutte"
+
+msgid "Deseleziona tutti"
+msgstr "Deselect all"
+
+msgid "Dettagli Blocco Covata"
+msgstr "Dettagli Blocco Covata"
+
+msgid "Dettagli Controllo da Copiare"
+msgstr "Dettagli Controllo da Copiare"
+
+msgid "Dettagli Evento"
+msgstr "Event Details"
+
+msgid "Dettagli Regina"
+msgstr "Dettagli Regina"
+
+msgid "Dettagli completi"
+msgstr "Full details"
+
+msgid "Dettagli controllo:"
+msgstr "Dettagli controllo:"
+
+msgid "Dettagli del gruppo:"
+msgstr "Dettagli del gruppo:"
+
+msgid "Dettagli dell'invito:"
+msgstr "Dettagli dell'invito:"
+
+msgid "Dettagli fioritura:"
+msgstr "Bloom details:"
+
+msgid "Dettagli quota:"
+msgstr "Share details:"
+
+msgid "Dettagli su come applicare correttamente il trattamento"
+msgstr "Dettagli su come applicare correttamente il trattamento"
+
+msgid "Dettagli tipo trattamento:"
+msgstr "Dettagli tipo trattamento:"
+
+msgid "Dettagli trattamento:"
+msgstr "Dettagli trattamento:"
+
+msgid "Dettagli:"
+msgstr "Dettagli:"
+
+msgid "Dettaglio"
+msgstr "Detail"
+
+msgid "Dettaglio Regina"
+msgstr "Dettaglio Regina"
+
+msgid "Dettaglio Smielatura"
+msgstr "Extraction Detail"
+
+msgid "Discendenza:"
+msgstr "Discendenza:"
+
+msgid "Disponibili"
+msgstr "Available"
+
+msgid "Distribuzione delle specie mellifere per pianificare gli spostamenti"
+msgstr "Distribution of melliferous species to plan moves"
+
+msgid "Django"
+msgstr "Django"
+
+#, python-format
+msgid "Doc: %(doc)s/5 | Prod: %(prod)s/5"
+msgstr "Doc: %(doc)s/5 | Prod: %(prod)s/5"
+
+msgid "Docilità"
+msgstr "Docilità"
+
+msgid "Docilità:"
+msgstr "Docilità:"
+
+msgid "Dovuto"
+msgstr "Owed"
+
+msgid "Droplet"
+msgstr "Droplet"
+
+msgid "Durante il periodo di sospensione non è possibile raccogliere il miele."
+msgstr "During the withdrawal period, honey cannot be harvested."
+
+msgid "Editor:"
+msgstr "Editor:"
+
+msgid "Elenco Completo"
+msgstr "Full List"
+
+msgid "Elimina Account – Apiary Manager"
+msgstr "Delete Account – Apiary Manager"
+
+msgid "Elimina Arnia"
+msgstr "Elimina Arnia"
+
+#, python-format
+msgid "Elimina Arnia #%(numero)s"
+msgstr "Elimina Arnia #%(numero)s"
+
+msgid "Elimina Attrezzatura"
+msgstr "Delete Equipment"
+
+msgid "Elimina Cliente"
+msgstr "Delete Customer"
+
+msgid "Elimina Dati – Apiary Manager"
+msgstr "Delete Data – Apiary Manager"
+
+msgid "Elimina Definitivamente"
+msgstr "Delete Permanently"
+
+msgid "Elimina Fioritura"
+msgstr "Delete Bloom"
+
+msgid "Elimina Gruppo"
+msgstr "Elimina Gruppo"
+
+#, python-format
+msgid "Elimina Melario #%(i)s"
+msgstr "Elimina Melario #%(i)s"
+
+msgid "Elimina Nucleo"
+msgstr "Delete Nucleus"
+
+#, python-format
+msgid "Elimina Nucleo #%(n)s"
+msgstr "Elimina Nucleo #%(n)s"
+
+msgid "Elimina Vendita"
+msgstr "Elimina Vendita"
+
+msgid "Elimina definitivamente"
+msgstr "Elimina definitivamente"
+
+msgid "Elimina definitivamente il mio account"
+msgstr "Permanently delete my account"
+
+msgid "Elimina il tuo account ora"
+msgstr "Delete your account now"
+
+msgid "Elimina lotto"
+msgstr "Delete batch"
+
+msgid "Elimina melario"
+msgstr "Delete super"
+
+msgid "Elimina nucleo"
+msgstr "Delete nucleus"
+
+msgid "Elimina tutti i miei dati"
+msgstr "Delete all my data"
+
+msgid "Elimina tutti i tuoi dati ora"
+msgstr "Delete all your data now"
+
+msgid "Elimina vendita"
+msgstr "Elimina vendita"
+
+#, python-format
+msgid "Eliminare definitivamente il melario #%(mi)s <strong>(%(t)s telaini)</strong>?"
+msgstr "Eliminare definitivamente il melario #%(mi)s <strong>(%(t)s telaini)</strong>?"
+
+#, python-format
+msgid "Eliminare il Nucleo #%(n)s?"
+msgstr "Eliminare il Nucleo #%(n)s?"
+
+#, python-format
+msgid "Eliminare il cliente <strong>%(n)s</strong>?"
+msgstr "Eliminare il cliente <strong>%(n)s</strong>?"
+
+msgid "Eliminare questa analisi?"
+msgstr "Delete this analysis?"
+
+msgid "Eliminare questo invasettamento?"
+msgstr "Delete this bottling?"
+
+msgid "Eliminare questo lotto? L'operazione non può essere annullata."
+msgstr "Delete this batch? This action cannot be undone."
+
+msgid "Eliminazione account e dati personali"
+msgstr "Account and personal data deletion"
+
+msgid "Eliminazione dati personali"
+msgstr "Personal data deletion"
+
+msgid "Email (opzionale, per risponderti)"
+msgstr "Email (optional, to reply)"
+
+msgid "Entra nell'arnia che vuoi controllare"
+msgstr "Enter the hive you want to inspect"
+
+msgid "Errore di rete."
+msgstr "Errore di rete."
+
+msgid "Es. 500"
+msgstr "E.g. 500"
+
+msgid "Es. Inventario annuale 2025"
+msgstr "E.g. Annual inventory 2025"
+
+msgid "Es. Mann Lake…"
+msgstr "E.g. Mann Lake…"
+
+msgid "Escludi-regina"
+msgstr "Queen excluder"
+
+msgid "Escludi-regina (QE)"
+msgstr "Queen excluder (QE)"
+
+msgid "Eseguito Da"
+msgstr "Performed By"
+
+msgid "Esempi di frasi riconosciute"
+msgstr "Recognized phrase examples"
+
+msgid "Esempi di frasi:"
+msgstr "Phrase examples:"
+
+msgid "Esplora prima"
+msgstr "Explore first"
+
+msgid "Esporta CSV"
+msgstr "Export CSV"
+
+msgid "Esporta eventi (.ics)"
+msgstr "Export events (.ics)"
+
+msgid "Esporta produzione"
+msgstr "Export production"
+
+msgid "Esporta produzione miele"
+msgstr "Export honey production"
+
+msgid "Esportazioni — PDF e CSV"
+msgstr "Exports — PDF and CSV"
+
+msgid "Età"
+msgstr "Age"
+
+msgid "Età (giorni)"
+msgstr "Età (giorni)"
+
+msgid "Età sconosciuta"
+msgstr "Età sconosciuta"
+
+msgid "Età:"
+msgstr "Age:"
+
+msgid "Eventi Regina"
+msgstr "Queen Events"
+
+msgid "Eyedropper"
+msgstr "Eyedropper"
+
+msgid "Facciata:"
+msgstr "Facciata:"
+
+msgid "Fai click su un apiario per visualizzare i dettagli meteo."
+msgstr "Click on an apiary to view weather details."
+
+msgid "Fai click sulla mappa per selezionare il punto esatto, oppure cerca una località."
+msgstr "Click on the map to select the exact point, or search for a location."
+
+msgid "Fai click sulla mappa per selezionare la posizione"
+msgstr "Click on the map to select the position"
+
+msgid "Fatto da apicoltori"
+msgstr "Made by beekeepers"
+
+msgid "Fecondata"
+msgstr "Fecondata"
+
+msgid "Ferma registrazione"
+msgstr "Stop recording"
+
+msgid "Figlie"
+msgstr "Daughters"
+
+msgid "Filtra Inventario"
+msgstr "Filter Inventory"
+
+msgid "Filtra e confronta le regine dei tuoi apiari"
+msgstr "Filter and compare queens from your apiaries"
+
+msgid "Filtri"
+msgstr "Filters"
+
+msgid "Filtri attivi:"
+msgstr "Active filters:"
+
+msgid "Filtri di Ricerca"
+msgstr "Search Filters"
+
+msgid "Fine Sospensione"
+msgstr "End of Withdrawal"
+
+msgid "Fioritura"
+msgstr "Fioritura"
+
+msgid "Fioritura attiva"
+msgstr "Active bloom"
+
+msgid "Fioriture Registrate"
+msgstr "Registered Blooms"
+
+#, python-format
+msgid "Fioriture attive (%(n)s)"
+msgstr "Fioriture attive (%(n)s)"
+
+msgid "Flora mellifera"
+msgstr "Melliferous flora"
+
+msgid "Flutter"
+msgstr "Flutter"
+
+msgid "Fogli cerei"
+msgstr "Wax foundations"
+
+msgid "Formato"
+msgstr "Format"
+
+msgid "Formato (g)"
+msgstr "Formato (g)"
+
+msgid "Formato vasetto"
+msgstr "Jar format"
+
+msgid "Fornitore"
+msgstr "Supplier"
+
+msgid "Fornitore:"
+msgstr "Supplier:"
+
+msgid "Forza"
+msgstr "Strength"
+
+msgid "Forza colonia:"
+msgstr "Colony strength:"
+
+msgid "Foto"
+msgstr "Foto"
+
+msgid "Fotografa un telaio e scopri subito api, covata e celle reali"
+msgstr "Photograph a frame and discover bees, brood and queen cells instantly"
+
+msgid "Fuchi"
+msgstr "Fuchi"
+
+msgid "Funzioni AI — Chat, voce, analisi telaino"
+msgstr "AI Features — Chat, voice, frame analysis"
+
+msgid "Funzioni Avanzate"
+msgstr "Advanced Features"
+
+msgid "Fusto"
+msgstr "Drum"
+
+msgid "Garanzia Fino A"
+msgstr "Warranty Until"
+
+msgid "Garanzia:"
+msgstr "Garanzia:"
+
+msgid "Gear"
+msgstr "Gear"
+
+msgid "Gemini"
+msgstr "Gemini"
+
+#, python-format
+msgid "Gen. %(livello)s"
+msgstr "Gen. %(livello)s"
+
+msgid "Genealogia"
+msgstr "Genealogy"
+
+msgid "Genera Inventario"
+msgstr "Generate Inventory"
+
+msgid "Generazioni giù:"
+msgstr "Generazioni giù:"
+
+msgid "Generazioni su:"
+msgstr "Generazioni su:"
+
+msgid "Gestione Apiario"
+msgstr "Apiary Management"
+
+msgid "Gestione Attrezzature"
+msgstr "Equipment Management"
+
+msgid "Gestione Blocco di Covata"
+msgstr "Gestione Blocco di Covata"
+
+msgid "Gestione Categorie Attrezzature"
+msgstr "Equipment Categories Management"
+
+msgid "Gestione Fioriture"
+msgstr "Bloom Management"
+
+msgid "Gestione Melari"
+msgstr "Super Management"
+
+#, python-format
+msgid "Gestione Melari - %(a)s"
+msgstr "Gestione Melari - %(a)s"
+
+msgid "Gestione Pagamenti"
+msgstr "Payment Management"
+
+msgid "Gestione Quote"
+msgstr "Share Management"
+
+msgid "Gestione Tipi di Trattamento"
+msgstr "Gestione Tipi di Trattamento"
+
+msgid "Gestione completa del gruppo"
+msgstr "Full group management"
+
+msgid "Gestione completa."
+msgstr "Gestione completa."
+
+msgid "Gestione professionale dell'apiario"
+msgstr "Professional apiary management"
+
+msgid "Gestisci Categorie"
+msgstr "Manage Categories"
+
+msgid "Gestisci Quote"
+msgstr "Manage Shares"
+
+msgid "Gestisci clienti"
+msgstr "Manage customers"
+
+msgid "Gestisci i nuclei e convertili in arnie quando pronti"
+msgstr "Manage nuclei and convert them to hives when ready"
+
+msgid "Gestisci inventario, manutenzioni e prestiti"
+msgstr "Manage inventory, maintenance and loans"
+
+msgid "Gestisci le spese e le quote del tuo apiario"
+msgstr "Manage expenses and shares of your apiary"
+
+msgid "Giallo"
+msgstr "Yellow"
+
+msgid "Giorni maturazione"
+msgstr "Maturation days"
+
+msgid "Giorno"
+msgstr "Day"
+
+msgid "Già costruiti"
+msgstr "Already drawn"
+
+msgid "Grafici Meteo"
+msgstr "Weather Charts"
+
+#, python-format
+msgid "Grafici Meteo - %(a)s"
+msgstr "Grafici Meteo - %(a)s"
+
+msgid "Grafici di produzione, salute e andamento nel tempo"
+msgstr "Production, health and trend charts over time"
+
+msgid "Grazie,"
+msgstr "Thank you,"
+
+msgid "Gruppo"
+msgstr "Group"
+
+msgid "Gruppo:"
+msgstr "Group:"
+
+msgid "Guida Completa"
+msgstr "Complete Guide"
+
+msgid "Guida alla Regina"
+msgstr "Guida alla Regina"
+
+msgid "Hai scansionato un tag NFC associato a un'arnia. Per visualizzare i dettagli, apri l'app Apiary."
+msgstr "You scanned an NFC tag linked to a hive. To view details, open the Apiary app."
+
+msgid "Ho capito, iniziamo!"
+msgstr "Got it, let's start!"
+
+msgid "I CSV sono compatibili con Excel e Google Sheets per la tua contabilità o tracciabilità biologica."
+msgstr "CSVs are compatible with Excel and Google Sheets for your accounting or organic traceability."
+
+msgid "I Miei Gruppi"
+msgstr "My Groups"
+
+msgid "I costi di hosting, dominio e server vengono sostenuti di tasca propria ogni anno."
+msgstr "Hosting, domain and server costs are paid out of pocket every year."
+
+msgid "I dati della regina sostituita vengono archiviati nella cronologia"
+msgstr "The replaced queen's data is archived in the history"
+
+msgid "I gruppi ti permettono di collaborare con altri utenti nella gestione degli apiari."
+msgstr "Groups let you collaborate with other users on managing apiaries."
+
+msgid "I melari selezionati verranno contrassegnati come \\\"Smielati\\\" e non saranno più disponibili per altre smielature."
+msgstr "I melari selezionati verranno contrassegnati come \\\"Smielati\\\" e non saranno più disponibili per altre smielature."
+
+msgid "I melari sono strutture che vengono poste sopra il nido dell'arnia per la raccolta del miele."
+msgstr "Supers are structures placed above the hive's brood nest for honey collection."
+
+msgid "I membri hanno diversi livelli di accesso:"
+msgstr "I membri hanno diversi livelli di accesso:"
+
+msgid "I miei Gruppi"
+msgstr "My Groups"
+
+msgid "I miei apiari"
+msgstr "My apiaries"
+
+msgid "I pagamenti registrati vengono utilizzati per il calcolo delle quote e dei saldi tra utenti."
+msgstr "Recorded payments are used to calculate shares and balances between users."
+
+msgid "I tipi di trattamento definiscono le diverse opzioni di trattamenti sanitari che possono essere applicati alle arnie."
+msgstr "I tipi di trattamento definiscono le diverse opzioni di trattamenti sanitari che possono essere applicati alle arnie."
+
+msgid "I trattamenti completati o annullati appariranno qui."
+msgstr "Completed or cancelled treatments will appear here."
+
+msgid "I trattamenti sanitari sono essenziali per la salute delle api."
+msgstr "I trattamenti sanitari sono essenziali per la salute delle api."
+
+msgid "ID tag:"
+msgstr "Tag ID:"
+
+msgid "Icona"
+msgstr "Icon"
+
+msgid "Icone Suggerite"
+msgstr "Suggested Icons"
+
+msgid "Il colore della marcatura segue lo standard internazionale in base all'anno di nascita"
+msgstr "Il colore della marcatura segue lo standard internazionale in base all'anno di nascita"
+
+msgid "Il colore della marcatura segue lo standard internazionale in base all'anno di nascita della regina:"
+msgstr "The marking color follows the international standard based on the queen's birth year:"
+
+msgid "Il melario verrà contrassegnato come \\\"In Smielatura\\\"."
+msgstr "Il melario verrà contrassegnato come \\\"In Smielatura\\\"."
+
+msgid "Il melario verrà rimosso dall'arnia e contrassegnato come \\\"In Smielatura\\\"."
+msgstr "Il melario verrà rimosso dall'arnia e contrassegnato come \\\"In Smielatura\\\"."
+
+msgid "Il miele estratto va in <strong>Cantina</strong>: maturatori e contenitori di stoccaggio"
+msgstr "Extracted honey goes to <strong>Honey House</strong>: maturators and storage containers"
+
+msgid "Il nome del trattamento (es. \\\"Trattamento antivarroa\\\")"
+msgstr "Il nome del trattamento (es. \\\"Trattamento antivarroa\\\")"
+
+msgid "Il nome della pianta o del tipo di fioritura"
+msgstr "The name of the plant or type of bloom"
+
+msgid "Il nome è obbligatorio."
+msgstr "Il nome è obbligatorio."
+
+msgid "Il nucleo verrà marcato come <em>convertito</em> e non sarà più modificabile."
+msgstr "The nucleus will be marked as <em>converted</em> and will no longer be editable."
+
+msgid "Il numero di giorni dopo il trattamento durante i quali non è possibile raccogliere il miele"
+msgstr "Il numero di giorni dopo il trattamento durante i quali non è possibile raccogliere il miele"
+
+msgid "Il processo di registrazione della smielatura è composto da due fasi:"
+msgstr "Recording extraction is a two-step process:"
+
+msgid "Il team di Apiary"
+msgstr "The Apiary team"
+
+msgid "Il tuo diario digitale da apicoltore. Registra, monitora e gestisci tutto ciò che riguarda le tue api — dai controlli alle vendite, dalla genealogia delle regine all'analisi AI dei telai."
+msgstr "Your digital beekeeper's diary. Record, monitor and manage everything about your bees — from inspections to sales, queen genealogy to AI frame analysis."
+
+msgid "Il tuo nome *"
+msgstr "Your name *"
+
+msgid "Il tuo ruolo:"
+msgstr "Your role:"
+
+msgid "Immagine"
+msgstr "Image"
+
+msgid "Immagine Gruppo"
+msgstr "Group Image"
+
+msgid "Immagine Profilo Gruppo"
+msgstr "Group Profile Image"
+
+msgid "Immagine annotata"
+msgstr "Immagine annotata"
+
+msgid "Immagini e allegati caricati"
+msgstr "Uploaded images and attachments"
+
+msgid "Importo"
+msgstr "Amount"
+
+msgid "Importo (€)"
+msgstr "Amount (€)"
+
+msgid "Importo:"
+msgstr "Amount:"
+
+msgid "In Corso"
+msgstr "In Progress"
+
+msgid "In base alle quote impostate, il sistema calcolerà automaticamente quanto ogni utente deve contribuire alle spese comuni."
+msgstr "Based on the set shares, the system will automatically calculate how much each user must contribute to common expenses."
+
+msgid "In corso"
+msgstr "In progress"
+
+msgid "In smielatura"
+msgstr "In extraction"
+
+msgid "In<br>smiel."
+msgstr "In<br>extr."
+
+msgid "Incl. dismessi"
+msgstr "Incl. dismissed"
+
+msgid "Includi attrezzature dismesse"
+msgstr "Include dismissed equipment"
+
+msgid "Includi il nome utente o l'indirizzo email associato all'account."
+msgstr "Include the username or email address associated with the account."
+
+msgid "Includi istruzioni dettagliate per garantire che tutti gli apicoltori seguano lo stesso protocollo."
+msgstr "Includi istruzioni dettagliate per garantire che tutti gli apicoltori seguano lo stesso protocollo."
+
+msgid "Indica la posizione del melario sull'arnia, dove 1 = più vicino al nido"
+msgstr "Indicates the super's position on the hive, where 1 = closest to brood nest"
+
+msgid "Indica la varietà predominante (Millefiori, Acacia, ecc.)"
+msgstr "Indicates the predominant variety (Wildflower, Acacia, etc.)"
+
+msgid "Indica quanti telaini sono presenti nel melario (solitamente 9-10)"
+msgstr "Indicates how many frames are in the super (usually 9-10)"
+
+msgid "Indica se hai visto la regina durante il controllo o se hai osservato altri segni della sua presenza."
+msgstr "Indica se hai visto la regina durante il controllo o se hai osservato altri segni della sua presenza."
+
+msgid "Indietro"
+msgstr "Back"
+
+msgid "Indipendente"
+msgstr "Independent"
+
+msgid "Indirizzo"
+msgstr "Address"
+
+msgid "Info"
+msgstr "Info"
+
+msgid "Informazioni"
+msgstr "Information"
+
+msgid "Informazioni Base"
+msgstr "Basic Information"
+
+msgid "Informazioni Fioritura"
+msgstr "Bloom Information"
+
+msgid "Informazioni Generali"
+msgstr "Informazioni Generali"
+
+msgid "Informazioni Gruppo"
+msgstr "Group Information"
+
+msgid "Informazioni Melario"
+msgstr "Super Information"
+
+msgid "Informazioni Pagamento"
+msgstr "Payment Information"
+
+msgid "Informazioni Quota"
+msgstr "Share Information"
+
+msgid "Informazioni Regina"
+msgstr "Informazioni Regina"
+
+msgid "Informazioni Tipo di Trattamento"
+msgstr "Informazioni Tipo di Trattamento"
+
+msgid "Informazioni Trattamento"
+msgstr "Informazioni Trattamento"
+
+msgid "Informazioni sui Ruoli"
+msgstr "Role Information"
+
+msgid "Informazioni sul gruppo:"
+msgstr "Group information:"
+
+msgid "Informazioni sul tipo di trattamento selezionato:"
+msgstr "Informazioni sul tipo di trattamento selezionato:"
+
+msgid "Informazioni sulla Regina Attuale"
+msgstr "Current Queen Information"
+
+msgid "Infrastruttura"
+msgstr "Infrastructure"
+
+msgid "Inizia creando il tuo primo apiario. Ci vorranno meno di un minuto. Potrai sempre rivedere questa guida dalla pagina del tuo profilo."
+msgstr "Start by creating your first apiary. It'll take less than a minute. You can always review this guide from your profile page."
+
+msgid "Inizia registrazione"
+msgstr "Start recording"
+
+msgid "Inizia trattamento"
+msgstr "Start treatment"
+
+msgid "Inserisci indirizzo o località"
+msgstr "Enter address or location"
+
+msgid "Inserisci la tua chiave API personale di Google Gemini per usare le funzioni AI"
+msgstr "Inserisci la tua chiave API personale di Google Gemini per usare le funzioni AI"
+
+msgid "                            (inserimento vocale, chat, analisi telaino)."
+msgstr "                            (inserimento vocale, chat, analisi telaino)."
+
+msgid "Inserisci un nome (es: \\\"Apiario Collina\\\"), seleziona la posizione sulla mappa e scegli il tipo"
+msgstr "Inserisci un nome (es: \\\"Apiario Collina\\\"), seleziona la posizione sulla mappa e scegli il tipo"
+
+msgid "Inserisci un termine per cercare apiari, arnie, trattamenti, fioriture, utenti e gruppi."
+msgstr "Enter a term to search apiaries, hives, treatments, blooms, users and groups."
+
+msgid "Installata il:"
+msgstr "Installata il:"
+
+msgid "Installato"
+msgstr "Installed"
+
+msgid "Installato il"
+msgstr "Installed on"
+
+#, python-format
+msgid "Installato il %(d)s"
+msgstr "Installato il %(d)s"
+
+msgid "Installato il:"
+msgstr "Installed on:"
+
+msgid "Invasetta"
+msgstr "Bottle"
+
+msgid "Invasetta da un contenitore di stoccaggio."
+msgstr "Bottle from a storage container."
+
+msgid "Invasettamenti da questa smielatura"
+msgstr "Bottlings from this extraction"
+
+msgid "Invasettato"
+msgstr "Bottled"
+
+msgid "Inventari Precedenti"
+msgstr "Previous Inventories"
+
+msgid "Inventario Attrezzature"
+msgstr "Equipment Inventory"
+
+msgid "Invia Invito"
+msgstr "Send Invitation"
+
+msgid "Invia Richiesta"
+msgstr "Send Request"
+
+msgid "Invia a Gemini AI"
+msgstr "Send to Gemini AI"
+
+msgid "Invia a Gemini automaticamente"
+msgstr "Send to Gemini automatically"
+
+msgid "Invia feedback"
+msgstr "Send feedback"
+
+msgid "Invia i melari in smielatura dalla scheda \\\"Melari\\\""
+msgstr "Invia i melari in smielatura dalla scheda \\\"Melari\\\""
+
+msgid "Invia in Smielatura"
+msgstr "Send to Extraction"
+
+#, python-format
+msgid "Invia in Smielatura - Melario #%(i)s"
+msgstr "Invia in Smielatura - Melario #%(i)s"
+
+#, python-format
+msgid "Invia in Smielatura — Melario #%(i)s"
+msgstr "Invia in Smielatura — Melario #%(i)s"
+
+msgid "Invia in smielatura"
+msgstr "Send to extraction"
+
+msgid "Invia prima i melari in smielatura dagli alveari."
+msgstr "First send supers to extraction from hives."
+
+msgid "Invia una richiesta a:"
+msgstr "Send a request to:"
+
+msgid "Invia una richiesta di eliminazione a:"
+msgstr "Send a deletion request to:"
+
+#, python-format
+msgid "Inviare il melario #%(mi)s <strong>(%(t)s telaini, posizione %(p)s)</strong> dell'arnia #%(an)s in smielatura?"
+msgstr "Inviare il melario #%(mi)s <strong>(%(t)s telaini, posizione %(p)s)</strong> dell'arnia #%(an)s in smielatura?"
+
+#, python-format
+msgid "Invita %(u)s a un gruppo"
+msgstr "Invita %(u)s a un gruppo"
+
+msgid "Invita Nuovi Membri"
+msgstr "Invita Nuovi Membri"
+
+msgid "Invitato da:"
+msgstr "Invitato da:"
+
+#, python-format
+msgid "Invitato da: %(u)s"
+msgstr "Invitato da: %(u)s"
+
+msgid "Inviti Ricevuti"
+msgstr "Received Invitations"
+
+msgid "Inviti in Attesa"
+msgstr "Inviti in Attesa"
+
+msgid "Invito a Unirsi al Gruppo"
+msgstr "Invito a Unirsi al Gruppo"
+
+msgid "Invito a unirsi a un gruppo"
+msgstr "Invitation to join a group"
+
+#, python-format
+msgid "Invito a unirti al gruppo %(nome)s"
+msgstr "Invito a unirti al gruppo %(nome)s"
+
+#, python-format
+msgid "Invito al gruppo %(nome)s"
+msgstr "Invito al gruppo %(nome)s"
+
+msgid "Invito valido fino al:"
+msgstr "Invitation valid until:"
+
+msgid "Ispezioni PDF"
+msgstr "Inspections PDF"
+
+msgid "Istruzioni:"
+msgstr "Istruzioni:"
+
+msgid "Kg attuali"
+msgstr "Current kg"
+
+msgid "Kg da trasferire"
+msgstr "Kg to transfer"
+
+msgid "L'account rimarrà attivo ma sarà vuoto. Questa azione è <strong>irreversibile</strong>."
+msgstr "The account will remain active but empty. This action is <strong>irreversible</strong>."
+
+msgid "L'area approssimativa della fioritura"
+msgstr "The approximate area of the bloom"
+
+msgid "L'attuale versione supporta un modello AI ancora molto"
+msgstr "L'attuale versione supporta un modello AI ancora molto"
+
+msgid "L'eliminazione di questo gruppo comporterà:"
+msgstr "L'eliminazione di questo gruppo comporterà:"
+
+msgid "L'età della regina è importante per prevedere quando potrebbe essere necessaria una sostituzione"
+msgstr "L'età della regina è importante per prevedere quando potrebbe essere necessaria una sostituzione"
+
+msgid "L'immagine verrà automaticamente ridimensionata e compressa per ottimizzare lo spazio di archiviazione."
+msgstr "The image will be automatically resized and compressed to optimize storage space."
+
+msgid "L'operazione è irreversibile."
+msgstr "L'operazione è irreversibile."
+
+msgid "L'utente a cui assegnare la quota"
+msgstr "The user to assign the share to"
+
+msgid "L'utente che ha effettuato il pagamento"
+msgstr "The user who made the payment"
+
+msgid "La cancellazione di tutti gli inviti attivi"
+msgstr "La cancellazione di tutti gli inviti attivi"
+
+msgid "La data in cui il melario è stato posizionato sull'arnia"
+msgstr "The date when the super was placed on the hive"
+
+msgid "La data in cui si inizia il trattamento"
+msgstr "La data in cui si inizia il trattamento"
+
+msgid "La data in cui è avvenuta l'estrazione del miele"
+msgstr "The date the honey was extracted"
+
+msgid "La data in cui è stato effettuato il pagamento"
+msgstr "The date when the payment was made"
+
+msgid "La percentuale di partecipazione (da 0 a 100)"
+msgstr "The participation percentage (0 to 100)"
+
+msgid "La percentuale di partecipazione alle spese (0-100)"
+msgstr "The participation percentage for expenses (0-100)"
+
+msgid "La perdita di accesso alle risorse condivise per tutti i membri"
+msgstr "La perdita di accesso alle risorse condivise per tutti i membri"
+
+msgid "La posizione geografica della fioritura"
+msgstr "The geographic position of the bloom"
+
+msgid "La regina attuale verrà segnata come \\\"non attiva\\\" nel sistema"
+msgstr "La regina attuale verrà segnata come \\\"non attiva\\\" nel sistema"
+
+msgid "La regina può richiedere alcuni giorni per essere accettata dalla colonia. Si consiglia di monitorare la situazione con controlli più frequenti nei giorni successivi."
+msgstr "The queen may take a few days to be accepted by the colony. We recommend monitoring with more frequent inspections in the following days."
+
+msgid "La registrazione della smielatura ti permette di tenere traccia della produzione di miele del tuo apiario."
+msgstr "Recording extraction lets you keep track of your apiary's honey production."
+
+msgid "La rimozione del gruppo da tutti gli apiari condivisi"
+msgstr "La rimozione del gruppo da tutti gli apiari condivisi"
+
+msgid "La rimozione di un melario ne modificherà lo stato in \\\"Rimosso\\\" e registrerà la data di rimozione."
+msgstr "La rimozione di un melario ne modificherà lo stato in \\\"Rimosso\\\" e registrerà la data di rimozione."
+
+msgid "La scelta della razza della nuova regina è importante per le caratteristiche future della colonia"
+msgstr "Choosing the breed of the new queen is important for the colony's future traits"
+
+msgid "La somma di tutte le percentuali dovrebbe essere 100%."
+msgstr "The total of all percentages should be 100%."
+
+msgid "La somma pagata (in euro)"
+msgstr "The amount paid (in euros)"
+
+msgid "La sostanza attiva del trattamento (es. \\\"Acido ossalico\\\")"
+msgstr "La sostanza attiva del trattamento (es. \\\"Acido ossalico\\\")"
+
+msgid "La sostituzione di una regina è un'operazione importante che influisce direttamente sulla salute e produttività della colonia."
+msgstr "Replacing a queen is an important operation that directly affects the colony's health and productivity."
+
+msgid "La sottospecie o la razza della regina"
+msgstr "La sottospecie o la razza della regina"
+
+msgid "Lascia Gruppo"
+msgstr "Lascia Gruppo"
+
+msgid "Lascia vuoto per inserire il nome manualmente."
+msgstr "Lascia vuoto per inserire il nome manualmente."
+
+msgid "Latitudine:"
+msgstr "Latitude:"
+
+msgid "Le api rimangono nell'arnia, attività di bottinatura ridotta."
+msgstr "Bees stay in the hive, reduced foraging activity."
+
+msgid "Le credenziali dell'account (username/email/password) rimangono se hai scelto solo l'eliminazione dei dati e non dell'account. I log di sistema anonimi possono essere conservati per un massimo di 30 giorni per motivi di sicurezza."
+msgstr "Account credentials (username/email/password) remain if you chose only data deletion and not account deletion. Anonymous system logs may be retained for up to 30 days for security reasons."
+
+msgid "Le donazioni vengono gestite tramite"
+msgstr "Donations are handled via"
+
+msgid "Le fioriture ti permettono di tenere traccia delle risorse nettarifere disponibili nell'area."
+msgstr "Blooms let you track the nectar resources available in the area."
+
+#, python-format
+msgid "Le mie (%(n)s)"
+msgstr "Le mie (%(n)s)"
+
+msgid "Le parole"
+msgstr "The words"
+
+msgid "Le quote sono correttamente distribuite."
+msgstr "Shares are correctly distributed."
+
+msgid "Le quote utente definiscono la percentuale di partecipazione di ciascun utente alle spese dell'apiario."
+msgstr "User shares define each user's participation percentage for apiary expenses."
+
+msgid "Le quote utenti servono per ripartire le spese tra i vari collaboratori dell'apiario."
+msgstr "User shares are used to split expenses among the apiary's collaborators."
+
+msgid "Le regine di età superiore a 2-3 anni normalmente richiedono una sostituzione."
+msgstr "Le regine di età superiore a 2-3 anni normalmente richiedono una sostituzione."
+
+msgid "Le richieste via email vengono elaborate entro <strong>7 giorni lavorativi</strong>."
+msgstr "Email requests are processed within <strong>7 business days</strong>."
+
+msgid "Le spese per attrezzature vengono registrate automaticamente nei pagamenti."
+msgstr "Equipment expenses are automatically recorded in payments."
+
+msgid "Le statistiche possono essere utilizzate per valutare la produttività delle diverse arnie e la qualità della stagione."
+msgstr "Statistics can be used to evaluate the productivity of different hives and the season's quality."
+
+msgid "Le vendite associate non verranno eliminate ma perderanno il collegamento al cliente."
+msgstr "Associated sales will not be deleted but will lose the link to the customer."
+
+msgid "Legenda"
+msgstr "Legend"
+
+msgid "Legenda:"
+msgstr "Legend:"
+
+msgid "Linea Ascendente"
+msgstr "Linea Ascendente"
+
+msgid "Linea Discendente"
+msgstr "Linea Discendente"
+
+msgid "Link Rapidi"
+msgstr "Quick Links"
+
+msgid "Link:"
+msgstr "Link:"
+
+msgid "Lista"
+msgstr "Lista"
+
+#, python-format
+msgid "Lista clienti (%(n)s)"
+msgstr "Lista clienti (%(n)s)"
+
+msgid "Lista vendite"
+msgstr "Sales list"
+
+msgid "Longitudine:"
+msgstr "Longitude:"
+
+#, python-format
+msgid "Lotti (%(n)s)"
+msgstr "Lotti (%(n)s)"
+
+msgid "Lotto"
+msgstr "Batch"
+
+msgid "Madre"
+msgstr "Mother"
+
+msgid "Manutenzione"
+msgstr "Maintenance"
+
+msgid "Manutenzioni Programmate"
+msgstr "Scheduled Maintenance"
+
+msgid "Mappa Apiari"
+msgstr "Apiaries Map"
+
+msgid "Mappa Meteo"
+msgstr "Weather Map"
+
+msgid "Mappa Meteo degli Apiari"
+msgstr "Apiaries Weather Map"
+
+msgid "Mappa Nomadismo"
+msgstr "Migratory Map"
+
+msgid "Marca"
+msgstr "Brand"
+
+msgid "Marca:"
+msgstr "Brand:"
+
+msgid "Marcatura"
+msgstr "Marcatura"
+
+msgid "Marcatura:"
+msgstr "Marking:"
+
+msgid "Maturatore"
+msgstr "Maturator"
+
+msgid "Maturatore collegato"
+msgstr "Linked maturator"
+
+msgid "Maturatori"
+msgstr "Maturators"
+
+msgid "Maturazione, stoccaggio e invasettamento del miele"
+msgstr "Maturation, storage and bottling of honey"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Media Telaini Covata"
+msgstr "Avg Brood Frames"
+
+msgid "Media Telaini Scorte"
+msgstr "Avg Store Frames"
+
+msgid "Media Valutazione"
+msgstr "Media Valutazione"
+
+msgid "Media per arnia:"
+msgstr "Average per hive:"
+
+msgid "Media per melario:"
+msgstr "Average per super:"
+
+msgid "Media per telaino:"
+msgstr "Average per frame:"
+
+msgid "Medie Valutazioni"
+msgstr "Medie Valutazioni"
+
+msgid "Melari & Raccolti — Dal melario alla cantina"
+msgstr "Supers & Harvests — From super to honey house"
+
+msgid "Melari Smielati"
+msgstr "Extracted Supers"
+
+msgid "Melari da smielatura"
+msgstr "Supers to extract"
+
+msgid "Melari smielati"
+msgstr "Extracted supers"
+
+msgid "Melari smielati:"
+msgstr "Extracted supers:"
+
+msgid "Melari:"
+msgstr "Supers:"
+
+msgid "Melario"
+msgstr "Super"
+
+#, python-format
+msgid "Melario #%(i)s"
+msgstr "Melario #%(i)s"
+
+#, python-format
+msgid "Melario #%(i)s - Posizione %(p)s (%(t)s telaini)"
+msgstr "Melario #%(i)s - Posizione %(p)s (%(t)s telaini)"
+
+#, python-format
+msgid "Melario #%(i)s — %(t)s — %(n)s telaini — Pos. %(p)s"
+msgstr "Melario #%(i)s — %(t)s — %(n)s telaini — Pos. %(p)s"
+
+msgid "Membri del Gruppo"
+msgstr "Membri del Gruppo"
+
+msgid "Membri:"
+msgstr "Members:"
+
+msgid "Mese"
+msgstr "Month"
+
+msgid "Messaggio, suggerimento o segnalazione bug... *"
+msgstr "Message, suggestion or bug report... *"
+
+msgid "Meteo"
+msgstr "Weather"
+
+#, python-format
+msgid "Meteo - %(a)s"
+msgstr "Meteo - %(a)s"
+
+msgid "Meteo Apiari"
+msgstr "Apiaries Weather"
+
+msgid "Meteo Attuale"
+msgstr "Current Weather"
+
+msgid "Metodo di pagamento"
+msgstr "Metodo di pagamento"
+
+msgid "Min"
+msgstr "Min"
+
+msgid "Modalità batch (più arnie)"
+msgstr "Batch mode (multiple hives)"
+
+msgid "Modello"
+msgstr "Model"
+
+msgid "Modello:"
+msgstr "Modello:"
+
+#, python-format
+msgid "Modifica %(nome)s"
+msgstr "Modifica %(nome)s"
+
+#, python-format
+msgid "Modifica Arnia #%(numero)s"
+msgstr "Modifica Arnia #%(numero)s"
+
+msgid "Modifica Cliente"
+msgstr "Edit Customer"
+
+msgid "Modifica Contenitore"
+msgstr "Edit Container"
+
+msgid "Modifica Fioritura"
+msgstr "Edit Bloom"
+
+msgid "Modifica Gruppo"
+msgstr "Modifica Gruppo"
+
+msgid "Modifica Immagine Gruppo"
+msgstr "Edit Group Image"
+
+msgid "Modifica Maturatore"
+msgstr "Edit Maturator"
+
+msgid "Modifica Melario"
+msgstr "Edit Super"
+
+msgid "Modifica Pagamento"
+msgstr "Edit Payment"
+
+msgid "Modifica Quota"
+msgstr "Edit Share"
+
+msgid "Modifica Regina"
+msgstr "Modifica Regina"
+
+msgid "Modifica Ruolo"
+msgstr "Edit Role"
+
+msgid "Modifica Ruolo Membro"
+msgstr "Edit Member Role"
+
+msgid "Modifica Tipo Trattamento"
+msgstr "Modifica Tipo Trattamento"
+
+msgid "Modifica Trattamento"
+msgstr "Modifica Trattamento"
+
+msgid "Modifica risorse condivise."
+msgstr "Modifica risorse condivise."
+
+msgid "Modifica vendita"
+msgstr "Modifica vendita"
+
+msgid "Modificato:"
+msgstr "Modificato:"
+
+msgid "Moisture"
+msgstr "Moisture"
+
+msgid "Monitora il pascolo e condividi le fioriture con la community"
+msgstr "Monitor pastures and share blooms with the community"
+
+msgid "Mostra delta telaini"
+msgstr "Show frame delta"
+
+msgid "Mostra dettagli nei titoli"
+msgstr "Show details in titles"
+
+msgid "Mostra meteo"
+msgstr "Show weather"
+
+msgid "Mostra previsioni"
+msgstr "Show forecast"
+
+msgid "Mostra tutte"
+msgstr "Show all"
+
+msgid "Motivo della Richiesta"
+msgstr "Request Reason"
+
+msgid "Motivo rimozione:"
+msgstr "Motivo rimozione:"
+
+#, python-format
+msgid "Nata: %(data)s"
+msgstr "Nata: %(data)s"
+
+msgid "Nessun apiario trovato"
+msgstr "No apiary found"
+
+msgid "Nessun apiario."
+msgstr "No apiary."
+
+msgid "Nessun cliente registrato."
+msgstr "No customers registered."
+
+msgid "Nessun compenso, nessun finanziamento - solo amore per le api e il codice."
+msgstr "No compensation, no funding - just love for bees and code."
+
+msgid "Nessun contenitore con miele."
+msgstr "No container with honey."
+
+msgid "Nessun controllo registrato."
+msgstr "No inspection recorded."
+
+msgid "Nessun dato meteo disponibile al momento."
+msgstr "No weather data available at the moment."
+
+msgid "Nessun dato meteo disponibile."
+msgstr "No weather data available."
+
+msgid "Nessun dato personale viene conservato dopo l'eliminazione. I log di sistema anonimi (senza riferimento all'utente) possono essere conservati per un massimo di 30 giorni per motivi di sicurezza."
+msgstr "No personal data is retained after deletion. Anonymous system logs (without user reference) may be retained for up to 30 days for security reasons."
+
+msgid "Nessun dettaglio disponibile sui melari smielati."
+msgstr "No detail available on extracted supers."
+
+msgid "Nessun invasettamento registrato."
+msgstr "No bottling recorded."
+
+msgid "Nessun inventario precedente."
+msgstr "No previous inventory."
+
+msgid "Nessun maturatore attivo."
+msgstr "No active maturator."
+
+msgid "Nessun melario posizionato"
+msgstr "No super placed"
+
+msgid "Nessun nucleo attivo."
+msgstr "No active nucleus."
+
+msgid "Nessun prestito in corso."
+msgstr "No active loan."
+
+msgid "Nessun prestito registrato."
+msgstr "Nessun prestito registrato."
+
+#, python-format
+msgid "Nessun risultato trovato per \"<strong>%(q)s</strong>\"."
+msgstr "Nessun risultato trovato per \"<strong>%(q)s</strong>\"."
+
+msgid "Nessun trattamento attivo"
+msgstr "No active treatment"
+
+msgid "Nessun vasetto registrato."
+msgstr "No jar recorded."
+
+msgid "Nessun<br>controllo"
+msgstr "No<br>inspection"
+
+msgid "Nessuna"
+msgstr "Nessuna"
+
+msgid "Nessuna analisi telaino ancora registrata per questa arnia."
+msgstr "No frame analysis yet recorded for this hive."
+
+msgid "Nessuna arnia attiva in questo apiario."
+msgstr "No active hive in this apiary."
+
+msgid "Nessuna attrezzatura condivisa dai gruppi."
+msgstr "No equipment shared by groups."
+
+msgid "Nessuna attrezzatura personale."
+msgstr "No personal equipment."
+
+msgid "Nessuna attrezzatura trovata con i filtri selezionati."
+msgstr "No equipment found with the selected filters."
+
+msgid "Nessuna attrezzatura trovata."
+msgstr "No equipment found."
+
+msgid "Nessuna categoria definita."
+msgstr "No category defined."
+
+msgid "Nessuna informazione genealogica disponibile per questa regina."
+msgstr "Nessuna informazione genealogica disponibile per questa regina."
+
+msgid "Nessuna manutenzione programmata."
+msgstr "No scheduled maintenance."
+
+msgid "Nessuna manutenzione registrata."
+msgstr "Nessuna manutenzione registrata."
+
+msgid "Nessuna notifica corrisponde ai filtri selezionati."
+msgstr "No notifications match the selected filters."
+
+msgid "Nessuna previsione disponibile."
+msgstr "No forecast available."
+
+msgid "Nessuna previsione meteo disponibile al momento."
+msgstr "No weather forecast available at the moment."
+
+msgid "Nessuna quota personale impostata."
+msgstr "No personal share set."
+
+msgid "Nessuna regina registrata per questa arnia"
+msgstr "Nessuna regina registrata per questa arnia"
+
+msgid "Nessuna regina trovata con i filtri selezionati."
+msgstr "No queens found with the selected filters."
+
+msgid "Nessuna smielatura registrata per questo apiario."
+msgstr "No extractions recorded for this apiary."
+
+msgid "Nessuna smielatura registrata."
+msgstr "No extractions recorded."
+
+msgid "Nessuna spesa registrata."
+msgstr "Nessuna spesa registrata."
+
+msgid "Nessuna vendita per questo cliente."
+msgstr "No sales for this customer."
+
+msgid "Nessuna vendita registrata."
+msgstr "No sales recorded."
+
+msgid "Nessuno storico"
+msgstr "No history"
+
+msgid "Neve"
+msgstr "Snow"
+
+msgid "Nido"
+msgstr "Brood nest"
+
+#, python-format
+msgid "Nido: %(c)s covata, %(s)s scorte"
+msgstr "Nido: %(c)s covata, %(s)s scorte"
+
+msgid "Nome"
+msgstr "Name"
+
+msgid "Nome contenitore"
+msgstr "Container name"
+
+msgid "Nome dell\\'attrezzatura"
+msgstr "Nome dell\\'attrezzatura"
+
+msgid "Nome fornitore…"
+msgstr "Supplier name…"
+
+msgid "Nome:"
+msgstr "Name:"
+
+msgid "Non associato"
+msgstr "Not linked"
+
+msgid "Non avrai più accesso alle risorse condivise in questo gruppo."
+msgstr "Non avrai più accesso alle risorse condivise in questo gruppo."
+
+msgid "Non ci sono altre arnie attive in questo apiario."
+msgstr "Non ci sono altre arnie attive in questo apiario."
+
+msgid "Non ci sono apiari condivisi in questo gruppo."
+msgstr "Non ci sono apiari condivisi in questo gruppo."
+
+msgid "Non ci sono arnie attive in questo apiario."
+msgstr "Non ci sono arnie attive in questo apiario."
+
+msgid "Non ci sono dati relativi alla regina di questa arnia."
+msgstr "Non ci sono dati relativi alla regina di questa arnia."
+
+msgid "Non ci sono dati sulla regina per questa arnia."
+msgstr "Non ci sono dati sulla regina per questa arnia."
+
+msgid "Non ci sono fioriture registrate."
+msgstr "No blooms registered."
+
+msgid "Non ci sono melari in attesa di smielatura. Puoi inviare i melari in smielatura dalla sezione \\\"Melari\\\"."
+msgstr "Non ci sono melari in attesa di smielatura. Puoi inviare i melari in smielatura dalla sezione \\\"Melari\\\"."
+
+msgid "Non ci sono pagamenti registrati."
+msgstr "No payments registered."
+
+msgid "Non ci sono tipi di trattamento configurati."
+msgstr "Non ci sono tipi di trattamento configurati."
+
+msgid "Non ci sono trattamenti attivi o programmati al momento."
+msgstr "There are no active or scheduled treatments at the moment."
+
+msgid "Non hai ancora apiari."
+msgstr "Non hai ancora apiari."
+
+msgid "Non hai ancora l'app?"
+msgstr "Don't have the app yet?"
+
+msgid "Non hai i permessi per aggiungere pagamenti in questo gruppo."
+msgstr "You don't have permission to add payments in this group."
+
+msgid "Non hai i permessi per aggiungere quote in questo gruppo."
+msgstr "You don't have permission to add shares in this group."
+
+msgid "Non lette"
+msgstr "Unread"
+
+msgid "Non marcata"
+msgstr "Unmarked"
+
+msgid "Non puoi donare? Nessun problema! Puoi comunque supportarci condividendo l'app con altri apicoltori, segnalando bug o suggerendo nuove funzionalità."
+msgstr "Can't donate? No problem! You can still support us by sharing the app with other beekeepers, reporting bugs or suggesting new features."
+
+msgid "Non può essere annullata."
+msgstr "Cannot be undone."
+
+msgid "Non sono disponibili informazioni sulla genealogia di questa regina."
+msgstr "Non sono disponibili informazioni sulla genealogia di questa regina."
+
+msgid "Non sono disponibili informazioni sulla regina di questa arnia."
+msgstr "Non sono disponibili informazioni sulla regina di questa arnia."
+
+msgid "Non sono state impostate quote per gli utenti."
+msgstr "No user shares have been set."
+
+msgid "Non sono state impostate quote per questo gruppo."
+msgstr "No shares have been set for this group."
+
+msgid "Non specificata"
+msgstr "Not specified"
+
+msgid "Non valutata"
+msgstr "Not rated"
+
+msgid "Nonna"
+msgstr "Nonna"
+
+msgid "Nota sull'utilizzo:"
+msgstr "Nota sull'utilizzo:"
+
+msgid "Nota:"
+msgstr "Note:"
+
+msgid "Note (opzionale)"
+msgstr "Note (opzionale)"
+
+msgid "Note aggiuntive…"
+msgstr "Additional notes…"
+
+msgid "Note generali"
+msgstr "Note generali"
+
+msgid "Note sciamatura:"
+msgstr "Note sciamatura:"
+
+msgid "Note sulla Restituzione"
+msgstr "Return Notes"
+
+msgid "Note:"
+msgstr "Notes:"
+
+msgid "Nuclei Attivi"
+msgstr "Active Nuclei"
+
+msgid "Nuclei attivi"
+msgstr "Active nuclei"
+
+#, python-format
+msgid "Nucleo #%(n)s"
+msgstr "Nucleo #%(n)s"
+
+#, python-format
+msgid "Nucleo #%(n)s — %(a)s"
+msgstr "Nucleo #%(n)s — %(a)s"
+
+msgid "Numero Fattura"
+msgstr "Invoice Number"
+
+msgid "Numero Figlie"
+msgstr "Numero Figlie"
+
+msgid "Numero Serie"
+msgstr "Serial Number"
+
+msgid "Numero Serie:"
+msgstr "Numero Serie:"
+
+msgid "Numero di attrezzature in questa categoria"
+msgstr "Number of equipment in this category"
+
+msgid "Numero di celle reali trovate:"
+msgstr "Numero di celle reali trovate:"
+
+msgid "Numero membri:"
+msgstr "Numero membri:"
+
+msgid "Numero telaini"
+msgstr "Frame count"
+
+msgid "Numero telaini:"
+msgstr "Frame count:"
+
+msgid "Numero vasetti"
+msgstr "Jar count"
+
+msgid "Numero:"
+msgstr "Numero:"
+
+msgid "Nuova Categoria"
+msgstr "New Category"
+
+msgid "Nuova Fioritura"
+msgstr "New Bloom"
+
+msgid "Nuova Quota"
+msgstr "New Share"
+
+msgid "Nuova Regina"
+msgstr "New Queen"
+
+msgid "Nuova Vendita"
+msgstr "New Sale"
+
+msgid "Nuova analisi"
+msgstr "New analysis"
+
+msgid "Nuova sessione"
+msgstr "New session"
+
+msgid "Nuova smielatura"
+msgstr "New extraction"
+
+msgid "Nuova vendita"
+msgstr "New sale"
+
+msgid "Nuove funzionalità: AI, mappe, analisi dei telaini, app mobile e molto altro."
+msgstr "New features: AI, maps, frame analysis, mobile app and much more."
+
+msgid "Nuovo Contenitore di Stoccaggio"
+msgstr "New Storage Container"
+
+msgid "Nuovo Maturatore"
+msgstr "New Maturator"
+
+msgid "Nuovo Melario"
+msgstr "New Super"
+
+msgid "Nuovo Pagamento"
+msgstr "New Payment"
+
+msgid "Nuovo Tipo Trattamento"
+msgstr "Nuovo Tipo Trattamento"
+
+msgid "Nuovo Tipo di Trattamento"
+msgstr "Nuovo Tipo di Trattamento"
+
+msgid "Nuovo Trattamento"
+msgstr "New Treatment"
+
+msgid "Nuovo cliente"
+msgstr "New customer"
+
+msgid "Nuovo contenitore"
+msgstr "New container"
+
+msgid "Nuovo maturatore"
+msgstr "New maturator"
+
+msgid "Nuvoloso"
+msgstr "Cloudy"
+
+msgid "N°"
+msgstr "No."
+
+msgid "N° telaini"
+msgstr "Frame count"
+
+msgid "Offrici un caffè!"
+msgstr "Buy us a coffee!"
+
+msgid "Oggetto:"
+msgstr "Subject:"
+
+msgid "Oggi"
+msgstr "Today"
+
+msgid "Ogni arnia ha la sua storia: regina, trattamenti, melari, raccolti. Registra i controlli periodici per tenere traccia della forza della colonia, della presenza della regina e dello stato sanitario."
+msgstr "Each hive has its history: queen, treatments, supers, harvests. Record periodic inspections to track colony strength, queen presence and health status."
+
+msgid "Ogni arnia può avere una regina associata — aggiungila dalla scheda dell'arnia"
+msgstr "Each hive can have an associated queen — add it from the hive's tab"
+
+msgid "Ogni membro può avere ruoli diversi:"
+msgstr "Each member can have different roles:"
+
+msgid "Ogni utente può avere una percentuale diversa in base alla sua partecipazione. La somma delle percentuali dovrebbe essere 100%."
+msgstr "Each user can have a different percentage based on their participation. The total percentages should be 100%."
+
+msgid "Operaie"
+msgstr "Operaie"
+
+msgid "Operatore:"
+msgstr "Operatore:"
+
+msgid "Opzionale se in corso"
+msgstr "Optional if in progress"
+
+msgid "Opzionale, la data in cui termina il trattamento"
+msgstr "Opzionale, la data in cui termina il trattamento"
+
+msgid "Opzionale, quando termina la fioritura"
+msgstr "Optional, when the bloom ends"
+
+msgid "Opzioni visualizzazione"
+msgstr "Display options"
+
+msgid "Origine"
+msgstr "Origin"
+
+msgid "Origine:"
+msgstr "Origin:"
+
+msgid "Osservazioni sul telaino…"
+msgstr "Osservazioni sul telaino…"
+
+msgid "Pagamenti Personali"
+msgstr "Personal Payments"
+
+msgid "Pagamento"
+msgstr "Payment"
+
+msgid "Pagato"
+msgstr "Paid"
+
+msgid "Parziale"
+msgstr "Partial"
+
+msgid "Passa il mouse per le azioni"
+msgstr "Hover for actions"
+
+msgid "Passata"
+msgstr "Past"
+
+msgid "Passate"
+msgstr "Past"
+
+msgid "Password attuale"
+msgstr "Current password"
+
+msgid "Per Origine"
+msgstr "By Origin"
+
+msgid "Per Razza"
+msgstr "By Breed"
+
+msgid "Per accettare questo invito, clicca sul pulsante qui sotto o copia il link nel tuo browser:"
+msgstr "To accept this invitation, click the button below or copy the link into your browser:"
+
+msgid "Per canale"
+msgstr "By channel"
+
+msgid "Per condividere un apiario, vai nella pagina dell'apiario e seleziona \\\"Condividi con gruppo\\\"."
+msgstr "Per condividere un apiario, vai nella pagina dell'apiario e seleziona \\\"Condividi con gruppo\\\"."
+
+msgid "Per l'analisi telaino usa luce naturale diffusa e tieni il telaio parallelo alla fotocamera per risultati ottimali."
+msgstr "For frame analysis use diffused natural light and keep the frame parallel to the camera for best results."
+
+msgid "Per un'analisi accurata della produttività, cerca di registrare separatamente le smielature di diversi tipi di miele."
+msgstr "For accurate productivity analysis, try to record extractions of different honey types separately."
+
+msgid "Per una distribuzione equa, puoi assegnare a ciascun membro una quota uguale (ad es. 5 membri = 20% ciascuno)."
+msgstr "For a fair distribution, you can assign each member an equal share (e.g. 5 members = 20% each)."
+
+msgid "Per vedere le quote del gruppo, seleziona un gruppo dal menu in alto a destra."
+msgstr "To see group shares, select a group from the top-right menu."
+
+msgid "Percentuale"
+msgstr "Percentage"
+
+msgid "Percentuale (%)"
+msgstr "Percentage (%)"
+
+msgid "Percentuale del valore già consumata nel tempo. Es. 60% = l\\'attrezzo ha perso 3/5 del suo valore originale."
+msgstr "Percentuale del valore già consumata nel tempo. Es. 60% = l\\'attrezzo ha perso 3/5 del suo valore originale."
+
+msgid "Percentuale:"
+msgstr "Percentuale:"
+
+msgid "Periodo"
+msgstr "Period"
+
+msgid "Periodo di Sospensione Attivo"
+msgstr "Active Withdrawal Period"
+
+msgid "Periodo:"
+msgstr "Periodo:"
+
+msgid "Personali"
+msgstr "Personal"
+
+msgid "Peso totale del miele estratto in chilogrammi"
+msgstr "Total weight of extracted honey in kilograms"
+
+msgid "Pianifica e monitora i trattamenti per il benessere delle tue api"
+msgstr "Plan and monitor treatments for your bees' well-being"
+
+msgid "Pianificazione in base alle previsioni:"
+msgstr "Planning based on forecast:"
+
+msgid "Pianta"
+msgstr "Plant"
+
+msgid "Pianta/Fioritura"
+msgstr "Plant/Bloom"
+
+msgid "Pianta:"
+msgstr "Plant:"
+
+msgid "Pieno"
+msgstr "Full"
+
+msgid "Pioggia"
+msgstr "Rain"
+
+#, python-format
+msgid "Pioggia rilevata (%(p)s mm): Verificare che l'acqua non entri nelle arnie e che il terreno circostante non sia troppo fangoso."
+msgstr "Pioggia rilevata (%(p)s mm): Verificare che l'acqua non entri nelle arnie e che il terreno circostante non sia troppo fangoso."
+
+msgid "Poco nuvoloso"
+msgstr "Partly cloudy"
+
+#, python-format
+msgid "Pos. %(p)s · %(t)s"
+msgstr "Pos. %(p)s · %(t)s"
+
+msgid "Posiziona i melari quando la famiglia è forte e ci sono abbondanti fioriture nell'area. Rimuovili prima di eseguire trattamenti sanitari."
+msgstr "Place supers when the family is strong and there are abundant blooms in the area. Remove them before health treatments."
+
+msgid "Posizionati"
+msgstr "Placed"
+
+msgid "Posizionato"
+msgstr "Placed"
+
+msgid "Posizione"
+msgstr "Position"
+
+msgid "Posizione Specifica"
+msgstr "Specific Position"
+
+msgid "Posizione:"
+msgstr "Position:"
+
+msgid "Precedente"
+msgstr "Precedente"
+
+msgid "Premi"
+msgstr "Press"
+
+msgid "Presenza Regina"
+msgstr "Presenza Regina"
+
+msgid "Presenza di celle reali (può indicare sostituzione spontanea o sciamatura)"
+msgstr "Presenza di celle reali (può indicare sostituzione spontanea o sciamatura)"
+
+msgid "Presenza di uova fresche (deposte nelle ultime 24-48 ore)"
+msgstr "Presenza di uova fresche (deposte nelle ultime 24-48 ore)"
+
+msgid "Presenza regina:"
+msgstr "Presenza regina:"
+
+msgid "Pressione"
+msgstr "Pressure"
+
+msgid "Prestata a:"
+msgstr "Loaned to:"
+
+msgid "Prestate"
+msgstr "Loaned"
+
+#, python-format
+msgid "Prestato a %(u)s"
+msgstr "Prestato a %(u)s"
+
+#, python-format
+msgid "Prestato da %(u)s"
+msgstr "Prestato da %(u)s"
+
+msgid "Prestiti in Corso"
+msgstr "Active Loans"
+
+msgid "Previsioni Domani"
+msgstr "Tomorrow's Forecast"
+
+msgid "Previsioni Meteo"
+msgstr "Weather Forecast"
+
+msgid "Previsti più giorni consecutivi di maltempo: verificare che le scorte di cibo nelle arnie siano sufficienti."
+msgstr "Several consecutive bad weather days expected: check that food stores in hives are sufficient."
+
+msgid "Previsto maltempo nelle prossime ore: pianificare le attività all'apiario di conseguenza."
+msgstr "Bad weather expected in coming hours: plan apiary activities accordingly."
+
+msgid "Prezzo Acquisto"
+msgstr "Prezzo Acquisto"
+
+msgid "Prezzo Acquisto (€)"
+msgstr "Purchase Price (€)"
+
+msgid "Prezzo max (€)"
+msgstr "Max price (€)"
+
+msgid "Prezzo min (€)"
+msgstr "Min price (€)"
+
+msgid "Prezzo pagato al momento dell\\'acquisto"
+msgstr "Prezzo pagato al momento dell\\'acquisto"
+
+msgid "Prezzo pagato al momento dell\\'acquisto, sommato per categoria"
+msgstr "Prezzo pagato al momento dell\\'acquisto, sommato per categoria"
+
+msgid "Prezzo unit."
+msgstr "Prezzo unit."
+
+msgid "Prezzo unitario (€)"
+msgstr "Prezzo unitario (€)"
+
+#, python-format
+msgid "Prezzo ≤ €%(p)s"
+msgstr "Prezzo ≤ €%(p)s"
+
+#, python-format
+msgid "Prezzo ≥ €%(p)s"
+msgstr "Prezzo ≥ €%(p)s"
+
+msgid "Prima analisi"
+msgstr "First analysis"
+
+msgid "Prima vendita"
+msgstr "First sale"
+
+msgid "Primi Passi — Creare il primo apiario"
+msgstr "First Steps — Create your first apiary"
+
+msgid "Principio Attivo"
+msgstr "Principio Attivo"
+
+msgid "Principio Attivo:"
+msgstr "Principio Attivo:"
+
+msgid "Principio attivo:"
+msgstr "Principio attivo:"
+
+msgid "Prob. pioggia"
+msgstr "Rain prob."
+
+msgid "Problemi sanitari"
+msgstr "Problemi sanitari"
+
+msgid "Problemi sanitari (incluse note)"
+msgstr "Problemi sanitari (incluse note)"
+
+msgid "Problemi sanitari:"
+msgstr "Problemi sanitari:"
+
+msgid "Prodotti"
+msgstr "Products"
+
+msgid "Prodotti venduti"
+msgstr "Prodotti venduti"
+
+msgid "Prodotto"
+msgstr "Prodotto"
+
+msgid "Produttività"
+msgstr "Produttività"
+
+msgid "Produttività:"
+msgstr "Produttività:"
+
+msgid "Produzione CSV"
+msgstr "Production CSV"
+
+msgid "Programmata"
+msgstr "Programmata"
+
+msgid "Programmate"
+msgstr "Scheduled"
+
+msgid "Programmato"
+msgstr "Scheduled"
+
+#, python-format
+msgid "Promuovi il Nucleo #%(n)s"
+msgstr "Promuovi il Nucleo #%(n)s"
+
+msgid "Pronto"
+msgstr "Ready"
+
+msgid "Pronto oggi"
+msgstr "Ready today"
+
+#, python-format
+msgid "Pronto tra %(g)s giorni · %(d)s"
+msgstr "Pronto tra %(g)s giorni · %(d)s"
+
+msgid "Proprietario"
+msgstr "Owner"
+
+msgid "Proprietario:"
+msgstr "Owner:"
+
+#, python-format
+msgid "Proprietario: %(owner)s"
+msgstr "Proprietario: %(owner)s"
+
+msgid "Prossima Manutenzione"
+msgstr "Next Maintenance"
+
+msgid "Pubblico"
+msgstr "Public"
+
+msgid "Pulisci"
+msgstr "Clear"
+
+msgid "Punti da considerare:"
+msgstr "Points to consider:"
+
+msgid "Puoi lasciare vuoto se la fioritura non è associata a un apiario specifico"
+msgstr "You can leave empty if the bloom is not tied to a specific apiary"
+
+msgid "Puoi richiedere l'eliminazione dei tuoi dati personali senza necessariamente eliminare l'account, oppure richiedere l'eliminazione completa di tutti i dati."
+msgstr "You can request deletion of your personal data without necessarily deleting the account, or request complete deletion of all data."
+
+msgid "Puoi richiedere l'eliminazione del tuo account e di tutti i dati associati in uno dei seguenti modi:"
+msgstr "You can request deletion of your account and all associated data in the following ways:"
+
+msgid "Può gestire membri, invitare nuovi utenti, modificare e eliminare il gruppo."
+msgstr "Can manage members, invite new users, edit and delete the group."
+
+msgid "Può modificare le risorse condivise, ma non può gestire i membri del gruppo."
+msgstr "Can edit shared resources but cannot manage group members."
+
+msgid "Può modificare risorse condivise"
+msgstr "Can edit shared resources"
+
+msgid "Può solo visualizzare le risorse condivise, senza apportare modifiche."
+msgstr "Can only view shared resources without making changes."
+
+msgid "Qta"
+msgstr "Qta"
+
+msgid "Qtà"
+msgstr "Qty"
+
+msgid "Quando inizia la fioritura"
+msgstr "When the bloom begins"
+
+msgid "Quando è pronto, registra la <strong>smielatura</strong>: data, peso grezzo, qualità, note"
+msgstr "When ready, record the <strong>extraction</strong>: date, raw weight, quality, notes"
+
+msgid "Quantità"
+msgstr "Quantity"
+
+msgid "Quantità (kg)"
+msgstr "Quantity (kg)"
+
+msgid "Quantità:"
+msgstr "Quantity:"
+
+msgid "Questa azione elimina il nucleo e tutti i suoi controlli."
+msgstr "This action deletes the nucleus and all its inspections."
+
+msgid "Questa azione eliminerà anche:"
+msgstr "This action will also delete:"
+
+msgid "Questa email è stata inviata automaticamente, non rispondere a questo messaggio."
+msgstr "This email was sent automatically, please do not reply."
+
+msgid "Questa operazione non può essere annullata e potrebbe influire sui trattamenti esistenti."
+msgstr "Questa operazione non può essere annullata e potrebbe influire sui trattamenti esistenti."
+
+msgid "Questa operazione non può essere annullata."
+msgstr "This operation cannot be undone."
+
+msgid "Questa operazione è irreversibile."
+msgstr "Questa operazione è irreversibile."
+
+msgid "Questo grafico mostra la relazione tra temperatura ambientale e sviluppo della covata/raccolta di scorte."
+msgstr "This chart shows the relationship between ambient temperature and brood/stores development."
+
+msgid "Questo trattamento richiede un blocco di covata."
+msgstr "Questo trattamento richiede un blocco di covata."
+
+msgid "Questo utente non avrà più accesso alle risorse condivise in questo gruppo."
+msgstr "Questo utente non avrà più accesso alle risorse condivise in questo gruppo."
+
+msgid "Questo è un messaggio automatico. Si prega di non rispondere a questa email."
+msgstr "This is an automated message. Please do not reply to this email."
+
+msgid "Quota"
+msgstr "Share"
+
+msgid "Quota %"
+msgstr "Share %"
+
+msgid "Quote Personali"
+msgstr "Personal Shares"
+
+msgid "Quote Utenti"
+msgstr "User Shares"
+
+msgid "Raggio (metri)"
+msgstr "Radius (meters)"
+
+msgid "Raggio (metri):"
+msgstr "Radius (meters):"
+
+msgid "Raggio di volo (3 km)"
+msgstr "Flight radius (3 km)"
+
+msgid "Raggio volo 3km"
+msgstr "3km flight radius"
+
+msgid "Raggio:"
+msgstr "Radius:"
+
+msgid "Raggruppa controlli stesso giorno"
+msgstr "Group same-day inspections"
+
+msgid "Razza"
+msgstr "Breed"
+
+msgid "Razza:"
+msgstr "Breed:"
+
+msgid "Razze nella linea"
+msgstr "Razze nella linea"
+
+#, python-format
+msgid "Regina #%(n)s"
+msgstr "Regina #%(n)s"
+
+#, python-format
+msgid "Regina #%(num)s"
+msgstr "Regina #%(num)s"
+
+#, python-format
+msgid "Regina #%(numero)s"
+msgstr "Regina #%(numero)s"
+
+#, python-format
+msgid "Regina Arnia #%(num)s"
+msgstr "Regina Arnia #%(num)s"
+
+msgid "Regina Attuale"
+msgstr "Regina Attuale"
+
+msgid "Regina Madre"
+msgstr "Regina Madre"
+
+msgid "Regina attuale:"
+msgstr "Regina attuale:"
+
+#, python-format
+msgid "Regina dal %(data)s"
+msgstr "Regina dal %(data)s"
+
+msgid "Regina sostituita/da sostituire"
+msgstr "Regina sostituita/da sostituire"
+
+msgid "Regina vista durante il controllo"
+msgstr "Regina vista durante il controllo"
+
+msgid "Regina ✓"
+msgstr "Queen ✓"
+
+msgid "Regina ✗"
+msgstr "Queen ✗"
+
+msgid "Regine nella linea:"
+msgstr "Regine nella linea:"
+
+msgid "Regine — Gestire e tracciare le regine"
+msgstr "Queens — Manage and track queens"
+
+msgid "Regine, nuclei e movimenti"
+msgstr "Queens, nuclei and movements"
+
+msgid "Registra Invasettamento"
+msgstr "Record Bottling"
+
+msgid "Registra Manutenzione"
+msgstr "Record Maintenance"
+
+#, python-format
+msgid "Registra Manutenzione - %(n)s"
+msgstr "Registra Manutenzione - %(n)s"
+
+msgid "Registra Pagamento"
+msgstr "Record Payment"
+
+msgid "Registra Restituzione"
+msgstr "Record Return"
+
+msgid "Registra Smielatura"
+msgstr "Record Extraction"
+
+msgid "Registra Spesa"
+msgstr "Record Expense"
+
+#, python-format
+msgid "Registra Spesa - %(n)s"
+msgstr "Registra Spesa - %(n)s"
+
+msgid "Registra i controlli di più arnie a voce, l'AI estrae i dati automaticamente"
+msgstr "Record inspections for multiple hives by voice, AI extracts data automatically"
+
+msgid "Registra la smielatura con la quantità di miele effettivamente estratta in questa scheda"
+msgstr "Record the extraction with the actual honey quantity in this tab"
+
+msgid "Registra le informazioni sulla regina dell'arnia:"
+msgstr "Registra le informazioni sulla regina dell'arnia:"
+
+msgid "Registra sempre con precisione il tipo di miele e la quantità ottenuta per mantenere un'accurata traccia della produzione."
+msgstr "Always record honey type and quantity accurately to keep detailed production tracking."
+
+msgid "Registra smielatura"
+msgstr "Record extraction"
+
+msgid "Registra tutti i pagamenti relativi all'apiario per mantenere una contabilità accurata."
+msgstr "Record all payments related to the apiary to keep accurate accounting."
+
+msgid "Registra un nuovo nucleo o modifica i dati esistenti"
+msgstr "Register a new nucleus or edit existing data"
+
+msgid "Registra un'ispezione completa semplicemente parlando"
+msgstr "Record a complete inspection simply by speaking"
+
+msgid "Registra: data di nascita, razza, colore di marcatura, origine (allevata, acquistata, sciamatura)"
+msgstr "Record: birth date, breed, marking color, origin (raised, purchased, swarm)"
+
+msgid "Registrare pagamenti e quote di partecipazione"
+msgstr "Record payments and participation shares"
+
+msgid "Registrazione Smielatura"
+msgstr "Extraction Registration"
+
+#, python-format
+msgid "Registrazione Smielatura - %(a)s"
+msgstr "Registrazione Smielatura - %(a)s"
+
+msgid "Registro Pagamenti"
+msgstr "Payment Register"
+
+msgid "Residuo:"
+msgstr "Residual:"
+
+msgid "Resist. malattie:"
+msgstr "Resist. malattie:"
+
+msgid "Resistenza Malattie"
+msgstr "Resistenza Malattie"
+
+msgid "Restituzione Attrezzatura"
+msgstr "Equipment Return"
+
+msgid "Riapri guida"
+msgstr "Reopen guide"
+
+msgid "Ricavi (€)"
+msgstr "Revenue (€)"
+
+msgid "Ricavi mensili (ultimi 12 mesi)"
+msgstr "Monthly revenue (last 12 months)"
+
+msgid "Ricavo totale"
+msgstr "Total revenue"
+
+msgid "Ricerca"
+msgstr "Search"
+
+msgid "Ricerca specie…"
+msgstr "Searching species…"
+
+msgid "Richiedi"
+msgstr "Request"
+
+msgid "Richiedi Prestito"
+msgstr "Request Loan"
+
+#, python-format
+msgid "Richiedi Prestito - %(n)s"
+msgstr "Richiedi Prestito - %(n)s"
+
+msgid "Richiesta eliminazione account"
+msgstr "Account deletion request"
+
+msgid "Richiesta eliminazione dati"
+msgstr "Data deletion request"
+
+msgid "Ricorda di rispettare i periodi di sospensione dopo il trattamento prima di raccogliere il miele."
+msgstr "Ricorda di rispettare i periodi di sospensione dopo il trattamento prima di raccogliere il miele."
+
+msgid "Riepilogo"
+msgstr "Summary"
+
+msgid "Riepilogo Quote Utenti"
+msgstr "User Shares Summary"
+
+msgid "Riepilogo per Categoria"
+msgstr "Summary by Category"
+
+msgid "Riferimento per distanze"
+msgstr "Reference for distances"
+
+msgid "Rifiuta"
+msgstr "Reject"
+
+msgid "Rifiuta Invito"
+msgstr "Rifiuta Invito"
+
+msgid "Rilevamento"
+msgstr "Rilevamento"
+
+msgid "Rimozione Melario"
+msgstr "Super Removal"
+
+#, python-format
+msgid "Rimuovere il melario #%(mi)s <strong>(%(t)s telaini, posizione %(p)s)</strong> dall'arnia #%(an)s?"
+msgstr "Rimuovere il melario #%(mi)s <strong>(%(t)s telaini, posizione %(p)s)</strong> dall'arnia #%(an)s?"
+
+msgid "Rimuovi"
+msgstr "Remove"
+
+msgid "Rimuovi Melario"
+msgstr "Remove Super"
+
+#, python-format
+msgid "Rimuovi Melario #%(i)s"
+msgstr "Rimuovi Melario #%(i)s"
+
+#, python-format
+msgid "Rimuovi Melario - Arnia #%(n)s"
+msgstr "Rimuovi Melario - Arnia #%(n)s"
+
+msgid "Rimuovi Membro"
+msgstr "Rimuovi Membro"
+
+msgid "Rimuovi filtro"
+msgstr "Remove filter"
+
+msgid "Rimuovi i filtri"
+msgstr "Remove filters"
+
+msgid "Rimuovi melario"
+msgstr "Remove super"
+
+msgid "Rimuovi tutti i filtri"
+msgstr "Remove all filters"
+
+msgid "Risultati"
+msgstr "Results"
+
+#, python-format
+msgid "Risultati per \"<strong>%(q)s</strong>\""
+msgstr "Risultati per \"<strong>%(q)s</strong>\""
+
+msgid "Rivedi i dati estratti da <strong>Gemini AI</strong> e salva i controlli."
+msgstr "Review data extracted by <strong>Gemini AI</strong> and save inspections."
+
+msgid "Rosso"
+msgstr "Red"
+
+msgid "Rubrica clienti e storico acquisti"
+msgstr "Customer directory and purchase history"
+
+msgid "Ruoli del Gruppo"
+msgstr "Ruoli del Gruppo"
+
+msgid "Ruolo"
+msgstr "Role"
+
+msgid "Ruolo proposto:"
+msgstr "Proposed role:"
+
+#, python-format
+msgid "Ruolo proposto: %(r)s"
+msgstr "Ruolo proposto: %(r)s"
+
+#, python-format
+msgid "Ruolo: %(ruolo)s"
+msgstr "Ruolo: %(ruolo)s"
+
+msgid "Saldo"
+msgstr "Balance"
+
+msgid "Salta"
+msgstr "Skip"
+
+msgid "Salva Immagine"
+msgstr "Save Image"
+
+msgid "Salva Manutenzione"
+msgstr "Save Maintenance"
+
+msgid "Salva Pagamento"
+msgstr "Save Payment"
+
+msgid "Salva Quota"
+msgstr "Save Share"
+
+msgid "Salva Spesa"
+msgstr "Save Expense"
+
+msgid "Salva controllo"
+msgstr "Save inspection"
+
+msgid "Salva e Seleziona"
+msgstr "Salva e Seleziona"
+
+msgid "Salva invasettamento"
+msgstr "Save bottling"
+
+msgid "Salva tutti i controlli"
+msgstr "Save all inspections"
+
+msgid "Salva uno snapshot dei valori"
+msgstr "Save a snapshot of values"
+
+msgid "Salva vendita"
+msgstr "Salva vendita"
+
+msgid "Salva — il controllo appare nella cronologia dell'arnia"
+msgstr "Save — the inspection appears in the hive's history"
+
+msgid "Salva — il tuo apiario è pronto"
+msgstr "Save — your apiary is ready"
+
+#, python-format
+msgid "Scade il %(d)s"
+msgstr "Scade il %(d)s"
+
+#, python-format
+msgid "Scade: %(d)s"
+msgstr "Scade: %(d)s"
+
+#, python-format
+msgid "Scade: %(data)s"
+msgstr "Scade: %(data)s"
+
+msgid "Scadenza:"
+msgstr "Expires:"
+
+msgid "Scaduta"
+msgstr "Scaduta"
+
+msgid "Scarica su App Store"
+msgstr "Download on App Store"
+
+msgid "Scarica su Google Play"
+msgstr "Download on Google Play"
+
+msgid "Scegli <strong>\\\"Elimina dati\\\"</strong> per i soli dati o <strong>\\\"Elimina account\\\"</strong> per tutto."
+msgstr "Scegli <strong>\\\"Elimina dati\\\"</strong> per i soli dati o <strong>\\\"Elimina account\\\"</strong> per tutto."
+
+msgid "Sciamatura (inclusi data e note)"
+msgstr "Sciamatura (inclusi data e note)"
+
+msgid "Sciamatura:"
+msgstr "Sciamatura:"
+
+msgid "Sconosciuta"
+msgstr "Unknown"
+
+msgid "Sconosciuto"
+msgstr "Unknown"
+
+msgid "Se il pulsante non funziona, copia e incolla questo link nel tuo browser:"
+msgstr "If the button doesn't work, copy and paste this link in your browser:"
+
+msgid "Se il trattamento richiede un blocco di covata, indica la durata consigliata e fornisci istruzioni specifiche. Questo sarà utile per programmare adeguatamente i trattamenti."
+msgstr "Se il trattamento richiede un blocco di covata, indica la durata consigliata e fornisci istruzioni specifiche. Questo sarà utile per programmare adeguatamente i trattamenti."
+
+msgid "Se la condizione è cambiata rispetto al prestito"
+msgstr "If the condition has changed since the loan"
+
+msgid "Se non hai richiesto questo invito, puoi ignorare questo messaggio."
+msgstr "If you did not request this invitation, you can ignore this message."
+
+msgid "Se non hai un account su Apiary, dovrai registrarti con questo indirizzo email prima di poter accettare l'invito."
+msgstr "If you don't have an Apiary account, you must register with this email address before accepting the invitation."
+
+#, python-format
+msgid "Se non ti aspettavi questo invito, puoi semplicemente ignorare questa email. L'invito scadrà automaticamente il %(d)s."
+msgstr "Se non ti aspettavi questo invito, puoi semplicemente ignorare questa email. L'invito scadrà automaticamente il %(d)s."
+
+msgid "Se selezionato, tutti i membri del gruppo potranno vedere questa attrezzatura."
+msgstr "If selected, all group members can see this equipment."
+
+msgid "Se ti è utile, un piccolo gesto fa la differenza!"
+msgstr "If you find it useful, a small gesture makes a difference!"
+
+msgid "Se è stata acquistata, allevata, o da sciamatura naturale"
+msgstr "Se è stata acquistata, allevata, o da sciamatura naturale"
+
+msgid "Secchio"
+msgstr "Bucket"
+
+msgid "Segna come letta"
+msgstr "Mark as read"
+
+msgid "Segna venduto"
+msgstr "Mark sold"
+
+msgid "Segni della presenza della regina:"
+msgstr "Segni della presenza della regina:"
+
+msgid "Segni di possibili problemi:"
+msgstr "Segni di possibili problemi:"
+
+msgid "Sei in pari! Non hai notifiche al momento."
+msgstr "You're all caught up! No notifications at the moment."
+
+msgid "Sei pronto!"
+msgstr "Ready to go!"
+
+#, python-format
+msgid "Sei sicuro di voler eliminare il gruppo \"%(nome)s\"?"
+msgstr "Sei sicuro di voler eliminare il gruppo \"%(nome)s\"?"
+
+#, python-format
+msgid "Sei sicuro di voler eliminare il gruppo <strong>%(nome)s</strong>?"
+msgstr "Sei sicuro di voler eliminare il gruppo <strong>%(nome)s</strong>?"
+
+#, python-format
+msgid "Sei sicuro di voler eliminare l'attrezzatura <strong>%(n)s</strong>?"
+msgstr "Sei sicuro di voler eliminare l'attrezzatura <strong>%(n)s</strong>?"
+
+#, python-format
+msgid "Sei sicuro di voler eliminare la fioritura di <strong>%(p)s</strong>?"
+msgstr "Sei sicuro di voler eliminare la fioritura di <strong>%(p)s</strong>?"
+
+#, python-format
+msgid "Sei sicuro di voler eliminare la vendita del <strong>%(data)s</strong>?"
+msgstr "Sei sicuro di voler eliminare la vendita del <strong>%(data)s</strong>?"
+
+msgid "Sei sicuro di voler eliminare questa fioritura?"
+msgstr "Are you sure you want to delete this bloom?"
+
+msgid "Sei sicuro di voler eliminare questa quota utente?"
+msgstr "Are you sure you want to delete this user share?"
+
+msgid "Sei sicuro di voler eliminare questo controllo?"
+msgstr "Sei sicuro di voler eliminare questo controllo?"
+
+msgid "Sei sicuro di voler eliminare questo pagamento?"
+msgstr "Are you sure you want to delete this payment?"
+
+msgid "Sei sicuro di voler eliminare questo tipo di trattamento?"
+msgstr "Sei sicuro di voler eliminare questo tipo di trattamento?"
+
+msgid "Sei sicuro di voler eliminare questo trattamento sanitario?"
+msgstr "Sei sicuro di voler eliminare questo trattamento sanitario?"
+
+#, python-format
+msgid "Sei sicuro di voler lasciare il gruppo <strong>%(nome)s</strong>?"
+msgstr "Sei sicuro di voler lasciare il gruppo <strong>%(nome)s</strong>?"
+
+#, python-format
+msgid "Sei sicuro di voler rimuovere <strong>%(username)s</strong> dal gruppo <strong>%(nome)s</strong>?"
+msgstr "Sei sicuro di voler rimuovere <strong>%(username)s</strong> dal gruppo <strong>%(nome)s</strong>?"
+
+msgid "Sei stato invitato a un gruppo su Apiary"
+msgstr "You have been invited to a group on Apiary"
+
+msgid "Sei stato invitato a unirti al gruppo"
+msgstr "Sei stato invitato a unirti al gruppo"
+
+msgid "Sei stato invitato!"
+msgstr "You've been invited!"
+
+msgid "Sei un amministratore del gruppo. Se lasci il gruppo, verrà automaticamente assegnato un nuovo amministratore o il gruppo sarà eliminato se non ci sono altri membri."
+msgstr "Sei un amministratore del gruppo. Se lasci il gruppo, verrà automaticamente assegnato un nuovo amministratore o il gruppo sarà eliminato se non ci sono altri membri."
+
+msgid "Seleziona 2+ regine per confrontarle"
+msgstr "Select 2+ queens to compare them"
+
+msgid "Seleziona Arnie di Destinazione"
+msgstr "Seleziona Arnie di Destinazione"
+
+msgid "Seleziona Posizione"
+msgstr "Select Position"
+
+msgid "Seleziona il tipo di miele:"
+msgstr "Select honey type:"
+
+msgid "Seleziona il tipo di trattamento da applicare"
+msgstr "Seleziona il tipo di trattamento da applicare"
+
+msgid "Seleziona l'<strong>apiario</strong> e abilita la <strong>modalità batch</strong> se vuoi registrare più arnie di fila."
+msgstr "Select the <strong>apiary</strong> and enable <strong>batch mode</strong> if you want to record multiple hives in a row."
+
+msgid "Seleziona l'apiario dove verrà applicato il trattamento"
+msgstr "Seleziona l'apiario dove verrà applicato il trattamento"
+
+msgid "Seleziona le arnie da trattare o applica a tutte"
+msgstr "Seleziona le arnie da trattare o applica a tutte"
+
+msgid "Seleziona le arnie su cui copiare il controllo:"
+msgstr "Seleziona le arnie su cui copiare il controllo:"
+
+msgid "Seleziona prima un apiario…"
+msgstr "Select an apiary first…"
+
+msgid "Seleziona quali informazioni copiare:"
+msgstr "Seleziona quali informazioni copiare:"
+
+msgid "Seleziona tutte"
+msgstr "Seleziona tutte"
+
+msgid "Seleziona tutti"
+msgstr "Select all"
+
+msgid "Seleziona tutti i melari da cui è stato estratto il miele"
+msgstr "Select all supers from which honey was extracted"
+
+msgid "Seleziona un gruppo con cui condividere questo apiario e i suoi dati."
+msgstr "Seleziona un gruppo con cui condividere questo apiario e i suoi dati."
+
+msgid "Seleziona un gruppo..."
+msgstr "Select a group..."
+
+msgid "Seleziona un telaino di una tua arnia, scatta/carica la foto — il modello locale rileva api, fuchi, regine e celle reali"
+msgstr "Seleziona un telaino di una tua arnia, scatta/carica la foto — il modello locale rileva api, fuchi, regine e celle reali"
+
+msgid "Selezionando questa opzione, verrai reindirizzato alla pagina di sostituzione regina dopo il salvataggio."
+msgstr "Selezionando questa opzione, verrai reindirizzato alla pagina di sostituzione regina dopo il salvataggio."
+
+msgid "Selezionata"
+msgstr "Selected"
+
+msgid "Sempre in crescita"
+msgstr "Always growing"
+
+msgid "Senza apiario"
+msgstr "Without apiary"
+
+msgid "Sereno"
+msgstr "Clear"
+
+msgid "Sessione precedente ripristinata"
+msgstr "Previous session restored"
+
+msgid "Settimana"
+msgstr "Week"
+
+msgid "Shield"
+msgstr "Shield"
+
+msgid "Smielato"
+msgstr "Extracted"
+
+msgid "Smielatura"
+msgstr "Extraction"
+
+msgid "Smielatura collegata"
+msgstr "Linked extraction"
+
+#, python-format
+msgid "Smielatura del %(d)s"
+msgstr "Smielatura del %(d)s"
+
+msgid "Smielature"
+msgstr "Extractions"
+
+msgid "Solo Lettura"
+msgstr "Read Only"
+
+msgid "Solo apiari"
+msgstr "Apiaries only"
+
+msgid "Solo con discendenza registrata"
+msgstr "Only with registered offspring"
+
+msgid "Solo gli amministratori e gli editor possono aggiungere pagamenti."
+msgstr "Only administrators and editors can add payments."
+
+msgid "Solo gli amministratori e gli editor possono gestire le quote."
+msgstr "Only administrators and editors can manage shares."
+
+msgid "Solo lettura."
+msgstr "Solo lettura."
+
+msgid "Solo per fioriture: area approssimativa."
+msgstr "For blooms only: approximate area."
+
+msgid "Somma dei prezzi di acquisto originali di tutte le attrezzature filtrate, senza considerare l\\'usura nel tempo."
+msgstr "Somma dei prezzi di acquisto originali di tutte le attrezzature filtrate, senza considerare l\\'usura nel tempo."
+
+msgid "Sospensione"
+msgstr "Sospensione"
+
+msgid "Sostituisci"
+msgstr "Sostituisci"
+
+msgid "Sostituzione"
+msgstr "Replacement"
+
+msgid "Sostituzione Regina"
+msgstr "Queen Replacement"
+
+msgid "Specifica il nome utente o l'email dell'account e i dati che desideri eliminare."
+msgstr "Specify the username or account email and the data you want to delete."
+
+msgid "Spesa attrezzatura"
+msgstr "Equipment expense"
+
+msgid "Spesa totale"
+msgstr "Total spent"
+
+msgid "Spese"
+msgstr "Spese"
+
+msgid "Spese Totali"
+msgstr "Spese Totali"
+
+msgid "Spiega perché hai bisogno di questa attrezzatura"
+msgstr "Explain why you need this equipment"
+
+#, python-format
+msgid "Stai modificando il ruolo di <strong>%(u)s</strong> nel gruppo <strong>%(g)s</strong>."
+msgstr "Stai modificando il ruolo di <strong>%(u)s</strong> nel gruppo <strong>%(g)s</strong>."
+
+#, python-format
+msgid "Stai per eliminare <strong>tutti i dati di apicoltura</strong> dell'account <strong>%(u)s</strong> (apiari, arnie, controlli, trattamenti, ecc.)."
+msgstr "Stai per eliminare <strong>tutti i dati di apicoltura</strong> dell'account <strong>%(u)s</strong> (apiari, arnie, controlli, trattamenti, ecc.)."
+
+msgid "Stai per eliminare definitivamente l'arnia:"
+msgstr "Stai per eliminare definitivamente l'arnia:"
+
+#, python-format
+msgid "Stai per eliminare l'account <strong>%(u)s</strong>. Questa azione è <strong>irreversibile</strong>."
+msgstr "Stai per eliminare l'account <strong>%(u)s</strong>. Questa azione è <strong>irreversibile</strong>."
+
+#, python-format
+msgid "Stai per inviare il melario #%(i)s (%(t)s telaini) in smielatura."
+msgstr "Stai per inviare il melario #%(i)s (%(t)s telaini) in smielatura."
+
+#, python-format
+msgid "Stai per rimuovere il melario #%(i)s (posizione %(p)s)."
+msgstr "Stai per rimuovere il melario #%(i)s (posizione %(p)s)."
+
+#, python-format
+msgid "Stai per rimuovere il melario #%(mi)s dall'arnia #%(an)s."
+msgstr "Stai per rimuovere il melario #%(mi)s dall'arnia #%(an)s."
+
+msgid "Stai rimuovendo un amministratore del gruppo. Assicurati che ci siano altri amministratori disponibili."
+msgstr "Stai rimuovendo un amministratore del gruppo. Assicurati che ci siano altri amministratori disponibili."
+
+#, python-format
+msgid "Stai sostituendo la regina dell'arnia <strong>#%(n)s</strong>. La regina attuale verrà archiviata e sarà registrata una nuova regina al suo posto."
+msgstr "Stai sostituendo la regina dell'arnia <strong>#%(n)s</strong>. La regina attuale verrà archiviata e sarà registrata una nuova regina al suo posto."
+
+msgid "Stampa calendario"
+msgstr "Print calendar"
+
+msgid "Standard (Dadan)"
+msgstr "Standard (Dadant)"
+
+msgid "Statistiche"
+msgstr "Statistics"
+
+msgid "Statistiche Linea"
+msgstr "Statistiche Linea"
+
+msgid "Stato attuale del trattamento"
+msgstr "Stato attuale del trattamento"
+
+msgid "Stato attuale: Disponibile, In Uso, In Manutenzione, Prestato, Dismesso"
+msgstr "Current status: Available, In Use, In Maintenance, Loaned, Dismissed"
+
+msgid "Stato e Posizione"
+msgstr "Status and Location"
+
+msgid "Stato favi"
+msgstr "Comb status"
+
+msgid "Stato:"
+msgstr "Status:"
+
+msgid "Stima di quanto valgono oggi le attrezzature, sottraendo l\\'ammortamento annuo maturato. Un attrezzo da €100 con vita utile 5 anni vale €20 in meno ogni anno."
+msgstr "Stima di quanto valgono oggi le attrezzature, sottraendo l\\'ammortamento annuo maturato. Un attrezzo da €100 con vita utile 5 anni vale €20 in meno ogni anno."
+
+msgid "Stoccaggio"
+msgstr "Storage"
+
+msgid "Storia Regine"
+msgstr "Storia Regine"
+
+msgid "Storico"
+msgstr "Storico"
+
+msgid "Storico Analisi Telaini"
+msgstr "Frame Analysis History"
+
+msgid "Storico Controlli"
+msgstr "Inspection History"
+
+msgid "Storico Manutenzioni"
+msgstr "Storico Manutenzioni"
+
+msgid "Storico Prestiti"
+msgstr "Storico Prestiti"
+
+msgid "Storico Smielature"
+msgstr "Storico Smielature"
+
+msgid "Storico Trattamenti"
+msgstr "Treatment History"
+
+msgid "Storico acquisti cliente"
+msgstr "Customer purchase history"
+
+msgid "Storico vendite"
+msgstr "Sales history"
+
+msgid "Storico vendite e fatturato prodotti"
+msgstr "Sales history and product revenue"
+
+#, python-format
+msgid "Su %(count)s arnie"
+msgstr "Su %(count)s arnie"
+
+msgid "Subtotale"
+msgstr "Subtotale"
+
+msgid "Suggerimenti basati sul meteo attuale:"
+msgstr "Tips based on current weather:"
+
+msgid "Suggerimento:"
+msgstr "Tip:"
+
+msgid "Supporta Apiary — Offrici un Caffè"
+msgstr "Support Apiary — Buy Us a Coffee"
+
+msgid "Sviluppato da chi alleva api e conosce le reali esigenze di chi lavora in campo."
+msgstr "Developed by those who keep bees and understand real field needs."
+
+msgid "Sviluppatore: Apiary Manager"
+msgstr "Developer: Apiary Manager"
+
+msgid "Sì, converti in Arnia"
+msgstr "Yes, convert to Hive"
+
+msgid "Sì, elimina"
+msgstr "Yes, delete"
+
+msgid "TOTALE"
+msgstr "TOTAL"
+
+msgid "Tabella Dati"
+msgstr "Data Table"
+
+msgid "Tag arnia rilevato"
+msgstr "Hive tag detected"
+
+msgid "Telaini"
+msgstr "Frames"
+
+msgid "Telaini (scorte e covata)"
+msgstr "Telaini (scorte e covata)"
+
+msgid "Telaini covata:"
+msgstr "Telaini covata:"
+
+msgid "Telaini scorte:"
+msgstr "Telaini scorte:"
+
+msgid "Telaino"
+msgstr "Frame"
+
+#, python-format
+msgid "Telaino %(n)s%(f)s"
+msgstr "Telaino %(n)s%(f)s"
+
+msgid "Telefono"
+msgstr "Phone"
+
+msgid "Temperatura"
+msgstr "Temperature"
+
+#, python-format
+msgid "Temperatura favorevole (%(t)s°C): Condizioni buone per ispezioni e lavori all'apiario."
+msgstr "Temperatura favorevole (%(t)s°C): Condizioni buone per ispezioni e lavori all'apiario."
+
+#, python-format
+msgid "Temperature basse (%(t)s°C): Le api sono in cluster invernale, evitare ispezioni non necessarie."
+msgstr "Temperature basse (%(t)s°C): Le api sono in cluster invernale, evitare ispezioni non necessarie."
+
+#, python-format
+msgid "Temperature elevate (%(t)s°C): Assicurarsi che le api abbiano accesso all'acqua e che ci sia adeguata ventilazione."
+msgstr "Temperature elevate (%(t)s°C): Assicurarsi che le api abbiano accesso all'acqua e che ci sia adeguata ventilazione."
+
+msgid "Temperature molto basse: Controllare l'isolamento delle arnie e considerare l'uso di diaframmi."
+msgstr "Very low temperatures: Check hive insulation and consider using dividers."
+
+msgid "Temperature molto elevate: Predisporre abbeveratoi e ombreggiamento aggiuntivo per le arnie."
+msgstr "Very high temperatures: Set up waterers and additional shading for hives."
+
+msgid "Tempi di elaborazione"
+msgstr "Processing times"
+
+msgid "Tempo Sospensione (giorni)"
+msgstr "Tempo Sospensione (giorni)"
+
+msgid "Tempo Sospensione:"
+msgstr "Tempo Sospensione:"
+
+msgid "Tempo rimanente"
+msgstr "Time remaining"
+
+msgid "Tempo sospensione:"
+msgstr "Tempo sospensione:"
+
+msgid "Temporale"
+msgstr "Thunderstorm"
+
+msgid "Tend. sciamatura:"
+msgstr "Tend. sciamatura:"
+
+msgid "Tendenza Sciamatura"
+msgstr "Tendenza Sciamatura"
+
+msgid "Terminata"
+msgstr "Ended"
+
+msgid "Testo corretto (vocabolario apicolo)"
+msgstr "Corrected text (beekeeping vocabulary)"
+
+msgid "Thermo"
+msgstr "Thermo"
+
+msgid "Tipi"
+msgstr "Types"
+
+msgid "Tipi di Trattamento"
+msgstr "Tipi di Trattamento"
+
+msgid "Tipi di Trattamento Disponibili"
+msgstr "Tipi di Trattamento Disponibili"
+
+msgid "Tipi di dati eliminati su richiesta"
+msgstr "Types of data deleted on request"
+
+msgid "Tipi di eventi"
+msgstr "Event types"
+
+msgid "Tipo"
+msgstr "Type"
+
+msgid "Tipo Manutenzione"
+msgstr "Maintenance Type"
+
+msgid "Tipo Spesa"
+msgstr "Expense Type"
+
+msgid "Tipo Trattamento"
+msgstr "Tipo Trattamento"
+
+msgid "Tipo di Trattamento"
+msgstr "Tipo di Trattamento"
+
+msgid "Tipo di miele"
+msgstr "Honey type"
+
+msgid "Tipo melario"
+msgstr "Super type"
+
+msgid "Tipo miele"
+msgstr "Honey type"
+
+msgid "Tipo miele:"
+msgstr "Honey type:"
+
+msgid "Tipo non specificato"
+msgstr "Type not specified"
+
+msgid "Tipo:"
+msgstr "Tipo:"
+
+msgid "Tocca <strong>\\\"Elimina account\\\"</strong> e conferma."
+msgstr "Tocca <strong>\\\"Elimina account\\\"</strong> e conferma."
+
+msgid "Tools"
+msgstr "Tools"
+
+msgid "Torna ai Melari"
+msgstr "Back to Supers"
+
+msgid "Torna ai Trattamenti"
+msgstr "Torna ai Trattamenti"
+
+msgid "Torna ai nuclei"
+msgstr "Back to nuclei"
+
+msgid "Torna al Controllo"
+msgstr "Torna al Controllo"
+
+msgid "Torna al Gruppo"
+msgstr "Back to Group"
+
+msgid "Torna al Meteo"
+msgstr "Back to Weather"
+
+msgid "Torna al controllo"
+msgstr "Torna al controllo"
+
+msgid "Torna all'apiario"
+msgstr "Back to apiary"
+
+msgid "Torna alla Dashboard"
+msgstr "Back to Dashboard"
+
+msgid "Torna alla Regina"
+msgstr "Torna alla Regina"
+
+msgid "Torna alla Ricerca"
+msgstr "Torna alla Ricerca"
+
+msgid "Torna alla dashboard"
+msgstr "Back to dashboard"
+
+msgid "Torna alla smielatura"
+msgstr "Torna alla smielatura"
+
+msgid "Torna alle Attrezzature"
+msgstr "Back to Equipment"
+
+msgid "Torna alle smielature"
+msgstr "Back to extractions"
+
+msgid "Totale"
+msgstr "Total"
+
+msgid "Totale Pagamenti:"
+msgstr "Total Payments:"
+
+msgid "Totale percentuali:"
+msgstr "Total percentages:"
+
+msgid "Totale vendita:"
+msgstr "Totale vendita:"
+
+msgid "Totale:"
+msgstr "Total:"
+
+#, python-format
+msgid "Totale: <strong>€ %(totale)s</strong>. L'operazione è irreversibile."
+msgstr "Totale: <strong>€ %(totale)s</strong>. L'operazione è irreversibile."
+
+msgid "Trascina i melari ambra per riordinarne la posizione"
+msgstr "Drag amber supers to reorder their position"
+
+msgid "Trascina la foto del telaino"
+msgstr "Trascina la foto del telaino"
+
+msgid "Trascrizione"
+msgstr "Transcription"
+
+msgid "Trascrizioni in attesa"
+msgstr "Pending transcriptions"
+
+msgid "Trasferisci da un maturatore o aggiungi manualmente."
+msgstr "Transfer from a maturator or add manually."
+
+msgid "Trasferisci in contenitori"
+msgstr "Transfer to containers"
+
+msgid "Trasferisci ora"
+msgstr "Transfer now"
+
+msgid "Trattamenti Attivi e Programmati"
+msgstr "Active and Scheduled Treatments"
+
+msgid "Trattamenti CSV"
+msgstr "Treatments CSV"
+
+msgid "Trisavola"
+msgstr "Trisavola"
+
+msgid "Tu"
+msgstr "You"
+
+msgid "Tuo"
+msgstr "Yours"
+
+msgid "Tuo apiario"
+msgstr "Your apiary"
+
+msgid "Tuoi apiari"
+msgstr "Your apiaries"
+
+msgid "Tutte"
+msgstr "All"
+
+#, python-format
+msgid "Tutte (%(n)s)"
+msgstr "Tutte (%(n)s)"
+
+msgid "Tutte le arnie"
+msgstr "All hives"
+
+msgid "Tutte le manutenzioni registrate"
+msgstr "All recorded maintenance"
+
+msgid "Tutte le spese registrate"
+msgstr "All recorded expenses"
+
+msgid "Tutti gli anni"
+msgstr "All years"
+
+msgid "Tutti gli apiari"
+msgstr "All apiaries"
+
+msgid "Tutti i gruppi"
+msgstr "All groups"
+
+msgid "Tutti i prestiti associati"
+msgstr "All associated loans"
+
+msgid "Tutto il codice è scritto e mantenuto gratuitamente."
+msgstr "All code is written and maintained for free."
+
+msgid "Tutto letto"
+msgstr "All read"
+
+msgid "Tutto quello che devi sapere per usare Apiary al meglio"
+msgstr "Everything you need to know to make the most of Apiary"
+
+msgid "Ultimo controllo"
+msgstr "Last inspection"
+
+msgid "Umidità"
+msgstr "Humidity"
+
+#, python-format
+msgid "Umidità elevata (%(u)s%): Attenzione a possibili problemi di condensa nelle arnie."
+msgstr "Umidità elevata (%(u)s%): Attenzione a possibili problemi di condensa nelle arnie."
+
+msgid "Un apiario è la tua postazione fisica — un campo, un bosco, un terreno. Dentro ogni apiario trovi le tue arnie. Puoi avere più apiari in luoghi diversi e gestirli tutti da qui."
+msgstr "An apiary is your physical location — a field, woods, land. Each apiary contains your hives. You can have multiple apiaries in different places and manage them all from here."
+
+msgid "Una breve descrizione del trattamento"
+msgstr "Una breve descrizione del trattamento"
+
+msgid "Una breve descrizione dello scopo del pagamento"
+msgstr "A brief description of the payment's purpose"
+
+msgid "Unendoti a questo gruppo, avrai accesso alle risorse condivise dagli altri membri e potrai collaborare nella gestione degli apiari, secondo il ruolo che ti è stato assegnato."
+msgstr "Unendoti a questo gruppo, avrai accesso alle risorse condivise dagli altri membri e potrai collaborare nella gestione degli apiari, secondo il ruolo che ti è stato assegnato."
+
+msgid "Unendoti a questo gruppo, potrai collaborare con altri apicoltori nella gestione condivisa degli apiari, arnie, fioriture, trattamenti sanitari e molto altro."
+msgstr "By joining this group, you can collaborate with other beekeepers in shared management of apiaries, hives, blooms, health treatments and much more."
+
+msgid "Unità di Misura"
+msgstr "Unit of Measure"
+
+msgid "Uova fresche presenti"
+msgstr "Uova fresche presenti"
+
+msgid "Usa <strong>Confronta Regine</strong> per valutare le prestazioni side-by-side"
+msgstr "Use <strong>Compare Queens</strong> to evaluate performance side-by-side"
+
+msgid "Usa classi Bootstrap Icons (es. bi-tools, bi-box-seam)."
+msgstr "Use Bootstrap Icons classes (e.g. bi-tools, bi-box-seam)."
+
+msgid "Usa i <strong>comandi vocali</strong> per passare all'arnia successiva:"
+msgstr "Use <strong>voice commands</strong> to move to the next hive:"
+
+msgid "Usa i filtri per trovare regine con caratteristiche specifiche"
+msgstr "Use filters to find queens with specific characteristics"
+
+msgid "Usa il form a sinistra per aggiungere il primo."
+msgstr "Use the form on the left to add the first one."
+
+msgid "Utente"
+msgstr "User"
+
+msgid "Utente:"
+msgstr "User:"
+
+msgid "Utenti"
+msgstr "Users"
+
+msgid "Utilizza il pulsante \\\"Seleziona sulla mappa\\\" per posizionare facilmente la fioritura."
+msgstr "Utilizza il pulsante \\\"Seleziona sulla mappa\\\" per posizionare facilmente la fioritura."
+
+msgid "Vai al Gruppo"
+msgstr "Go to Group"
+
+msgid "Vai all'Apiario"
+msgstr "Go to Apiary"
+
+#, python-format
+msgid "Vai all'Arnia #%(n)s"
+msgstr "Vai all'Arnia #%(n)s"
+
+msgid "Vai alla pagina"
+msgstr "Go to page"
+
+msgid "Vai su <em>Analisi Telaino</em>, carica o scatta una foto di un telaio. Il modello YOLO rileva automaticamente api adulte, covata, celle reali e fuchi."
+msgstr "Go to <em>Frame Analysis</em>, upload or take a photo of a frame. The YOLO model automatically detects adult bees, brood, queen cells and drones."
+
+msgid "Vai su <em>Intelligenza Artificiale → Controllo Vocale</em> nella sidebar. Parla e l'app trascrive e struttura automaticamente un'ispezione completa."
+msgstr "Go to <em>Artificial Intelligence → Voice Control</em> in the sidebar. Speak and the app transcribes and structures a complete inspection automatically."
+
+msgid "Vai su <strong>Collaborazione → Gruppi</strong> nella sidebar"
+msgstr "Go to <strong>Collaboration → Groups</strong> in the sidebar"
+
+msgid "Vai su <strong>Profilo → Impostazioni account</strong>."
+msgstr "Go to <strong>Profile → Account settings</strong>."
+
+msgid "Valore"
+msgstr "Value"
+
+msgid "Valore Acquisto"
+msgstr "Purchase Value"
+
+msgid "Valore Residuo"
+msgstr "Residual Value"
+
+msgid "Valore Totale Acquisto"
+msgstr "Total Purchase Value"
+
+msgid "Valore acquisto"
+msgstr "Purchase value"
+
+msgid "Valore attuale stimato dopo ammortamento. Calcolato come: Prezzo acquisto − (Prezzo / Vita utile anni × Anni trascorsi)"
+msgstr "Current estimated value after depreciation. Calculated as: Purchase price − (Price / Useful life years × Years elapsed)"
+
+msgid "Valore attuale stimato tramite ammortamento lineare: Prezzo − (Prezzo ÷ Vita Utile × Anni Trascorsi). Scende a zero a fine vita utile."
+msgstr "Current value estimated via straight-line depreciation: Price − (Price ÷ Useful Life × Years Elapsed). Drops to zero at end of useful life."
+
+msgid "Valore residuo"
+msgstr "Residual value"
+
+msgid "Valutazione"
+msgstr "Rating"
+
+msgid "Valutazione Min."
+msgstr "Min. Rating"
+
+msgid "Valutazione:"
+msgstr "Valutazione:"
+
+msgid "Valutazioni"
+msgstr "Valutazioni"
+
+msgid "Vasetti"
+msgstr "Jars"
+
+msgid "Vedi albero"
+msgstr "Vedi albero"
+
+msgid "Vedi arnie"
+msgstr "View hives"
+
+msgid "Vedi tutte"
+msgstr "View all"
+
+msgid "Velocità del Vento"
+msgstr "Wind Speed"
+
+msgid "Vendita"
+msgstr "Vendita"
+
+#, python-format
+msgid "Vendita %(data)s"
+msgstr "Vendita %(data)s"
+
+#, python-format
+msgid "Vendita del %(data)s"
+msgstr "Vendita del %(data)s"
+
+msgid "Vendite CSV"
+msgstr "Sales CSV"
+
+msgid "Vendite registrate"
+msgstr "Sales recorded"
+
+msgid "Vento"
+msgstr "Wind"
+
+#, python-format
+msgid "Vento forte (%(v)s km/h): Controllare la stabilità delle arnie e posizionare eventuali ripari."
+msgstr "Vento forte (%(v)s km/h): Controllare la stabilità delle arnie e posizionare eventuali ripari."
+
+msgid "Verde"
+msgstr "Green"
+
+msgid "Verifica e salva"
+msgstr "Review and save"
+
+msgid "Verranno eliminati anche <strong>tutti i controlli, melari, dati regina e trattamenti</strong> associati a questa arnia."
+msgstr "Verranno eliminati anche <strong>tutti i controlli, melari, dati regina e trattamenti</strong> associati a questa arnia."
+
+#, python-format
+msgid "Verrà creata una nuova <strong>Arnia #%(n)s</strong> nell'apiario <strong>%(a)s</strong> con la data di oggi."
+msgstr "Verrà creata una nuova <strong>Arnia #%(n)s</strong> nell'apiario <strong>%(a)s</strong> con la data di oggi."
+
+msgid "Visibile al gruppo"
+msgstr "Visible to group"
+
+msgid "Visualizza"
+msgstr "Visualizza"
+
+msgid "Visualizza apiari, fioriture e raggio di volo delle api"
+msgstr "View apiaries, blooms and bee flight radius"
+
+msgid "Visualizza l'<strong>albero genealogico</strong> per tracciare discendenze e selezione genetica"
+msgstr "View the <strong>genealogy tree</strong> to track lineage and genetic selection"
+
+msgid "Visualizza sulla Mappa"
+msgstr "View on Map"
+
+msgid "Visualizzare e gestire fioriture e trattamenti"
+msgstr "View and manage blooms and treatments"
+
+msgid "Visualizzatore:"
+msgstr "Viewer:"
+
+msgid "Visualizzazione grafica su tutte le arnie"
+msgstr "Graphical view of all hives"
+
+msgid "Vita Utile (anni)"
+msgstr "Useful Life (years)"
+
+msgid "Vuoto"
+msgstr "Empty"
+
+msgid "ad ora inadatto a scopi pratici o professionali. Tuttavia, in futuro questa funzionalità potrebbe essere notevolmente migliorata! Se questa funzione ti interessa e vuoi vederla crescere, faccelo sapere supportandoci con una piccola donazione:"
+msgstr "ad ora inadatto a scopi pratici o professionali. Tuttavia, in futuro questa funzionalità potrebbe essere notevolmente migliorata! Se questa funzione ti interessa e vuoi vederla crescere, faccelo sapere supportandoci con una piccola donazione:"
+
+#, python-format
+msgid "al %(data)s"
+msgstr "al %(data)s"
+
+msgid "alla data odierna per confronti futuri."
+msgstr "at today's date for future comparisons."
+
+msgid "attuali"
+msgstr "current"
+
+msgid "avanti"
+msgstr "next"
+
+msgid "continua"
+msgstr "continue"
+
+msgid "da <em>Gestione → Melari</em> → pulsante <em>Esporta CSV</em>"
+msgstr "from <em>Management → Supers</em> → <em>Export CSV</em> button"
+
+msgid "da <em>Gestione → Trattamenti</em> → pulsante <em>Esporta CSV</em>"
+msgstr "from <em>Management → Treatments</em> → <em>Export CSV</em> button"
+
+msgid "da <em>Gestione → Vendite</em> → pulsante <em>Esporta CSV</em>"
+msgstr "from <em>Management → Sales</em> → <em>Export CSV</em> button"
+
+msgid "dall'interno di un apiario → pulsante <em>Esporta PDF</em>"
+msgstr "from inside an apiary → <em>Export PDF</em> button"
+
+msgid "debole, impreciso ed embrionale"
+msgstr "debole, impreciso ed embrionale"
+
+msgid "e parla — la trascrizione appare in tempo reale."
+msgstr "and speak — the transcription appears in real time."
+
+msgid "es. Apiguard"
+msgstr "es. Apiguard"
+
+msgid "es. LOT-2025-001"
+msgstr "e.g. LOT-2025-001"
+
+msgid "es. Maturatore 200L"
+msgstr "e.g. Maturator 200L"
+
+msgid "es. Millefiori, Acacia"
+msgstr "e.g. Wildflower, Acacia"
+
+msgid "es. Millefiori, Acacia, ecc."
+msgstr "e.g. Wildflower, Acacia, etc."
+
+msgid "es. Secchio 25kg #1"
+msgstr "e.g. Bucket 25kg #1"
+
+msgid "es. Timolo"
+msgstr "es. Timolo"
+
+msgid "evidenziate"
+msgstr "highlighted"
+
+msgid "filtrate"
+msgstr "filtered"
+
+msgid "filtrati"
+msgstr "filtrati"
+
+msgid "fine"
+msgstr "end"
+
+#, python-format
+msgid "fino al %(d)s"
+msgstr "fino al %(d)s"
+
+msgid "hai trascrizioni in coda e/o controlli già elaborati da Gemini."
+msgstr "you have transcriptions in queue and/or inspections already processed by Gemini."
+
+msgid "ho finito"
+msgstr "I'm done"
+
+msgid "indica presenza regina"
+msgstr "indica presenza regina"
+
+msgid "kg"
+msgstr "kg"
+
+msgid "kg confezionati"
+msgstr "kg packaged"
+
+msgid "kg in maturazione"
+msgstr "kg maturing"
+
+msgid "kg stoccati"
+msgstr "kg stored"
+
+msgid "kg usati"
+msgstr "kg used"
+
+msgid "nessun melario"
+msgstr "nessun melario"
+
+msgid "o dì"
+msgstr "or say"
+
+msgid "oppure clicca per scegliere"
+msgstr "oppure clicca per scegliere"
+
+msgid "passa all'arnia successiva"
+msgstr "move to next hive"
+
+msgid "per correggere un trascritto, poi invia con il pulsante."
+msgstr "to fix a transcript, then send with the button."
+
+msgid "per terminare."
+msgstr "to finish."
+
+msgid "piattaforma sicura e trasparente."
+msgstr "secure and transparent platform."
+
+msgid "più basso = meglio"
+msgstr "più basso = meglio"
+
+msgid "prossima"
+msgstr "forward"
+
+msgid "salvataggio…"
+msgstr "saving…"
+
+msgid "sempre copiati"
+msgstr "sempre copiati"
+
+msgid "sono state corrette automaticamente."
+msgstr "have been corrected automatically."
+
+msgid "stop"
+msgstr "stop"
+
+msgid "termina e processa"
+msgstr "finish and process"
+
+msgid "vasetti disponibili"
+msgstr "jars available"
+
+msgid "{n} vasetti × {fmt}g = {kg} kg confezionati"
+msgstr "{n} vasetti × {fmt}g = {kg} kg confezionati"
+
+msgid "— Nessuna —"
+msgstr "— None —"
+
+msgid "— Nessuno —"
+msgstr "— None —"
+
+msgid "— Seleziona apiario —"
+msgstr "— Select apiary —"
+
+msgid "— Tutte —"
+msgstr "— All —"
+
+msgid "— Tutti —"
+msgstr "— All —"
+
+msgid "— seleziona apiario —"
+msgstr "— seleziona apiario —"
+
+msgid "→ Cantina"
+msgstr "→ Honey House"
+
+msgid "✅ Pronto"
+msgstr "✅ Ready"
+
+msgid "🎤 Controllo Vocale"
+msgstr "🎤 Voice Control"
+
+msgid "📷 Analisi Telaino"
+msgstr "📷 Frame Analysis"
+
+msgid "🔷 0 celle"
+msgstr "🔷 0 cells"
+
+msgid "🗨️ Chat AI"
+msgstr "🗨️ AI Chat"
+
+#, python-format
+msgid "%(counter)s elemento"
+msgid_plural "%(counter)s elementi"
+msgstr[0] "%(counter)s element"
+msgstr[1] "%(counter)s elements"
+
+#, python-format
+msgid "%(counter)s attivo"
+msgid_plural "%(counter)s attivi"
+msgstr[0] "%(counter)s active"
+msgstr[1] "%(counter)s active"
+
+#, python-format
+msgid "%(counter)s contenitore"
+msgid_plural "%(counter)s contenitori"
+msgstr[0] "%(counter)s container"
+msgstr[1] "%(counter)s containers"
+
+#, python-format
+msgid "%(counter)s vasetto"
+msgid_plural "%(counter)s vasetti"
+msgstr[0] "%(counter)s jar"
+msgstr[1] "%(counter)s jars"
+
+#, python-format
+msgid "%(counter)s disponibile"
+msgid_plural "%(counter)s disponibili"
+msgstr[0] "%(counter)s available"
+msgstr[1] "%(counter)s available"
+
+#, python-format
+msgid "%(counter)s articolo"
+msgid_plural "%(counter)s articoli"
+msgstr[0] "%(counter)s item"
+msgstr[1] "%(counter)s items"
+
+#, python-format
+msgid "%(counter)s membro"
+msgid_plural "%(counter)s membri"
+msgstr[0] "%(counter)s member"
+msgstr[1] "%(counter)s members"
+
+#, python-format
+msgid "%(counter)s melario"
+msgid_plural "%(counter)s melari"
+msgstr[0] "%(counter)s super"
+msgstr[1] "%(counter)s supers"
+
+msgid "non letta"
+msgid_plural "non lette"
+msgstr[0] "unread"
+msgstr[1] "unread"
+
+#, python-format
+msgid "%(counter)s anno"
+msgid_plural "%(counter)s anni"
+msgstr[0] "%(counter)s year"
+msgstr[1] "%(counter)s years"

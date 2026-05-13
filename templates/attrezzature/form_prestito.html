@@ -1,19 +1,20 @@
 <!-- templates/attrezzature/form_prestito.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Richiedi Prestito - {{ attrezzatura.nome }}{% endblock %}
+{% block title %}{% blocktrans with n=attrezzatura.nome %}Richiedi Prestito - {{ n }}{% endblocktrans %}{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-lg-6 mx-auto">
         <div class="card">
             <div class="card-header">
-                <h4 class="mb-0"><i class="bi bi-arrow-right-circle"></i> Richiedi Prestito</h4>
+                <h4 class="mb-0"><i class="bi bi-arrow-right-circle"></i> {% trans "Richiedi Prestito" %}</h4>
             </div>
             <div class="card-body">
                 <div class="alert alert-info">
-                    <strong>Attrezzatura:</strong> {{ attrezzatura.nome }}<br>
-                    <strong>Proprietario:</strong> {{ attrezzatura.proprietario.username }}
+                    <strong>{% trans "Attrezzatura:" %}</strong> {{ attrezzatura.nome }}<br>
+                    <strong>{% trans "Proprietario:" %}</strong> {{ attrezzatura.proprietario.username }}
                 </div>
 
                 <form method="post">
@@ -22,32 +23,32 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="id_data_inizio_prestito" class="form-label">Data Inizio Prestito *</label>
+                                <label for="id_data_inizio_prestito" class="form-label">{% trans "Data Inizio Prestito" %} *</label>
                                 {{ form.data_inizio_prestito }}
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="id_data_fine_prevista" class="form-label">Data Fine Prevista *</label>
+                                <label for="id_data_fine_prevista" class="form-label">{% trans "Data Fine Prevista" %} *</label>
                                 {{ form.data_fine_prevista }}
                             </div>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="id_motivo" class="form-label">Motivo della Richiesta *</label>
+                        <label for="id_motivo" class="form-label">{% trans "Motivo della Richiesta" %} *</label>
                         {{ form.motivo }}
-                        <div class="form-text">Spiega perche hai bisogno di questa attrezzatura</div>
+                        <div class="form-text">{% trans "Spiega perché hai bisogno di questa attrezzatura" %}</div>
                     </div>
 
                     <hr>
 
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'dettaglio_attrezzatura' attrezzatura.id %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i> Annulla
+                            <i class="bi bi-arrow-left"></i> {% trans "Annulla" %}
                         </a>
                         <button type="submit" class="btn btn-info">
-                            <i class="bi bi-send"></i> Invia Richiesta
+                            <i class="bi bi-send"></i> {% trans "Invia Richiesta" %}
                         </button>
                     </div>
                 </form>

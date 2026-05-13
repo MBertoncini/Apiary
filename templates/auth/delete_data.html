@@ -1,10 +1,11 @@
+{% load i18n %}
 {% load static %}
 <!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Elimina Dati – Apiary Manager</title>
+  <title>{% trans "Elimina Dati – Apiary Manager" %}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <style>
@@ -19,36 +20,35 @@
     <div class="col-lg-7">
 
       <div class="text-center mb-4">
-        <span class="brand-title"><i class="bi bi-hexagon-fill me-2"></i>Apiary Manager</span>
-        <p class="text-muted mt-1">Gestione professionale dell'apiario</p>
+        <span class="brand-title"><i class="bi bi-hexagon-fill me-2"></i>{% trans "Apiary Manager" %}</span>
+        <p class="text-muted mt-1">{% trans "Gestione professionale dell'apiario" %}</p>
       </div>
 
       <div class="card shadow-sm p-4">
-        <h2 class="h4 mb-3"><i class="bi bi-database-x text-warning me-2"></i>Eliminazione dati personali</h2>
+        <h2 class="h4 mb-3"><i class="bi bi-database-x text-warning me-2"></i>{% trans "Eliminazione dati personali" %}</h2>
 
-        <p>Puoi richiedere l'eliminazione dei tuoi dati personali senza necessariamente eliminare l'account, oppure richiedere l'eliminazione completa di tutti i dati.</p>
+        <p>{% trans "Puoi richiedere l'eliminazione dei tuoi dati personali senza necessariamente eliminare l'account, oppure richiedere l'eliminazione completa di tutti i dati." %}</p>
 
-        <h5 class="mt-4">Come richiedere l'eliminazione dei dati</h5>
+        <h5 class="mt-4">{% trans "Come richiedere l'eliminazione dei dati" %}</h5>
 
-        <h6 class="mt-3">1. Dall'app mobile</h6>
+        <h6 class="mt-3">{% trans "1. Dall'app mobile" %}</h6>
         <ol>
-          <li>Accedi all'app <strong>Apiary Manager</strong>.</li>
-          <li>Vai su <strong>Profilo → Impostazioni account</strong>.</li>
-          <li>Scegli <strong>"Elimina dati"</strong> per i soli dati o <strong>"Elimina account"</strong> per tutto.</li>
+          <li>{% trans "Accedi all'app <strong>Apiary Manager</strong>." %}</li>
+          <li>{% trans "Vai su <strong>Profilo → Impostazioni account</strong>." %}</li>
+          <li>{% trans "Scegli <strong>\"Elimina dati\"</strong> per i soli dati o <strong>\"Elimina account\"</strong> per tutto." %}</li>
         </ol>
 
-        <h6 class="mt-3">2. Via email</h6>
-        <p>Invia una richiesta a: <a href="mailto:info@gestioneapiario.it">info@gestioneapiario.it</a><br>
-        Oggetto: <em>Richiesta eliminazione dati</em><br>
-        Specifica il nome utente o l'email dell'account e i dati che desideri eliminare.</p>
+        <h6 class="mt-3">{% trans "2. Via email" %}</h6>
+        <p>{% trans "Invia una richiesta a:" %} <a href="mailto:info@gestioneapiario.it">info@gestioneapiario.it</a><br>
+        {% trans "Oggetto:" %} <em>{% trans "Richiesta eliminazione dati" %}</em><br>
+        {% trans "Specifica il nome utente o l'email dell'account e i dati che desideri eliminare." %}</p>
 
         {% if user.is_authenticated %}
         <hr>
-        <h5 class="text-warning mt-3">Elimina tutti i tuoi dati ora</h5>
+        <h5 class="text-warning mt-3">{% trans "Elimina tutti i tuoi dati ora" %}</h5>
         <p class="text-muted small">
-          Stai per eliminare <strong>tutti i dati di apicoltura</strong> dell'account <strong>{{ user.username }}</strong>
-          (apiari, arnie, controlli, trattamenti, ecc.).<br>
-          L'account rimarrà attivo ma sarà vuoto. Questa azione è <strong>irreversibile</strong>.
+          {% blocktrans with u=user.username %}Stai per eliminare <strong>tutti i dati di apicoltura</strong> dell'account <strong>{{ u }}</strong> (apiari, arnie, controlli, trattamenti, ecc.).{% endblocktrans %}<br>
+          {% trans "L'account rimarrà attivo ma sarà vuoto. Questa azione è <strong>irreversibile</strong>." %}
         </p>
 
         {% if messages %}
@@ -63,35 +63,35 @@
         <form method="post">
           {% csrf_token %}
           <div class="mb-3">
-            <label class="form-label">Conferma digitando la tua password</label>
-            <input type="password" name="password" class="form-control" required placeholder="Password attuale">
+            <label class="form-label">{% trans "Conferma digitando la tua password" %}</label>
+            <input type="password" name="password" class="form-control" required placeholder="{% trans 'Password attuale' %}">
           </div>
           <button type="submit" class="btn btn-warning">
-            <i class="bi bi-trash-fill me-1"></i>Elimina tutti i miei dati
+            <i class="bi bi-trash-fill me-1"></i>{% trans "Elimina tutti i miei dati" %}
           </button>
         </form>
         {% endif %}
 
         <hr class="mt-4">
-        <h5>Tipi di dati eliminati su richiesta</h5>
+        <h5>{% trans "Tipi di dati eliminati su richiesta" %}</h5>
         <ul>
-          <li>Apiari e arnie</li>
-          <li>Controlli, trattamenti sanitari, melari</li>
-          <li>Regine, nuclei e movimenti</li>
-          <li>Analisi telaini e immagini caricate</li>
-          <li>Cronologia chat AI</li>
-          <li>Dati meteo associati agli apiari</li>
+          <li>{% trans "Apiari e arnie" %}</li>
+          <li>{% trans "Controlli, trattamenti sanitari, melari" %}</li>
+          <li>{% trans "Regine, nuclei e movimenti" %}</li>
+          <li>{% trans "Analisi telaini e immagini caricate" %}</li>
+          <li>{% trans "Cronologia chat AI" %}</li>
+          <li>{% trans "Dati meteo associati agli apiari" %}</li>
         </ul>
 
-        <h5 class="mt-3">Dati conservati dopo l'eliminazione</h5>
-        <p>Le credenziali dell'account (username/email/password) rimangono se hai scelto solo l'eliminazione dei dati e non dell'account. I log di sistema anonimi possono essere conservati per un massimo di 30 giorni per motivi di sicurezza.</p>
+        <h5 class="mt-3">{% trans "Dati conservati dopo l'eliminazione" %}</h5>
+        <p>{% trans "Le credenziali dell'account (username/email/password) rimangono se hai scelto solo l'eliminazione dei dati e non dell'account. I log di sistema anonimi possono essere conservati per un massimo di 30 giorni per motivi di sicurezza." %}</p>
 
-        <h5 class="mt-3">Tempi di elaborazione</h5>
-        <p>Le richieste via email vengono elaborate entro <strong>7 giorni lavorativi</strong>.</p>
+        <h5 class="mt-3">{% trans "Tempi di elaborazione" %}</h5>
+        <p>{% trans "Le richieste via email vengono elaborate entro <strong>7 giorni lavorativi</strong>." %}</p>
       </div>
 
       <p class="text-center text-muted small mt-3">
-        Sviluppatore: Apiary Manager · <a href="mailto:info@gestioneapiario.it">info@gestioneapiario.it</a>
+        {% trans "Sviluppatore: Apiary Manager" %} · <a href="mailto:info@gestioneapiario.it">info@gestioneapiario.it</a>
       </p>
     </div>
   </div>

@@ -1,13 +1,14 @@
 {% extends 'base.html' %}
-{% block title %}Modifica Cliente - Apiary{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Modifica Cliente" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title"><i class="bi bi-pencil me-2" style="color:var(--honey);"></i>Modifica {{ cliente.nome }}</h1>
+    <h1 class="page-title"><i class="bi bi-pencil me-2" style="color:var(--honey);"></i>{% blocktrans with nome=cliente.nome %}Modifica {{ nome }}{% endblocktrans %}</h1>
   </div>
   <a href="{% url 'gestione_clienti' %}" class="btn btn-outline-secondary">
-    <i class="bi bi-arrow-left me-1"></i>Indietro
+    <i class="bi bi-arrow-left me-1"></i>{% trans "Indietro" %}
   </a>
 </div>
 
@@ -25,8 +26,8 @@
           </div>
           {% endfor %}
           <div class="d-flex gap-2 justify-content-end">
-            <a href="{% url 'gestione_clienti' %}" class="btn btn-outline-secondary">Annulla</a>
-            <button type="submit" class="btn btn-primary">Salva</button>
+            <a href="{% url 'gestione_clienti' %}" class="btn btn-outline-secondary">{% trans "Annulla" %}</a>
+            <button type="submit" class="btn btn-primary">{% trans "Salva" %}</button>
           </div>
         </form>
       </div>

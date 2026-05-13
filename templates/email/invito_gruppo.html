@@ -1,9 +1,10 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Invito al gruppo {{ invito.gruppo.nome }}</title>
+  <title>{% blocktrans with nome=invito.gruppo.nome %}Invito al gruppo {{ nome }}{% endblocktrans %}</title>
   <style>
     body { font-family: 'Poppins', Arial, sans-serif; background: #FFFDF5; margin: 0; padding: 0; }
     .container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 12px; border: 1px solid #EAD9BF; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
@@ -25,44 +26,41 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>🐝 Gestione Apiario</h1>
-      <p>Invito a unirsi a un gruppo</p>
+      <h1>🐝 {% trans "Gestione Apiario" %}</h1>
+      <p>{% trans "Invito a unirsi a un gruppo" %}</p>
     </div>
     <div class="body">
-      <h2>Sei stato invitato!</h2>
+      <h2>{% trans "Sei stato invitato!" %}</h2>
       <p>
-        <strong>{{ invito.invitato_da.get_full_name|default:invito.invitato_da.username }}</strong>
-        ti ha invitato a unirti al gruppo <strong>{{ invito.gruppo.nome }}</strong>
-        sulla piattaforma di Gestione Apiario.
+        {% blocktrans with u=invito.invitato_da.get_full_name|default:invito.invitato_da.username g=invito.gruppo.nome %}<strong>{{ u }}</strong> ti ha invitato a unirti al gruppo <strong>{{ g }}</strong> sulla piattaforma di Gestione Apiario.{% endblocktrans %}
       </p>
 
       <div class="info-box">
-        <p><strong>Gruppo:</strong> {{ invito.gruppo.nome }}</p>
+        <p><strong>{% trans "Gruppo:" %}</strong> {{ invito.gruppo.nome }}</p>
         {% if invito.gruppo.descrizione %}
-        <p><strong>Descrizione:</strong> {{ invito.gruppo.descrizione }}</p>
+        <p><strong>{% trans "Descrizione:" %}</strong> {{ invito.gruppo.descrizione }}</p>
         {% endif %}
-        <p><strong>Ruolo proposto:</strong> {{ invito.get_ruolo_proposto_display }}</p>
-        <p><strong>Invitato da:</strong> {{ invito.invitato_da.get_full_name|default:invito.invitato_da.username }}</p>
-        <p><strong>Scadenza:</strong> {{ invito.data_scadenza|date:"d/m/Y H:i" }}</p>
+        <p><strong>{% trans "Ruolo proposto:" %}</strong> {{ invito.get_ruolo_proposto_display }}</p>
+        <p><strong>{% trans "Invitato da:" %}</strong> {{ invito.invitato_da.get_full_name|default:invito.invitato_da.username }}</p>
+        <p><strong>{% trans "Scadenza:" %}</strong> {{ invito.data_scadenza|date:"d/m/Y H:i" }}</p>
       </div>
 
-      <p>Clicca sul pulsante qui sotto per accettare l'invito e accedere al gruppo:</p>
+      <p>{% trans "Clicca sul pulsante qui sotto per accettare l'invito e accedere al gruppo:" %}</p>
 
-      <a href="{{ accept_url }}" class="btn">Accetta l'invito</a>
+      <a href="{{ accept_url }}" class="btn">{% trans "Accetta l'invito" %}</a>
 
       <p style="font-size: 13px; color: #888;">
-        Se il pulsante non funziona, copia e incolla questo link nel tuo browser:<br>
+        {% trans "Se il pulsante non funziona, copia e incolla questo link nel tuo browser:" %}<br>
         <a href="{{ accept_url }}" style="color: #F5A623; word-break: break-all;">{{ accept_url }}</a>
       </p>
 
       <p style="font-size: 13px; color: #aaa;">
-        Se non ti aspettavi questo invito, puoi semplicemente ignorare questa email.
-        L'invito scadrà automaticamente il {{ invito.data_scadenza|date:"d/m/Y" }}.
+        {% blocktrans with d=invito.data_scadenza|date:"d/m/Y" %}Se non ti aspettavi questo invito, puoi semplicemente ignorare questa email. L'invito scadrà automaticamente il {{ d }}.{% endblocktrans %}
       </p>
     </div>
     <div class="footer">
-      <p>Gestione Apiario &mdash; <a href="https://cible99.pythonanywhere.com">cible99.pythonanywhere.com</a></p>
-      <p>Questa email è stata inviata automaticamente, non rispondere a questo messaggio.</p>
+      <p>{% trans "Gestione Apiario" %} &mdash; <a href="https://cible99.pythonanywhere.com">cible99.pythonanywhere.com</a></p>
+      <p>{% trans "Questa email è stata inviata automaticamente, non rispondere a questo messaggio." %}</p>
     </div>
   </div>
 </body>

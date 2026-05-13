@@ -1,18 +1,19 @@
 <!-- templates/attrezzature/form_manutenzione.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Registra Manutenzione - {{ attrezzatura.nome }}{% endblock %}
+{% block title %}{% blocktrans with n=attrezzatura.nome %}Registra Manutenzione - {{ n }}{% endblocktrans %}{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-lg-6 mx-auto">
         <div class="card">
             <div class="card-header">
-                <h4 class="mb-0"><i class="bi bi-wrench"></i> Registra Manutenzione</h4>
+                <h4 class="mb-0"><i class="bi bi-wrench"></i> {% trans "Registra Manutenzione" %}</h4>
             </div>
             <div class="card-body">
                 <div class="alert alert-info">
-                    <strong>Attrezzatura:</strong> {{ attrezzatura.nome }}
+                    <strong>{% trans "Attrezzatura:" %}</strong> {{ attrezzatura.nome }}
                     {% if attrezzatura.marca %} - {{ attrezzatura.marca }} {{ attrezzatura.modello|default:"" }}{% endif %}
                 </div>
 
@@ -22,13 +23,13 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="id_tipo" class="form-label">Tipo Manutenzione *</label>
+                                <label for="id_tipo" class="form-label">{% trans "Tipo Manutenzione" %} *</label>
                                 {{ form.tipo }}
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="id_stato" class="form-label">Stato *</label>
+                                <label for="id_stato" class="form-label">{% trans "Stato" %} *</label>
                                 {{ form.stato }}
                             </div>
                         </div>
@@ -37,46 +38,46 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="id_data_programmata" class="form-label">Data Programmata *</label>
+                                <label for="id_data_programmata" class="form-label">{% trans "Data Programmata" %} *</label>
                                 {{ form.data_programmata }}
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="id_data_esecuzione" class="form-label">Data Esecuzione</label>
+                                <label for="id_data_esecuzione" class="form-label">{% trans "Data Esecuzione" %}</label>
                                 {{ form.data_esecuzione }}
                             </div>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="id_descrizione" class="form-label">Descrizione *</label>
+                        <label for="id_descrizione" class="form-label">{% trans "Descrizione" %} *</label>
                         {{ form.descrizione }}
                     </div>
 
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="id_costo" class="form-label">Costo (&euro;)</label>
+                                <label for="id_costo" class="form-label">{% trans "Costo (€)" %}</label>
                                 {{ form.costo }}
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="id_eseguito_da" class="form-label">Eseguito Da</label>
+                                <label for="id_eseguito_da" class="form-label">{% trans "Eseguito Da" %}</label>
                                 {{ form.eseguito_da }}
                             </div>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="id_prossima_manutenzione" class="form-label">Prossima Manutenzione</label>
+                        <label for="id_prossima_manutenzione" class="form-label">{% trans "Prossima Manutenzione" %}</label>
                         {{ form.prossima_manutenzione }}
-                        <div class="form-text">Data suggerita per la prossima manutenzione</div>
+                        <div class="form-text">{% trans "Data suggerita per la prossima manutenzione" %}</div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="id_note" class="form-label">Note</label>
+                        <label for="id_note" class="form-label">{% trans "Note" %}</label>
                         {{ form.note }}
                     </div>
 
@@ -84,10 +85,10 @@
 
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'dettaglio_attrezzatura' attrezzatura.id %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i> Annulla
+                            <i class="bi bi-arrow-left"></i> {% trans "Annulla" %}
                         </a>
                         <button type="submit" class="btn btn-warning">
-                            <i class="bi bi-check-lg"></i> Salva Manutenzione
+                            <i class="bi bi-check-lg"></i> {% trans "Salva Manutenzione" %}
                         </button>
                     </div>
                 </form>

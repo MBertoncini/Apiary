@@ -1,16 +1,17 @@
 <!-- templates/regine/ricerca_regine.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Ricerca Regine - Apiary{% endblock %}
+{% block title %}{% trans "Ricerca Regine" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">👑 Ricerca Regine</h1>
-    <p class="page-subtitle">Filtra e confronta le regine dei tuoi apiari</p>
+    <h1 class="page-title">👑 {% trans "Ricerca Regine" %}</h1>
+    <p class="page-subtitle">{% trans "Filtra e confronta le regine dei tuoi apiari" %}</p>
   </div>
   <a href="{% url 'confronta_regine' %}" class="btn btn-outline-secondary">
-    <i class="bi bi-bar-chart-steps me-1"></i>Confronta
+    <i class="bi bi-bar-chart-steps me-1"></i>{% trans "Confronta" %}
   </a>
 </div>
 
@@ -19,29 +20,29 @@
         <!-- Filtri di ricerca -->
         <div class="card mb-4">
             <div class="card-header">
-                <i class="bi bi-funnel"></i> Filtri di Ricerca
+                <i class="bi bi-funnel"></i> {% trans "Filtri di Ricerca" %}
             </div>
             <div class="card-body">
                 <form method="get" id="search-form">
                     <div class="row g-3">
                         <div class="col-md-3">
-                            <label class="form-label">Razza</label>
+                            <label class="form-label">{% trans "Razza" %}</label>
                             {{ form.razza }}
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Origine</label>
+                            <label class="form-label">{% trans "Origine" %}</label>
                             {{ form.origine }}
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label">Anno Nascita</label>
+                            <label class="form-label">{% trans "Anno Nascita" %}</label>
                             {{ form.anno_nascita }}
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label">Selezionata</label>
+                            <label class="form-label">{% trans "Selezionata" %}</label>
                             {{ form.selezionata }}
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label">Valutazione Min.</label>
+                            <label class="form-label">{% trans "Valutazione Min." %}</label>
                             {{ form.valutazione_minima }}
                         </div>
                     </div>
@@ -50,16 +51,16 @@
                             <div class="form-check">
                                 {{ form.con_figlie }}
                                 <label class="form-check-label" for="id_con_figlie">
-                                    Solo con discendenza registrata
+                                    {% trans "Solo con discendenza registrata" %}
                                 </label>
                             </div>
                         </div>
                         <div class="col-md-8 text-end">
                             <a href="{% url 'ricerca_regine' %}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-circle"></i> Pulisci
+                                <i class="bi bi-x-circle"></i> {% trans "Pulisci" %}
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-search"></i> Cerca
+                                <i class="bi bi-search"></i> {% trans "Cerca" %}
                             </button>
                         </div>
                     </div>
@@ -70,7 +71,7 @@
         <!-- Pulsante confronta -->
         <div class="mb-3">
             <button type="button" class="btn btn-info" id="btn-confronta" disabled>
-                <i class="bi bi-arrows-expand"></i> Confronta Selezionate (<span id="count-selected">0</span>)
+                <i class="bi bi-arrows-expand"></i> {% trans "Confronta Selezionate" %} (<span id="count-selected">0</span>)
             </button>
         </div>
 
@@ -78,7 +79,7 @@
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
-                    Risultati
+                    {% trans "Risultati" %}
                     <span class="badge bg-secondary">{{ stats.totale }}</span>
                 </h5>
             </div>
@@ -92,14 +93,14 @@
                                         <th style="width: 40px;">
                                             <input type="checkbox" class="form-check-input" id="select-all">
                                         </th>
-                                        <th>Arnia</th>
-                                        <th>Razza</th>
-                                        <th>Origine</th>
-                                        <th>Eta</th>
-                                        <th>Madre</th>
-                                        <th>Figlie</th>
-                                        <th>Valutazione</th>
-                                        <th>Azioni</th>
+                                        <th>{% trans "Arnia" %}</th>
+                                        <th>{% trans "Razza" %}</th>
+                                        <th>{% trans "Origine" %}</th>
+                                        <th>{% trans "Età" %}</th>
+                                        <th>{% trans "Madre" %}</th>
+                                        <th>{% trans "Figlie" %}</th>
+                                        <th>{% trans "Valutazione" %}</th>
+                                        <th>{% trans "Azioni" %}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -122,7 +123,7 @@
                                         <td>{{ regina.get_origine_display }}</td>
                                         <td>
                                             {% if regina.get_eta_anni %}
-                                                {{ regina.get_eta_anni }} anni
+                                                {% blocktrans count counter=regina.get_eta_anni %}{{ counter }} anno{% plural %}{{ counter }} anni{% endblocktrans %}
                                             {% else %}
                                                 <span class="text-muted">-</span>
                                             {% endif %}
@@ -157,17 +158,17 @@
                                                     {% endfor %}
                                                 </div>
                                             {% else %}
-                                                <span class="text-muted">Non valutata</span>
+                                                <span class="text-muted">{% trans "Non valutata" %}</span>
                                             {% endif %}
                                         </td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
                                                 <a href="{% url 'visualizza_regina' regina.arnia.id %}"
-                                                   class="btn btn-outline-primary" title="Dettaglio">
+                                                   class="btn btn-outline-primary" title="{% trans 'Dettaglio' %}">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
                                                 <a href="{% url 'albero_genealogico_completo' regina.id %}"
-                                                   class="btn btn-outline-success" title="Genealogia">
+                                                   class="btn btn-outline-success" title="{% trans 'Genealogia' %}">
                                                     <i class="bi bi-diagram-3"></i>
                                                 </a>
                                             </div>
@@ -180,7 +181,7 @@
                     </form>
                 {% else %}
                     <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> Nessuna regina trovata con i filtri selezionati.
+                        <i class="bi bi-info-circle"></i> {% trans "Nessuna regina trovata con i filtri selezionati." %}
                     </div>
                 {% endif %}
             </div>
@@ -191,15 +192,15 @@
     <div class="col-lg-3">
         <div class="card mb-4">
             <div class="card-header">
-                <h6 class="mb-0"><i class="bi bi-bar-chart"></i> Statistiche</h6>
+                <h6 class="mb-0"><i class="bi bi-bar-chart"></i> {% trans "Statistiche" %}</h6>
             </div>
             <div class="card-body">
-                <p><strong>Totale:</strong> {{ stats.totale }}</p>
-                <p><strong>Con genealogia:</strong> {{ stats.con_genealogia }}</p>
+                <p><strong>{% trans "Totale:" %}</strong> {{ stats.totale }}</p>
+                <p><strong>{% trans "Con genealogia:" %}</strong> {{ stats.con_genealogia }}</p>
 
                 <hr>
 
-                <h6>Per Razza</h6>
+                <h6>{% trans "Per Razza" %}</h6>
                 {% for razza, count in stats.per_razza.items %}
                     <div class="d-flex justify-content-between mb-1">
                         <small>{{ razza }}</small>
@@ -211,7 +212,7 @@
 
                 <hr>
 
-                <h6>Per Origine</h6>
+                <h6>{% trans "Per Origine" %}</h6>
                 {% for origine, count in stats.per_origine.items %}
                     <div class="d-flex justify-content-between mb-1">
                         <small>{{ origine }}</small>
@@ -225,22 +226,22 @@
 
         <div class="card">
             <div class="card-header">
-                <h6 class="mb-0"><i class="bi bi-lightbulb"></i> Suggerimenti</h6>
+                <h6 class="mb-0"><i class="bi bi-lightbulb"></i> {% trans "Suggerimenti" %}</h6>
             </div>
             <div class="card-body">
                 <small class="text-muted">
                     <ul class="list-unstyled mb-0">
                         <li class="mb-2">
                             <i class="bi bi-check-circle text-success"></i>
-                            Usa i filtri per trovare regine con caratteristiche specifiche
+                            {% trans "Usa i filtri per trovare regine con caratteristiche specifiche" %}
                         </li>
                         <li class="mb-2">
                             <i class="bi bi-check-circle text-success"></i>
-                            Seleziona 2+ regine per confrontarle
+                            {% trans "Seleziona 2+ regine per confrontarle" %}
                         </li>
                         <li>
                             <i class="bi bi-check-circle text-success"></i>
-                            Clicca sull'icona genealogia per vedere l'albero completo
+                            {% trans "Clicca sull'icona genealogia per vedere l'albero completo" %}
                         </li>
                     </ul>
                 </small>

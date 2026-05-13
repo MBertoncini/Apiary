@@ -1,27 +1,28 @@
 <!-- templates/melari/gestione_melari.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 {% load app_filters %}
 
-{% block title %}Gestione Melari - {{ apiario.nome }}{% endblock %}
+{% block title %}{% blocktrans with a=apiario.nome %}Gestione Melari - {{ a }}{% endblocktrans %}{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">🍯 Melari — {{ apiario.nome }}</h1>
+    <h1 class="page-title">🍯 {% trans "Melari" %} — {{ apiario.nome }}</h1>
     <nav aria-label="breadcrumb" class="mt-1">
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
         <li class="breadcrumb-item"><a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a></li>
-        <li class="breadcrumb-item active">Melari</li>
+        <li class="breadcrumb-item active">{% trans "Melari" %}</li>
       </ol>
     </nav>
   </div>
   <div class="d-flex gap-2">
-    <a href="{% url 'export_produzione_csv' %}" class="btn btn-outline-success btn-sm" title="Esporta produzione miele">
-      <i class="bi bi-filetype-csv me-1"></i>Esporta produzione
+    <a href="{% url 'export_produzione_csv' %}" class="btn btn-outline-success btn-sm" title="{% trans 'Esporta produzione miele' %}">
+      <i class="bi bi-filetype-csv me-1"></i>{% trans "Esporta produzione" %}
     </a>
     <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i>Torna all'apiario
+      <i class="bi bi-arrow-left me-1"></i>{% trans "Torna all'apiario" %}
     </a>
   </div>
 </div>
@@ -30,12 +31,12 @@
 <ul class="nav nav-tabs mb-4">
     <li class="nav-item">
         <a class="nav-link active" id="melari-tab" data-bs-toggle="tab" href="#melari">
-            <i class="bi bi-archive"></i> Melari
+            <i class="bi bi-archive"></i> {% trans "Melari" %}
         </a>
     </li>
     <li class="nav-item">
         <a class="nav-link" id="smielature-tab" data-bs-toggle="tab" href="#smielature">
-            <i class="bi bi-droplet"></i> Smielature
+            <i class="bi bi-droplet"></i> {% trans "Smielature" %}
         </a>
     </li>
 </ul>
@@ -47,7 +48,7 @@
             <div class="col-12 mb-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-archive"></i> Gestione Melari</h5>
+                        <h5 class="mb-0"><i class="bi bi-archive"></i> {% trans "Gestione Melari" %}</h5>
                     </div>
                     <div class="card-body">
                         <!-- Lista arnie con rispettivi melari -->
@@ -55,11 +56,11 @@
                             {% for arnia in arnie %}
                             <div class="col-lg-4 col-md-6 mb-4">
                                 <div class="card h-100">
-                                    <div class="card-header" 
+                                    <div class="card-header"
                                         {% if arnia.colore_hex %}style="background-color: {{ arnia.colore_hex }}; color: {% if arnia.colore_hex == '#FFFFFF' or arnia.colore_hex == '#FFC107' %}#212529{% else %}white{% endif %};"{% endif %}>
                                         <h6 class="mb-0 d-flex justify-content-between">
-                                            <span>Arnia #{{ arnia.numero }}</span>
-                                            <span class="badge bg-light text-dark">{{ arnia.melari.count }} melari</span>
+                                            <span>{% blocktrans with n=arnia.numero %}Arnia #{{ n }}{% endblocktrans %}</span>
+                                            <span class="badge bg-light text-dark">{% blocktrans count counter=arnia.melari.count %}{{ counter }} melario{% plural %}{{ counter }} melari{% endblocktrans %}</span>
                                         </h6>
                                     </div>
                                     <div class="card-body">
@@ -67,19 +68,18 @@
                                         <div class="small text-muted mb-2">
                                             {% for controllo in ultimi_controlli %}
                                                 {% if controllo.arnia.id == arnia.id %}
-                                                    Nido: {{ controllo.telaini_covata }} covata, 
-                                                    {{ controllo.telaini_scorte }} scorte
+                                                    {% blocktrans with c=controllo.telaini_covata s=controllo.telaini_scorte %}Nido: {{ c }} covata, {{ s }} scorte{% endblocktrans %}
                                                     {% if controllo.presenza_regina %}
-                                                        <span class="badge bg-success">Regina ✓</span>
+                                                        <span class="badge bg-success">{% trans "Regina ✓" %}</span>
                                                     {% else %}
-                                                        <span class="badge bg-danger">Regina ✗</span>
+                                                        <span class="badge bg-danger">{% trans "Regina ✗" %}</span>
                                                     {% endif %}
                                                 {% endif %}
                                             {% endfor %}
                                         </div>
-                                        
+
                                         <!-- Lista dei melari -->
-                                        <h6>Melari:</h6>
+                                        <h6>{% trans "Melari:" %}</h6>
                                         {% with melari=arnia.melari.all %}
                                             {% if melari %}
                                                 <div class="melari-stack mb-3">
@@ -90,79 +90,79 @@
                                                             border-radius: 5px;">
                                                             <div class="d-flex justify-content-between align-items-center">
                                                                 <div>
-                                                                    <strong>Melario #{{ melario.id }}</strong> 
+                                                                    <strong>{% blocktrans with i=melario.id %}Melario #{{ i }}{% endblocktrans %}</strong>
                                                                     <span class="badge {% if melario.stato == 'posizionato' %}bg-success{% elif melario.stato == 'in_smielatura' %}bg-warning text-dark{% elif melario.stato == 'smielato' %}bg-info{% else %}bg-secondary{% endif %}">
                                                                         {{ melario.get_stato_display }}
                                                                     </span><br>
-                                                                    <small>{{ melario.numero_telaini }} telaini - Pos. {{ melario.posizione }}</small>
+                                                                    <small>{% blocktrans with t=melario.numero_telaini p=melario.posizione %}{{ t }} telaini - Pos. {{ p }}{% endblocktrans %}</small>
                                                                 </div>
                                                                 {% if melario.stato == 'posizionato' %}
                                                                 <div class="btn-group btn-group-sm">
-                                                                    <button class="btn btn-outline-danger" title="Rimuovi melario" data-bs-toggle="modal" data-bs-target="#removeMelarioModal{{ melario.id }}">
+                                                                    <button class="btn btn-outline-danger" title="{% trans 'Rimuovi melario' %}" data-bs-toggle="modal" data-bs-target="#removeMelarioModal{{ melario.id }}">
                                                                         <i class="bi bi-box-arrow-up"></i>
                                                                     </button>
-                                                                    <button class="btn btn-outline-warning" title="Invia in smielatura" data-bs-toggle="modal" data-bs-target="#smielaturaMelarioModal{{ melario.id }}">
+                                                                    <button class="btn btn-outline-warning" title="{% trans 'Invia in smielatura' %}" data-bs-toggle="modal" data-bs-target="#smielaturaMelarioModal{{ melario.id }}">
                                                                         <i class="bi bi-droplet"></i>
                                                                     </button>
                                                                 </div>
                                                                 {% endif %}
                                                             </div>
                                                         </div>
-                                                        
+
                                                         <!-- Modal per rimuovere melario -->
                                                         <div class="modal fade" id="removeMelarioModal{{ melario.id }}" tabindex="-1" aria-hidden="true">
                                                             <div class="modal-dialog">
                                                                 <div class="modal-content">
                                                                     <div class="modal-header bg-danger text-white">
-                                                                        <h5 class="modal-title">Rimuovi Melario - Arnia #{{ arnia.numero }}</h5>
-                                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                        <h5 class="modal-title">{% blocktrans with n=arnia.numero %}Rimuovi Melario - Arnia #{{ n }}{% endblocktrans %}</h5>
+                                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
                                                                     </div>
                                                                     <form method="post" action="{% url 'rimuovi_melario' melario.id %}">
                                                                         {% csrf_token %}
                                                                         <div class="modal-body">
-                                                                            <p>Stai per rimuovere il melario #{{ melario.id }} dall'arnia #{{ arnia.numero }}.</p>
-                                                                            
+                                                                            <p>{% blocktrans with mi=melario.id an=arnia.numero %}Stai per rimuovere il melario #{{ mi }} dall'arnia #{{ an }}.{% endblocktrans %}</p>
+
                                                                             <div class="mb-3">
-                                                                                <label for="data_rimozione{{ melario.id }}" class="form-label">Data rimozione</label>
+                                                                                <label for="data_rimozione{{ melario.id }}" class="form-label">{% trans "Data rimozione" %}</label>
                                                                                 <input type="date" class="form-control" id="data_rimozione{{ melario.id }}" name="data_rimozione" value="{{ today|date:'Y-m-d' }}">
                                                                             </div>
-                                                                            
+
                                                                             <div class="mb-3">
-                                                                                <label for="notes{{ melario.id }}" class="form-label">Note</label>
+                                                                                <label for="notes{{ melario.id }}" class="form-label">{% trans "Note" %}</label>
                                                                                 <textarea class="form-control" id="notes{{ melario.id }}" name="notes" rows="2"></textarea>
                                                                             </div>
                                                                         </div>
                                                                         <div class="modal-footer">
-                                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                                                                            <button type="submit" class="btn btn-danger">Rimuovi</button>
+                                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
+                                                                            <button type="submit" class="btn btn-danger">{% trans "Rimuovi" %}</button>
                                                                         </div>
                                                                     </form>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        
+
                                                         <!-- Modal per inviare in smielatura -->
                                                         <div class="modal fade" id="smielaturaMelarioModal{{ melario.id }}" tabindex="-1" aria-hidden="true">
                                                             <div class="modal-dialog">
                                                                 <div class="modal-content">
                                                                     <div class="modal-header bg-warning text-dark">
-                                                                        <h5 class="modal-title">Invia in Smielatura - Melario #{{ melario.id }}</h5>
-                                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                        <h5 class="modal-title">{% blocktrans with i=melario.id %}Invia in Smielatura - Melario #{{ i }}{% endblocktrans %}</h5>
+                                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
                                                                     </div>
                                                                     <form method="post" action="{% url 'invia_in_smielatura' melario.id %}">
                                                                         {% csrf_token %}
                                                                         <div class="modal-body">
-                                                                            <p>Stai per inviare il melario #{{ melario.id }} ({{ melario.numero_telaini }} telaini) in smielatura.</p>
-                                                                            <p>Il melario verrà rimosso dall'arnia e contrassegnato come "In Smielatura".</p>
-                                                                            
+                                                                            <p>{% blocktrans with i=melario.id t=melario.numero_telaini %}Stai per inviare il melario #{{ i }} ({{ t }} telaini) in smielatura.{% endblocktrans %}</p>
+                                                                            <p>{% trans "Il melario verrà rimosso dall'arnia e contrassegnato come \"In Smielatura\"." %}</p>
+
                                                                             <div class="mb-3">
-                                                                                <label for="notes{{ melario.id }}" class="form-label">Note</label>
+                                                                                <label for="notes{{ melario.id }}" class="form-label">{% trans "Note" %}</label>
                                                                                 <textarea class="form-control" id="notes{{ melario.id }}" name="notes" rows="2"></textarea>
                                                                             </div>
                                                                         </div>
                                                                         <div class="modal-footer">
-                                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                                                                            <button type="submit" class="btn btn-warning">Invia in Smielatura</button>
+                                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
+                                                                            <button type="submit" class="btn btn-warning">{% trans "Invia in Smielatura" %}</button>
                                                                         </div>
                                                                     </form>
                                                                 </div>
@@ -171,45 +171,45 @@
                                                     {% endfor %}
                                                 </div>
                                             {% else %}
-                                                <p class="text-muted">Nessun melario posizionato</p>
+                                                <p class="text-muted">{% trans "Nessun melario posizionato" %}</p>
                                             {% endif %}
-                                            
+
                                             <button class="btn btn-sm btn-success w-100" data-bs-toggle="modal" data-bs-target="#addMelarioModal{{ arnia.id }}">
-                                                <i class="bi bi-plus-circle"></i> Aggiungi melario
+                                                <i class="bi bi-plus-circle"></i> {% trans "Aggiungi melario" %}
                                             </button>
-                                            
+
                                             <!-- Modal per aggiungere melario -->
                                             <div class="modal fade" id="addMelarioModal{{ arnia.id }}" tabindex="-1" aria-hidden="true">
                                                 <div class="modal-dialog">
                                                     <div class="modal-content">
                                                         <div class="modal-header bg-success text-white">
-                                                            <h5 class="modal-title">Aggiungi Melario - Arnia #{{ arnia.numero }}</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            <h5 class="modal-title">{% blocktrans with n=arnia.numero %}Aggiungi Melario - Arnia #{{ n }}{% endblocktrans %}</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
                                                         </div>
                                                         <form method="post" action="{% url 'aggiungi_melario' arnia.id %}">
                                                             {% csrf_token %}
                                                             <div class="modal-body">
                                                                 <div class="mb-3">
-                                                                    <label for="numero_telaini{{ arnia.id }}" class="form-label">Numero telaini</label>
+                                                                    <label for="numero_telaini{{ arnia.id }}" class="form-label">{% trans "Numero telaini" %}</label>
                                                                     <input type="number" class="form-control" id="numero_telaini{{ arnia.id }}" name="numero_telaini" value="10" min="1" max="12">
                                                                 </div>
                                                                 <div class="mb-3">
-                                                                    <label for="posizione{{ arnia.id }}" class="form-label">Posizione</label>
+                                                                    <label for="posizione{{ arnia.id }}" class="form-label">{% trans "Posizione" %}</label>
                                                                     <input type="number" class="form-control" id="posizione{{ arnia.id }}" name="posizione" value="{{ arnia.melari.count|add:1 }}" min="1" max="5">
-                                                                    <div class="form-text">1 = più vicino al nido, 2 = sopra il primo melario, ecc.</div>
+                                                                    <div class="form-text">{% trans "1 = più vicino al nido, 2 = sopra il primo melario, ecc." %}</div>
                                                                 </div>
                                                                 <div class="mb-3">
-                                                                    <label for="data_posizionamento{{ arnia.id }}" class="form-label">Data posizionamento</label>
+                                                                    <label for="data_posizionamento{{ arnia.id }}" class="form-label">{% trans "Data posizionamento" %}</label>
                                                                     <input type="date" class="form-control" id="data_posizionamento{{ arnia.id }}" name="data_posizionamento" value="{{ today|date:'Y-m-d' }}">
                                                                 </div>
                                                                 <div class="mb-3">
-                                                                    <label for="note{{ arnia.id }}" class="form-label">Note</label>
+                                                                    <label for="note{{ arnia.id }}" class="form-label">{% trans "Note" %}</label>
                                                                     <textarea class="form-control" id="note{{ arnia.id }}" name="note" rows="2"></textarea>
                                                                 </div>
                                                             </div>
                                                             <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                                                                <button type="submit" class="btn btn-success">Aggiungi</button>
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
+                                                                <button type="submit" class="btn btn-success">{% trans "Aggiungi" %}</button>
                                                             </div>
                                                         </form>
                                                     </div>
@@ -222,9 +222,9 @@
                             {% empty %}
                             <div class="col-12">
                                 <div class="alert alert-info">
-                                    <p>Non ci sono arnie attive in questo apiario.</p>
+                                    <p>{% trans "Non ci sono arnie attive in questo apiario." %}</p>
                                     <a href="{% url 'crea_arnia' %}?apiario_id={{ apiario.id }}" class="btn btn-primary">
-                                        <i class="bi bi-plus-circle"></i> Aggiungi una nuova arnia
+                                        <i class="bi bi-plus-circle"></i> {% trans "Aggiungi una nuova arnia" %}
                                     </a>
                                 </div>
                             </div>
@@ -235,52 +235,52 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Tab Smielature -->
     <div class="tab-pane fade" id="smielature">
         <div class="row">
             <div class="col-md-8 mb-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-droplet"></i> Registra Smielatura</h5>
+                        <h5 class="mb-0"><i class="bi bi-droplet"></i> {% trans "Registra Smielatura" %}</h5>
                     </div>
                     <div class="card-body">
                         <form method="post" action="{% url 'registra_smielatura' apiario.id %}">
                             {% csrf_token %}
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="data_smielatura" class="form-label">Data smielatura</label>
+                                    <label for="data_smielatura" class="form-label">{% trans "Data smielatura" %}</label>
                                     <input type="date" class="form-control" id="data_smielatura" name="data" value="{{ today|date:'Y-m-d' }}">
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label for="tipo_miele" class="form-label">Tipo di miele</label>
-                                    <input type="text" class="form-control" id="tipo_miele" name="tipo_miele" placeholder="es. Millefiori, Acacia, ecc.">
+                                    <label for="tipo_miele" class="form-label">{% trans "Tipo di miele" %}</label>
+                                    <input type="text" class="form-control" id="tipo_miele" name="tipo_miele" placeholder="{% trans 'es. Millefiori, Acacia, ecc.' %}">
                                 </div>
                             </div>
-                            
+
                             <div class="mb-3">
-                                <label for="quantita_miele" class="form-label">Quantità (kg)</label>
+                                <label for="quantita_miele" class="form-label">{% trans "Quantità (kg)" %}</label>
                                 <input type="number" class="form-control" id="quantita_miele" name="quantita_miele" step="0.1" min="0">
                             </div>
-                            
+
                             <div class="mb-3">
-                                <label class="form-label">Melari smielati</label>
+                                <label class="form-label">{% trans "Melari smielati" %}</label>
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="mb-2">
-                                            <button type="button" class="btn btn-sm btn-outline-primary" id="seleziona-tutti">Seleziona tutti</button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary" id="deseleziona-tutti">Deseleziona tutti</button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" id="seleziona-tutti">{% trans "Seleziona tutti" %}</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" id="deseleziona-tutti">{% trans "Deseleziona tutti" %}</button>
                                         </div>
-                                        
+
                                         {% for arnia in arnie %}
                                         {% if melari_in_smielatura|get_item:arnia.id %}
-                                            <h6>Arnia #{{ arnia.numero }}</h6>
+                                            <h6>{% blocktrans with n=arnia.numero %}Arnia #{{ n }}{% endblocktrans %}</h6>
                                             <div class="mb-3">
                                                 {% for melario in melari_in_smielatura|get_item:arnia.id %}
                                                     <div class="form-check">
                                                         <input class="form-check-input melari-checkbox" type="checkbox" name="melari" value="{{ melario.id }}" id="melario-{{ melario.id }}">
                                                         <label class="form-check-label" for="melario-{{ melario.id }}">
-                                                            Melario #{{ melario.id }} - Posizione {{ melario.posizione }} ({{ melario.numero_telaini }} telaini)
+                                                            {% blocktrans with i=melario.id p=melario.posizione t=melario.numero_telaini %}Melario #{{ i }} - Posizione {{ p }} ({{ t }} telaini){% endblocktrans %}
                                                         </label>
                                                     </div>
                                                 {% endfor %}
@@ -290,51 +290,51 @@
                                         <!-- Mostria i melari in smielatura o posizionati che possono essere smielati -->
                                         {% if not arnie.exists or not any_melari_in_smielatura %}
                                             <div class="alert alert-info">
-                                                <p>Non ci sono melari in attesa di smielatura. Puoi inviare i melari in smielatura dalla sezione "Melari".</p>
+                                                <p>{% trans "Non ci sono melari in attesa di smielatura. Puoi inviare i melari in smielatura dalla sezione \"Melari\"." %}</p>
                                             </div>
                                         {% endif %}
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="mb-3">
-                                <label for="note_smielatura" class="form-label">Note</label>
+                                <label for="note_smielatura" class="form-label">{% trans "Note" %}</label>
                                 <textarea class="form-control" id="note_smielatura" name="note" rows="3"></textarea>
                             </div>
-                            
-                            <button type="submit" class="btn btn-success">Registra Smielatura</button>
+
+                            <button type="submit" class="btn btn-success">{% trans "Registra Smielatura" %}</button>
                         </form>
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> {% trans "Informazioni" %}</h5>
                     </div>
                     <div class="card-body">
-                        <h6>Come funziona la smielatura?</h6>
-                        <p>Il processo di registrazione della smielatura è composto da due fasi:</p>
+                        <h6>{% trans "Come funziona la smielatura?" %}</h6>
+                        <p>{% trans "Il processo di registrazione della smielatura è composto da due fasi:" %}</p>
                         <ol>
-                            <li>Invia i melari in smielatura dalla scheda "Melari"</li>
-                            <li>Registra la smielatura con la quantità di miele effettivamente estratta in questa scheda</li>
+                            <li>{% trans "Invia i melari in smielatura dalla scheda \"Melari\"" %}</li>
+                            <li>{% trans "Registra la smielatura con la quantità di miele effettivamente estratta in questa scheda" %}</li>
                         </ol>
                         <div class="alert alert-warning mt-3">
-                            <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong> 
-                            Registra sempre con precisione il tipo di miele e la quantità ottenuta per mantenere un'accurata traccia della produzione.
+                            <i class="bi bi-lightbulb"></i> <strong>{% trans "Suggerimento:" %}</strong>
+                            {% trans "Registra sempre con precisione il tipo di miele e la quantità ottenuta per mantenere un'accurata traccia della produzione." %}
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Storico Smielature -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Storico Smielature</h5>
+                        <h5 class="mb-0"><i class="bi bi-clock-history"></i> {% trans "Storico Smielature" %}</h5>
                     </div>
                     <div class="card-body">
                         {% if smielature %}
@@ -342,12 +342,12 @@
                                 <table class="table table-striped">
                                     <thead>
                                         <tr>
-                                            <th>Data</th>
-                                            <th>Tipo miele</th>
-                                            <th>Quantità</th>
-                                            <th>Melari</th>
-                                            <th>Operatore</th>
-                                            <th>Azioni</th>
+                                            <th>{% trans "Data" %}</th>
+                                            <th>{% trans "Tipo miele" %}</th>
+                                            <th>{% trans "Quantità" %}</th>
+                                            <th>{% trans "Melari" %}</th>
+                                            <th>{% trans "Operatore" %}</th>
+                                            <th>{% trans "Azioni" %}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -369,7 +369,7 @@
                                 </table>
                             </div>
                         {% else %}
-                            <p class="text-center">Nessuna smielatura registrata.</p>
+                            <p class="text-center">{% trans "Nessuna smielatura registrata." %}</p>
                         {% endif %}
                     </div>
                 </div>
@@ -385,21 +385,21 @@
         // Gestione dei pulsanti "Seleziona tutti" e "Deseleziona tutti"
         const selezionaTuttiBtn = document.getElementById('seleziona-tutti');
         const deselezionaTuttiBtn = document.getElementById('deseleziona-tutti');
-        
+
         if (selezionaTuttiBtn && deselezionaTuttiBtn) {
             selezionaTuttiBtn.addEventListener('click', function() {
                 document.querySelectorAll('.melari-checkbox').forEach(function(checkbox) {
                     checkbox.checked = true;
                 });
             });
-            
+
             deselezionaTuttiBtn.addEventListener('click', function() {
                 document.querySelectorAll('.melari-checkbox').forEach(function(checkbox) {
                     checkbox.checked = false;
                 });
             });
         }
-        
+
         // Attivazione dei tab basata sul fragment dell'URL
         const hashUrl = window.location.hash;
         if (hashUrl) {

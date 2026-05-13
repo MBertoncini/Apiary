@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load static %}
 
-{% block title %}Supporta Apiary — Offrici un Caffè{% endblock %}
+{% block title %}{% trans "Supporta Apiary — Offrici un Caffè" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -277,18 +278,18 @@
       <div class="coffee-cup">☕</div>
     </div>
 
-    <h1 class="hero-title">Offrici un caffè!</h1>
+    <h1 class="hero-title">{% trans "Offrici un caffè!" %}</h1>
     <p class="hero-subtitle">
-      Apiary è sviluppato con passione nel tempo libero da appassionati di apicoltura e tecnologia.
-      Nessun compenso, nessun finanziamento - solo amore per le api e il codice.<br>
-      Se ti è utile, un piccolo gesto fa la differenza!
+      {% trans "Apiary è sviluppato con passione nel tempo libero da appassionati di apicoltura e tecnologia." %}
+      {% trans "Nessun compenso, nessun finanziamento - solo amore per le api e il codice." %}<br>
+      {% trans "Se ti è utile, un piccolo gesto fa la differenza!" %}
     </p>
 
     <a href="https://www.buymeacoffee.com/apiary"
        target="_blank" rel="noopener noreferrer"
        class="btn-donate">
       <i class="bi bi-cup-hot-fill"></i>
-      Offrici un caffè
+      {% trans "Offrici un caffè" %}
     </a>
   </div>
 
@@ -300,8 +301,8 @@
         <i class="bi bi-code-slash" style="color:#F5A623;"></i>
       </div>
       <div>
-        <h6>100% Open Source</h6>
-        <p>Tutto il codice è scritto e mantenuto gratuitamente.</p>
+        <h6>{% trans "100% Open Source" %}</h6>
+        <p>{% trans "Tutto il codice è scritto e mantenuto gratuitamente." %}</p>
       </div>
     </div>
 
@@ -310,8 +311,8 @@
         <i class="bi bi-flower1" style="color:#28a745;"></i>
       </div>
       <div>
-        <h6>Fatto da apicoltori</h6>
-        <p>Sviluppato da chi alleva api e conosce le reali esigenze di chi lavora in campo.</p>
+        <h6>{% trans "Fatto da apicoltori" %}</h6>
+        <p>{% trans "Sviluppato da chi alleva api e conosce le reali esigenze di chi lavora in campo." %}</p>
       </div>
     </div>
 
@@ -320,8 +321,8 @@
         <i class="bi bi-server" style="color:#3b82f6;"></i>
       </div>
       <div>
-        <h6>Infrastruttura</h6>
-        <p>I costi di hosting, dominio e server vengono sostenuti di tasca propria ogni anno.</p>
+        <h6>{% trans "Infrastruttura" %}</h6>
+        <p>{% trans "I costi di hosting, dominio e server vengono sostenuti di tasca propria ogni anno." %}</p>
       </div>
     </div>
 
@@ -330,13 +331,13 @@
         <i class="bi bi-rocket-takeoff" style="color:#a855f7;"></i>
       </div>
       <div>
-        <h6>Sempre in crescita</h6>
-        <p>Nuove funzionalità: AI, mappe, analisi dei telaini, app mobile e molto altro.</p>
+        <h6>{% trans "Sempre in crescita" %}</h6>
+        <p>{% trans "Nuove funzionalità: AI, mappe, analisi dei telaini, app mobile e molto altro." %}</p>
         <div class="tech-pills">
-          <span class="tech-pill">Django</span>
-          <span class="tech-pill">Flutter</span>
-          <span class="tech-pill">AI/YOLO</span>
-          <span class="tech-pill">Gemini</span>
+          <span class="tech-pill">{% trans "Django" %}</span>
+          <span class="tech-pill">{% trans "Flutter" %}</span>
+          <span class="tech-pill">{% trans "AI/YOLO" %}</span>
+          <span class="tech-pill">{% trans "Gemini" %}</span>
         </div>
       </div>
     </div>
@@ -347,11 +348,10 @@
   <div class="card" style="border:1px solid #EAD9BF;border-radius:16px;background:#FFFDF5;">
     <div class="card-body text-center py-4">
       <h5 style="font-family:'Caveat',cursive;font-size:1.5rem;color:#2C1810;margin-bottom:.5rem;">
-        Anche un piccolo gesto conta 🍯
+        {% trans "Anche un piccolo gesto conta 🍯" %}
       </h5>
       <p style="color:#7a6a5a;font-size:.9rem;max-width:460px;margin:0 auto 1.25rem;">
-        Non puoi donare? Nessun problema! Puoi comunque supportarci condividendo l'app con altri apicoltori,
-        segnalando bug o suggerendo nuove funzionalità.
+        {% trans "Non puoi donare? Nessun problema! Puoi comunque supportarci condividendo l'app con altri apicoltori, segnalando bug o suggerendo nuove funzionalità." %}
       </p>
       {% if messages %}
         {% for msg in messages %}
@@ -366,26 +366,26 @@
         {% csrf_token %}
         <div class="row g-2">
           <div class="col-sm-6">
-            <input type="text" name="nome" class="form-control form-control-sm" placeholder="Il tuo nome *"
+            <input type="text" name="nome" class="form-control form-control-sm" placeholder="{% trans 'Il tuo nome *' %}"
                    style="border-radius:10px;border-color:#EAD9BF;background:#fff;" required maxlength="100">
           </div>
           <div class="col-sm-6">
-            <input type="email" name="email" class="form-control form-control-sm" placeholder="Email (opzionale, per risponderti)"
+            <input type="email" name="email" class="form-control form-control-sm" placeholder="{% trans 'Email (opzionale, per risponderti)' %}"
                    style="border-radius:10px;border-color:#EAD9BF;background:#fff;" maxlength="254">
           </div>
           <div class="col-12">
             <textarea name="messaggio" class="form-control form-control-sm" rows="3"
-                      placeholder="Messaggio, suggerimento o segnalazione bug... *"
+                      placeholder="{% trans 'Messaggio, suggerimento o segnalazione bug... *' %}"
                       style="border-radius:10px;border-color:#EAD9BF;background:#fff;resize:vertical;"
                       required maxlength="2000"></textarea>
           </div>
           <div class="col-12 d-flex flex-wrap gap-2 align-items-center justify-content-between mt-1">
             <a href="{% url 'dashboard' %}" class="btn btn-sm"
                style="background:#F5A623;color:#fff;border-radius:20px;font-weight:500;">
-              <i class="bi bi-speedometer2 me-1"></i> Torna alla Dashboard
+              <i class="bi bi-speedometer2 me-1"></i> {% trans "Torna alla Dashboard" %}
             </a>
             <button type="submit" class="btn btn-sm btn-outline-secondary" style="border-radius:20px;">
-              <i class="bi bi-send me-1"></i> Invia feedback
+              <i class="bi bi-send me-1"></i> {% trans "Invia feedback" %}
             </button>
           </div>
         </div>
@@ -394,9 +394,9 @@
   </div>
 
   <p class="donation-footer-note mt-3">
-    Le donazioni vengono gestite tramite
-    <a href="https://www.buymeacoffee.com" target="_blank" rel="noopener">Buy Me a Coffee</a>
-    — piattaforma sicura e trasparente.
+    {% trans "Le donazioni vengono gestite tramite" %}
+    <a href="https://www.buymeacoffee.com" target="_blank" rel="noopener">{% trans "Buy Me a Coffee" %}</a>
+    — {% trans "piattaforma sicura e trasparente." %}
   </p>
 
 </div>

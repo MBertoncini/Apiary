@@ -1,30 +1,31 @@
 {% extends 'base.html' %}
-{% block title %}Nucleo #{{ nucleo.numero }} — Apiary{% endblock %}
+{% load i18n %}
+{% block title %}{% blocktrans with n=nucleo.numero %}Nucleo #{{ n }}{% endblocktrans %} — Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
     <h1 class="page-title">
       <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:{{ nucleo.colore_hex }};border:2px solid #EAD9BF;vertical-align:middle;margin-right:6px;"></span>
-      Nucleo #{{ nucleo.numero }}
+      {% blocktrans with n=nucleo.numero %}Nucleo #{{ n }}{% endblocktrans %}
     </h1>
     <p class="page-subtitle">
       <a href="{% url 'visualizza_apiario' nucleo.apiario.id %}">{{ nucleo.apiario.nome }}</a>
-      · Installato il {{ nucleo.data_installazione|date:"d/m/Y" }}
-      {% if not nucleo.attiva %}<span class="badge bg-success ms-2">Convertito</span>{% endif %}
+      · {% blocktrans with d=nucleo.data_installazione|date:"d/m/Y" %}Installato il {{ d }}{% endblocktrans %}
+      {% if not nucleo.attiva %}<span class="badge bg-success ms-2">{% trans "Convertito" %}</span>{% endif %}
     </p>
   </div>
   <div class="d-flex gap-2">
     {% if nucleo.attiva %}
     <a href="{% url 'modifica_nucleo' nucleo.pk %}" class="btn btn-outline-secondary btn-sm">
-      <i class="bi bi-pencil me-1"></i>Modifica
+      <i class="bi bi-pencil me-1"></i>{% trans "Modifica" %}
     </a>
     <a href="{% url 'converti_nucleo_in_arnia' nucleo.pk %}" class="btn btn-success btn-sm">
-      <i class="bi bi-arrow-up-circle me-1"></i>Converti in Arnia
+      <i class="bi bi-arrow-up-circle me-1"></i>{% trans "Converti in Arnia" %}
     </a>
     {% else %}
     <a href="{% url 'visualizza_apiario' nucleo.apiario.id %}" class="btn btn-outline-secondary btn-sm">
-      <i class="bi bi-grid me-1"></i>Vai all'Arnia #{{ nucleo.arnia.numero }}
+      <i class="bi bi-grid me-1"></i>{% blocktrans with n=nucleo.arnia.numero %}Vai all'Arnia #{{ n }}{% endblocktrans %}
     </a>
     {% endif %}
   </div>
@@ -34,27 +35,27 @@
   <!-- Info + Aggiungi controllo -->
   <div class="col-lg-4">
     <div class="card mb-4">
-      <div class="card-header"><i class="bi bi-info-circle me-1"></i>Dati Nucleo</div>
+      <div class="card-header"><i class="bi bi-info-circle me-1"></i>{% trans "Dati Nucleo" %}</div>
       <div class="card-body">
         <dl class="row mb-0 small">
-          <dt class="col-5">Apiario</dt>
+          <dt class="col-5">{% trans "Apiario" %}</dt>
           <dd class="col-7">{{ nucleo.apiario.nome }}</dd>
-          <dt class="col-5">Numero</dt>
+          <dt class="col-5">{% trans "Numero" %}</dt>
           <dd class="col-7">#{{ nucleo.numero }}</dd>
-          <dt class="col-5">Installato</dt>
+          <dt class="col-5">{% trans "Installato" %}</dt>
           <dd class="col-7">{{ nucleo.data_installazione|date:"d/m/Y" }}</dd>
-          <dt class="col-5">Colore</dt>
+          <dt class="col-5">{% trans "Colore" %}</dt>
           <dd class="col-7">
             <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:{{ nucleo.colore_hex }};border:1px solid #ccc;vertical-align:middle;"></span>
             {{ nucleo.colore_hex }}
           </dd>
-          <dt class="col-5">Stato</dt>
+          <dt class="col-5">{% trans "Stato" %}</dt>
           <dd class="col-7">
-            {% if nucleo.attiva %}<span class="badge" style="background:var(--honey);">Attivo</span>
-            {% else %}<span class="badge bg-success">Convertito il {{ nucleo.data_conversione|date:"d/m/Y" }}</span>{% endif %}
+            {% if nucleo.attiva %}<span class="badge" style="background:var(--honey);">{% trans "Attivo" %}</span>
+            {% else %}<span class="badge bg-success">{% blocktrans with d=nucleo.data_conversione|date:"d/m/Y" %}Convertito il {{ d }}{% endblocktrans %}</span>{% endif %}
           </dd>
           {% if nucleo.note %}
-          <dt class="col-5">Note</dt>
+          <dt class="col-5">{% trans "Note" %}</dt>
           <dd class="col-7">{{ nucleo.note }}</dd>
           {% endif %}
         </dl>
@@ -63,7 +64,7 @@
 
     {% if nucleo.attiva %}
     <div class="card">
-      <div class="card-header"><i class="bi bi-clipboard-plus me-1"></i>Aggiungi Controllo</div>
+      <div class="card-header"><i class="bi bi-clipboard-plus me-1"></i>{% trans "Aggiungi Controllo" %}</div>
       <div class="card-body">
         <form method="post" action="{% url 'aggiungi_controllo_nucleo' nucleo.pk %}">
           {% csrf_token %}
@@ -75,7 +76,7 @@
           </div>
           {% endfor %}
           <button type="submit" class="btn btn-primary btn-sm w-100">
-            <i class="bi bi-save me-1"></i>Salva controllo
+            <i class="bi bi-save me-1"></i>{% trans "Salva controllo" %}
           </button>
         </form>
       </div>
@@ -87,7 +88,7 @@
   <div class="col-lg-8">
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-clipboard-check me-1"></i>Storico Controlli</span>
+        <span><i class="bi bi-clipboard-check me-1"></i>{% trans "Storico Controlli" %}</span>
         <span class="badge" style="background:var(--honey);">{{ controlli|length }}</span>
       </div>
       <div class="card-body p-0">
@@ -96,11 +97,11 @@
           <table class="table table-hover mb-0">
             <thead>
               <tr>
-                <th>Data</th>
-                <th>Telaini</th>
-                <th>Forza</th>
-                <th>Regina</th>
-                <th>Note</th>
+                <th>{% trans "Data" %}</th>
+                <th>{% trans "Telaini" %}</th>
+                <th>{% trans "Forza" %}</th>
+                <th>{% trans "Regina" %}</th>
+                <th>{% trans "Note" %}</th>
               </tr>
             </thead>
             <tbody>
@@ -109,7 +110,7 @@
                 <td class="fw-semibold small">{{ c.data|date:"d/m/Y" }}</td>
                 <td class="small">
                   {% if c.n_telaini is not None %}
-                  <span class="badge bg-secondary">{{ c.n_telaini }} tel.</span>
+                  <span class="badge bg-secondary">{% blocktrans with n=c.n_telaini %}{{ n }} tel.{% endblocktrans %}</span>
                   {% else %}—{% endif %}
                 </td>
                 <td class="small">
@@ -120,8 +121,8 @@
                   {% else %}—{% endif %}
                 </td>
                 <td class="small">
-                  {% if c.presenza_regina is True %}<span class="badge bg-success">Sì</span>
-                  {% elif c.presenza_regina is False %}<span class="badge bg-danger">No</span>
+                  {% if c.presenza_regina is True %}<span class="badge bg-success">{% trans "Sì" %}</span>
+                  {% elif c.presenza_regina is False %}<span class="badge bg-danger">{% trans "No" %}</span>
                   {% else %}<span class="text-muted">—</span>{% endif %}
                 </td>
                 <td class="small text-muted" style="max-width:200px;">
@@ -135,8 +136,8 @@
         {% else %}
         <div class="text-center py-5 text-muted">
           <i class="bi bi-clipboard display-4 d-block mb-2 opacity-25"></i>
-          <p>Nessun controllo registrato.<br>
-          {% if nucleo.attiva %}Usa il form a sinistra per aggiungere il primo.{% endif %}</p>
+          <p>{% trans "Nessun controllo registrato." %}<br>
+          {% if nucleo.attiva %}{% trans "Usa il form a sinistra per aggiungere il primo." %}{% endif %}</p>
         </div>
         {% endif %}
       </div>
@@ -149,7 +150,7 @@
 <div class="mt-4 pt-3 border-top">
   <a href="{% url 'elimina_nucleo' nucleo.pk %}"
      class="btn btn-sm btn-outline-danger">
-    <i class="bi bi-trash me-1"></i>Elimina nucleo
+    <i class="bi bi-trash me-1"></i>{% trans "Elimina nucleo" %}
   </a>
 </div>
 {% endif %}

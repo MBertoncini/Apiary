@@ -1,16 +1,17 @@
 <!-- templates/melari/dettaglio_smielatura.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Dettaglio Smielatura - {{ smielatura.data|date:"d/m/Y" }}{% endblock %}
+{% block title %}{% trans "Dettaglio Smielatura" %} - {{ smielatura.data|date:"d/m/Y" }}{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">💧 Dettaglio Smielatura</h1>
+    <h1 class="page-title">💧 {% trans "Dettaglio Smielatura" %}</h1>
     <nav aria-label="breadcrumb" class="mt-1">
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="{% url 'gestione_melari_globale' %}#smielature">Melari</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'gestione_melari_globale' %}#smielature">{% trans "Melari" %}</a></li>
         <li class="breadcrumb-item active">{{ smielatura.data|date:"d/m/Y" }} — {{ smielatura.tipo_miele }}</li>
       </ol>
     </nav>
@@ -18,14 +19,14 @@
   <div class="d-flex gap-2 flex-wrap">
     <a href="{% url 'gestione_cantina' %}?smielatura={{ smielatura.id }}"
        class="btn btn-sm btn-outline-secondary"
-       title="Crea un maturatore per questa smielatura">
-      <i class="bi bi-hourglass-split me-1"></i>→ Cantina
+       title="{% trans 'Crea un maturatore per questa smielatura' %}">
+      <i class="bi bi-hourglass-split me-1"></i>{% trans "→ Cantina" %}
     </a>
     <a href="{% url 'crea_invasettamento' smielatura.id %}" class="btn btn-warning btn-sm">
-      <i class="bi bi-jar me-1"></i>Invasetta
+      <i class="bi bi-jar me-1"></i>{% trans "Invasetta" %}
     </a>
     <a href="{% url 'gestione_melari_globale' %}#smielature" class="btn btn-outline-secondary btn-sm">
-      <i class="bi bi-arrow-left me-1"></i>Torna ai Melari
+      <i class="bi bi-arrow-left me-1"></i>{% trans "Torna ai Melari" %}
     </a>
   </div>
 </div>
@@ -34,40 +35,40 @@
     <div class="col-md-8">
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-droplet"></i> Dati Smielatura</h5>
+                <h5 class="mb-0"><i class="bi bi-droplet"></i> {% trans "Dati Smielatura" %}</h5>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <p><strong>Data:</strong> {{ smielatura.data|date:"d/m/Y" }}</p>
-                        <p><strong>Apiario:</strong> {{ apiario.nome }}</p>
-                        <p><strong>Operatore:</strong> {{ smielatura.utente.username }}</p>
+                        <p><strong>{% trans "Data:" %}</strong> {{ smielatura.data|date:"d/m/Y" }}</p>
+                        <p><strong>{% trans "Apiario:" %}</strong> {{ apiario.nome }}</p>
+                        <p><strong>{% trans "Operatore:" %}</strong> {{ smielatura.utente.username }}</p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>Tipo miele:</strong> {{ smielatura.tipo_miele }}</p>
-                        <p><strong>Quantità:</strong> {{ smielatura.quantita_miele }} kg</p>
-                        <p><strong>Melari smielati:</strong> {{ smielatura.melari.count }}</p>
+                        <p><strong>{% trans "Tipo miele:" %}</strong> {{ smielatura.tipo_miele }}</p>
+                        <p><strong>{% trans "Quantità:" %}</strong> {{ smielatura.quantita_miele }} kg</p>
+                        <p><strong>{% trans "Melari smielati:" %}</strong> {{ smielatura.melari.count }}</p>
                     </div>
                 </div>
-                
+
                 {% if smielatura.note %}
                 <div class="alert alert-light mt-3">
-                    <h6><i class="bi bi-journal-text"></i> Note:</h6>
+                    <h6><i class="bi bi-journal-text"></i> {% trans "Note:" %}</h6>
                     <p>{{ smielatura.note|linebreaks }}</p>
                 </div>
                 {% endif %}
             </div>
         </div>
-        
+
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-archive"></i> Melari Smielati</h5>
+                <h5 class="mb-0"><i class="bi bi-archive"></i> {% trans "Melari Smielati" %}</h5>
             </div>
             <div class="card-body">
                 {% if melari_per_arnia %}
                     {% for arnia_id, dati in melari_per_arnia.items %}
                         <h6 class="mt-3{% if not forloop.first %} border-top pt-3{% endif %}">
-                            Arnia #{{ dati.arnia.numero }}
+                            {% blocktrans with n=dati.arnia.numero %}Arnia #{{ n }}{% endblocktrans %}
                             <small class="badge {% if dati.arnia.colore == 'giallo' %}bg-warning text-dark{% elif dati.arnia.colore == 'blu' %}bg-primary{% elif dati.arnia.colore == 'verde' %}bg-success{% elif dati.arnia.colore == 'rosso' %}bg-danger{% elif dati.arnia.colore == 'bianco' %}bg-light text-dark{% elif dati.arnia.colore == 'nero' %}bg-dark{% elif dati.arnia.colore == 'arancione' %}bg-warning{% elif dati.arnia.colore == 'viola' %}bg-purple{% else %}bg-secondary{% endif %}">
                                 {{ dati.arnia.get_colore_display }}
                             </small>
@@ -76,17 +77,17 @@
                             <table class="table table-sm table-striped">
                                 <thead>
                                     <tr>
-                                        <th>Melario</th>
-                                        <th>Posizione</th>
-                                        <th>Telaini</th>
-                                        <th>Data posizionamento</th>
-                                        <th>Data rimozione</th>
+                                        <th>{% trans "Melario" %}</th>
+                                        <th>{% trans "Posizione" %}</th>
+                                        <th>{% trans "Telaini" %}</th>
+                                        <th>{% trans "Data posizionamento" %}</th>
+                                        <th>{% trans "Data rimozione" %}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for melario in dati.melari %}
                                         <tr>
-                                            <td>Melario #{{ melario.id }}</td>
+                                            <td>{% blocktrans with i=melario.id %}Melario #{{ i }}{% endblocktrans %}</td>
                                             <td>{{ melario.posizione }}</td>
                                             <td>{{ melario.numero_telaini }}</td>
                                             <td>{{ melario.data_posizionamento|date:"d/m/Y" }}</td>
@@ -98,31 +99,31 @@
                         </div>
                     {% endfor %}
                 {% else %}
-                    <p class="text-center">Nessun dettaglio disponibile sui melari smielati.</p>
+                    <p class="text-center">{% trans "Nessun dettaglio disponibile sui melari smielati." %}</p>
                 {% endif %}
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-calculator"></i> Statistiche</h5>
+                <h5 class="mb-0"><i class="bi bi-calculator"></i> {% trans "Statistiche" %}</h5>
             </div>
             <div class="card-body">
-                <p><strong>Media per melario:</strong>
+                <p><strong>{% trans "Media per melario:" %}</strong>
                     {% if media_per_melario %}{{ media_per_melario }} kg{% else %}—{% endif %}
                 </p>
-                <p><strong>Media per telaino:</strong>
+                <p><strong>{% trans "Media per telaino:" %}</strong>
                     {% if media_per_telaino %}{{ media_per_telaino }} kg{% else %}—{% endif %}
                 </p>
-                <p><strong>Media per arnia:</strong>
+                <p><strong>{% trans "Media per arnia:" %}</strong>
                     {% if media_per_arnia %}{{ media_per_arnia }} kg{% else %}—{% endif %}
                 </p>
-                
+
                 <div class="alert alert-warning mt-3">
-                    <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong> 
-                    Le statistiche possono essere utilizzate per valutare la produttività delle diverse arnie e la qualità della stagione.
+                    <i class="bi bi-lightbulb"></i> <strong>{% trans "Suggerimento:" %}</strong>
+                    {% trans "Le statistiche possono essere utilizzate per valutare la produttività delle diverse arnie e la qualità della stagione." %}
                 </div>
             </div>
         </div>
@@ -134,9 +135,9 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-jar me-1"></i>Invasettamenti da questa smielatura</span>
+                <span><i class="bi bi-jar me-1"></i>{% trans "Invasettamenti da questa smielatura" %}</span>
                 <a href="{% url 'crea_invasettamento' smielatura.id %}" class="btn btn-sm btn-warning">
-                    <i class="bi bi-plus me-1"></i>Aggiungi
+                    <i class="bi bi-plus me-1"></i>{% trans "Aggiungi" %}
                 </a>
             </div>
             <div class="card-body p-0">
@@ -145,13 +146,13 @@
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>Data</th>
-                                <th>Tipo miele</th>
-                                <th>Formato</th>
-                                <th>Vasetti</th>
-                                <th>kg confezionati</th>
-                                <th>Lotto</th>
-                                <th class="text-end">Azioni</th>
+                                <th>{% trans "Data" %}</th>
+                                <th>{% trans "Tipo miele" %}</th>
+                                <th>{% trans "Formato" %}</th>
+                                <th>{% trans "Vasetti" %}</th>
+                                <th>{% trans "kg confezionati" %}</th>
+                                <th>{% trans "Lotto" %}</th>
+                                <th class="text-end">{% trans "Azioni" %}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -165,7 +166,7 @@
                                 <td class="small text-muted">{{ inv.lotto|default:"—" }}</td>
                                 <td class="text-end">
                                     <form method="post" action="{% url 'elimina_invasettamento' inv.pk %}" class="d-inline"
-                                          onsubmit="return confirm('Eliminare questo invasettamento?')">
+                                          onsubmit="return confirm('{% trans "Eliminare questo invasettamento?" %}')">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-sm btn-outline-danger">
                                             <i class="bi bi-trash"></i>
@@ -180,9 +181,9 @@
                 {% else %}
                 <div class="text-center py-4 text-muted small">
                     <i class="bi bi-jar d-block mb-2 opacity-25" style="font-size:2rem;"></i>
-                    Nessun invasettamento registrato.
+                    {% trans "Nessun invasettamento registrato." %}
                     <a href="{% url 'crea_invasettamento' smielatura.id %}" class="d-block mt-2">
-                        Aggiungi il primo invasettamento
+                        {% trans "Aggiungi il primo invasettamento" %}
                     </a>
                 </div>
                 {% endif %}
@@ -195,14 +196,14 @@
     <div class="col-12">
         <div class="d-flex justify-content-between flex-wrap gap-2">
             <a href="{% url 'gestione_melari_globale' %}#smielature" class="btn btn-secondary">
-                <i class="bi bi-arrow-left me-1"></i>Torna alle smielature
+                <i class="bi bi-arrow-left me-1"></i>{% trans "Torna alle smielature" %}
             </a>
             <div class="d-flex gap-2">
                 <a href="{% url 'gestione_cantina' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-hourglass-split me-1"></i>Apri Cantina
+                    <i class="bi bi-hourglass-split me-1"></i>{% trans "Apri Cantina" %}
                 </a>
                 <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-primary">
-                    <i class="bi bi-grid me-1"></i>Torna all'apiario
+                    <i class="bi bi-grid me-1"></i>{% trans "Torna all'apiario" %}
                 </a>
             </div>
         </div>

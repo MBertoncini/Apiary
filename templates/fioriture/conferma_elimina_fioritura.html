@@ -1,40 +1,41 @@
 <!-- templates/fioriture/conferma_elimina_fioritura.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Conferma Eliminazione Fioritura - Apiary{% endblock %}
+{% block title %}{% trans "Conferma Eliminazione Fioritura" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-6 offset-md-3">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Conferma Eliminazione Fioritura</h5>
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> {% trans "Conferma Eliminazione Fioritura" %}</h5>
             </div>
             <div class="card-body">
-                <p>Sei sicuro di voler eliminare la fioritura di <strong>{{ fioritura.pianta }}</strong>?</p>
-                
+                <p>{% blocktrans with p=fioritura.pianta %}Sei sicuro di voler eliminare la fioritura di <strong>{{ p }}</strong>?{% endblocktrans %}</p>
+
                 <div class="alert alert-warning">
-                    <strong>Attenzione:</strong> Questa operazione non può essere annullata.
+                    <strong>{% trans "Attenzione:" %}</strong> {% trans "Questa operazione non può essere annullata." %}
                 </div>
-                
-                <h6>Dettagli fioritura:</h6>
+
+                <h6>{% trans "Dettagli fioritura:" %}</h6>
                 <ul>
-                    <li><strong>Pianta:</strong> {{ fioritura.pianta }}</li>
-                    <li><strong>Periodo:</strong> {{ fioritura.data_inizio|date:"d/m/Y" }}
+                    <li><strong>{% trans "Pianta:" %}</strong> {{ fioritura.pianta }}</li>
+                    <li><strong>{% trans "Periodo:" %}</strong> {{ fioritura.data_inizio|date:"d/m/Y" }}
                         {% if fioritura.data_fine %} - {{ fioritura.data_fine|date:"d/m/Y" }}{% endif %}
                     </li>
-                    <li><strong>Apiario:</strong> {% if fioritura.apiario %}{{ fioritura.apiario.nome }}{% else %}Non associato{% endif %}</li>
-                    <li><strong>Creatore:</strong> {% if fioritura.creatore %}{{ fioritura.creatore.username }}{% else %}Sconosciuto{% endif %}</li>
+                    <li><strong>{% trans "Apiario:" %}</strong> {% if fioritura.apiario %}{{ fioritura.apiario.nome }}{% else %}{% trans "Non associato" %}{% endif %}</li>
+                    <li><strong>{% trans "Creatore:" %}</strong> {% if fioritura.creatore %}{{ fioritura.creatore.username }}{% else %}{% trans "Sconosciuto" %}{% endif %}</li>
                 </ul>
             </div>
             <div class="card-footer d-flex justify-content-between">
                 <form method="post">
                     {% csrf_token %}
                     <a href="{% url 'gestione_fioriture' %}" class="btn btn-secondary">
-                        <i class="bi bi-x-circle"></i> Annulla
+                        <i class="bi bi-x-circle"></i> {% trans "Annulla" %}
                     </a>
                     <button type="submit" class="btn btn-danger ms-2">
-                        <i class="bi bi-trash"></i> Elimina Fioritura
+                        <i class="bi bi-trash"></i> {% trans "Elimina Fioritura" %}
                     </button>
                 </form>
             </div>

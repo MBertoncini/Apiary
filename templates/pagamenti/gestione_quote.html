@@ -1,29 +1,30 @@
 <!-- templates/pagamenti/gestione_quote.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 {% load crispy_forms_tags %}
 
-{% block title %}Gestione Quote - Apiary{% endblock %}
+{% block title %}{% trans "Gestione Quote" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">💰 Quote Utenti</h1>
-    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'gestione_pagamenti' %}{% if gruppo_selezionato %}?gruppo_id={{ gruppo_selezionato.id }}{% endif %}">Pagamenti</a> › Quote</p>
+    <h1 class="page-title">💰 {% trans "Quote Utenti" %}</h1>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a> › <a href="{% url 'gestione_pagamenti' %}{% if gruppo_selezionato %}?gruppo_id={{ gruppo_selezionato.id }}{% endif %}">{% trans "Pagamenti" %}</a> › {% trans "Quote" %}</p>
   </div>
   <div class="d-flex gap-2 align-items-center">
     <div class="dropdown">
       <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-        {% if gruppo_selezionato %}<i class="bi bi-people me-1"></i>{{ gruppo_selezionato.nome }}{% else %}<i class="bi bi-person me-1"></i>Personali{% endif %}
+        {% if gruppo_selezionato %}<i class="bi bi-people me-1"></i>{{ gruppo_selezionato.nome }}{% else %}<i class="bi bi-person me-1"></i>{% trans "Personali" %}{% endif %}
       </button>
       <ul class="dropdown-menu dropdown-menu-end">
-        <li><a class="dropdown-item {% if not gruppo_selezionato %}active{% endif %}" href="{% url 'gestione_quote' %}"><i class="bi bi-person me-1"></i>Quote Personali</a></li>
+        <li><a class="dropdown-item {% if not gruppo_selezionato %}active{% endif %}" href="{% url 'gestione_quote' %}"><i class="bi bi-person me-1"></i>{% trans "Quote Personali" %}</a></li>
         <li><hr class="dropdown-divider"></li>
         {% for gruppo in gruppi %}
           <li><a class="dropdown-item {% if gruppo_selezionato.id == gruppo.id %}active{% endif %}" href="{% url 'gestione_quote' %}?gruppo_id={{ gruppo.id }}"><i class="bi bi-people me-1"></i>{{ gruppo.nome }}</a></li>
         {% endfor %}
       </ul>
     </div>
-    <a href="{% url 'gestione_quote' %}{% if gruppo_selezionato %}?gruppo_id={{ gruppo_selezionato.id }}{% endif %}#quotaForm" class="btn btn-primary"><i class="bi bi-plus me-1"></i> Nuova Quota</a>
+    <a href="{% url 'gestione_quote' %}{% if gruppo_selezionato %}?gruppo_id={{ gruppo_selezionato.id }}{% endif %}#quotaForm" class="btn btn-primary"><i class="bi bi-plus me-1"></i> {% trans "Nuova Quota" %}</a>
   </div>
 </div>
 
@@ -31,7 +32,7 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-people"></i> Quote Utenti</h5>
+                <h5 class="mb-0"><i class="bi bi-people"></i> {% trans "Quote Utenti" %}</h5>
             </div>
             <div class="card-body">
                 {% if quote %}
@@ -39,9 +40,9 @@
                         <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
-                                    <th>Utente</th>
-                                    <th>Percentuale</th>
-                                    <th>Azioni</th>
+                                    <th>{% trans "Utente" %}</th>
+                                    <th>{% trans "Percentuale" %}</th>
+                                    <th>{% trans "Azioni" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -49,11 +50,11 @@
                                     <tr>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                <img src="{{ quota.utente.profilo.immagine.url }}" alt="{{ quota.utente.username }}" 
+                                                <img src="{{ quota.utente.profilo.immagine.url }}" alt="{{ quota.utente.username }}"
                                                      class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
                                                 {{ quota.utente.username }}
                                                 {% if quota.utente == request.user %}
-                                                    <span class="badge bg-info ms-2">Tu</span>
+                                                    <span class="badge bg-info ms-2">{% trans "Tu" %}</span>
                                                 {% endif %}
                                             </div>
                                         </td>
@@ -73,21 +74,21 @@
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <!-- Calcolo del totale delle percentuali -->
                     <div class="alert {% if total_percentuale == 100 %}alert-success{% else %}alert-warning{% endif %} mt-3">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <strong>Totale percentuali:</strong> {{ total_percentuale }}%
+                                <strong>{% trans "Totale percentuali:" %}</strong> {{ total_percentuale }}%
                                 {% if total_percentuale != 100 %}
                                     <div class="mt-1">
-                                        <i class="bi bi-exclamation-triangle"></i> 
-                                        Attenzione: il totale delle percentuali dovrebbe essere 100%.
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        {% trans "Attenzione: il totale delle percentuali dovrebbe essere 100%." %}
                                     </div>
                                 {% else %}
                                     <div>
-                                        <i class="bi bi-check-circle"></i> 
-                                        Le quote sono correttamente distribuite.
+                                        <i class="bi bi-check-circle"></i>
+                                        {% trans "Le quote sono correttamente distribuite." %}
                                     </div>
                                 {% endif %}
                             </div>
@@ -105,75 +106,72 @@
                     </div>
                 {% else %}
                     <div class="text-center py-4">
-                        <p>Non sono state impostate quote per gli utenti.</p>
+                        <p>{% trans "Non sono state impostate quote per gli utenti." %}</p>
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Nuova Quota</h5>
+                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> {% trans "Nuova Quota" %}</h5>
             </div>
             <div class="card-body">
                 {% if can_add %}
                 <form method="post" id="quotaForm">
                     {% csrf_token %}
-                    
+
                     <div class="mb-3">
-                        <label for="{{ form.utente.id_for_label }}" class="form-label">Utente</label>
+                        <label for="{{ form.utente.id_for_label }}" class="form-label">{% trans "Utente" %}</label>
                         {{ form.utente }}
-                        <small class="form-text text-muted">L'utente a cui assegnare la quota</small>
+                        <small class="form-text text-muted">{% trans "L'utente a cui assegnare la quota" %}</small>
                     </div>
-                    
+
                     <div class="mb-3">
-                        <label for="{{ form.percentuale.id_for_label }}" class="form-label">Percentuale (%)</label>
+                        <label for="{{ form.percentuale.id_for_label }}" class="form-label">{% trans "Percentuale (%)" %}</label>
                         {{ form.percentuale }}
-                        <small class="form-text text-muted">La percentuale di partecipazione alle spese (0-100)</small>
+                        <small class="form-text text-muted">{% trans "La percentuale di partecipazione alle spese (0-100)" %}</small>
                     </div>
-                    
+
                     <div class="d-grid">
                         <button type="submit" class="btn btn-success">
-                            <i class="bi bi-plus-circle"></i> Aggiungi Quota
+                            <i class="bi bi-plus-circle"></i> {% trans "Aggiungi Quota" %}
                         </button>
                     </div>
                 </form>
                 {% else %}
                 <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle"></i> Non hai i permessi per aggiungere quote in questo gruppo.
-                    <p class="mt-2 mb-0">Solo gli amministratori e gli editor possono gestire le quote.</p>
+                    <i class="bi bi-exclamation-triangle"></i> {% trans "Non hai i permessi per aggiungere quote in questo gruppo." %}
+                    <p class="mt-2 mb-0">{% trans "Solo gli amministratori e gli editor possono gestire le quote." %}</p>
                 </div>
                 {% endif %}
             </div>
         </div>
-        
+
         <div class="card mt-3">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informazioni</h5>
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> {% trans "Informazioni" %}</h5>
             </div>
             <div class="card-body">
                 <p>
-                    Le quote utenti servono per ripartire le spese tra i vari collaboratori dell'apiario.
+                    {% trans "Le quote utenti servono per ripartire le spese tra i vari collaboratori dell'apiario." %}
                 </p>
                 <p>
-                    Ogni utente può avere una percentuale diversa in base alla sua partecipazione.
-                    La somma delle percentuali dovrebbe essere 100%.
+                    {% trans "Ogni utente può avere una percentuale diversa in base alla sua partecipazione. La somma delle percentuali dovrebbe essere 100%." %}
                 </p>
                 <p>
-                    In base alle quote impostate, il sistema calcolerà automaticamente quanto ogni utente
-                    deve contribuire alle spese comuni.
+                    {% trans "In base alle quote impostate, il sistema calcolerà automaticamente quanto ogni utente deve contribuire alle spese comuni." %}
                 </p>
-                
+
                 <div class="alert alert-primary mt-3">
-                    <i class="bi bi-lightbulb"></i> <strong>Suggerimento:</strong>
-                    Per una distribuzione equa, puoi assegnare a ciascun membro una quota uguale 
-                    (ad es. 5 membri = 20% ciascuno).
+                    <i class="bi bi-lightbulb"></i> <strong>{% trans "Suggerimento:" %}</strong>
+                    {% trans "Per una distribuzione equa, puoi assegnare a ciascun membro una quota uguale (ad es. 5 membri = 20% ciascuno)." %}
                 </div>
-                
+
                 <a href="{% url 'gestione_pagamenti' %}{% if gruppo_selezionato %}?gruppo_id={{ gruppo_selezionato.id }}{% endif %}" class="btn btn-outline-primary mt-2 w-100">
-                    <i class="bi bi-cash-coin"></i> Gestione Pagamenti
+                    <i class="bi bi-cash-coin"></i> {% trans "Gestione Pagamenti" %}
                 </a>
             </div>
         </div>
@@ -222,7 +220,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Calcolo automatico della somma delle percentuali
         const percentualeInput = document.getElementById('id_percentuale');
-        
+
         if (percentualeInput) {
             percentualeInput.addEventListener('input', function() {
                 // Fornisci feedback immediato all'utente sulla validità del valore

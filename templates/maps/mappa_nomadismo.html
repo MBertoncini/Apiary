@@ -1,7 +1,8 @@
 <!-- templates/maps/mappa_nomadismo.html -->
 {% extends 'maps/base_map.html' %}
+{% load i18n %}
 
-{% block title %}Mappa Nomadismo — Apiary{% endblock %}
+{% block title %}{% trans "Mappa Nomadismo" %} — Apiary{% endblock %}
 
 {% block extra_css %}
 {{ block.super }}
@@ -71,12 +72,12 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">
-      <i class="bi bi-compass me-2" style="color:var(--honey);"></i>Mappa Nomadismo
+      <i class="bi bi-compass me-2" style="color:var(--honey);"></i>{% trans "Mappa Nomadismo" %}
     </h1>
-    <p class="page-subtitle">Distribuzione delle specie mellifere per pianificare gli spostamenti</p>
+    <p class="page-subtitle">{% trans "Distribuzione delle specie mellifere per pianificare gli spostamenti" %}</p>
   </div>
   <a href="{% url 'mappa_apiari' %}" class="btn btn-outline-secondary btn-sm">
-    <i class="bi bi-geo-alt me-1"></i>Mappa Apiari
+    <i class="bi bi-geo-alt me-1"></i>{% trans "Mappa Apiari" %}
   </a>
 </div>
 
@@ -85,12 +86,12 @@
 
     <!-- Selezione miele -->
     <div class="small fw-semibold text-muted mb-2">
-      <i class="bi bi-jar-fill me-1" style="color:var(--honey);"></i>Seleziona il tipo di miele:
+      <i class="bi bi-jar-fill me-1" style="color:var(--honey);"></i>{% trans "Seleziona il tipo di miele:" %}
     </div>
     <div class="d-flex flex-wrap gap-2 mb-3" id="presetBar">
       <button class="preset-btn active" data-preset="nessuno"
               style="border-color:#dee2e6;background:#f8f9fa;">
-        🗺️ Solo apiari
+        🗺️ {% trans "Solo apiari" %}
       </button>
       {% for key, p in preset_miele.items %}
       <button class="preset-btn" data-preset="{{ key }}"
@@ -121,9 +122,9 @@
     <!-- Analizza punto -->
     <div class="d-flex align-items-center gap-3">
       <button class="btn btn-outline-primary btn-sm" id="btnPunto">
-        <i class="bi bi-search me-1"></i>Analizza punto (5 km)
+        <i class="bi bi-search me-1"></i>{% trans "Analizza punto (5 km)" %}
       </button>
-      <span class="small text-muted">Clicca sulla mappa per vedere le specie mellifere in quel raggio</span>
+      <span class="small text-muted">{% trans "Clicca sulla mappa per vedere le specie mellifere in quel raggio" %}</span>
     </div>
 
     <!-- Risultato analisi -->
@@ -131,7 +132,7 @@
       <div class="d-flex align-items-center justify-content-between mb-2">
         <div class="fw-semibold small">
           <i class="bi bi-tree text-success me-1"></i>
-          Flora mellifera — <span id="click-label" class="text-muted fw-normal"></span>
+          {% trans "Flora mellifera" %} — <span id="click-label" class="text-muted fw-normal"></span>
         </div>
         <button class="btn-close btn-sm" id="btnChiudiClick"></button>
       </div>
@@ -144,23 +145,23 @@
   <div class="card-body p-3">
     <div style="position:relative;">
       <div id="map"></div>
-      <div id="map-spinner"><span class="spinner-border spinner-border-sm me-2"></span>Ricerca specie…</div>
-      <div id="hint-click">📍 Clicca sulla mappa per analizzare un punto</div>
+      <div id="map-spinner"><span class="spinner-border spinner-border-sm me-2"></span>{% trans "Ricerca specie…" %}</div>
+      <div id="hint-click">📍 {% trans "Clicca sulla mappa per analizzare un punto" %}</div>
 
       <div id="pannello-info">
         <div class="pannello-header" id="pannello-toggle">
-          <span class="fw-semibold small"><i class="bi bi-geo-alt-fill me-1"></i>I miei apiari</span>
+          <span class="fw-semibold small"><i class="bi bi-geo-alt-fill me-1"></i>{% trans "I miei apiari" %}</span>
           <i class="bi bi-chevron-right" id="pannello-chevron"></i>
         </div>
         <div class="pannello-body" id="pannello-body">
           {% if apiari_json != '[]' %}
-          <div class="small text-muted mb-2">Riferimento per distanze</div>
+          <div class="small text-muted mb-2">{% trans "Riferimento per distanze" %}</div>
           <div id="lista-apiari-pannello"></div>
           {% else %}
           <div class="text-center py-3 text-muted small">
             <i class="bi bi-geo-alt d-block mb-1 opacity-50" style="font-size:1.4rem;"></i>
-            Nessun apiario.<br>
-            <a href="{% url 'crea_apiario' %}" class="btn btn-sm btn-primary mt-2">Crea apiario</a>
+            {% trans "Nessun apiario." %}<br>
+            <a href="{% url 'crea_apiario' %}" class="btn btn-sm btn-primary mt-2">{% trans "Crea apiario" %}</a>
           </div>
           {% endif %}
         </div>
@@ -172,11 +173,11 @@
         <span style="display:inline-block;width:14px;height:8px;border-radius:2px;
                      background:rgba(80,160,80,.5);border:1px solid #388e3c;
                      vertical-align:middle;margin-right:4px;"></span>
-        Densità GBIF (milioni di osservazioni aggregate)
+        {% trans "Densità GBIF (milioni di osservazioni aggregate)" %}
       </span>
       <span class="vr"></span>
-      <span><span class="badge me-1" style="background:#F5A623;">🍯</span>Tuo apiario</span>
-      <span class="ms-auto"><i class="bi bi-info-circle me-1"></i>Dati GBIF 2000–2025</span>
+      <span><span class="badge me-1" style="background:#F5A623;">🍯</span>{% trans "Tuo apiario" %}</span>
+      <span class="ms-auto"><i class="bi bi-info-circle me-1"></i>{% trans "Dati GBIF 2000–2025" %}</span>
     </div>
   </div>
 </div>

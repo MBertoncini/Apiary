@@ -1,7 +1,8 @@
 <!-- templates/meteo/grafici_meteo.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Grafici Meteo - {{ apiario.nome }} - Apiary{% endblock %}
+{% block title %}{% blocktrans with a=apiario.nome %}Grafici Meteo - {{ a }}{% endblocktrans %} - Apiary{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -27,13 +28,13 @@
 <div class="row">
     <div class="col-12 mb-4">
         <div class="d-flex justify-content-between align-items-center">
-            <h1><i class="bi bi-graph-up"></i> Grafici Meteo - {{ apiario.nome }}</h1>
+            <h1><i class="bi bi-graph-up"></i> {% blocktrans with a=apiario.nome %}Grafici Meteo - {{ a }}{% endblocktrans %}</h1>
             <div>
                 <a href="{% url 'visualizza_meteo_apiario' apiario.id %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Torna al Meteo
+                    <i class="bi bi-arrow-left"></i> {% trans "Torna al Meteo" %}
                 </a>
                 <a href="{% url 'visualizza_apiario' apiario.id %}" class="btn btn-outline-primary ms-2">
-                    <i class="bi bi-grid"></i> Vai all'Apiario
+                    <i class="bi bi-grid"></i> {% trans "Vai all'Apiario" %}
                 </a>
             </div>
         </div>
@@ -46,16 +47,16 @@
         <div class="period-selector d-flex justify-content-center mb-4">
             <div class="btn-group" role="group">
                 <input type="radio" class="btn-check" name="periodo" id="periodo7d" value="7d" {% if periodo == '7d' %}checked{% endif %}>
-                <label class="btn btn-outline-primary" for="periodo7d">7 giorni</label>
-                
+                <label class="btn btn-outline-primary" for="periodo7d">{% trans "7 giorni" %}</label>
+
                 <input type="radio" class="btn-check" name="periodo" id="periodo30d" value="30d" {% if periodo == '30d' %}checked{% endif %}>
-                <label class="btn btn-outline-primary" for="periodo30d">30 giorni</label>
-                
+                <label class="btn btn-outline-primary" for="periodo30d">{% trans "30 giorni" %}</label>
+
                 <input type="radio" class="btn-check" name="periodo" id="periodo90d" value="90d" {% if periodo == '90d' %}checked{% endif %}>
-                <label class="btn btn-outline-primary" for="periodo90d">90 giorni</label>
-                
+                <label class="btn btn-outline-primary" for="periodo90d">{% trans "90 giorni" %}</label>
+
                 <input type="radio" class="btn-check" name="periodo" id="periodoYear" value="year" {% if periodo == 'year' %}checked{% endif %}>
-                <label class="btn btn-outline-primary" for="periodoYear">Anno corrente</label>
+                <label class="btn btn-outline-primary" for="periodoYear">{% trans "Anno corrente" %}</label>
             </div>
         </div>
     </div>
@@ -65,7 +66,7 @@
     <div class="col-md-6 mb-4">
         <div class="card h-100">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-thermometer-half"></i> Temperatura</h5>
+                <h5 class="mb-0"><i class="bi bi-thermometer-half"></i> {% trans "Temperatura" %}</h5>
             </div>
             <div class="card-body">
                 <div class="chart-container">
@@ -78,7 +79,7 @@
     <div class="col-md-6 mb-4">
         <div class="card h-100">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-droplet"></i> Umidità</h5>
+                <h5 class="mb-0"><i class="bi bi-droplet"></i> {% trans "Umidità" %}</h5>
             </div>
             <div class="card-body">
                 <div class="chart-container">
@@ -93,7 +94,7 @@
     <div class="col-md-6 mb-4">
         <div class="card h-100">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-wind"></i> Velocità del Vento</h5>
+                <h5 class="mb-0"><i class="bi bi-wind"></i> {% trans "Velocità del Vento" %}</h5>
             </div>
             <div class="card-body">
                 <div class="chart-container">
@@ -106,7 +107,7 @@
     <div class="col-md-6 mb-4">
         <div class="card h-100">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Controlli Arnie</h5>
+                <h5 class="mb-0"><i class="bi bi-calendar-check"></i> {% trans "Controlli Arnie" %}</h5>
             </div>
             <div class="card-body">
                 <div class="chart-container">
@@ -121,7 +122,7 @@
     <div class="col-12 mb-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Confronto Temperatura e Attività Arnie</h5>
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> {% trans "Confronto Temperatura e Attività Arnie" %}</h5>
             </div>
             <div class="card-body">
                 <div class="chart-container">
@@ -130,7 +131,7 @@
             </div>
             <div class="card-footer">
                 <div class="alert alert-info mb-0">
-                    <i class="bi bi-info-circle"></i> Questo grafico mostra la relazione tra temperatura ambientale e sviluppo della covata/raccolta di scorte.
+                    <i class="bi bi-info-circle"></i> {% trans "Questo grafico mostra la relazione tra temperatura ambientale e sviluppo della covata/raccolta di scorte." %}
                 </div>
             </div>
         </div>
@@ -141,20 +142,20 @@
     <div class="col-12 mb-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-table"></i> Tabella Dati</h5>
+                <h5 class="mb-0"><i class="bi bi-table"></i> {% trans "Tabella Dati" %}</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>Data</th>
-                                <th>Temperatura</th>
-                                <th>Umidità</th>
-                                <th>Vento</th>
-                                <th>Arnie Controllate</th>
-                                <th>Media Telaini Covata</th>
-                                <th>Media Telaini Scorte</th>
+                                <th>{% trans "Data" %}</th>
+                                <th>{% trans "Temperatura" %}</th>
+                                <th>{% trans "Umidità" %}</th>
+                                <th>{% trans "Vento" %}</th>
+                                <th>{% trans "Arnie Controllate" %}</th>
+                                <th>{% trans "Media Telaini Covata" %}</th>
+                                <th>{% trans "Media Telaini Scorte" %}</th>
                             </tr>
                         </thead>
                         <tbody>

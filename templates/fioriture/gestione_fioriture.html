@@ -1,17 +1,18 @@
 <!-- templates/fioriture/gestione_fioriture.html -->
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Gestione Fioriture - Apiary{% endblock %}
+{% block title %}{% trans "Gestione Fioriture" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">🌸 Fioriture</h1>
-    <p class="page-subtitle">Monitora il pascolo e condividi le fioriture con la community</p>
+    <h1 class="page-title">🌸 {% trans "Fioriture" %}</h1>
+    <p class="page-subtitle">{% trans "Monitora il pascolo e condividi le fioriture con la community" %}</p>
   </div>
   <div class="d-flex gap-2">
     <a href="{% url 'mappa_apiari' %}" class="btn btn-outline-secondary">
-      <i class="bi bi-geo-alt me-1"></i>Mappa
+      <i class="bi bi-geo-alt me-1"></i>{% trans "Mappa" %}
     </a>
   </div>
 </div>
@@ -20,7 +21,7 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-flower1"></i> Fioriture Registrate</h5>
+                <h5 class="mb-0"><i class="bi bi-flower1"></i> {% trans "Fioriture Registrate" %}</h5>
             </div>
             <div class="card-body">
                 {% if fioriture %}
@@ -28,42 +29,42 @@
                         <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
-                                    <th>Pianta</th>
-                                    <th>Apiario</th>
-                                    <th>Periodo</th>
-                                    <th>Stato</th>
-                                    <th>Creatore</th>
-                                    <th>Azioni</th>
+                                    <th>{% trans "Pianta" %}</th>
+                                    <th>{% trans "Apiario" %}</th>
+                                    <th>{% trans "Periodo" %}</th>
+                                    <th>{% trans "Stato" %}</th>
+                                    <th>{% trans "Creatore" %}</th>
+                                    <th>{% trans "Azioni" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for fioritura in fioriture %}
                                     <tr>
                                         <td>{{ fioritura.pianta }}</td>
-                                        <td>{% if fioritura.apiario %}{{ fioritura.apiario.nome }}{% else %}<span class="badge bg-info">Indipendente</span>{% endif %}</td>
+                                        <td>{% if fioritura.apiario %}{{ fioritura.apiario.nome }}{% else %}<span class="badge bg-info">{% trans "Indipendente" %}</span>{% endif %}</td>
                                         <td>
                                             {{ fioritura.data_inizio|date:"d/m/Y" }}
                                             {% if fioritura.data_fine %}
                                                 - {{ fioritura.data_fine|date:"d/m/Y" }}
                                             {% else %}
-                                                <span class="badge bg-success">In corso</span>
+                                                <span class="badge bg-success">{% trans "In corso" %}</span>
                                             {% endif %}
                                         </td>
                                         <td>
                                             {% now "Y-m-d" as oggi %}
                                             {% if fioritura.data_inizio|date:"Y-m-d" > oggi %}
-                                                <span class="badge bg-warning text-dark">Programmata</span>
+                                                <span class="badge bg-warning text-dark">{% trans "Programmata" %}</span>
                                             {% elif not fioritura.data_fine or fioritura.data_fine|date:"Y-m-d" >= oggi %}
-                                                <span class="badge bg-success">Attiva</span>
+                                                <span class="badge bg-success">{% trans "Attiva" %}</span>
                                             {% else %}
-                                                <span class="badge bg-secondary">Terminata</span>
+                                                <span class="badge bg-secondary">{% trans "Terminata" %}</span>
                                             {% endif %}
                                         </td>
                                         <td>
                                             {% if fioritura.creatore %}
                                                 {{ fioritura.creatore.username }}
                                             {% else %}
-                                                <span class="text-muted">Sconosciuto</span>
+                                                <span class="text-muted">{% trans "Sconosciuto" %}</span>
                                             {% endif %}
                                         </td>
                                         <td>
@@ -72,12 +73,12 @@
                                                     <a href="{% url 'modifica_fioritura' fioritura.id %}" class="btn btn-sm btn-outline-primary">
                                                         <i class="bi bi-pencil"></i>
                                                     </a>
-                                                    <a href="{% url 'elimina_fioritura' fioritura.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Sei sicuro di voler eliminare questa fioritura?')">
+                                                    <a href="{% url 'elimina_fioritura' fioritura.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% trans "Sei sicuro di voler eliminare questa fioritura?" %}')">
                                                         <i class="bi bi-trash"></i>
                                                     </a>
                                                 </div>
                                             {% else %}
-                                                <span class="badge bg-secondary">Solo Lettura</span>
+                                                <span class="badge bg-secondary">{% trans "Solo Lettura" %}</span>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -87,73 +88,73 @@
                     </div>
                 {% else %}
                     <div class="text-center py-4">
-                        <p>Non ci sono fioriture registrate.</p>
+                        <p>{% trans "Non ci sono fioriture registrate." %}</p>
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card sticky-top" style="top: 20px;">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Nuova Fioritura</h5>
+                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> {% trans "Nuova Fioritura" %}</h5>
             </div>
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
-                    
+
                     <div class="mb-3">
-                        <label for="{{ form.pianta.id_for_label }}" class="form-label">Pianta/Fioritura *</label>
+                        <label for="{{ form.pianta.id_for_label }}" class="form-label">{% trans "Pianta/Fioritura" %} *</label>
                         {{ form.pianta }}
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="{{ form.data_inizio.id_for_label }}" class="form-label">Data Inizio *</label>
+                            <label for="{{ form.data_inizio.id_for_label }}" class="form-label">{% trans "Data Inizio" %} *</label>
                             {{ form.data_inizio }}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="{{ form.data_fine.id_for_label }}" class="form-label">Data Fine</label>
+                            <label for="{{ form.data_fine.id_for_label }}" class="form-label">{% trans "Data Fine" %}</label>
                             {{ form.data_fine }}
-                            <small class="form-text text-muted">Opzionale se in corso</small>
+                            <small class="form-text text-muted">{% trans "Opzionale se in corso" %}</small>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
-                        <label for="{{ form.apiario.id_for_label }}" class="form-label">Apiario (opzionale)</label>
+                        <label for="{{ form.apiario.id_for_label }}" class="form-label">{% trans "Apiario (opzionale)" %}</label>
                         {{ form.apiario }}
-                        <small class="form-text text-muted">Puoi lasciare vuoto se la fioritura non è associata a un apiario specifico</small>
+                        <small class="form-text text-muted">{% trans "Puoi lasciare vuoto se la fioritura non è associata a un apiario specifico" %}</small>
                     </div>
-                    
+
                     <div class="mb-3">
-                        <label class="form-label">Posizione Geografica *</label>
+                        <label class="form-label">{% trans "Posizione Geografica" %} *</label>
                         <div class="input-group mb-2">
-                            <span class="input-group-text">Lat</span>
+                            <span class="input-group-text">{% trans "Lat" %}</span>
                             {{ form.latitudine }}
-                            <span class="input-group-text">Lng</span>
+                            <span class="input-group-text">{% trans "Lng" %}</span>
                             {{ form.longitudine }}
                         </div>
                         <div class="d-grid">
                             <button type="button" class="btn btn-outline-secondary" id="selectOnMap">
-                                <i class="bi bi-geo-alt"></i> Seleziona sulla mappa
+                                <i class="bi bi-geo-alt"></i> {% trans "Seleziona sulla mappa" %}
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
-                        <label for="{{ form.raggio.id_for_label }}" class="form-label">Raggio (metri)</label>
+                        <label for="{{ form.raggio.id_for_label }}" class="form-label">{% trans "Raggio (metri)" %}</label>
                         {{ form.raggio }}
-                        <small class="form-text text-muted">Area approssimativa della fioritura</small>
+                        <small class="form-text text-muted">{% trans "Area approssimativa della fioritura" %}</small>
                     </div>
-                    
+
                     <div class="mb-3">
-                        <label for="{{ form.note.id_for_label }}" class="form-label">Note</label>
+                        <label for="{{ form.note.id_for_label }}" class="form-label">{% trans "Note" %}</label>
                         {{ form.note }}
                     </div>
-                    
+
                     <button type="submit" class="btn btn-success w-100">
-                        <i class="bi bi-plus-circle"></i> Aggiungi Fioritura
+                        <i class="bi bi-plus-circle"></i> {% trans "Aggiungi Fioritura" %}
                     </button>
                 </form>
             </div>
@@ -170,13 +171,13 @@
             // Recupera le coordinate attuali (se presenti)
             var lat = document.querySelector('.lat-input').value;
             var lng = document.querySelector('.lng-input').value;
-            
+
             // Costruisci l'URL con i parametri
             var url = '{% url "seleziona_posizione" %}';
             if (lat && lng) {
                 url += '?lat=' + lat + '&lng=' + lng;
             }
-            
+
             // Apri la finestra di selezione mappa
             window.open(url, 'mapWindow', 'width=800,height=600');
         });

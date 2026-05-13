@@ -1,23 +1,24 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Trattamenti Sanitari — Apiary{% endblock %}
+{% block title %}{% trans "Trattamenti Sanitari" %} — Apiary{% endblock %}
 
 {% block content %}
 
 <div class="page-header">
   <div>
-    <h1 class="page-title"><i class="bi bi-capsule me-2" style="color:var(--honey);"></i>Trattamenti Sanitari</h1>
-    <p class="page-subtitle">Pianifica e monitora i trattamenti per il benessere delle tue api</p>
+    <h1 class="page-title"><i class="bi bi-capsule me-2" style="color:var(--honey);"></i>{% trans "Trattamenti Sanitari" %}</h1>
+    <p class="page-subtitle">{% trans "Pianifica e monitora i trattamenti per il benessere delle tue api" %}</p>
   </div>
   <div class="d-flex gap-2 flex-wrap">
     <a href="{% url 'export_trattamenti_csv' %}" class="btn btn-outline-success btn-sm">
-      <i class="bi bi-filetype-csv me-1"></i>Esporta CSV
+      <i class="bi bi-filetype-csv me-1"></i>{% trans "Esporta CSV" %}
     </a>
     <a href="{% url 'tipi_trattamento' %}" class="btn btn-outline-secondary">
-      <i class="bi bi-gear me-1"></i> Tipi
+      <i class="bi bi-gear me-1"></i> {% trans "Tipi" %}
     </a>
     <a href="{% url 'nuovo_trattamento' %}" class="btn btn-primary">
-      <i class="bi bi-plus-circle me-1"></i> Nuovo Trattamento
+      <i class="bi bi-plus-circle me-1"></i> {% trans "Nuovo Trattamento" %}
     </a>
   </div>
 </div>
@@ -26,7 +27,7 @@
 <div class="card mb-4">
   <div class="card-header">
     <i class="bi bi-calendar-check"></i>
-    Trattamenti Attivi e Programmati
+    {% trans "Trattamenti Attivi e Programmati" %}
     {% if trattamenti_attivi %}
     <span class="badge bg-white ms-2" style="color:var(--honey-darker)!important;">{{ trattamenti_attivi|length }}</span>
     {% endif %}
@@ -37,12 +38,12 @@
     <table class="table table-hover mb-0">
       <thead>
         <tr>
-          <th>Apiario</th>
-          <th>Trattamento</th>
-          <th>Data Inizio</th>
-          <th>Data Fine</th>
-          <th>Stato</th>
-          <th>Arnie</th>
+          <th>{% trans "Apiario" %}</th>
+          <th>{% trans "Trattamento" %}</th>
+          <th>{% trans "Data Inizio" %}</th>
+          <th>{% trans "Data Fine" %}</th>
+          <th>{% trans "Stato" %}</th>
+          <th>{% trans "Arnie" %}</th>
           <th></th>
         </tr>
       </thead>
@@ -59,22 +60,22 @@
             {% if trattamento.data_fine %}
               {{ trattamento.data_fine|date:"d/m/Y" }}
             {% else %}
-              <span class="badge bg-warning">Non specificata</span>
+              <span class="badge bg-warning">{% trans "Non specificata" %}</span>
             {% endif %}
           </td>
           <td>
             {% if trattamento.stato == 'programmato' %}
-              <span class="badge bg-info">📅 Programmato</span>
+              <span class="badge bg-info">📅 {% trans "Programmato" %}</span>
             {% elif trattamento.stato == 'in_corso' %}
-              <span class="badge bg-warning">⚡ In Corso</span>
+              <span class="badge bg-warning">⚡ {% trans "In Corso" %}</span>
             {% endif %}
           </td>
           <td>
             {% if trattamento.arnie.count > 0 %}
-              <span class="badge bg-secondary">{{ trattamento.arnie.count }} arnie</span>
+              <span class="badge bg-secondary">{% blocktrans count counter=trattamento.arnie.count %}{{ counter }} arnia{% plural %}{{ counter }} arnie{% endblocktrans %}</span>
               <button type="button" class="btn btn-sm btn-outline-secondary ms-1"
                       data-bs-toggle="modal" data-bs-target="#modalArnie{{ trattamento.id }}"
-                      title="Vedi arnie">
+                      title="{% trans 'Vedi arnie' %}">
                 <i class="bi bi-list-ul"></i>
               </button>
 
@@ -83,7 +84,7 @@
                 <div class="modal-dialog">
                   <div class="modal-content">
                     <div class="modal-header">
-                      <h5 class="modal-title">Arnie trattate — {{ trattamento.tipo_trattamento.nome }}</h5>
+                      <h5 class="modal-title">{% blocktrans with nome=trattamento.tipo_trattamento.nome %}Arnie trattate — {{ nome }}{% endblocktrans %}</h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -92,56 +93,56 @@
                         <div class="col-4">
                           <div class="text-center p-2 rounded"
                             style="background-color: {% if arnia.colore_hex %}{{ arnia.colore_hex }}{% else %}#e9ecef{% endif %}; color: {% if arnia.colore_hex and arnia.colore_hex != '#FFFFFF' %}white{% else %}#212529{% endif %};">
-                            <strong>Arnia #{{ arnia.numero }}</strong>
+                            <strong>{% blocktrans with n=arnia.numero %}Arnia #{{ n }}{% endblocktrans %}</strong>
                           </div>
                         </div>
                         {% endfor %}
                       </div>
                     </div>
                     <div class="modal-footer">
-                      <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Chiudi</button>
+                      <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{% trans "Chiudi" %}</button>
                     </div>
                   </div>
                 </div>
               </div>
             {% else %}
-              <span class="badge bg-success">Tutte le arnie</span>
+              <span class="badge bg-success">{% trans "Tutte le arnie" %}</span>
             {% endif %}
           </td>
           <td>
             <div class="dropdown">
               <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                Azioni
+                {% trans "Azioni" %}
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
                 {% if trattamento.stato == 'programmato' %}
                 <li>
                   <a class="dropdown-item" href="{% url 'cambio_stato_trattamento' trattamento.id 'in_corso' %}">
-                    <i class="bi bi-play-circle me-2 text-success"></i>Inizia trattamento
+                    <i class="bi bi-play-circle me-2 text-success"></i>{% trans "Inizia trattamento" %}
                   </a>
                 </li>
                 {% endif %}
                 {% if trattamento.stato == 'in_corso' %}
                 <li>
                   <a class="dropdown-item" href="{% url 'cambio_stato_trattamento' trattamento.id 'completato' %}">
-                    <i class="bi bi-check-circle me-2 text-success"></i>Completa trattamento
+                    <i class="bi bi-check-circle me-2 text-success"></i>{% trans "Completa trattamento" %}
                   </a>
                 </li>
                 {% endif %}
                 <li>
                   <a class="dropdown-item text-warning" href="{% url 'cambio_stato_trattamento' trattamento.id 'annullato' %}">
-                    <i class="bi bi-x-circle me-2"></i>Annulla
+                    <i class="bi bi-x-circle me-2"></i>{% trans "Annulla" %}
                   </a>
                 </li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
                   <a class="dropdown-item" href="{% url 'modifica_trattamento' trattamento.id %}">
-                    <i class="bi bi-pencil me-2"></i>Modifica
+                    <i class="bi bi-pencil me-2"></i>{% trans "Modifica" %}
                   </a>
                 </li>
                 <li>
                   <a class="dropdown-item text-danger" href="{% url 'elimina_trattamento' trattamento.id %}">
-                    <i class="bi bi-trash me-2"></i>Elimina
+                    <i class="bi bi-trash me-2"></i>{% trans "Elimina" %}
                   </a>
                 </li>
               </ul>
@@ -156,10 +157,10 @@
   <div class="card-body">
     <div class="empty-state">
       <span class="empty-icon">💊</span>
-      <h5>Nessun trattamento attivo</h5>
-      <p>Non ci sono trattamenti attivi o programmati al momento.</p>
+      <h5>{% trans "Nessun trattamento attivo" %}</h5>
+      <p>{% trans "Non ci sono trattamenti attivi o programmati al momento." %}</p>
       <a href="{% url 'nuovo_trattamento' %}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-1"></i> Nuovo Trattamento
+        <i class="bi bi-plus-circle me-1"></i> {% trans "Nuovo Trattamento" %}
       </a>
     </div>
   </div>
@@ -171,23 +172,23 @@
 <div class="card mb-4">
   <div class="card-header" style="background-color: var(--honey, #F5A623)20; border-left: 4px solid var(--honey, #F5A623);">
     <i class="bi bi-hourglass-split"></i>
-    ⚠️ Periodo di Sospensione Attivo
+    ⚠️ {% trans "Periodo di Sospensione Attivo" %}
     <span class="badge bg-white ms-2" style="color: #E65100 !important;">{{ trattamenti_sospensione|length }}</span>
   </div>
   <div class="card-body">
     <div class="alert alert-warning">
       <i class="bi bi-exclamation-triangle-fill me-2"></i>
-      <strong>Attenzione:</strong> Durante il periodo di sospensione non è possibile raccogliere il miele.
+      <strong>{% trans "Attenzione:" %}</strong> {% trans "Durante il periodo di sospensione non è possibile raccogliere il miele." %}
     </div>
     <div class="table-responsive">
       <table class="table table-hover mb-0">
         <thead>
           <tr>
-            <th>Apiario</th>
-            <th>Trattamento</th>
-            <th>Completato il</th>
-            <th>Fine Sospensione</th>
-            <th>Tempo rimanente</th>
+            <th>{% trans "Apiario" %}</th>
+            <th>{% trans "Trattamento" %}</th>
+            <th>{% trans "Completato il" %}</th>
+            <th>{% trans "Fine Sospensione" %}</th>
+            <th>{% trans "Tempo rimanente" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -216,18 +217,18 @@
 <div class="card">
   <div class="card-header">
     <i class="bi bi-clock-history"></i>
-    Storico Trattamenti
+    {% trans "Storico Trattamenti" %}
   </div>
   {% if trattamenti_recenti %}
   <div class="table-responsive">
     <table class="table table-hover mb-0">
       <thead>
         <tr>
-          <th>Apiario</th>
-          <th>Trattamento</th>
-          <th>Periodo</th>
-          <th>Stato</th>
-          <th>Operatore</th>
+          <th>{% trans "Apiario" %}</th>
+          <th>{% trans "Trattamento" %}</th>
+          <th>{% trans "Periodo" %}</th>
+          <th>{% trans "Stato" %}</th>
+          <th>{% trans "Operatore" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -244,13 +245,13 @@
           </td>
           <td>
             {% if trattamento.stato == 'programmato' %}
-              <span class="badge bg-info">Programmato</span>
+              <span class="badge bg-info">{% trans "Programmato" %}</span>
             {% elif trattamento.stato == 'in_corso' %}
-              <span class="badge bg-warning">In Corso</span>
+              <span class="badge bg-warning">{% trans "In Corso" %}</span>
             {% elif trattamento.stato == 'completato' %}
-              <span class="badge bg-success">✓ Completato</span>
+              <span class="badge bg-success">✓ {% trans "Completato" %}</span>
             {% elif trattamento.stato == 'annullato' %}
-              <span class="badge bg-danger">Annullato</span>
+              <span class="badge bg-danger">{% trans "Annullato" %}</span>
             {% endif %}
           </td>
           <td>{{ trattamento.utente.username }}</td>
@@ -263,8 +264,8 @@
   <div class="card-body">
     <div class="empty-state">
       <span class="empty-icon">📋</span>
-      <h5>Nessuno storico</h5>
-      <p>I trattamenti completati o annullati appariranno qui.</p>
+      <h5>{% trans "Nessuno storico" %}</h5>
+      <p>{% trans "I trattamenti completati o annullati appariranno qui." %}</p>
     </div>
   </div>
   {% endif %}

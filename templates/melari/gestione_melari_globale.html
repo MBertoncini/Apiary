@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% load static %}
 
-{% block title %}Gestione Melari{% endblock %}
+{% block title %}{% trans "Gestione Melari" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -467,18 +468,18 @@
   <!-- ── Page header ── -->
   <div class="page-header">
     <div>
-      <h1 class="page-title">🍯 Gestione Melari</h1>
-      <p class="text-muted mb-0">Visualizzazione grafica su tutte le arnie</p>
+      <h1 class="page-title">🍯 {% trans "Gestione Melari" %}</h1>
+      <p class="text-muted mb-0">{% trans "Visualizzazione grafica su tutte le arnie" %}</p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
       <a href="{% url 'gestione_cantina' %}" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-jar me-1"></i>Cantina
+        <i class="bi bi-jar me-1"></i>{% trans "Cantina" %}
       </a>
       <button class="btn btn-sm btn-outline-warning" data-tab-target="smielature" id="btnNuovaSmielatura">
-        <i class="bi bi-droplet me-1"></i>Nuova smielatura
+        <i class="bi bi-droplet me-1"></i>{% trans "Nuova smielatura" %}
       </button>
       <a href="{% url 'export_produzione_csv' %}" class="btn btn-outline-success btn-sm">
-        <i class="bi bi-filetype-csv me-1"></i>Esporta produzione
+        <i class="bi bi-filetype-csv me-1"></i>{% trans "Esporta produzione" %}
       </a>
     </div>
   </div>
@@ -487,29 +488,29 @@
   <div class="melari-stats">
     <div class="melari-stat-card">
       <div class="melari-stat-value">{{ total_posizionati }}</div>
-      <div class="melari-stat-label">Posizionati</div>
+      <div class="melari-stat-label">{% trans "Posizionati" %}</div>
     </div>
     <div class="melari-stat-card">
       <div class="melari-stat-value" style="color:#FF7A00;">{{ total_in_smielatura }}</div>
-      <div class="melari-stat-label">In smielatura</div>
+      <div class="melari-stat-label">{% trans "In smielatura" %}</div>
     </div>
     <div class="melari-stat-card">
       <div class="melari-stat-value" style="color:#2C7A7B;">{{ total_smielature }}</div>
-      <div class="melari-stat-label">Smielature</div>
+      <div class="melari-stat-label">{% trans "Smielature" %}</div>
     </div>
     <div class="melari-stat-card">
       <div class="melari-stat-value" style="color:#6B7280;">{{ apiari_data|length }}</div>
-      <div class="melari-stat-label">Apiari</div>
+      <div class="melari-stat-label">{% trans "Apiari" %}</div>
     </div>
   </div>
 
   <!-- ── Tab navigation ── -->
   <div class="melari-tabs" role="tablist">
     <button class="melari-tab-btn active" data-tab="alveari" role="tab">
-      <i class="bi bi-layers"></i> Alveari
+      <i class="bi bi-layers"></i> {% trans "Alveari" %}
     </button>
     <button class="melari-tab-btn" data-tab="smielature" role="tab">
-      <i class="bi bi-droplet"></i> Smielature
+      <i class="bi bi-droplet"></i> {% trans "Smielature" %}
       {% if total_smielature %}
       <span class="tab-badge">{{ total_smielature }}</span>
       {% endif %}
@@ -523,21 +524,21 @@
 
     <!-- Legenda -->
     <div class="hive-legend">
-      <strong style="color:#2C1810;font-size:.78rem;">Legenda:</strong>
-      <span><span class="legend-swatch nido"></span>Nido</span>
-      <span><span class="legend-swatch excluder"></span>Escludi-regina (QE)</span>
-      <span><span class="legend-swatch posizionato"></span>Posizionato</span>
-      <span><span class="legend-swatch in_smielatura"></span>In smielatura</span>
-      <span><span class="legend-swatch smielato"></span>Smielato</span>
+      <strong style="color:#2C1810;font-size:.78rem;">{% trans "Legenda:" %}</strong>
+      <span><span class="legend-swatch nido"></span>{% trans "Nido" %}</span>
+      <span><span class="legend-swatch excluder"></span>{% trans "Escludi-regina (QE)" %}</span>
+      <span><span class="legend-swatch posizionato"></span>{% trans "Posizionato" %}</span>
+      <span><span class="legend-swatch in_smielatura"></span>{% trans "In smielatura" %}</span>
+      <span><span class="legend-swatch smielato"></span>{% trans "Smielato" %}</span>
     </div>
 
     <!-- Drag hint -->
     <div class="drag-hint">
       <i class="bi bi-arrows-move"></i>
-      Trascina i melari ambra per riordinarne la posizione
+      {% trans "Trascina i melari ambra per riordinarne la posizione" %}
       &nbsp;·&nbsp;
       <i class="bi bi-cursor"></i>
-      Passa il mouse per le azioni
+      {% trans "Passa il mouse per le azioni" %}
     </div>
 
     {% if apiari_data %}
@@ -547,14 +548,14 @@
         <div class="apiario-section-header">
           <h2 class="apiario-section-title">🏡 {{ ap.apiario.nome }}</h2>
           <span class="badge" style="background:var(--honey,#F5A623);color:#fff;font-size:.75rem;">
-            {{ ap.arnie|length }} arni{% if ap.arnie|length == 1 %}a{% else %}e{% endif %}
+            {% blocktrans count counter=ap.arnie|length %}{{ counter }} arnia{% plural %}{{ counter }} arnie{% endblocktrans %}
           </span>
           <div class="ms-auto d-flex gap-2">
             <!-- Registra smielatura per questo apiario → apre tab smielature con apiario preselezionato -->
             <button class="btn btn-sm btn-outline-warning"
                     onclick="apriNuovaSmielatura('{{ ap.apiario.id }}', '{{ ap.apiario.nome|escapejs }}')"
-                    title="Registra smielatura">
-              <i class="bi bi-droplet me-1"></i>Registra smielatura
+                    title="{% trans 'Registra smielatura' %}">
+              <i class="bi bi-droplet me-1"></i>{% trans "Registra smielatura" %}
             </button>
             <a href="{% url 'visualizza_apiario' ap.apiario.id %}" class="btn btn-sm btn-outline-secondary">
               <i class="bi bi-box-arrow-up-right"></i>
@@ -571,10 +572,10 @@
             <div class="arnia-hive-label">
               <div class="arnia-hive-label-num">
                 <span class="arnia-color-dot" style="background:{{ ai.arnia.colore_hex }};"></span>
-                Arnia #{{ ai.arnia.numero }}
+                {% blocktrans with n=ai.arnia.numero %}Arnia #{{ n }}{% endblocktrans %}
               </div>
               <div class="arnia-hive-meta">
-                {% if ai.melari %}{{ ai.melari|length }} melario{% if ai.melari|length != 1 %}i{% endif %}{% else %}nessun melario{% endif %}
+                {% if ai.melari %}{% blocktrans count counter=ai.melari|length %}{{ counter }} melario{% plural %}{{ counter }} melari{% endblocktrans %}{% else %}{% trans "nessun melario" %}{% endif %}
               </div>
             </div>
 
@@ -582,13 +583,13 @@
             <button class="hive-add-btn"
                     data-bs-toggle="modal"
                     data-bs-target="#addModal{{ ai.arnia.id }}"
-                    title="Aggiungi melario">
-              <i class="bi bi-plus-lg"></i> Aggiungi
+                    title="{% trans 'Aggiungi melario' %}">
+              <i class="bi bi-plus-lg"></i> {% trans "Aggiungi" %}
             </button>
 
             <!-- Saving indicator -->
             <div class="hive-saving" id="saving-{{ ai.arnia.id }}">
-              <i class="bi bi-arrow-repeat"></i> salvataggio…
+              <i class="bi bi-arrow-repeat"></i> {% trans "salvataggio…" %}
             </div>
 
             <!-- ▼ Sortable melari stack ▼ -->
@@ -600,11 +601,11 @@
               {% for melario in ai.melari %}
               <div class="hive-super {{ melario.stato }}"
                    data-id="{{ melario.id }}"
-                   title="Melario #{{ melario.id }} — {{ melario.get_tipo_melario_display }} — {{ melario.numero_telaini }} telaini — Pos. {{ melario.posizione }}">
+                   title="{% blocktrans with i=melario.id t=melario.get_tipo_melario_display n=melario.numero_telaini p=melario.posizione %}Melario #{{ i }} — {{ t }} — {{ n }} telaini — Pos. {{ p }}{% endblocktrans %}">
                 <div class="hive-super-info">
-                  <span class="hive-super-telaini">🍯 {{ melario.numero_telaini }} favi</span>
+                  <span class="hive-super-telaini">🍯 {% blocktrans with n=melario.numero_telaini %}{{ n }} favi{% endblocktrans %}</span>
                   <span class="hive-super-sub" data-pos="{{ melario.posizione }}">
-                    Pos. {{ melario.posizione }} · {{ melario.get_tipo_melario_display }}
+                    {% blocktrans with p=melario.posizione t=melario.get_tipo_melario_display %}Pos. {{ p }} · {{ t }}{% endblocktrans %}
                   </span>
                 </div>
 
@@ -613,14 +614,14 @@
                   <button class="hive-super-btn harvest"
                           data-bs-toggle="modal"
                           data-bs-target="#smielModal{{ melario.id }}"
-                          title="Invia in smielatura"
+                          title="{% trans 'Invia in smielatura' %}"
                           onclick="event.stopPropagation()">
                     <i class="bi bi-droplet-fill"></i>
                   </button>
                   <button class="hive-super-btn remove"
                           data-bs-toggle="modal"
                           data-bs-target="#removeModal{{ melario.id }}"
-                          title="Rimuovi melario"
+                          title="{% trans 'Rimuovi melario' %}"
                           onclick="event.stopPropagation()">
                     <i class="bi bi-box-arrow-up"></i>
                   </button>
@@ -628,11 +629,11 @@
 
                 {% elif melario.stato == 'in_smielatura' %}
                 <div class="hive-super-actions" style="flex-direction:row;gap:3px;">
-                  <div class="hive-super-status-badge">In<br>smiel.</div>
+                  <div class="hive-super-status-badge">{% trans "In<br>smiel." %}</div>
                   <button class="hive-super-btn remove"
                           data-bs-toggle="modal"
                           data-bs-target="#removeModal{{ melario.id }}"
-                          title="Elimina melario"
+                          title="{% trans 'Elimina melario' %}"
                           onclick="event.stopPropagation()">
                     <i class="bi bi-trash"></i>
                   </button>
@@ -645,24 +646,24 @@
 
             <!-- Queen excluder -->
             {% if ai.melari %}
-            <div class="hive-excluder" title="Escludi-regina"></div>
+            <div class="hive-excluder" title="{% trans 'Escludi-regina' %}"></div>
             {% endif %}
 
             <!-- Nido -->
             <div class="hive-nido">
-              <div class="hive-nido-title">🐝 Nido</div>
+              <div class="hive-nido-title">🐝 {% trans "Nido" %}</div>
               {% if ai.ultimo_controllo %}
               <div class="hive-nido-stats">
-                Cov: {{ ai.ultimo_controllo.telaini_covata }} · Sc: {{ ai.ultimo_controllo.telaini_scorte }}
+                {% blocktrans with c=ai.ultimo_controllo.telaini_covata s=ai.ultimo_controllo.telaini_scorte %}Cov: {{ c }} · Sc: {{ s }}{% endblocktrans %}
                 <br>
                 {% if ai.ultimo_controllo.presenza_regina %}
-                <span class="nido-regina-ok">Regina ✓</span>
+                <span class="nido-regina-ok">{% trans "Regina ✓" %}</span>
                 {% else %}
-                <span class="nido-regina-ko">Regina ✗</span>
+                <span class="nido-regina-ko">{% trans "Regina ✗" %}</span>
                 {% endif %}
               </div>
               {% else %}
-              <div class="hive-nido-stats" style="opacity:.55;">Nessun<br>controllo</div>
+              <div class="hive-nido-stats" style="opacity:.55;">{% trans "Nessun<br>controllo" %}</div>
               {% endif %}
             </div>
 
@@ -679,7 +680,7 @@
         {% else %}
         <div class="arnie-empty">
           <i class="bi bi-inbox" style="font-size:2.5rem;opacity:.3;"></i>
-          <p class="mt-2">Nessuna arnia attiva in questo apiario.</p>
+          <p class="mt-2">{% trans "Nessuna arnia attiva in questo apiario." %}</p>
         </div>
         {% endif %}
 
@@ -689,10 +690,10 @@
     {% else %}
     <div class="text-center py-5">
       <i class="bi bi-archive" style="font-size:4rem;color:#DDD;"></i>
-      <h4 class="mt-3 text-muted">Nessun apiario trovato</h4>
-      <p class="text-muted">Crea prima un apiario con delle arnie attive.</p>
+      <h4 class="mt-3 text-muted">{% trans "Nessun apiario trovato" %}</h4>
+      <p class="text-muted">{% trans "Crea prima un apiario con delle arnie attive." %}</p>
       <a href="{% url 'crea_apiario' %}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-1"></i>Crea apiario
+        <i class="bi bi-plus-circle me-1"></i>{% trans "Crea apiario" %}
       </a>
     </div>
     {% endif %}
@@ -706,17 +707,17 @@
 
     <!-- Hint flusso produzione -->
     <div class="flusso-hint">
-      <span class="flusso-step"><i class="bi bi-layers"></i> Melari</span>
+      <span class="flusso-step"><i class="bi bi-layers"></i> {% trans "Melari" %}</span>
       <span class="flusso-arrow">›</span>
-      <span class="flusso-step"><i class="bi bi-droplet"></i> Smielatura</span>
+      <span class="flusso-step"><i class="bi bi-droplet"></i> {% trans "Smielatura" %}</span>
       <span class="flusso-arrow">›</span>
-      <span class="flusso-step"><i class="bi bi-hourglass-split"></i> Maturatore</span>
+      <span class="flusso-step"><i class="bi bi-hourglass-split"></i> {% trans "Maturatore" %}</span>
       <span class="flusso-arrow">›</span>
-      <span class="flusso-step"><i class="bi bi-bucket"></i> Stoccaggio</span>
+      <span class="flusso-step"><i class="bi bi-bucket"></i> {% trans "Stoccaggio" %}</span>
       <span class="flusso-arrow">›</span>
-      <span class="flusso-step"><i class="bi bi-jar"></i> Vasetti</span>
+      <span class="flusso-step"><i class="bi bi-jar"></i> {% trans "Vasetti" %}</span>
       <a href="{% url 'gestione_cantina' %}" class="ms-auto text-decoration-none" style="color:var(--honey,#F5A623);font-weight:600;font-size:.78rem;">
-        Apri Cantina →
+        {% trans "Apri Cantina →" %}
       </a>
     </div>
 
@@ -724,20 +725,20 @@
     <div class="smielature-filter-bar">
       <form method="get" action="{% url 'gestione_melari_globale' %}#smielature" class="d-flex gap-2 align-items-center flex-wrap" id="formFiltroSmielature">
         <select class="form-select form-select-sm" name="apiario" id="filtroApiario" style="width:auto;" onchange="this.form.submit()">
-          <option value="">Tutti gli apiari</option>
+          <option value="">{% trans "Tutti gli apiari" %}</option>
           {% for ap in apiari %}
           <option value="{{ ap.id }}" {% if filtro_apiario == ap.id|stringformat:'s' %}selected{% endif %}>{{ ap.nome }}</option>
           {% endfor %}
         </select>
         {% if filtro_apiario %}
         <a href="{% url 'gestione_melari_globale' %}#smielature" class="btn btn-sm btn-outline-secondary">
-          <i class="bi bi-x"></i> Rimuovi filtro
+          <i class="bi bi-x"></i> {% trans "Rimuovi filtro" %}
         </a>
         {% endif %}
       </form>
       <button class="btn btn-sm btn-warning ms-auto" id="btnNuovaSmielaturaTab"
               onclick="apriNuovaSmielatura({% if filtro_apiario %}'{{ filtro_apiario }}'{% else %}''{% endif %}, '')">
-        <i class="bi bi-plus-circle me-1"></i>Nuova smielatura
+        <i class="bi bi-plus-circle me-1"></i>{% trans "Nuova smielatura" %}
       </button>
     </div>
 
@@ -747,22 +748,22 @@
       <div class="smiel-row-card">
         <div class="smiel-icon">🍯</div>
         <div class="smiel-body">
-          <div class="smiel-title">{{ s.tipo_miele|default:"Tipo non specificato" }}</div>
+          <div class="smiel-title">{{ s.tipo_miele|default:_("Tipo non specificato") }}</div>
           <div class="smiel-meta">
             <i class="bi bi-calendar3 me-1"></i>{{ s.data|date:"d/m/Y" }}
             &nbsp;·&nbsp;
             <i class="bi bi-geo-alt me-1"></i>{{ s.apiario.nome }}
             &nbsp;·&nbsp;
-            <i class="bi bi-layers me-1"></i>{{ s.melari.count }} melar{% if s.melari.count == 1 %}io{% else %}i{% endif %}
+            <i class="bi bi-layers me-1"></i>{% blocktrans count counter=s.melari.count %}{{ counter }} melario{% plural %}{{ counter }} melari{% endblocktrans %}
             &nbsp;·&nbsp;
             <i class="bi bi-person me-1"></i>{{ s.utente.username }}
           </div>
         </div>
         <div class="smiel-kg">
           {% if s.quantita_miele %}{{ s.quantita_miele|floatformat:1 }}{% else %}—{% endif %}
-          <small>kg</small>
+          <small>{% trans "kg" %}</small>
         </div>
-        <a href="{% url 'dettaglio_smielatura' s.id %}" class="btn btn-sm btn-outline-secondary ms-2" title="Dettaglio">
+        <a href="{% url 'dettaglio_smielatura' s.id %}" class="btn btn-sm btn-outline-secondary ms-2" title="{% trans 'Dettaglio' %}">
           <i class="bi bi-arrow-right"></i>
         </a>
       </div>
@@ -772,10 +773,10 @@
     <div class="smielature-empty">
       <i class="bi bi-droplet" style="font-size:3rem;opacity:.2;display:block;margin-bottom:.75rem;"></i>
       {% if filtro_apiario %}
-      Nessuna smielatura registrata per questo apiario.
+      {% trans "Nessuna smielatura registrata per questo apiario." %}
       {% else %}
-      Nessuna smielatura registrata.<br>
-      <span class="small text-muted">Invia prima i melari in smielatura dagli alveari.</span>
+      {% trans "Nessuna smielatura registrata." %}<br>
+      <span class="small text-muted">{% trans "Invia prima i melari in smielatura dagli alveari." %}</span>
       {% endif %}
     </div>
     {% endif %}
@@ -798,7 +799,7 @@
         <div class="modal-header" style="background:var(--honey,#F5A623);color:white;">
           <h5 class="modal-title">
             <i class="bi bi-plus-circle me-1"></i>
-            Aggiungi Melario — Arnia #{{ ai.arnia.numero }}
+            {% blocktrans with n=ai.arnia.numero %}Aggiungi Melario — Arnia #{{ n }}{% endblocktrans %}
           </h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
@@ -808,50 +809,50 @@
           <div class="modal-body">
             <div class="row g-3">
               <div class="col-6">
-                <label class="form-label fw-semibold">N° telaini</label>
+                <label class="form-label fw-semibold">{% trans "N° telaini" %}</label>
                 <input type="number" class="form-control" name="numero_telaini" value="10" min="1" max="12">
               </div>
               <div class="col-6">
-                <label class="form-label fw-semibold">Posizione</label>
+                <label class="form-label fw-semibold">{% trans "Posizione" %}</label>
                 <input type="number" class="form-control" name="posizione" value="{{ ai.melari|length|add:1 }}" min="1" max="5">
-                <div class="form-text">1 = vicino al nido</div>
+                <div class="form-text">{% trans "1 = vicino al nido" %}</div>
               </div>
               <div class="col-12">
-                <label class="form-label fw-semibold">Tipo melario</label>
+                <label class="form-label fw-semibold">{% trans "Tipo melario" %}</label>
                 <select class="form-select" name="tipo_melario">
-                  <option value="standard">Standard (Dadan)</option>
-                  <option value="tre_quarti">3/4</option>
-                  <option value="meta">1/2</option>
+                  <option value="standard">{% trans "Standard (Dadan)" %}</option>
+                  <option value="tre_quarti">{% trans "3/4" %}</option>
+                  <option value="meta">{% trans "1/2" %}</option>
                 </select>
               </div>
               <div class="col-12">
-                <label class="form-label fw-semibold">Data posizionamento</label>
+                <label class="form-label fw-semibold">{% trans "Data posizionamento" %}</label>
                 <input type="date" class="form-control" name="data_posizionamento" value="{{ today|date:'Y-m-d' }}">
               </div>
               <div class="col-6">
-                <label class="form-label fw-semibold">Stato favi</label>
+                <label class="form-label fw-semibold">{% trans "Stato favi" %}</label>
                 <select class="form-select" name="stato_favi">
-                  <option value="costruiti">Già costruiti</option>
-                  <option value="fogli_cerei">Fogli cerei</option>
+                  <option value="costruiti">{% trans "Già costruiti" %}</option>
+                  <option value="fogli_cerei">{% trans "Fogli cerei" %}</option>
                 </select>
               </div>
               <div class="col-6 d-flex align-items-end">
                 <div class="form-check mb-2">
                   <input class="form-check-input" type="checkbox" name="escludi_regina"
                          id="escReg{{ ai.arnia.id }}" checked>
-                  <label class="form-check-label" for="escReg{{ ai.arnia.id }}">Escludi-regina</label>
+                  <label class="form-check-label" for="escReg{{ ai.arnia.id }}">{% trans "Escludi-regina" %}</label>
                 </div>
               </div>
               <div class="col-12">
-                <label class="form-label fw-semibold">Note</label>
+                <label class="form-label fw-semibold">{% trans "Note" %}</label>
                 <textarea class="form-control" name="note" rows="2"></textarea>
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
             <button type="submit" class="btn" style="background:var(--honey,#F5A623);color:white;border:none;">
-              <i class="bi bi-plus-circle me-1"></i>Aggiungi
+              <i class="bi bi-plus-circle me-1"></i>{% trans "Aggiungi" %}
             </button>
           </div>
         </form>
@@ -868,9 +869,9 @@
         <div class="modal-header bg-danger text-white">
           <h5 class="modal-title">
             {% if melario.stato == 'posizionato' %}
-            <i class="bi bi-box-arrow-up me-1"></i>Rimuovi Melario #{{ melario.id }}
+            <i class="bi bi-box-arrow-up me-1"></i>{% blocktrans with i=melario.id %}Rimuovi Melario #{{ i }}{% endblocktrans %}
             {% else %}
-            <i class="bi bi-trash me-1"></i>Elimina Melario #{{ melario.id }}
+            <i class="bi bi-trash me-1"></i>{% blocktrans with i=melario.id %}Elimina Melario #{{ i }}{% endblocktrans %}
             {% endif %}
           </h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -880,29 +881,24 @@
           <input type="hidden" name="next" value="{{ request.path }}">
           <div class="modal-body">
             {% if melario.stato == 'posizionato' %}
-            <p>Rimuovere il melario #{{ melario.id }}
-              <strong>({{ melario.numero_telaini }} telaini, posizione {{ melario.posizione }})</strong>
-              dall'arnia #{{ ai.arnia.numero }}?
-            </p>
+            <p>{% blocktrans with mi=melario.id t=melario.numero_telaini p=melario.posizione an=ai.arnia.numero %}Rimuovere il melario #{{ mi }} <strong>({{ t }} telaini, posizione {{ p }})</strong> dall'arnia #{{ an }}?{% endblocktrans %}</p>
             {% else %}
-            <p>Eliminare definitivamente il melario #{{ melario.id }}
-              <strong>({{ melario.numero_telaini }} telaini)</strong>?
-            </p>
+            <p>{% blocktrans with mi=melario.id t=melario.numero_telaini %}Eliminare definitivamente il melario #{{ mi }} <strong>({{ t }} telaini)</strong>?{% endblocktrans %}</p>
             {% endif %}
             <div class="mb-3">
-              <label class="form-label fw-semibold">Data rimozione</label>
+              <label class="form-label fw-semibold">{% trans "Data rimozione" %}</label>
               <input type="date" class="form-control" name="data_rimozione" value="{{ today|date:'Y-m-d' }}">
             </div>
             <div class="mb-3">
-              <label class="form-label fw-semibold">Note</label>
+              <label class="form-label fw-semibold">{% trans "Note" %}</label>
               <textarea class="form-control" name="notes" rows="2"></textarea>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
             <button type="submit" class="btn btn-danger">
               <i class="bi bi-trash me-1"></i>
-              {% if melario.stato == 'posizionato' %}Rimuovi{% else %}Elimina{% endif %}
+              {% if melario.stato == 'posizionato' %}{% trans "Rimuovi" %}{% else %}{% trans "Elimina" %}{% endif %}
             </button>
           </div>
         </form>
@@ -918,7 +914,7 @@
         <div class="modal-header text-white" style="background:#E87000;">
           <h5 class="modal-title">
             <i class="bi bi-droplet-fill me-1"></i>
-            Invia in Smielatura — Melario #{{ melario.id }}
+            {% blocktrans with i=melario.id %}Invia in Smielatura — Melario #{{ i }}{% endblocktrans %}
           </h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
@@ -926,20 +922,17 @@
           {% csrf_token %}
           <input type="hidden" name="next" value="{{ request.path }}">
           <div class="modal-body">
-            <p>Inviare il melario #{{ melario.id }}
-              <strong>({{ melario.numero_telaini }} telaini, posizione {{ melario.posizione }})</strong>
-              dell'arnia #{{ ai.arnia.numero }} in smielatura?
-            </p>
-            <p class="text-muted small mb-3">Il melario verrà contrassegnato come "In Smielatura".</p>
+            <p>{% blocktrans with mi=melario.id t=melario.numero_telaini p=melario.posizione an=ai.arnia.numero %}Inviare il melario #{{ mi }} <strong>({{ t }} telaini, posizione {{ p }})</strong> dell'arnia #{{ an }} in smielatura?{% endblocktrans %}</p>
+            <p class="text-muted small mb-3">{% trans "Il melario verrà contrassegnato come \"In Smielatura\"." %}</p>
             <div class="mb-3">
-              <label class="form-label fw-semibold">Note</label>
+              <label class="form-label fw-semibold">{% trans "Note" %}</label>
               <textarea class="form-control" name="notes" rows="2"></textarea>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
             <button type="submit" class="btn text-white" style="background:#E87000;border:none;">
-              <i class="bi bi-droplet-fill me-1"></i>Invia in Smielatura
+              <i class="bi bi-droplet-fill me-1"></i>{% trans "Invia in Smielatura" %}
             </button>
           </div>
         </form>
@@ -960,7 +953,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header text-white" style="background:#E87000;">
-        <h5 class="modal-title"><i class="bi bi-droplet-fill me-2"></i>Registra Smielatura</h5>
+        <h5 class="modal-title"><i class="bi bi-droplet-fill me-2"></i>{% trans "Registra Smielatura" %}</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form method="post" id="formNuovaSmielatura" action="">
@@ -968,46 +961,46 @@
         <div class="modal-body">
           <div class="row g-3">
             <div class="col-12">
-              <label class="form-label fw-semibold">Apiario *</label>
+              <label class="form-label fw-semibold">{% trans "Apiario" %} *</label>
               <select class="form-select" id="smielApiario" name="_apiario_select" required>
-                <option value="">— Seleziona apiario —</option>
+                <option value="">{% trans "— Seleziona apiario —" %}</option>
                 {% for ap in apiari %}
                 <option value="{{ ap.id }}" data-url="{% url 'registra_smielatura' ap.id %}" data-ajax="{% url 'ajax_melari_disponibili' ap.id %}">{{ ap.nome }}</option>
                 {% endfor %}
               </select>
             </div>
             <div class="col-6">
-              <label class="form-label fw-semibold">Data *</label>
+              <label class="form-label fw-semibold">{% trans "Data" %} *</label>
               <input type="date" class="form-control" name="data" value="{{ today|date:'Y-m-d' }}" required>
             </div>
             <div class="col-6">
-              <label class="form-label fw-semibold">Tipo miele *</label>
-              <input type="text" class="form-control" name="tipo_miele" placeholder="es. Millefiori, Acacia" required>
+              <label class="form-label fw-semibold">{% trans "Tipo miele" %} *</label>
+              <input type="text" class="form-control" name="tipo_miele" placeholder="{% trans 'es. Millefiori, Acacia' %}" required>
             </div>
             <div class="col-12">
-              <label class="form-label fw-semibold">Quantità (kg) *</label>
+              <label class="form-label fw-semibold">{% trans "Quantità (kg)" %} *</label>
               <input type="number" class="form-control" name="quantita_miele" step="0.1" min="0" required>
             </div>
             <!-- Melari disponibili (caricati via AJAX) -->
             <div class="col-12" id="smielMelariSection" style="display:none;">
               <label class="form-label fw-semibold">
-                Melari da smielatura
-                <span class="text-muted fw-normal small">(in smielatura)</span>
+                {% trans "Melari da smielatura" %}
+                <span class="text-muted fw-normal small">{% trans "(in smielatura)" %}</span>
               </label>
               <div id="smielMelariList" class="border rounded p-2" style="max-height:160px;overflow-y:auto;background:#FAFAFA;">
-                <span class="text-muted small">Seleziona prima un apiario…</span>
+                <span class="text-muted small">{% trans "Seleziona prima un apiario…" %}</span>
               </div>
             </div>
             <div class="col-12">
-              <label class="form-label fw-semibold">Note</label>
+              <label class="form-label fw-semibold">{% trans "Note" %}</label>
               <textarea class="form-control" name="note" rows="2"></textarea>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
           <button type="submit" class="btn text-white" style="background:#E87000;border:none;">
-            <i class="bi bi-droplet-fill me-1"></i>Registra
+            <i class="bi bi-droplet-fill me-1"></i>{% trans "Registra" %}
           </button>
         </div>
       </form>
