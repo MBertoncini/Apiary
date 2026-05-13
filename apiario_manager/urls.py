@@ -5,6 +5,7 @@ from django.urls import path, include
 from django.conf.urls.i18n import i18n_patterns
 from core.views import homepage
 from core.auth_views import login_view, register_view, logout_view, password_reset_confirm_web, forgot_password_view, google_login_web, delete_account_view, delete_data_view
+from core.views_nfc import nfc_landing, assetlinks_json, apple_aasa
 
 # Swagger/OpenAPI per documentazione API
 from rest_framework import permissions
@@ -28,16 +29,26 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('admin/', admin.site.urls),
-    
+
     # API REST (non localizzate)
     path('api/v1/', include('core.api_urls')),
 
     # Modulo Statistiche & AI Analytics (non localizzate)
     path('api/stats/', include('statistiche.urls')),
-    
+
     # Documenti Swagger/OpenAPI
     path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
+    # NFC deep linking — questi path devono restare FUORI da i18n_patterns
+    # perché App Link / Universal Link richiedono URL esatti senza prefisso
+    # lingua. assetlinks.json e apple-app-site-association vengono scaricati
+    # dall'OS per verificare l'app; /a/<nfc_id>/ è la landing di fallback
+    # per browser senza app installata.
+    path('.well-known/assetlinks.json', assetlinks_json, name='assetlinks_json'),
+    path('.well-known/apple-app-site-association', apple_aasa, name='apple_aasa'),
+    path('a/<str:nfc_id>/', nfc_landing, name='nfc_landing'),
+    path('a/<str:nfc_id>', nfc_landing),  # senza trailing slash (i tag NFC non lo includono)
 ]
 
 urlpatterns += i18n_patterns(
