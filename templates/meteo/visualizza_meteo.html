@@ -1,5 +1,6 @@
 <!-- templates/meteo/visualizza_meteo.html -->
 {% extends 'base.html' %}
+{% load app_filters %}
 
 {% block title %}Meteo - {{ apiario.nome }} - Apiary{% endblock %}
 
@@ -35,8 +36,8 @@
             <div class="card-body">
                 {% if dati_meteo %}
                     <div class="text-center mb-4">
-                        <div class="d-inline-block p-3 bg-light rounded-circle mb-2">
-                            <img src="https://openweathermap.org/img/wn/{{ dati_meteo.icona }}@2x.png" alt="{{ dati_meteo.descrizione }}" width="80" height="80">
+                        <div class="d-inline-block p-3 bg-light rounded-circle mb-2" style="font-size:3rem; line-height:1;" aria-label="{{ dati_meteo.descrizione }}">
+                            {{ dati_meteo.icona|meteo_emoji }}
                         </div>
                         <h2 class="mb-0">{{ dati_meteo.temperatura|floatformat:1 }}°C</h2>
                         <p class="text-capitalize">{{ dati_meteo.descrizione }}</p>
@@ -102,7 +103,7 @@
                                         <div class="d-flex flex-column h-100">
                                             {% with previsione_giorno=previsioni_giorno.0 %}
                                                 <div class="text-center mb-2">
-                                                    <img src="https://openweathermap.org/img/wn/{{ previsione_giorno.icona }}@2x.png" alt="{{ previsione_giorno.descrizione }}" width="60" height="60">
+                                                    <div style="font-size:2.2rem; line-height:1;" aria-label="{{ previsione_giorno.descrizione }}">{{ previsione_giorno.icona|meteo_emoji }}</div>
                                                     <p class="text-capitalize mb-0">{{ previsione_giorno.descrizione }}</p>
                                                 </div>
                                                 

@@ -12,7 +12,7 @@ from .models import (
     Gruppo, MembroGruppo, InvitoGruppo, Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
     Invasettamento, Cliente, Vendita, DettaglioVendita,
-    AnalisiTelaino, ApiarioMapLayout,
+    AnalisiTelaino, ApiarioMapLayout, MeteoGiornaliero,
     PreferenzaMaturazione, Maturatore, ContenitoreStoccaggio,
     GIORNI_MATURAZIONE_DEFAULTS,
 )
@@ -1259,3 +1259,19 @@ class ApiarioMapLayoutSerializer(serializers.ModelSerializer):
         model = ApiarioMapLayout
         fields = ['id', 'apiario', 'layout_json', 'updated_at']
         read_only_fields = ['updated_at']
+
+
+class MeteoGiornalieroSerializer(serializers.ModelSerializer):
+    """Serializzatore del dataset meteo giornaliero per-apiario (dataset ML)."""
+
+    class Meta:
+        model = MeteoGiornaliero
+        fields = [
+            'id', 'apiario', 'data',
+            'temp_min', 'temp_max', 'temp_mean',
+            'precip_mm', 'precip_hours',
+            'umidita_media', 'vento_medio', 'vento_raffica_max', 'pressione_media',
+            'ore_sole', 'radiazione_mj', 'gdd_base10',
+            'weather_code_dominante', 'source', 'updated_at',
+        ]
+        read_only_fields = fields

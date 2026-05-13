@@ -1736,6 +1736,66 @@ class PrevisioneMeteo(models.Model):
         return f"Previsione {self.apiario.nome} - {self.data_riferimento.strftime('%d/%m/%Y %H:%M')}"
 
 
+class MeteoGiornaliero(models.Model):
+    """Aggregato meteo giornaliero per apiario — dataset per modelli ML predittivi.
+
+    Una riga per (apiario, data). Popolato da Open-Meteo Archive (ERA5) per il
+    passato e da Open-Meteo Forecast per gli ultimi 2-5 giorni che ERA5 non
+    copre ancora; quei giorni vengono poi sovrascritti dall'archive nei run
+    successivi (campo `source` traccia la provenienza).
+    """
+
+    SOURCE_ARCHIVE = 'archive'
+    SOURCE_FORECAST = 'forecast'
+    SOURCE_CHOICES = [
+        (SOURCE_ARCHIVE, 'Open-Meteo Archive (ERA5)'),
+        (SOURCE_FORECAST, 'Open-Meteo Forecast'),
+    ]
+
+    apiario = models.ForeignKey(Apiario, on_delete=models.CASCADE, related_name='meteo_giornaliero')
+    data = models.DateField(help_text="Giorno solare in timezone locale dell'apiario")
+
+    # Temperatura (°C)
+    temp_min = models.FloatField(null=True, blank=True)
+    temp_max = models.FloatField(null=True, blank=True)
+    temp_mean = models.FloatField(null=True, blank=True)
+
+    # Precipitazioni
+    precip_mm = models.FloatField(null=True, blank=True, help_text="Pioggia totale in mm")
+    precip_hours = models.FloatField(null=True, blank=True, help_text="Ore di precipitazione")
+
+    # Umidità / Vento / Pressione
+    umidita_media = models.FloatField(null=True, blank=True, help_text="% RH media")
+    vento_medio = models.FloatField(null=True, blank=True, help_text="km/h velocità media a 10m")
+    vento_raffica_max = models.FloatField(null=True, blank=True, help_text="km/h raffica massima")
+    pressione_media = models.FloatField(null=True, blank=True, help_text="hPa pressione superficiale media")
+
+    # Sole / Radiazione / GDD
+    ore_sole = models.FloatField(null=True, blank=True, help_text="Ore di sole effettive")
+    radiazione_mj = models.FloatField(null=True, blank=True, help_text="MJ/m² radiazione solare globale giornaliera")
+    gdd_base10 = models.FloatField(null=True, blank=True,
+                                   help_text="Growing Degree Days base 10°C: max(0, (tmin+tmax)/2 - 10)")
+
+    # Meta
+    weather_code_dominante = models.IntegerField(null=True, blank=True, help_text="Codice WMO del giorno")
+    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default=SOURCE_ARCHIVE)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Meteo Giornaliero"
+        verbose_name_plural = "Meteo Giornalieri"
+        ordering = ['-data']
+        constraints = [
+            models.UniqueConstraint(fields=['apiario', 'data'], name='uniq_meteo_giornaliero_apiario_data'),
+        ]
+        indexes = [
+            models.Index(fields=['apiario', 'data'], name='idx_meteo_giorn_apiario_data'),
+        ]
+
+    def __str__(self):
+        return f"{self.apiario.nome} {self.data.isoformat()}"
+
+
 # ============================================
 # GESTIONE ATTREZZATURE E STRUMENTI
 # ============================================

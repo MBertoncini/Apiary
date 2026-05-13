@@ -3794,7 +3794,7 @@ def calendario_eventi_json(request):
                         <p><strong>Apiario:</strong> {apiario.nome}</p>
                         <p><strong>Data:</strong> {giorno}</p>
                         <div class="d-flex align-items-center mb-3">
-                            <img src="https://openweathermap.org/img/wn/{icona}@2x.png" alt="{descrizione}" width="60" height="60">
+                            <span style="font-size:2.5rem; line-height:1; margin-right:0.5rem;" aria-label="{descrizione}">{emoji_da_icona(icona)}</span>
                             <div>
                                 <h3 class="mb-0">{temp_avg:.1f}°C</h3>
                                 <p class="text-capitalize mb-0">{descrizione}</p>
@@ -3902,7 +3902,7 @@ def calendario_eventi_json(request):
                     <p><strong>Apiario:</strong> {apiario.nome}</p>
                     <p><strong>Previsione per:</strong> {giorno}</p>
                     <div class="d-flex align-items-center mb-3">
-                        <img src="https://openweathermap.org/img/wn/{previsione.icona}@2x.png" alt="{previsione.descrizione}" width="60" height="60">
+                        <span style="font-size:2.5rem; line-height:1; margin-right:0.5rem;" aria-label="{previsione.descrizione}">{emoji_da_icona(previsione.icona)}</span>
                         <div>
                             <h3 class="mb-0">{previsione.temperatura}°C</h3>
                             <p class="text-capitalize mb-0">{previsione.descrizione}</p>
@@ -3970,7 +3970,7 @@ from datetime import datetime, timedelta
 from django.db.models import Avg
 
 from .models import Apiario, DatiMeteo, PrevisioneMeteo, ControlloArnia
-from .meteo_utils import ottieni_dati_meteo_correnti, ottieni_previsioni_meteo, get_wind_direction_text
+from .meteo_utils import ottieni_dati_meteo_correnti, ottieni_previsioni_meteo, get_wind_direction_text, emoji_da_icona
 
 @login_required
 def visualizza_meteo_apiario(request, apiario_id):

@@ -353,6 +353,36 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/locales/it.js"></script>
 
 <script>
+    // Mappa codice icona meteo (WMO Open-Meteo o legacy OWM) → emoji.
+    function meteoEmoji(icona) {
+        if (!icona) return '🌡️';
+        var s = String(icona).toLowerCase();
+        var isDay = !s.endsWith('n');
+        var code = null;
+        if (s.startsWith('wmo')) {
+            code = parseInt(s.substring(3, 5), 10);
+        }
+        if (code !== null && !isNaN(code)) {
+            if (code === 0) return isDay ? '☀️' : '🌙';
+            if (code === 1) return isDay ? '🌤️' : '🌙';
+            if (code === 2) return '⛅';
+            if (code === 3) return '☁️';
+            if (code === 45 || code === 48) return '🌫️';
+            if (code >= 51 && code <= 57) return '🌦️';
+            if (code >= 61 && code <= 67) return '🌧️';
+            if (code >= 71 && code <= 77) return '🌨️';
+            if (code >= 80 && code <= 82) return '🌧️';
+            if (code >= 85 && code <= 86) return '🌨️';
+            if (code >= 95) return '⛈️';
+            return '🌡️';
+        }
+        // Fallback legacy OWM (01d, 02n, ...)
+        var legacy = { '01':'☀️','02':'🌤️','03':'⛅','04':'☁️','09':'🌧️','10':'🌦️','11':'⛈️','13':'🌨️','50':'🌫️' };
+        var base = s.substring(0, 2);
+        if (base === '01' && !isDay) return '🌙';
+        return legacy[base] || '🌡️';
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Inizializza il calendario
         var calendarEl = document.getElementById('calendar');
@@ -500,7 +530,7 @@
                 // Crea l'icona meteo
                 const weatherIcon = document.createElement('div');
                 weatherIcon.className = 'weather-icon';
-                weatherIcon.innerHTML = `<img src="https://openweathermap.org/img/wn/${event.extendedProps.icona}.png" alt="${event.extendedProps.descrizione}">`;
+                weatherIcon.innerHTML = `<span style="font-size:1.4rem;line-height:1;" title="${event.extendedProps.descrizione}">${meteoEmoji(event.extendedProps.icona)}</span>`;
                 
                 // Aggiungi attributi data per il tooltip
                 weatherIcon.dataset.date = date;
@@ -525,7 +555,7 @@
                     // Costruisci contenuto tooltip
                     let tooltipContent = `
                         <div class="d-flex align-items-center mb-2">
-                            <img src="https://openweathermap.org/img/wn/${this.dataset.icon}@2x.png" alt="${this.dataset.desc}" width="40" height="40">
+                            <span style="font-size:2rem;line-height:1;margin-right:0.5rem;" aria-label="${this.dataset.desc}">${meteoEmoji(this.dataset.icon)}</span>
                             <div>
                                 <h6 class="mb-0">${this.dataset.temp}°C</h6>
                                 <p class="text-capitalize mb-0">${this.dataset.desc}</p>

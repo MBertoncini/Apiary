@@ -1,5 +1,6 @@
 <!-- templates/maps/mappa_meteo.html -->
 {% extends 'maps/base_map.html' %}
+{% load app_filters %}
 
 {% block title %}Mappa Meteo - Apiary{% endblock %}
 
@@ -118,32 +119,6 @@
                         </div>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="showTemperature" checked>
-                                <label class="form-check-label" for="showTemperature">
-                                    <i class="bi bi-thermometer-half"></i> Temperatura
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="showHumidity" checked>
-                                <label class="form-check-label" for="showHumidity">
-                                    <i class="bi bi-droplet"></i> Umidità
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="showWind" checked>
-                                <label class="form-check-label" for="showWind">
-                                    <i class="bi bi-wind"></i> Vento
-                                </label>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 
                 <div id="map" class="mb-3"></div>
@@ -196,29 +171,29 @@
                 <div class="row mb-3">
                     <div class="col-6">
                         <div class="d-flex align-items-center mb-1">
-                            <img src="https://openweathermap.org/img/wn/01d.png" alt="Sereno" width="30" height="30" class="me-1">
+                            <span class="me-1" style="font-size:1.5rem;line-height:1;">☀️</span>
                             <span>Sereno</span>
                         </div>
                         <div class="d-flex align-items-center mb-1">
-                            <img src="https://openweathermap.org/img/wn/02d.png" alt="Poco nuvoloso" width="30" height="30" class="me-1">
+                            <span class="me-1" style="font-size:1.5rem;line-height:1;">🌤️</span>
                             <span>Poco nuvoloso</span>
                         </div>
                         <div class="d-flex align-items-center mb-1">
-                            <img src="https://openweathermap.org/img/wn/03d.png" alt="Nuvoloso" width="30" height="30" class="me-1">
+                            <span class="me-1" style="font-size:1.5rem;line-height:1;">☁️</span>
                             <span>Nuvoloso</span>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="d-flex align-items-center mb-1">
-                            <img src="https://openweathermap.org/img/wn/10d.png" alt="Pioggia" width="30" height="30" class="me-1">
+                            <span class="me-1" style="font-size:1.5rem;line-height:1;">🌧️</span>
                             <span>Pioggia</span>
                         </div>
                         <div class="d-flex align-items-center mb-1">
-                            <img src="https://openweathermap.org/img/wn/11d.png" alt="Temporale" width="30" height="30" class="me-1">
+                            <span class="me-1" style="font-size:1.5rem;line-height:1;">⛈️</span>
                             <span>Temporale</span>
                         </div>
                         <div class="d-flex align-items-center mb-1">
-                            <img src="https://openweathermap.org/img/wn/13d.png" alt="Neve" width="30" height="30" class="me-1">
+                            <span class="me-1" style="font-size:1.5rem;line-height:1;">🌨️</span>
                             <span>Neve</span>
                         </div>
                     </div>
@@ -248,7 +223,7 @@
                                             <small class="text-primary">{{ meteo.temperatura|floatformat:1 }}°C</small>
                                         </div>
                                         <div class="d-flex align-items-center small">
-                                            <img src="https://openweathermap.org/img/wn/{{ meteo.icona }}.png" alt="{{ meteo.descrizione }}" width="30" height="30" class="me-1">
+                                            <span class="me-1" style="font-size:1.5rem;line-height:1;" aria-label="{{ meteo.descrizione }}">{{ meteo.icona|meteo_emoji }}</span>
                                             <span class="text-capitalize">{{ meteo.descrizione }}</span>
                                         </div>
                                     </a>
@@ -273,7 +248,7 @@
                                             <small class="text-primary">{{ previsione.temperatura|floatformat:1 }}°C</small>
                                         </div>
                                         <div class="d-flex align-items-center small">
-                                            <img src="https://openweathermap.org/img/wn/{{ previsione.icona }}.png" alt="{{ previsione.descrizione }}" width="30" height="30" class="me-1">
+                                            <span class="me-1" style="font-size:1.5rem;line-height:1;" aria-label="{{ previsione.descrizione }}">{{ previsione.icona|meteo_emoji }}</span>
                                             <span class="text-capitalize">{{ previsione.descrizione }}</span>
                                         </div>
                                         {% if previsione.probabilita_pioggia > 0 %}
@@ -300,28 +275,46 @@
 {% block extra_js %}
 {{ block.super }}
 <script>
+    function meteoEmoji(icona) {
+        if (!icona) return '🌡️';
+        var s = String(icona).toLowerCase();
+        var isDay = !s.endsWith('n');
+        var code = null;
+        if (s.startsWith('wmo')) {
+            code = parseInt(s.substring(3, 5), 10);
+        }
+        if (code !== null && !isNaN(code)) {
+            if (code === 0) return isDay ? '☀️' : '🌙';
+            if (code === 1) return isDay ? '🌤️' : '🌙';
+            if (code === 2) return '⛅';
+            if (code === 3) return '☁️';
+            if (code === 45 || code === 48) return '🌫️';
+            if (code >= 51 && code <= 57) return '🌦️';
+            if (code >= 61 && code <= 67) return '🌧️';
+            if (code >= 71 && code <= 77) return '🌨️';
+            if (code >= 80 && code <= 82) return '🌧️';
+            if (code >= 85 && code <= 86) return '🌨️';
+            if (code >= 95) return '⛈️';
+            return '🌡️';
+        }
+        var legacy = { '01':'☀️','02':'🌤️','03':'⛅','04':'☁️','09':'🌧️','10':'🌦️','11':'⛈️','13':'🌨️','50':'🌫️' };
+        var base = s.substring(0, 2);
+        if (base === '01' && !isDay) return '🌙';
+        return legacy[base] || '🌡️';
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Inizializza la mappa
         var map = L.map('map');
         
-        // Aggiungi il layer di OpenStreetMap
-        L.tileLayer('https://{s}.tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid={{ OPENWEATHERMAP_API_KEY }}', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Weather data &copy; <a href="https://openweathermap.org">OpenWeatherMap</a>',
-            maxZoom: 18,
-            opacity: 0.6
-        }).addTo(map);
-        
         // Layer base di OpenStreetMap
         var baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Dati meteo &copy; <a href="https://open-meteo.com">Open-Meteo</a>',
             maxZoom: 18
         }).addTo(map);
-        
+
         // Crea i layer group per le diverse categorie
         var apiariLayer = L.layerGroup().addTo(map);
-        var tempLayer = null;
-        var humidityLayer = null;
-        var windLayer = null;
         
         // Dati meteo disponibili
         var datiMeteo = {
@@ -408,8 +401,8 @@
                     className: 'weather-marker',
                     iconSize: [40, 40],
                     iconAnchor: [20, 20],
-                    html: `<div style="width:100%;height:100%;border-radius:50%;background-color:${temperatureColor};border:2px solid ${markerColor};display:flex;justify-content:center;align-items:center;">
-                            <img src="https://openweathermap.org/img/wn/${meteoData.icona}.png" width="30" height="30" style="filter:contrast(1.2);">
+                    html: `<div style="width:100%;height:100%;border-radius:50%;background-color:${temperatureColor};border:2px solid ${markerColor};display:flex;justify-content:center;align-items:center;font-size:1.4rem;">
+                            ${meteoEmoji(meteoData.icona)}
                            </div>`
                 });
                 
@@ -423,7 +416,7 @@
                     <div class="weather-popup-content">
                         ${isCurrentWeather ? '' : '<span class="forecast-label">Previsione domani</span>'}
                         <div class="weather-popup-header">
-                            <img src="https://openweathermap.org/img/wn/${meteoData.icona}@2x.png" alt="${meteoData.descrizione}" width="40" height="40">
+                            <span style="font-size:2rem;line-height:1;margin-right:0.5rem;" aria-label="${meteoData.descrizione}">${meteoEmoji(meteoData.icona)}</span>
                             <div>
                                 <h5>${meteoData.apiario_nome}</h5>
                                 <div class="d-flex align-items-center">
@@ -530,54 +523,10 @@
             map.setView([42.83, 12.83], 6);
         }
         
-        // Gestione dei layer meteo
-        // Puoi aggiungere layer di temperatura, precipitazioni, copertura nuvolosa, etc.
-        // da OpenWeatherMap o altre fonti
-        
-        document.getElementById('showTemperature').addEventListener('change', function() {
-            if (this.checked) {
-                if (!tempLayer) {
-                    tempLayer = L.tileLayer('https://{s}.tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid={{ OPENWEATHERMAP_API_KEY }}', {
-                        attribution: 'Weather data &copy; <a href="https://openweathermap.org">OpenWeatherMap</a>',
-                        opacity: 0.5
-                    }).addTo(map);
-                } else {
-                    map.addLayer(tempLayer);
-                }
-            } else if (tempLayer) {
-                map.removeLayer(tempLayer);
-            }
-        });
-        
-        document.getElementById('showHumidity').addEventListener('change', function() {
-            if (this.checked) {
-                if (!humidityLayer) {
-                    humidityLayer = L.tileLayer('https://tile.openweathermap.org/map/humidity_new/{z}/{x}/{y}.png?appid={{ OPENWEATHERMAP_API_KEY }}', {
-                        attribution: 'Weather data &copy; <a href="https://openweathermap.org">OpenWeatherMap</a>',
-                        opacity: 0.5
-                    }).addTo(map);
-                } else {
-                    map.addLayer(humidityLayer);
-                }
-            } else if (humidityLayer) {
-                map.removeLayer(humidityLayer);
-            }
-        });
-        
-        document.getElementById('showWind').addEventListener('change', function() {
-            if (this.checked) {
-                if (!windLayer) {
-                    windLayer = L.tileLayer('https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid={{ OPENWEATHERMAP_API_KEY }}', {
-                        attribution: 'Weather data &copy; <a href="https://openweathermap.org">OpenWeatherMap</a>',
-                        opacity: 0.5
-                    }).addTo(map);
-                } else {
-                    map.addLayer(windLayer);
-                }
-            } else if (windLayer) {
-                map.removeLayer(windLayer);
-            }
-        });
+        // Nota: gli overlay tile (temperatura/umidità/vento) di OpenWeatherMap
+        // sono stati rimossi nella migrazione a Open-Meteo (che non offre
+        // tile equivalenti). I dati per singolo apiario restano disponibili
+        // via marker.
     });
 </script>
 {% endblock %}

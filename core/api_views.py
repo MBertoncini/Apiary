@@ -20,7 +20,7 @@ from .models import (
     Apiario, Arnia, Colonia, Nucleo, ControlloNucleo, ControlloArnia,
     Regina, StoriaRegine, Fioritura, FiorituraConferma,
     TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
-    Gruppo, MembroGruppo, InvitoGruppo, DatiMeteo, PrevisioneMeteo,
+    Gruppo, MembroGruppo, InvitoGruppo, DatiMeteo, PrevisioneMeteo, MeteoGiornaliero,
     Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
     Invasettamento, Cliente, Vendita, DettaglioVendita,
@@ -44,7 +44,7 @@ from .serializers import (
     ManutenzioneAttrezzaturaSerializer,
     InvasettamentoSerializer, ClienteSerializer, VenditaSerializer,
     DettaglioVenditaSerializer,
-    AnalisiTelainoSerializer, ApiarioMapLayoutSerializer,
+    AnalisiTelainoSerializer, ApiarioMapLayoutSerializer, MeteoGiornalieroSerializer,
     NucleoSerializer, ControlloNucleoSerializer,
     PreferenzaMaturazionSerializer, MatutatoreSerializer, ContenitoreStoccaggioSerializer,
 )
@@ -172,7 +172,10 @@ class ApiarioViewSet(viewsets.ModelViewSet):
         Per le azioni di sola lettura include anche gli apiari pubblici.
         """
         base_qs = get_apiari_accessibili(self.request.user)
-        if getattr(self, 'action', None) in ('retrieve', 'arnie', 'controlli', 'meteo'):
+        if getattr(self, 'action', None) in (
+            'retrieve', 'arnie', 'controlli', 'meteo',
+            'meteo_giornaliero', 'meteo_giornaliero_stats',
+        ):
             public_qs = Apiario.objects.filter(visibilita_mappa='pubblico')
             return (base_qs | public_qs).distinct()
         return base_qs
@@ -279,8 +282,115 @@ class ApiarioViewSet(viewsets.ModelViewSet):
             'descrizione': p.descrizione,
             'icona': p.icona
         } for p in previsioni]
-        
+
         return Response(data)
+
+    # ------------------------------------------------------------------
+    # MeteoGiornaliero: dataset per modelli ML predittivi
+    # ------------------------------------------------------------------
+
+    def _parse_range(self, request, apiario):
+        """Legge ?start=YYYY-MM-DD&end=YYYY-MM-DD con default sensati."""
+        from datetime import date, timedelta
+        oggi = date.today()
+        default_end = oggi - timedelta(days=1)
+        default_start = default_end - timedelta(days=365)
+        try:
+            start = date.fromisoformat(request.query_params.get('start')) \
+                if request.query_params.get('start') else default_start
+        except ValueError:
+            start = default_start
+        try:
+            end = date.fromisoformat(request.query_params.get('end')) \
+                if request.query_params.get('end') else default_end
+        except ValueError:
+            end = default_end
+        if apiario.data_creazione:
+            start = max(start, apiario.data_creazione.date())
+        return start, end
+
+    @action(detail=True, methods=['get'], url_path='meteo-giornaliero')
+    def meteo_giornaliero(self, request, pk=None):
+        """Lista paginata del dataset meteo giornaliero per un apiario.
+
+        Query params:
+          start (YYYY-MM-DD), default: 365 giorni fa
+          end   (YYYY-MM-DD), default: ieri
+        """
+        apiario = self.get_object()
+        start, end = self._parse_range(request, apiario)
+        qs = MeteoGiornaliero.objects.filter(
+            apiario=apiario, data__gte=start, data__lte=end,
+        ).order_by('data')
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = MeteoGiornalieroSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = MeteoGiornalieroSerializer(qs, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get'], url_path='meteo-giornaliero/stats')
+    def meteo_giornaliero_stats(self, request, pk=None):
+        """Aggregati sul range richiesto: medie, totali e GDD cumulato."""
+        from django.db.models import Avg, Sum, Min, Max, Count
+        apiario = self.get_object()
+        start, end = self._parse_range(request, apiario)
+        qs = MeteoGiornaliero.objects.filter(
+            apiario=apiario, data__gte=start, data__lte=end,
+        )
+        agg = qs.aggregate(
+            giorni=Count('id'),
+            temp_min=Min('temp_min'),
+            temp_max=Max('temp_max'),
+            temp_media=Avg('temp_mean'),
+            precip_totale=Sum('precip_mm'),
+            precip_hours_totale=Sum('precip_hours'),
+            umidita_media=Avg('umidita_media'),
+            vento_medio=Avg('vento_medio'),
+            ore_sole_totale=Sum('ore_sole'),
+            radiazione_totale=Sum('radiazione_mj'),
+            gdd_cumulato=Sum('gdd_base10'),
+        )
+        agg['start'] = start.isoformat()
+        agg['end'] = end.isoformat()
+        return Response(agg)
+
+    @action(detail=True, methods=['post'], url_path='meteo-giornaliero/backfill')
+    def meteo_giornaliero_backfill(self, request, pk=None):
+        """Trigger manuale del backfill per un singolo apiario.
+
+        Body (opzionale): {"max_days": 365}. Idempotente.
+        Riservato al proprietario per evitare abusi.
+        """
+        from datetime import date, timedelta
+        from .meteo_archive_utils import aggiorna_meteo_apiario
+
+        apiario = self.get_object()
+        if apiario.proprietario != request.user:
+            return Response(
+                {"detail": "Solo il proprietario può lanciare il backfill."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        if not apiario.has_coordinates() or not apiario.monitoraggio_meteo:
+            return Response(
+                {"detail": "Apiario senza coordinate o monitoraggio_meteo disabilitato."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        oggi = date.today()
+        ieri = oggi - timedelta(days=1)
+        start = apiario.data_creazione.date() if apiario.data_creazione else (ieri - timedelta(days=365))
+        max_days = request.data.get('max_days') if isinstance(request.data, dict) else None
+        if max_days:
+            try:
+                start = max(start, oggi - timedelta(days=int(max_days)))
+            except (TypeError, ValueError):
+                pass
+
+        result = aggiorna_meteo_apiario(apiario, start, ieri)
+        result['start'] = start.isoformat()
+        result['end'] = ieri.isoformat()
+        return Response(result)
 
     # Aggiungi alla classe ApiarioViewSet
     @action(detail=True, methods=['put'])
@@ -2807,34 +2917,52 @@ def rifiuta_invito(request, token):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def meteo_by_location(request):
-    """Restituisce dati meteo per latitudine e longitudine."""
-    # Get parameters
+    """Restituisce dati meteo correnti per latitudine e longitudine (Open-Meteo)."""
+    import requests as _requests
+    from .meteo_utils import descrizione_da_wmo_code, icona_da_wmo_code
+
     lat = request.query_params.get('lat')
     lon = request.query_params.get('lon')
-    
+
     if not lat or not lon:
         return Response(
             {"detail": "Parametri lat e lon richiesti."},
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_400_BAD_REQUEST,
         )
-    
+
     try:
-        # Implement your weather fetching logic here
-        # This can be similar to what you use in the apiario/<id>/meteo/ endpoint
-        
-        # For now, return a placeholder response
-        weather_data = {
-            "temperature": 22.5,
-            "humidity": 65,
-            "description": "Sereno",
-            "icon": "01d"
-        }
-        
-        return Response(weather_data)
+        lat_f = float(lat)
+        lon_f = float(lon)
+    except (TypeError, ValueError):
+        return Response(
+            {"detail": "Parametri lat/lon non validi."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        r = _requests.get('https://api.open-meteo.com/v1/forecast', params={
+            'latitude': lat_f,
+            'longitude': lon_f,
+            'current': 'temperature_2m,relative_humidity_2m,weather_code,is_day',
+            'wind_speed_unit': 'ms',
+            'timezone': 'auto',
+        }, timeout=15)
+        if r.status_code != 200:
+            return Response({"detail": "Servizio meteo non disponibile."},
+                            status=status.HTTP_502_BAD_GATEWAY)
+        data = r.json().get('current') or {}
+        weather_code = data.get('weather_code')
+        is_day = bool(data.get('is_day', 1))
+        return Response({
+            'temperature': data.get('temperature_2m'),
+            'humidity': data.get('relative_humidity_2m'),
+            'description': descrizione_da_wmo_code(weather_code, is_day=is_day),
+            'icon': icona_da_wmo_code(weather_code, is_day=is_day),
+        })
     except Exception as e:
         return Response(
             {"detail": f"Errore: {str(e)}"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 

@@ -1,257 +1,389 @@
 # core/meteo_utils.py
+"""
+Servizio meteo unificato basato su Open-Meteo (gratuito, no API key).
+
+Sostituisce la precedente implementazione OpenWeatherMap mantenendo invariata
+la signature delle funzioni pubbliche e i modelli `DatiMeteo` / `PrevisioneMeteo`
+così da non rompere UI/API esistenti.
+
+Per il dataset giornaliero usato dai modelli ML vedi
+`core.meteo_archive_utils` (modello `MeteoGiornaliero`).
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import time
+from datetime import datetime, timedelta
 
 import requests
-from django.conf import settings
-from django.utils import timezone
-from datetime import datetime, timedelta
-import time
-import json
 from django.core.cache import cache
+from django.utils import timezone
 
-from .models import DatiMeteo, PrevisioneMeteo, Apiario
+from .models import DatiMeteo, PrevisioneMeteo
 
-def aggiorna_dati_meteo(apiario):
-    """
-    Recupera i dati meteo attuali per un apiario specifico e li salva nel database
-    Utilizza la cache per evitare troppe chiamate API
-    """
-    # Verifica che l'apiario abbia coordinate valide e monitoraggio abilitato
-    if not apiario.has_coordinates() or not apiario.monitoraggio_meteo:
-        return None
-    
-    # Controlla la cache prima di chiamare l'API (cache di 30 minuti)
-    cache_key = f"meteo_attuale_{apiario.id}"
-    cached_data = cache.get(cache_key)
-    if cached_data:
-        print(f"Usando dati meteo in cache per apiario {apiario.id}")
-        if 'json_data' in cached_data:
-            data = json.loads(cached_data['json_data'])
-            
-            # Crea un nuovo record meteo per l'apiario dai dati in cache
-            dati_meteo = DatiMeteo(
-                apiario=apiario,
-                data=timezone.now(),
-                temperatura=data.get('main', {}).get('temp'),
-                umidita=data.get('main', {}).get('humidity'),
-                pressione=data.get('main', {}).get('pressure'),
-                velocita_vento=data.get('wind', {}).get('speed'),
-                direzione_vento=data.get('wind', {}).get('deg'),
-                descrizione=data.get('weather', [{}])[0].get('description'),
-                icona=data.get('weather', [{}])[0].get('icon'),
-                pioggia=data.get('rain', {}).get('1h', 0)
-            )
-            dati_meteo.save()
-            return dati_meteo
-    
-    # URL API di OpenWeatherMap (piano Free)
-    api_key = settings.OPENWEATHERMAP_API_KEY
-    lat = float(apiario.latitudine)
-    lon = float(apiario.longitudine)
-    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&units=metric&appid={api_key}&lang=it"
-    
-    try:
-        response = requests.get(url)
-        
-        if response.status_code == 200:
-            data = response.json()
-            
-            # Salva i dati nella cache per 30 minuti
-            cache.set(cache_key, {
-                'json_data': json.dumps(data),
-                'timestamp': timezone.now().timestamp()
-            }, 1800)  # 30 minuti
-            
-            # Crea un nuovo record meteo per l'apiario
-            dati_meteo = DatiMeteo(
-                apiario=apiario,
-                data=timezone.now(),
-                temperatura=data.get('main', {}).get('temp'),
-                umidita=data.get('main', {}).get('humidity'),
-                pressione=data.get('main', {}).get('pressure'),
-                velocita_vento=data.get('wind', {}).get('speed'),
-                direzione_vento=data.get('wind', {}).get('deg'),
-                descrizione=data.get('weather', [{}])[0].get('description'),
-                icona=data.get('weather', [{}])[0].get('icon'),
-                pioggia=data.get('rain', {}).get('1h', 0) if 'rain' in data else 0
-            )
-            dati_meteo.save()
-            return dati_meteo
-        else:
-            print(f"Errore API meteo: {response.status_code}, {response.text}")
-            # Se riceviamo 401, stampiamo più dettagli per il debug
-            if response.status_code == 401:
-                print(f"Errore di autenticazione API. Verifica che l'API key sia corretta e attiva.")
-                print(f"API Key utilizzata (primi 5 caratteri): {api_key[:5]}...")
-            return None
-    except Exception as e:
-        print(f"Errore durante la richiesta API meteo: {str(e)}")
-        return None
 
-def aggiorna_previsioni_meteo(apiario):
-    """
-    Recupera le previsioni meteo per un apiario e le salva nel database
-    Utilizza l'endpoint delle previsioni a 3 ore disponibile nel piano Free
-    """
-    # Verifica che l'apiario abbia coordinate valide e monitoraggio abilitato
-    if not apiario.has_coordinates() or not apiario.monitoraggio_meteo:
-        return []
-    
-    # Controlla la cache prima di chiamare l'API (cache di 2 ore per le previsioni)
-    cache_key = f"previsioni_meteo_{apiario.id}"
-    cached_data = cache.get(cache_key)
-    if cached_data:
-        print(f"Usando previsioni meteo in cache per apiario {apiario.id}")
-        if 'json_data' in cached_data:
-            data = json.loads(cached_data['json_data'])
-            
-            # Aggiorna le previsioni dal dato in cache
-            return process_forecast_data(apiario, data)
-    
-    # URL API di OpenWeatherMap per previsioni a 3 ore (piano Free)
-    api_key = settings.OPENWEATHERMAP_API_KEY
-    lat = float(apiario.latitudine)
-    lon = float(apiario.longitudine)
-    url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={api_key}&lang=it"
-    
-    try:
-        response = requests.get(url)
-        
-        if response.status_code == 200:
-            data = response.json()
-            
-            # Salva i dati nella cache per 2 ore
-            cache.set(cache_key, {
-                'json_data': json.dumps(data),
-                'timestamp': timezone.now().timestamp()
-            }, 7200)  # 2 ore
-            
-            # Processa e salva le previsioni
-            return process_forecast_data(apiario, data)
-        else:
-            print(f"Errore API previsioni meteo: {response.status_code}, {response.text}")
-            if response.status_code == 401:
-                print(f"Errore di autenticazione API. Verifica che l'API key sia corretta e attiva.")
-                print(f"API Key utilizzata (primi 5 caratteri): {api_key[:5]}...")
-            return []
-    except Exception as e:
-        print(f"Errore durante la richiesta API previsioni meteo: {str(e)}")
-        return []
+logger = logging.getLogger(__name__)
 
-def process_forecast_data(apiario, data):
-    """
-    Processa i dati delle previsioni da OpenWeatherMap e li salva nel database
-    """
-    # Elimina previsioni esistenti per questo apiario
-    PrevisioneMeteo.objects.filter(apiario=apiario).delete()
-    
-    # Data attuale per il timestamp della previsione
-    now = timezone.now()
-    
-    # Salva le nuove previsioni (massimo 5 giorni)
-    previsioni_salvate = []
-    if 'list' in data:
-        for item in data.get('list', []):
-            # Qui è il problema! Converte il timestamp da naive a aware datetime
-            naive_dt = datetime.fromtimestamp(item.get('dt'))
-            data_riferimento = timezone.make_aware(naive_dt)
-            
-            # Limita alle previsioni entro 5 giorni come da piano Free
-            if data_riferimento > (now + timedelta(days=5)):
-                continue
-            
-            # Salva la previsione
-            previsione = PrevisioneMeteo(
-                apiario=apiario,
-                data_previsione=now,
-                data_riferimento=data_riferimento,
-                temperatura=item.get('main', {}).get('temp'),
-                temperatura_min=item.get('main', {}).get('temp_min'),
-                temperatura_max=item.get('main', {}).get('temp_max'),
-                umidita=item.get('main', {}).get('humidity'),
-                pressione=item.get('main', {}).get('pressure'),
-                velocita_vento=item.get('wind', {}).get('speed'),
-                direzione_vento=item.get('wind', {}).get('deg'),
-                probabilita_pioggia=int(item.get('pop', 0) * 100),  # Convertita da 0-1 a percentuale
-                descrizione=item.get('weather', [{}])[0].get('description'),
-                icona=item.get('weather', [{}])[0].get('icon')
-            )
-            previsione.save()
-            previsioni_salvate.append(previsione)
-    
-    return previsioni_salvate
 
-def ottieni_dati_meteo_correnti(apiario):
-    """
-    Ottiene i dati meteo più recenti per un apiario, aggiornandoli se necessario
-    """
-    # Cerca dati meteo recenti (ultimi 60 minuti)
-    dati_recenti = DatiMeteo.objects.filter(
-        apiario=apiario,
-        data__gte=timezone.now() - timedelta(minutes=60)
-    ).order_by('-data').first()
-    
-    # Se non ci sono dati recenti, aggiorna
-    if not dati_recenti:
-        dati_recenti = aggiorna_dati_meteo(apiario)
-    
-    return dati_recenti
+FORECAST_URL = 'https://api.open-meteo.com/v1/forecast'
 
-def ottieni_previsioni_meteo(apiario):
-    """
-    Ottiene le previsioni meteo per un apiario, aggiornandole se necessario
-    """
-    # Cerca previsioni recenti (ultime 3 ore)
-    previsioni_recenti = PrevisioneMeteo.objects.filter(
-        apiario=apiario,
-        data_previsione__gte=timezone.now() - timedelta(hours=3)
-    ).exists()
-    
-    # Se non ci sono previsioni recenti, aggiorna
-    if not previsioni_recenti:
-        aggiorna_previsioni_meteo(apiario)
-    
-    # Recupera le previsioni (solo per i prossimi 5 giorni, disponibili nel piano Free)
-    previsioni = PrevisioneMeteo.objects.filter(
-        apiario=apiario,
-        data_riferimento__gte=timezone.now(),
-        data_riferimento__lte=timezone.now() + timedelta(days=5)
-    ).order_by('data_riferimento')
-    
-    return previsioni
+# Cache TTL (secondi) per evitare chiamate ridondanti.
+CACHE_TTL_CURRENT = 30 * 60   # 30 minuti per il meteo attuale
+CACHE_TTL_FORECAST = 2 * 60 * 60  # 2 ore per le previsioni
 
-def get_wind_direction_text(gradi):
+
+# ----------------------------------------------------------------------------
+# Mappa codici WMO → descrizione italiana (allineata al frontend)
+# ----------------------------------------------------------------------------
+
+def descrizione_da_wmo_code(code: int | None, is_day: bool = True) -> str:
+    """Descrizione testuale italiana del codice WMO Open-Meteo."""
+    if code is None:
+        return 'Non disponibile'
+    if code == 0:
+        return 'Cielo sereno' if is_day else 'Notte serena'
+    if code == 1:
+        return 'Prevalentemente sereno'
+    if code == 2:
+        return 'Parzialmente nuvoloso'
+    if code == 3:
+        return 'Coperto'
+    if code in (45, 48):
+        return 'Nebbia'
+    if 51 <= code <= 55:
+        return 'Pioggerella'
+    if 56 <= code <= 57:
+        return 'Pioggerella gelata'
+    if 61 <= code <= 65:
+        return 'Pioggia'
+    if 66 <= code <= 67:
+        return 'Pioggia gelata'
+    if 71 <= code <= 75:
+        return 'Neve'
+    if code == 77:
+        return 'Granuli di neve'
+    if 80 <= code <= 82:
+        return 'Rovesci di pioggia'
+    if 85 <= code <= 86:
+        return 'Rovesci di neve'
+    if code == 95:
+        return 'Temporale'
+    if code in (96, 99):
+        return 'Temporale con grandine'
+    return 'Non disponibile'
+
+
+def icona_da_wmo_code(code: int | None, is_day: bool = True) -> str:
+    """Restituisce un identificatore icona stabile (compatibile col campo
+    `icona` esistente, max 20 char). Usiamo il codice WMO come stringa più
+    suffisso d/n per consistenza coi vecchi pattern OWM 01d/01n.
     """
-    Converte i gradi della direzione del vento in testo (N, NE, E, ecc.)
+    if code is None:
+        return ''
+    return f"wmo{code:02d}{'d' if is_day else 'n'}"
+
+
+def emoji_da_wmo_code(code: int | None, is_day: bool = True) -> str:
+    """Emoji corrispondente al codice WMO. Usato dai template/server-rendered HTML."""
+    if code is None:
+        return '❓'
+    if code == 0:
+        return '☀️' if is_day else '🌙'
+    if code == 1:
+        return '🌤️' if is_day else '🌙'
+    if code == 2:
+        return '⛅'
+    if code == 3:
+        return '☁️'
+    if code in (45, 48):
+        return '🌫️'
+    if 51 <= code <= 57:
+        return '🌦️'
+    if 61 <= code <= 67:
+        return '🌧️'
+    if 71 <= code <= 77:
+        return '🌨️'
+    if 80 <= code <= 82:
+        return '🌧️'
+    if 85 <= code <= 86:
+        return '🌨️'
+    if 95 <= code <= 99:
+        return '⛈️'
+    return '🌡️'
+
+
+def emoji_da_icona(icona: str | None) -> str:
+    """Decodifica il campo `icona` di DatiMeteo/PrevisioneMeteo in emoji.
+
+    Supporta sia il nuovo formato Open-Meteo (`wmoXXd`/`wmoXXn`) sia il
+    vecchio formato OpenWeatherMap (`01d`, `02n`, ...) per record storici.
     """
-    directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 
+    if not icona:
+        return '🌡️'
+    s = str(icona).strip().lower()
+    if s.startswith('wmo'):
+        try:
+            code = int(s[3:5])
+        except (ValueError, IndexError):
+            return '🌡️'
+        is_day = not s.endswith('n')
+        return emoji_da_wmo_code(code, is_day=is_day)
+    # Fallback legacy OWM
+    legacy = {
+        '01': '☀️', '02': '🌤️', '03': '⛅', '04': '☁️',
+        '09': '🌧️', '10': '🌦️', '11': '⛈️', '13': '🌨️', '50': '🌫️',
+    }
+    is_day = not s.endswith('n')
+    base = s[:2]
+    icon = legacy.get(base, '🌡️')
+    if base == '01' and not is_day:
+        return '🌙'
+    return icon
+
+
+def get_wind_direction_text(gradi) -> str:
+    """Converte i gradi della direzione del vento in testo (N, NE, E, ecc.)"""
+    directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
                   'S', 'SSO', 'SO', 'OSO', 'O', 'ONO', 'NO', 'NNO']
-    index = round(float(gradi) / 22.5) % 16
+    try:
+        index = round(float(gradi) / 22.5) % 16
+    except (TypeError, ValueError):
+        return ''
     return directions[index]
 
-def limita_richieste_api(max_richieste=58, per_minuti=1):
+
+# ----------------------------------------------------------------------------
+# HTTP helper
+# ----------------------------------------------------------------------------
+
+def _http_get_json(url: str, params: dict, timeout: int = 15) -> dict | None:
+    try:
+        r = requests.get(url, params=params, timeout=timeout)
+    except requests.RequestException as e:
+        logger.warning("Open-Meteo request error: %s", e)
+        return None
+    if r.status_code != 200:
+        logger.warning("Open-Meteo HTTP %s: %s", r.status_code, r.text[:200])
+        return None
+    try:
+        return r.json()
+    except ValueError as e:
+        logger.warning("Open-Meteo JSON decode error: %s", e)
+        return None
+
+
+def _fetch_open_meteo(lat: float, lon: float) -> dict | None:
+    """Chiama Open-Meteo forecast per dati current + hourly 5 giorni.
+    Unità vento in m/s per retro-compatibilità con i dati storici OpenWeatherMap.
     """
-    Funzione per limitare le richieste API mantenendosi sotto il limite del piano Free
-    Utilizza la cache per tracciare le richieste
-    Ritorna True se è possibile fare una richiesta, False altrimenti
+    params = {
+        'latitude': lat,
+        'longitude': lon,
+        'current': ','.join([
+            'temperature_2m',
+            'relative_humidity_2m',
+            'surface_pressure',
+            'wind_speed_10m',
+            'wind_direction_10m',
+            'precipitation',
+            'weather_code',
+            'is_day',
+        ]),
+        'hourly': ','.join([
+            'temperature_2m',
+            'relative_humidity_2m',
+            'surface_pressure',
+            'wind_speed_10m',
+            'wind_direction_10m',
+            'precipitation_probability',
+            'precipitation',
+            'weather_code',
+            'is_day',
+        ]),
+        'forecast_days': 5,
+        'wind_speed_unit': 'ms',
+        'timezone': 'auto',
+    }
+    return _http_get_json(FORECAST_URL, params)
+
+
+# ----------------------------------------------------------------------------
+# API pubblica (signature invariate dall'implementazione precedente)
+# ----------------------------------------------------------------------------
+
+def aggiorna_dati_meteo(apiario):
+    """Recupera i dati meteo attuali per un apiario e li salva in DatiMeteo."""
+    if not apiario.has_coordinates() or not apiario.monitoraggio_meteo:
+        return None
+
+    cache_key = f"meteo_attuale_{apiario.id}"
+    cached = cache.get(cache_key)
+    payload = None
+
+    if cached and 'json_data' in cached:
+        try:
+            payload = json.loads(cached['json_data'])
+        except (TypeError, ValueError):
+            payload = None
+
+    if payload is None:
+        lat = float(apiario.latitudine)
+        lon = float(apiario.longitudine)
+        payload = _fetch_open_meteo(lat, lon)
+        if payload is None:
+            return None
+        cache.set(cache_key, {
+            'json_data': json.dumps(payload),
+            'timestamp': timezone.now().timestamp(),
+        }, CACHE_TTL_CURRENT)
+
+    cur = payload.get('current') or {}
+    weather_code = cur.get('weather_code')
+    is_day = bool(cur.get('is_day', 1))
+
+    dati = DatiMeteo(
+        apiario=apiario,
+        data=timezone.now(),
+        temperatura=cur.get('temperature_2m'),
+        umidita=cur.get('relative_humidity_2m'),
+        pressione=cur.get('surface_pressure'),
+        velocita_vento=cur.get('wind_speed_10m'),
+        direzione_vento=cur.get('wind_direction_10m'),
+        descrizione=descrizione_da_wmo_code(weather_code, is_day=is_day),
+        icona=icona_da_wmo_code(weather_code, is_day=is_day),
+        pioggia=cur.get('precipitation') or 0,
+    )
+    dati.save()
+    return dati
+
+
+def aggiorna_previsioni_meteo(apiario):
+    """Recupera le previsioni meteo orarie per un apiario e popola PrevisioneMeteo."""
+    if not apiario.has_coordinates() or not apiario.monitoraggio_meteo:
+        return []
+
+    cache_key = f"previsioni_meteo_{apiario.id}"
+    cached = cache.get(cache_key)
+    payload = None
+
+    if cached and 'json_data' in cached:
+        try:
+            payload = json.loads(cached['json_data'])
+        except (TypeError, ValueError):
+            payload = None
+
+    if payload is None:
+        lat = float(apiario.latitudine)
+        lon = float(apiario.longitudine)
+        payload = _fetch_open_meteo(lat, lon)
+        if payload is None:
+            return []
+        cache.set(cache_key, {
+            'json_data': json.dumps(payload),
+            'timestamp': timezone.now().timestamp(),
+        }, CACHE_TTL_FORECAST)
+
+    return process_forecast_data(apiario, payload)
+
+
+def process_forecast_data(apiario, payload):
+    """Salva le previsioni orarie da Open-Meteo nei prossimi 5 giorni."""
+    hourly = payload.get('hourly') or {}
+    times = hourly.get('time') or []
+    if not times:
+        return []
+
+    # Pulisci le previsioni precedenti
+    PrevisioneMeteo.objects.filter(apiario=apiario).delete()
+
+    now = timezone.now()
+    cutoff = now + timedelta(days=5)
+    previsioni = []
+
+    def _get(name, i):
+        arr = hourly.get(name)
+        if not arr or i >= len(arr):
+            return None
+        return arr[i]
+
+    for i, t in enumerate(times):
+        try:
+            naive_dt = datetime.fromisoformat(t)
+        except (TypeError, ValueError):
+            continue
+        data_riferimento = timezone.make_aware(naive_dt) if naive_dt.tzinfo is None else naive_dt
+        if data_riferimento > cutoff:
+            continue
+
+        temp = _get('temperature_2m', i)
+        weather_code = _get('weather_code', i)
+        is_day = bool(_get('is_day', i) or 1)
+
+        previsione = PrevisioneMeteo(
+            apiario=apiario,
+            data_previsione=now,
+            data_riferimento=data_riferimento,
+            temperatura=temp,
+            temperatura_min=temp,  # Open-Meteo hourly non distingue min/max per ora
+            temperatura_max=temp,
+            umidita=_get('relative_humidity_2m', i),
+            pressione=_get('surface_pressure', i),
+            velocita_vento=_get('wind_speed_10m', i),
+            direzione_vento=_get('wind_direction_10m', i),
+            probabilita_pioggia=_get('precipitation_probability', i) or 0,
+            descrizione=descrizione_da_wmo_code(weather_code, is_day=is_day),
+            icona=icona_da_wmo_code(weather_code, is_day=is_day),
+        )
+        previsione.save()
+        previsioni.append(previsione)
+
+    return previsioni
+
+
+def ottieni_dati_meteo_correnti(apiario):
+    """Ottiene i dati meteo più recenti per un apiario, aggiornandoli se necessario."""
+    dati_recenti = DatiMeteo.objects.filter(
+        apiario=apiario,
+        data__gte=timezone.now() - timedelta(minutes=60),
+    ).order_by('-data').first()
+
+    if not dati_recenti:
+        dati_recenti = aggiorna_dati_meteo(apiario)
+
+    return dati_recenti
+
+
+def ottieni_previsioni_meteo(apiario):
+    """Ottiene le previsioni meteo per un apiario, aggiornandole se necessario."""
+    esistenti = PrevisioneMeteo.objects.filter(
+        apiario=apiario,
+        data_previsione__gte=timezone.now() - timedelta(hours=3),
+    ).exists()
+
+    if not esistenti:
+        aggiorna_previsioni_meteo(apiario)
+
+    return PrevisioneMeteo.objects.filter(
+        apiario=apiario,
+        data_riferimento__gte=timezone.now(),
+        data_riferimento__lte=timezone.now() + timedelta(days=5),
+    ).order_by('data_riferimento')
+
+
+def limita_richieste_api(max_richieste: int = 600, per_minuti: int = 1) -> bool:
+    """Rate limiter retro-compatibile. Open-Meteo è gratuito con limite ~10k/giorno;
+    teniamo un piccolo throttle per evitare burst. Il vecchio limite OWM (60/min)
+    non si applica più, quindi alziamo significativamente.
     """
-    # Chiave cache per tracciare le richieste
-    cache_key = "openweathermap_api_requests"
-    
-    # Prendi il contatore corrente dalla cache
-    request_tracker = cache.get(cache_key, {"count": 0, "reset_time": time.time()})
-    
-    # Se è passato il tempo di reset, azzera il contatore
-    current_time = time.time()
-    if current_time - request_tracker["reset_time"] > (per_minuti * 60):
-        request_tracker = {"count": 0, "reset_time": current_time}
-    
-    # Controlla se abbiamo superato il limite
-    if request_tracker["count"] >= max_richieste:
-        print(f"Limite di {max_richieste} richieste API al minuto raggiunto. Attendi.")
+    cache_key = 'open_meteo_api_requests'
+    tracker = cache.get(cache_key, {'count': 0, 'reset_time': time.time()})
+    now = time.time()
+    if now - tracker['reset_time'] > per_minuti * 60:
+        tracker = {'count': 0, 'reset_time': now}
+    if tracker['count'] >= max_richieste:
         return False
-    
-    # Incrementa il contatore
-    request_tracker["count"] += 1
-    cache.set(cache_key, request_tracker, per_minuti * 60)
-    
+    tracker['count'] += 1
+    cache.set(cache_key, tracker, per_minuti * 60)
     return True
