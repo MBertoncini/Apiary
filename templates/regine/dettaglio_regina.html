@@ -121,6 +121,17 @@
 </div>
 
 {% if regina %}
+
+{% if regina.sospetta_assente %}
+<div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-3 fs-4 flex-shrink-0"></i>
+    <div>
+        <strong>{% trans "ATTENZIONE: Regina Sospetta Assente" %}</strong><br>
+        <small>{% trans "Questa regina non è stata avvistata in 2 o più controlli consecutivi senza uova fresche. Verificare la presenza della regina alla prossima ispezione." %}</small>
+    </div>
+</div>
+{% endif %}
+
 <div class="row mb-4">
     <div class="col-md-8">
         <div class="card regina-info-card">
@@ -165,6 +176,22 @@
                                 {% endif %}
                             {% else %}
                                 <span class="badge bg-secondary">{% trans "Non marcata" %}</span>
+                            {% endif %}
+                        </p>
+                        <p>
+                            <strong>{% trans "Fecondata:" %}</strong>
+                            {% if regina.fecondata %}
+                                <span class="badge bg-success">{% trans "Sì" %}</span>
+                            {% else %}
+                                <span class="badge bg-danger">{% trans "No" %}</span>
+                            {% endif %}
+                        </p>
+                        <p>
+                            <strong>{% trans "Selezionata:" %}</strong>
+                            {% if regina.selezionata %}
+                                <span class="badge" style="background-color: #F5A623; color: #2C1810;"><i class="bi bi-star-fill me-1"></i>{% trans "Sì" %}</span>
+                            {% else %}
+                                <span class="text-muted">{% trans "No" %}</span>
                             {% endif %}
                         </p>
                     </div>

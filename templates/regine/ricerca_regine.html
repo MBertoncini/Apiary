@@ -4,6 +4,20 @@
 
 {% block title %}{% trans "Ricerca Regine" %} - Apiary{% endblock %}
 
+{% block extra_css %}
+<style>
+    .marcatore-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: inline-block;
+        border: 1px solid #ced4da;
+        vertical-align: middle;
+        margin-right: 3px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
   <div>
@@ -54,6 +68,12 @@
                                     {% trans "Solo con discendenza registrata" %}
                                 </label>
                             </div>
+                            <div class="form-check mt-2">
+                                {{ form.sospetta_assente }}
+                                <label class="form-check-label text-danger fw-semibold" for="id_sospetta_assente">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>{% trans "Solo sospette assenti" %}
+                                </label>
+                            </div>
                         </div>
                         <div class="col-md-8 text-end">
                             <a href="{% url 'ricerca_regine' %}" class="btn btn-outline-secondary">
@@ -95,11 +115,11 @@
                                         </th>
                                         <th>{% trans "Arnia" %}</th>
                                         <th>{% trans "Razza" %}</th>
-                                        <th>{% trans "Origine" %}</th>
                                         <th>{% trans "Età" %}</th>
-                                        <th>{% trans "Madre" %}</th>
+                                        <th>{% trans "Marcatura" %}</th>
                                         <th>{% trans "Figlie" %}</th>
                                         <th>{% trans "Valutazione" %}</th>
+                                        <th>{% trans "Stato" %}</th>
                                         <th>{% trans "Azioni" %}</th>
                                     </tr>
                                 </thead>
@@ -120,7 +140,6 @@
                                             <small class="text-muted">{{ regina.arnia.apiario.nome }}</small>
                                         </td>
                                         <td>{{ regina.get_razza_display }}</td>
-                                        <td>{{ regina.get_origine_display }}</td>
                                         <td>
                                             {% if regina.get_eta_anni %}
                                                 {% blocktrans count counter=regina.get_eta_anni %}{{ counter }} anno{% plural %}{{ counter }} anni{% endblocktrans %}
@@ -129,10 +148,9 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            {% if regina.regina_madre %}
-                                                <a href="{% url 'visualizza_regina' regina.regina_madre.arnia.id %}">
-                                                    #{{ regina.regina_madre.arnia.numero }}
-                                                </a>
+                                            {% if regina.marcata %}
+                                                <span class="marcatore-dot" style="background-color:{% if regina.colore_marcatura == 'bianco' %}white{% elif regina.colore_marcatura == 'giallo' %}#ffc107{% elif regina.colore_marcatura == 'rosso' %}#dc3545{% elif regina.colore_marcatura == 'verde' %}#198754{% elif regina.colore_marcatura == 'blu' %}#0d6efd{% else %}#6c757d{% endif %};"></span>
+                                                <small>{{ regina.get_colore_marcatura_display }}</small>
                                             {% else %}
                                                 <span class="text-muted">-</span>
                                             {% endif %}
@@ -159,6 +177,15 @@
                                                 </div>
                                             {% else %}
                                                 <span class="text-muted">{% trans "Non valutata" %}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if regina.sospetta_assente %}
+                                                <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>{% trans "Sospetta assente" %}</span>
+                                            {% elif regina.selezionata %}
+                                                <span class="badge" style="background-color: #F5A623; color: #2C1810;"><i class="bi bi-star-fill me-1"></i>{% trans "Selezionata" %}</span>
+                                            {% else %}
+                                                <span class="badge bg-success">{% trans "Ok" %}</span>
                                             {% endif %}
                                         </td>
                                         <td>
@@ -197,6 +224,9 @@
             <div class="card-body">
                 <p><strong>{% trans "Totale:" %}</strong> {{ stats.totale }}</p>
                 <p><strong>{% trans "Con genealogia:" %}</strong> {{ stats.con_genealogia }}</p>
+                {% if stats.sospette_assenti %}
+                <p class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i><strong>{% trans "Sospette assenti:" %}</strong> {{ stats.sospette_assenti }}</p>
+                {% endif %}
 
                 <hr>
 

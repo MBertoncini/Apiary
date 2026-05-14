@@ -92,12 +92,18 @@ class ApiarioSerializer(serializers.ModelSerializer):
 #
 # - Seed = HMAC-SHA256(SECRET_KEY, "apiario-community-fuzz:<id>"). Senza
 #   conoscere SECRET_KEY l'offset non è invertibile dall'id pubblico.
-# - Offset uniforme nel quadrato [-_FUZZ_MAX_DEG, +_FUZZ_MAX_DEG] applicato a
-#   lat e lon. A 45°N ≈ ±330 m in latitudine, ±230 m in longitudine; distanza
-#   massima dalla posizione vera ≈ 400 m.
-# - Coordinate troncate a 3 decimali (~110 m), così neppure intercettando la
-#   risposta si ricava precisione sub-isolato.
-_FUZZ_MAX_DEG = 0.003
+# - Offset uniforme nel quadrato [-_FUZZ_MAX_DEG, +_FUZZ_MAX_DEG] su lat/lon.
+#   A 45°N ±0.030° ≈ ±3.3 km in latitudine e ±2.4 km in longitudine: distanza
+#   massima dalla posizione vera ~4 km (sufficiente a impedire la
+#   triangolazione visiva su radure/cascine isolate).
+# - Coordinate troncate a 2 decimali (~1.1 km), così la risoluzione finale
+#   esposta è dell'ordine del km anche intercettando la risposta JSON.
+# - _COMMUNITY_PRIVACY_RADIUS_M dimensionato per coprire il caso peggiore:
+#   errore_max_per_asse = _FUZZ_MAX_DEG + 0.01 (trunc) = 0.040°. A 41°N:
+#   lat 4.45 km, lon 3.36 km → diagonale ≈ 5.58 km → cerchio 6 km garantisce
+#   che la posizione vera sia SEMPRE dentro il cerchio mostrato all'utente.
+_FUZZ_MAX_DEG = 0.030
+_COMMUNITY_PRIVACY_RADIUS_M = 6000
 _FUZZ_SALT = b'apiario-community-fuzz'
 
 
@@ -126,12 +132,15 @@ class ApiarioCommunitySerializer(serializers.ModelSerializer):
     proprietario_immagine_profilo = serializers.SerializerMethodField()
     latitudine = serializers.SerializerMethodField()
     longitudine = serializers.SerializerMethodField()
+    privacy_obfuscated = serializers.SerializerMethodField()
+    privacy_radius_m = serializers.SerializerMethodField()
 
     class Meta:
         model = Apiario
         fields = [
             'id', 'nome', 'latitudine', 'longitudine',
             'proprietario_username', 'proprietario_immagine_profilo',
+            'privacy_obfuscated', 'privacy_radius_m',
         ]
 
     def _fuzzed(self, obj):
@@ -140,11 +149,17 @@ class ApiarioCommunitySerializer(serializers.ModelSerializer):
         lat_off, lon_off = _community_fuzz_offsets(obj.id)
         lat = float(obj.latitudine) + lat_off
         lon = float(obj.longitudine) + lon_off
-        # Troncamento (non round) a 3 decimali per non rivelare la precisione
-        # originale del valore: ~110 m di risoluzione finale.
-        lat = math.trunc(lat * 1000) / 1000.0
-        lon = math.trunc(lon * 1000) / 1000.0
+        # Troncamento (non round) a 2 decimali per non rivelare la precisione
+        # originale del valore: ~1.1 km di risoluzione finale.
+        lat = math.trunc(lat * 100) / 100.0
+        lon = math.trunc(lon * 100) / 100.0
         return lat, lon
+
+    def get_privacy_obfuscated(self, obj):
+        return True
+
+    def get_privacy_radius_m(self, obj):
+        return _COMMUNITY_PRIVACY_RADIUS_M
 
     def get_latitudine(self, obj):
         return self._fuzzed(obj)[0]
@@ -458,6 +473,9 @@ class TrattamentoSanitarioSerializer(serializers.ModelSerializer):
     apiario_gruppo_nome   = serializers.SerializerMethodField()
     tipo_trattamento_nome = serializers.ReadOnlyField(source='tipo_trattamento.nome')
     utente_username       = serializers.ReadOnlyField(source='utente.username')
+    # stato is always derived from dates at read time; 'annullato' is the only
+    # writable value (set via the dedicated /annulla/ action).
+    stato = serializers.SerializerMethodField()
 
     class Meta:
         model = TrattamentoSanitario
@@ -470,7 +488,10 @@ class TrattamentoSanitarioSerializer(serializers.ModelSerializer):
             'data_fine_blocco', 'metodo_blocco', 'note_blocco',
             'metodo_applicazione',
         ]
-        read_only_fields = ['utente', 'data_fine_sospensione']
+        read_only_fields = ['utente', 'data_fine_sospensione', 'stato']
+
+    def get_stato(self, obj):
+        return obj.stato_effettivo
 
     def get_apiario_gruppo_nome(self, obj):
         try:

@@ -23,19 +23,28 @@
     .rating-stars {
         color: #ffc107;
     }
+
+    .marcatore {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        display: inline-block;
+        border: 1px solid #ced4da;
+        vertical-align: middle;
+        margin-right: 4px;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1><i class="bi bi-arrows-expand"></i> {% trans "Confronta Regine" %}</h1>
-            <a href="{% url 'ricerca_regine' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> {% trans "Torna alla Ricerca" %}
-            </a>
-        </div>
-    </div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-arrows-expand me-2"></i>{% trans "Confronta Regine" %}</h1>
+    <p class="page-subtitle">{% trans "Confronto caratteristiche e valutazioni" %}</p>
+  </div>
+  <a href="{% url 'ricerca_regine' %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> {% trans "Torna alla Ricerca" %}
+  </a>
 </div>
 
 <div class="card">

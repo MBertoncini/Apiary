@@ -60,7 +60,9 @@
                                         {% if arnia.colore_hex %}style="background-color: {{ arnia.colore_hex }}; color: {% if arnia.colore_hex == '#FFFFFF' or arnia.colore_hex == '#FFC107' %}#212529{% else %}white{% endif %};"{% endif %}>
                                         <h6 class="mb-0 d-flex justify-content-between">
                                             <span>{% blocktrans with n=arnia.numero %}Arnia #{{ n }}{% endblocktrans %}</span>
-                                            <span class="badge bg-light text-dark">{% blocktrans count counter=arnia.melari.count %}{{ counter }} melario{% plural %}{{ counter }} melari{% endblocktrans %}</span>
+                                            {% with cnt=melari_per_arnia|get_item:arnia.id %}
+                                            <span class="badge bg-light text-dark">{% blocktrans count counter=cnt|length %}{{ counter }} melario{% plural %}{{ counter }} melari{% endblocktrans %}</span>
+                                            {% endwith %}
                                         </h6>
                                     </div>
                                     <div class="card-body">
@@ -80,7 +82,7 @@
 
                                         <!-- Lista dei melari -->
                                         <h6>{% trans "Melari:" %}</h6>
-                                        {% with melari=arnia.melari.all %}
+                                        {% with melari=melari_per_arnia|get_item:arnia.id %}
                                             {% if melari %}
                                                 <div class="melari-stack mb-3">
                                                     {% for melario in melari %}
@@ -195,7 +197,9 @@
                                                                 </div>
                                                                 <div class="mb-3">
                                                                     <label for="posizione{{ arnia.id }}" class="form-label">{% trans "Posizione" %}</label>
-                                                                    <input type="number" class="form-control" id="posizione{{ arnia.id }}" name="posizione" value="{{ arnia.melari.count|add:1 }}" min="1" max="5">
+                                                                    {% with cnt=melari_per_arnia|get_item:arnia.id %}
+                                                                    <input type="number" class="form-control" id="posizione{{ arnia.id }}" name="posizione" value="{{ cnt|length|add:1 }}" min="1" max="5">
+                                                                    {% endwith %}
                                                                     <div class="form-text">{% trans "1 = più vicino al nido, 2 = sopra il primo melario, ecc." %}</div>
                                                                 </div>
                                                                 <div class="mb-3">

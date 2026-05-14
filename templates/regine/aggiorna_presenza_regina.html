@@ -186,14 +186,15 @@
         // Aggiungi listener per il cambio dello stato della checkbox
         checkboxCelleReali.addEventListener('change', updateCelleRealiVisibility);
 
-        // Aggiorna la presenza regina in base alle uova
+        // Evidenzia visivamente la relazione tra uova fresche e presenza regina
         const checkboxUovaFresche = document.getElementById('uovaFresche');
         const checkboxReginaVista = document.getElementById('reginaVista');
 
         checkboxUovaFresche.addEventListener('change', function() {
             if (this.checked && !checkboxReginaVista.checked) {
-                // Se ci sono uova fresche, c'è la regina (anche se non è stata vista)
-                document.getElementById('controlloForm').elements['presenza_regina'].value = 'True';
+                checkboxReginaVista.closest('.form-check').classList.add('text-muted');
+            } else {
+                checkboxReginaVista.closest('.form-check').classList.remove('text-muted');
             }
         });
     });

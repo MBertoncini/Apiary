@@ -24,7 +24,7 @@ from dateutil.relativedelta import relativedelta
 from django.views.decorators.http import require_POST
 
 from .models import (
-    Apiario, Arnia, ControlloArnia, Fioritura, Pagamento, QuotaUtente,
+    Apiario, Arnia, Colonia, ControlloArnia, Fioritura, Pagamento, QuotaUtente,
     TrattamentoSanitario, TipoTrattamento, Gruppo, MembroGruppo, InvitoGruppo, Melario, Smielatura, Regina, StoriaRegine,
     CategoriaAttrezzatura, Attrezzatura, ManutenzioneAttrezzatura, PrestitoAttrezzatura, SpesaAttrezzatura, InventarioAttrezzature,
     ApiarioMapLayout, Cliente, Vendita, DettaglioVendita, Invasettamento, Nucleo, ControlloNucleo, Notifica,
@@ -895,7 +895,7 @@ def gestione_melari_globale(request):
         for arnia in arnie:
             melari_attivi = list(
                 Melario.objects.filter(
-                    arnia=arnia,
+                    colonia__arnia=arnia,
                     stato__in=['posizionato', 'in_smielatura']
                 ).order_by('-posizione')
             )
@@ -953,14 +953,14 @@ def ajax_melari_disponibili(request, apiario_id):
         return JsonResponse({'melari': []})
 
     melari = Melario.objects.filter(
-        arnia__apiario=apiario,
+        colonia__apiario=apiario,
         stato='in_smielatura'
-    ).select_related('arnia').order_by('arnia__numero', 'posizione')
+    ).select_related('colonia__arnia').order_by('colonia__arnia__numero', 'posizione')
 
     data = [
         {
             'id': m.id,
-            'label': f"Arnia #{m.arnia.numero} — Pos. {m.posizione} ({m.numero_telaini} telaini)",
+            'label': f"Arnia #{m.colonia.arnia.numero if m.colonia and m.colonia.arnia else '?'} — Pos. {m.posizione} ({m.numero_telaini} telaini)",
         }
         for m in melari
     ]
@@ -994,17 +994,21 @@ def gestione_melari(request, apiario_id):
     
     # Verifica se ci sono melari in stato 'in_smielatura'
     any_melari_in_smielatura = Melario.objects.filter(
-        arnia__apiario=apiario,
+        colonia__apiario=apiario,
         stato='in_smielatura'
     ).exists()
-    
-    # Prepara i melari in smielatura per ogni arnia
+
+    # Prepara melari attivi e in smielatura per ogni arnia
+    melari_per_arnia = {}
     melari_in_smielatura = {}
     for arnia in arnie:
-        melari_in_smielatura[arnia.id] = list(Melario.objects.filter(
-            arnia=arnia,
-            stato='in_smielatura'
+        melari_per_arnia[arnia.id] = list(Melario.objects.filter(
+            colonia__arnia=arnia,
+            stato__in=['posizionato', 'in_smielatura']
         ).order_by('-posizione'))
+        melari_in_smielatura[arnia.id] = [
+            m for m in melari_per_arnia[arnia.id] if m.stato == 'in_smielatura'
+        ]
     
     context = {
         'apiario': apiario,
@@ -1014,8 +1018,9 @@ def gestione_melari(request, apiario_id):
         'today': timezone.now().date(),
         'any_melari_in_smielatura': any_melari_in_smielatura,
         'melari_in_smielatura': melari_in_smielatura,
+        'melari_per_arnia': melari_per_arnia,
     }
-    
+
     return render(request, 'melari/gestione_melari.html', context)
 
 @login_required
@@ -1024,12 +1029,17 @@ def aggiungi_melario(request, arnia_id):
     """Vista per aggiungere un melario a un'arnia"""
     arnia = get_object_or_404(Arnia, pk=arnia_id)
     apiario = arnia.apiario
-    
+
+    colonia = Colonia.objects.filter(arnia=arnia, stato='attiva', data_fine__isnull=True).first()
+    if colonia is None:
+        messages.error(request, f"Nessuna colonia attiva nell'arnia {arnia.numero}.")
+        return redirect('gestione_melari', apiario_id=apiario.id)
+
     if request.method == 'POST':
         form = MelarioForm(request.POST, arnia=arnia)
         if form.is_valid():
             melario = form.save(commit=False)
-            melario.arnia = arnia
+            melario.colonia = colonia
             melario.stato = 'posizionato'
             melario.save()
 
@@ -1040,13 +1050,13 @@ def aggiungi_melario(request, arnia_id):
             return redirect('gestione_melari', apiario_id=apiario.id)
     else:
         form = MelarioForm(arnia=arnia)
-    
+
     context = {
         'form': form,
         'arnia': arnia,
         'apiario': apiario,
     }
-    
+
     return render(request, 'melari/form_melario.html', context)
 
 @login_required
@@ -1054,39 +1064,44 @@ def aggiungi_melario(request, arnia_id):
 def rimuovi_melario(request, melario_id):
     """Vista per rimuovere un melario da un'arnia"""
     melario = get_object_or_404(Melario, pk=melario_id)
-    arnia = melario.arnia
-    apiario = arnia.apiario
-    
+    colonia = melario.colonia
+    apiario = colonia.apiario if colonia else None
+    arnia = colonia.arnia if colonia else None
+
+    if apiario is None:
+        messages.error(request, "Melario non associato a una colonia valida.")
+        return redirect('gestione_melari_globale')
+
     # Verifica che il melario sia in uno stato rimovibile
     if melario.stato not in ('posizionato', 'in_smielatura'):
         messages.error(request, f"Il melario è nello stato '{melario.get_stato_display()}' e non può essere rimosso.")
         return redirect('gestione_melari', apiario_id=apiario.id)
-    
+
     if request.method == 'POST':
         form = RimozioneMelarioForm(request.POST)
         if form.is_valid():
-            # Aggiorna lo stato e la data di rimozione
             melario.stato = 'rimosso'
             melario.data_rimozione = form.cleaned_data['data_rimozione']
             if form.cleaned_data['note']:
                 melario.note = (melario.note or "") + "\n\nRimozione: " + form.cleaned_data['note']
             melario.save()
 
-            messages.success(request, f"Melario rimosso dall'arnia {arnia.numero}.")
+            arnia_display = f"arnia {arnia.numero}" if arnia else "colonia"
+            messages.success(request, f"Melario rimosso dall'{arnia_display}.")
             next_url = request.POST.get('next') or request.GET.get('next')
             if next_url:
                 return redirect(next_url)
             return redirect('gestione_melari', apiario_id=apiario.id)
     else:
         form = RimozioneMelarioForm()
-    
+
     context = {
         'form': form,
         'melario': melario,
         'arnia': arnia,
         'apiario': apiario,
     }
-    
+
     return render(request, 'melari/rimuovi_melario.html', context)
 
 @login_required
@@ -1116,7 +1131,7 @@ def riordina_melari(request, arnia_id):
     # Solo melari posizionati appartenenti a questa arnia
     melari = {
         m.id: m for m in Melario.objects.filter(
-            arnia=arnia, id__in=ids, stato='posizionato'
+            colonia__arnia=arnia, id__in=ids, stato='posizionato'
         )
     }
 
@@ -1135,14 +1150,18 @@ def riordina_melari(request, arnia_id):
 def invia_in_smielatura(request, melario_id):
     """Vista per inviare un melario in smielatura"""
     melario = get_object_or_404(Melario, pk=melario_id)
-    arnia = melario.arnia
-    apiario = arnia.apiario
-    
+    colonia = melario.colonia
+    apiario = colonia.apiario if colonia else None
+
+    if apiario is None:
+        messages.error(request, "Melario non associato a una colonia valida.")
+        return redirect('gestione_melari_globale')
+
     # Verifica che il melario sia nello stato 'posizionato'
     if melario.stato != 'posizionato':
         messages.error(request, f"Il melario è nello stato '{melario.get_stato_display()}' e non può essere mandato in smielatura.")
         return redirect('gestione_melari', apiario_id=apiario.id)
-    
+
     # Cambia lo stato del melario
     melario.stato = 'in_smielatura'
     melario.data_rimozione = timezone.now().date()
@@ -1150,7 +1169,7 @@ def invia_in_smielatura(request, melario_id):
         melario.note = (melario.note or "") + "\n\nInvio in smielatura: " + request.POST.get('notes')
     melario.save()
 
-    messages.success(request, f"Melario inviato in smielatura.")
+    messages.success(request, "Melario inviato in smielatura.")
     next_url = request.POST.get('next') or request.GET.get('next')
     if next_url:
         return redirect(next_url)
@@ -1209,17 +1228,18 @@ def dettaglio_smielatura(request, smielatura_id):
             messages.error(request, "Non hai i permessi per visualizzare questa smielatura.")
             return redirect('dashboard')
     
-    # Raggruppa i melari per arnia
+    # Raggruppa i melari per arnia (via colonia)
     melari_per_arnia = {}
     total_telaini = 0
-    for melario in smielatura.melari.all().select_related('arnia'):
-        arnia_id = melario.arnia.id
-        if arnia_id not in melari_per_arnia:
-            melari_per_arnia[arnia_id] = {
-                'arnia': melario.arnia,
+    for melario in smielatura.melari.all().select_related('colonia__arnia'):
+        arnia = melario.colonia.arnia if melario.colonia else None
+        key = arnia.id if arnia else 0
+        if key not in melari_per_arnia:
+            melari_per_arnia[key] = {
+                'arnia': arnia,
                 'melari': []
             }
-        melari_per_arnia[arnia_id]['melari'].append(melario)
+        melari_per_arnia[key]['melari'].append(melario)
         total_telaini += melario.numero_telaini
 
     n_melari = smielatura.melari.count()
@@ -3277,14 +3297,16 @@ def calendario_eventi_json(request):
     # ------------------- Recupero Eventi Melari -------------------
     # Melari posizionati
     melari_posizionati = Melario.objects.filter(
-        arnia__in=arnie_ids,
+        colonia__arnia__in=arnie_ids,
         data_posizionamento__gte=start_date,
         data_posizionamento__lte=end_date
-    ).select_related('arnia', 'arnia__apiario')
-    
+    ).select_related('colonia__arnia', 'colonia__apiario')
+
     for melario in melari_posizionati:
-        arnia = melario.arnia
-        apiario = arnia.apiario
+        arnia = melario.colonia.arnia if melario.colonia else None
+        apiario = melario.colonia.apiario if melario.colonia else None
+        if not arnia or not apiario:
+            continue
         
         title = f"Melario Aggiunto - Arnia #{arnia.numero}"
         
@@ -3339,14 +3361,16 @@ def calendario_eventi_json(request):
     
     # Melari rimossi
     melari_rimossi = Melario.objects.filter(
-        arnia__in=arnie_ids,
+        colonia__arnia__in=arnie_ids,
         data_rimozione__gte=start_date,
         data_rimozione__lte=end_date
-    ).select_related('arnia', 'arnia__apiario')
-    
+    ).select_related('colonia__arnia', 'colonia__apiario')
+
     for melario in melari_rimossi:
-        arnia = melario.arnia
-        apiario = arnia.apiario
+        arnia = melario.colonia.arnia if melario.colonia else None
+        apiario = melario.colonia.apiario if melario.colonia else None
+        if not arnia or not apiario:
+            continue
         
         title = f"Melario Rimosso - Arnia #{arnia.numero}"
         
@@ -5148,6 +5172,8 @@ def ricerca_regine(request):
             regine = regine.filter(selezionata=True)
         elif form.cleaned_data.get('selezionata') == 'no':
             regine = regine.filter(selezionata=False)
+        if form.cleaned_data.get('sospetta_assente'):
+            regine = regine.filter(sospetta_assente=True)
         if form.cleaned_data.get('con_figlie'):
             regine = regine.filter(figlie__isnull=False).distinct()
         if form.cleaned_data.get('valutazione_minima'):
@@ -5163,6 +5189,7 @@ def ricerca_regine(request):
         'per_razza': {},
         'per_origine': {},
         'con_genealogia': 0,
+        'sospette_assenti': 0,
     }
 
     for regina in regine:
@@ -5172,6 +5199,8 @@ def ricerca_regine(request):
         stats['per_origine'][origine] = stats['per_origine'].get(origine, 0) + 1
         if regina.regina_madre:
             stats['con_genealogia'] += 1
+        if regina.sospetta_assente:
+            stats['sospette_assenti'] += 1
 
     context = {
         'regine': regine,

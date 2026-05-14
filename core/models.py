@@ -1204,29 +1204,43 @@ class TrattamentoSanitario(models.Model):
     def __str__(self):
         return f"{self.tipo_trattamento} - {self.apiario} ({self.data_inizio})"
     
+    @property
+    def stato_effettivo(self) -> str:
+        """
+        Stato derivato automaticamente dalle date.
+        'annullato' è l'unico stato che richiede un'azione manuale esplicita.
+        """
+        if self.stato == 'annullato':
+            return 'annullato'
+        today = timezone.now().date()
+        if today < self.data_inizio:
+            return 'programmato'
+        if self.data_fine is None or today <= self.data_fine:
+            return 'in_corso'
+        return 'completato'
+
     def save(self, *args, **kwargs):
         # Calcola automaticamente la data di fine sospensione
         if self.data_fine and self.tipo_trattamento.tempo_sospensione > 0:
-            self.data_fine_sospensione = self.data_fine + timedelta(days=self.tipo_trattamento.tempo_sospensione)
-            
+            self.data_fine_sospensione = self.data_fine + timedelta(
+                days=self.tipo_trattamento.tempo_sospensione
+            )
         # Calcola automaticamente la data di fine blocco covata se non specificata
-        if self.blocco_covata_attivo and self.data_inizio_blocco and not self.data_fine_blocco and self.tipo_trattamento.giorni_blocco_covata > 0:
-            self.data_fine_blocco = self.data_inizio_blocco + timedelta(days=self.tipo_trattamento.giorni_blocco_covata)
-            
+        if (self.blocco_covata_attivo and self.data_inizio_blocco
+                and not self.data_fine_blocco
+                and self.tipo_trattamento.giorni_blocco_covata > 0):
+            self.data_fine_blocco = self.data_inizio_blocco + timedelta(
+                days=self.tipo_trattamento.giorni_blocco_covata
+            )
         super().save(*args, **kwargs)
-    
-    # Aggiunti nuovi metodi utili per la gestione dei trattamenti
-    
+
     def is_active(self, date=None):
-        """Verifica se il trattamento è attivo in una data specifica"""
+        """Verifica se il trattamento è attivo in una data specifica (usa date, non stato)."""
+        if self.stato == 'annullato':
+            return False
         if date is None:
             date = timezone.now().date()
-        
-        if self.stato in ['programmato', 'in_corso']:
-            if self.data_inizio <= date:
-                if self.data_fine is None or self.data_fine >= date:
-                    return True
-        return False
+        return self.data_inizio <= date and (self.data_fine is None or self.data_fine >= date)
     
     def applies_to_arnia(self, arnia):
         """Verifica se il trattamento si applica a una specifica arnia"""

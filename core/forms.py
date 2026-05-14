@@ -297,7 +297,7 @@ class MelarioForm(forms.ModelForm):
         # Se è specificata un'arnia, pre-compila il campo posizione
         if arnia and not self.instance.pk:
             # Conta i melari esistenti dell'arnia per suggerire la posizione successiva
-            melari_count = Melario.objects.filter(arnia=arnia, stato='posizionato').count()
+            melari_count = Melario.objects.filter(colonia__arnia=arnia, stato='posizionato').count()
             self.fields['posizione'].initial = melari_count + 1
             
         # Aggiungi aiuto per il campo numero_telaini
@@ -345,10 +345,10 @@ class SmielaturaForm(forms.ModelForm):
         if apiario:
             # Melari in stato 'in_smielatura' o 'posizionato'
             self.fields['melari'].queryset = Melario.objects.filter(
-                arnia__apiario=apiario
+                colonia__apiario=apiario
             ).filter(
                 Q(stato='in_smielatura') | Q(stato='posizionato')
-            ).select_related('arnia')
+            ).select_related('colonia__arnia')
 
 # Modifica a FiorituraForm in core/forms.py
 class FiorituraForm(forms.ModelForm):
@@ -750,29 +750,36 @@ class RicercaReginaForm(forms.Form):
     """Form per la ricerca avanzata di regine"""
     razza = forms.ChoiceField(
         choices=[('', 'Tutte le razze')] + list(Regina.RAZZA_CHOICES),
-        required=False
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     origine = forms.ChoiceField(
         choices=[('', 'Tutte le origini')] + list(Regina.ORIGINE_CHOICES),
-        required=False
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     anno_nascita = forms.IntegerField(
         required=False,
-        widget=forms.NumberInput(attrs={'placeholder': 'Anno', 'min': 2000, 'max': 2100})
+        widget=forms.NumberInput(attrs={'placeholder': 'Anno', 'min': 2000, 'max': 2100, 'class': 'form-control'})
     )
     selezionata = forms.ChoiceField(
         choices=[('', 'Tutte'), ('si', 'Solo selezionate'), ('no', 'Solo non selezionate')],
-        required=False
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    sospetta_assente = forms.BooleanField(
+        required=False,
+        label="Solo sospette assenti"
     )
     con_figlie = forms.BooleanField(
         required=False,
-        label="Solo regine con discendenza registrata"
+        label="Solo con discendenza registrata"
     )
     valutazione_minima = forms.IntegerField(
         required=False,
         min_value=1,
         max_value=5,
-        widget=forms.NumberInput(attrs={'min': 1, 'max': 5}),
+        widget=forms.NumberInput(attrs={'min': 1, 'max': 5, 'class': 'form-control'}),
         label="Valutazione minima (media)"
     )
 

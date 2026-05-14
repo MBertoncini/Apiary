@@ -54,7 +54,9 @@
       "Bash(python compile_translations.py)",
       "Read(//tmp/**)",
       "Bash(python extract_strings.py)",
-      "Bash(python build_po_appendix.py)"
+      "Bash(python build_po_appendix.py)",
+      "Bash(Get-ChildItem \"I:\\\\Progetti Git\\\\Apiary_app\" -Recurse -Filter \"*queen*\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object -ExpandProperty FullName)"
     ]
   }
 }

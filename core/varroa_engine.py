@@ -100,16 +100,21 @@ class VarroaEngine:
 
     def _build_treatment_events(self, start: date, end: date) -> Dict[date, float]:
         """
-        Map treatment-start-dates to cumulative survival factor.
-        Multiple treatments on the same day multiply (independent efficacy assumed).
+        Map treatment-start-dates → cumulative survival factor for projection.
+
+        Convention: the kill is applied instantaneously at data_inizio.
+        For retrospective segments (between two checkpoints) the effect is already
+        embedded in the observed % values, so events are only applied during
+        the forward projection.
+        Cancelled treatments (stato='annullato') are excluded.
         """
         events: Dict[date, float] = {}
-        valid_stati = {"in_corso", "completato", "programmato"}
         for t in self.trattamenti:
+            # Respect the only manual state: annullato
+            if getattr(t, 'stato', None) == 'annullato':
+                continue
             d = t.data_inizio
             if not (start < d <= end):
-                continue
-            if t.stato not in valid_stati:
                 continue
             kill = self.treatment_kill_fraction(t, self.telaini_at_date(d))
             events[d] = events.get(d, 1.0) * (1.0 - kill)
@@ -152,6 +157,8 @@ class VarroaEngine:
         chart_start = first_cp.data_campionamento
         trattamenti_nel_range = []
         for t in self.trattamenti:
+            if getattr(t, 'stato', None) == 'annullato':
+                continue
             if t.data_inizio <= chart_end and (t.data_fine is None or t.data_fine >= chart_start):
                 trattamenti_nel_range.append({
                     "nome":          t.tipo_trattamento.nome,
@@ -159,6 +166,8 @@ class VarroaEngine:
                     "data_fine":     t.data_fine.isoformat() if t.data_fine else None,
                     "metodo":        t.metodo_applicazione or "",
                     "blocco_covata": t.blocco_covata_attivo,
+                    "efficacia_foretica":  float(getattr(t.tipo_trattamento, 'efficacia_foretica', 0.90)),
+                    "efficacia_in_covata": float(getattr(t.tipo_trattamento, 'efficacia_in_covata', 0.0)),
                 })
 
         return {
@@ -207,9 +216,9 @@ class VarroaEngine:
         telaini = self.telaini_at_date(dt)
         trattamenti_attivi = [
             t.tipo_trattamento.nome for t in self.trattamenti
-            if t.data_inizio <= dt
+            if getattr(t, 'stato', None) != 'annullato'
+            and t.data_inizio <= dt
             and (t.data_fine is None or t.data_fine >= dt)
-            and t.stato in {"in_corso", "completato", "programmato"}
         ]
         trajectory.append({
             "data":               dt.isoformat(),

@@ -9,7 +9,7 @@ from rest_framework.exceptions import PermissionDenied
 from django.db.models import Q
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
@@ -1144,14 +1144,28 @@ class TrattamentoSanitarioViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def attivi(self, request):
         """
-        Restituisce solo i trattamenti attivi (in corso o programmati).
+        Restituisce i trattamenti non cancellati che non sono ancora terminati
+        (programmati o in corso in base alle date).
         """
-        trattamenti = self.get_queryset().filter(
-            Q(stato='programmato') | Q(stato='in_corso')
+        today = timezone.now().date()
+        trattamenti = self.get_queryset().exclude(stato='annullato').filter(
+            Q(data_fine__isnull=True) | Q(data_fine__gte=today)
         )
-
         serializer = self.get_serializer(trattamenti, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def annulla(self, request, pk=None):
+        """Annulla il trattamento. Unico cambio stato manuale consentito."""
+        trattamento = self.get_object()
+        if trattamento.stato == 'annullato':
+            return Response(
+                {'detail': 'Il trattamento è già annullato.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        trattamento.stato = 'annullato'
+        trattamento.save(update_fields=['stato'])
+        return Response(self.get_serializer(trattamento).data)
 
     @action(detail=False, methods=['post'], url_path='create_from_voice')
     def create_from_voice(self, request):
@@ -1214,7 +1228,7 @@ class TrattamentoSanitarioViewSet(viewsets.ModelViewSet):
 
         trattamento = self.get_object()
 
-        if trattamento.stato not in ('programmato', 'in_corso'):
+        if trattamento.stato_effettivo not in ('programmato', 'in_corso'):
             return Response(
                 {'detail': "Lo split è consentito solo su trattamenti programmati o in corso."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -1265,22 +1279,21 @@ class TrattamentoSanitarioViewSet(viewsets.ModelViewSet):
             )
 
         with transaction.atomic():
-            # Caso 1: rimuovo TUTTE le arnie → completo l'originale senza creare split.
+            # Caso 1: rimuovo TUTTE le arnie → chiudo l'originale con data_fine.
             if arnie_da_rimuovere == arnie_correnti:
-                trattamento.stato = 'completato'
                 trattamento.data_fine = data_rimozione
                 trattamento.save()
                 original_data = self.get_serializer(trattamento).data
                 return Response({'original': original_data, 'split_off': None}, status=status.HTTP_200_OK)
 
-            # Caso 2: split parziale → crea record figlio completato.
+            # Caso 2: split parziale → crea record figlio con data_fine = data_rimozione.
+            # stato_effettivo sarà derivato automaticamente dalle date.
             split_off = TrattamentoSanitario.objects.create(
                 apiario=trattamento.apiario,
                 tipo_trattamento=trattamento.tipo_trattamento,
                 utente=trattamento.utente,
                 data_inizio=trattamento.data_inizio,
                 data_fine=data_rimozione,
-                stato='completato',
                 metodo_applicazione=trattamento.metodo_applicazione,
                 note=trattamento.note,
                 blocco_covata_attivo=trattamento.blocco_covata_attivo,
@@ -3215,10 +3228,15 @@ class VarroaCheckpointViewSet(viewsets.ModelViewSet):
             .order_by('data')
         )
 
+        # Recupera tutti i trattamenti non annullati che si sovrappongono alla finestra del grafico.
+        # Il filtro usa le date direttamente: stato_effettivo è derivato a runtime.
+        first_cp_date = checkpoints.first().data_campionamento if checkpoints.exists() else date.today()
         trattamenti = list(
             TrattamentoSanitario.objects.filter(
                 colonie=colonia,
-                stato__in=['in_corso', 'completato', 'programmato'],
+                data_inizio__lte=date.today() + timedelta(days=days_ahead),
+            ).exclude(stato='annullato').filter(
+                Q(data_fine__isnull=True) | Q(data_fine__gte=first_cp_date)
             ).select_related('tipo_trattamento').order_by('data_inizio')
         )
 
