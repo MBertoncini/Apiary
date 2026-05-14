@@ -27,6 +27,7 @@ from .models import (
     AnalisiTelaino, ApiarioMapLayout, SystemAiQuota,
     PreferenzaMaturazione, Maturatore, ContenitoreStoccaggio,
     GIORNI_MATURAZIONE_DEFAULTS,
+    VarroaCheckpoint,
 )
 
 from .serializers import (
@@ -47,6 +48,7 @@ from .serializers import (
     AnalisiTelainoSerializer, ApiarioMapLayoutSerializer, MeteoGiornalieroSerializer,
     NucleoSerializer, ControlloNucleoSerializer,
     PreferenzaMaturazionSerializer, MatutatoreSerializer, ContenitoreStoccaggioSerializer,
+    VarroaCheckpointSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -3157,3 +3159,78 @@ def google_auth(request):
         'access': str(refresh.access_token),
         'refresh': str(refresh),
     }, status=status.HTTP_200_OK)
+
+
+# ── Varroa monitoring ────────────────────────────────────────────────────────
+
+class VarroaCheckpointViewSet(viewsets.ModelViewSet):
+    """
+    CRUD per i checkpoint di monitoraggio Varroa + endpoint traiettoria.
+    """
+    serializer_class = VarroaCheckpointSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['data_campionamento', 'percentuale_calcolata']
+    ordering = ['-data_campionamento']
+
+    def get_queryset(self):
+        apiari_accessibili = get_apiari_accessibili(self.request.user)
+        qs = VarroaCheckpoint.objects.filter(
+            colonia__apiario__in=apiari_accessibili
+        ).select_related('colonia', 'colonia__arnia', 'utente')
+        colonia_id = self.request.query_params.get('colonia')
+        if colonia_id:
+            qs = qs.filter(colonia_id=colonia_id)
+        return qs
+
+    def perform_create(self, serializer):
+        serializer.save(utente=self.request.user)
+
+    @action(detail=False, methods=['get'], url_path='traiettoria')
+    def traiettoria(self, request):
+        """
+        Compute the Varroa trajectory for a colony.
+        Query params:
+          colonia_id (required)
+          days_ahead  (optional, default 60)
+        """
+        colonia_id = request.query_params.get('colonia_id')
+        if not colonia_id:
+            return Response({'detail': 'colonia_id è obbligatorio.'}, status=400)
+        days_ahead = min(int(request.query_params.get('days_ahead', 60)), 180)
+
+        apiari_accessibili = get_apiari_accessibili(request.user)
+        try:
+            colonia = Colonia.objects.get(pk=colonia_id, apiario__in=apiari_accessibili)
+        except Colonia.DoesNotExist:
+            return Response({'detail': 'Colonia non trovata.'}, status=404)
+
+        checkpoints = VarroaCheckpoint.objects.filter(
+            colonia=colonia
+        ).select_related('utente').order_by('data_campionamento')
+
+        ispezioni = list(
+            ControlloArnia.objects.filter(colonia=colonia)
+            .values('data', 'telaini_covata')
+            .order_by('data')
+        )
+
+        trattamenti = list(
+            TrattamentoSanitario.objects.filter(
+                colonie=colonia,
+                stato__in=['in_corso', 'completato', 'programmato'],
+            ).select_related('tipo_trattamento').order_by('data_inizio')
+        )
+
+        from .varroa_engine import VarroaEngine
+        engine = VarroaEngine(
+            checkpoints=list(checkpoints),
+            ispezioni=ispezioni,
+            trattamenti=trattamenti,
+            days_ahead=days_ahead,
+        )
+        result = engine.compute_trajectory()
+        result['checkpoints'] = VarroaCheckpointSerializer(
+            checkpoints, many=True, context={'request': request}
+        ).data
+        return Response(result)

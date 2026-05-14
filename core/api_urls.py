@@ -18,6 +18,7 @@ from .api_views import (
     password_reset_request, password_reset_confirm,
     PreferenzaMaturazionViewSet, MatutatoreViewSet, ContenitoreStoccaggioViewSet,
     google_auth,
+    VarroaCheckpointViewSet,
 )
 
 # Crea un router e registra i viewsets
@@ -48,6 +49,7 @@ router.register(r'nuclei', NucleoViewSet, basename='api-nucleo')
 router.register(r'maturatori', MatutatoreViewSet, basename='api-maturatore')
 router.register(r'contenitori-stoccaggio', ContenitoreStoccaggioViewSet, basename='api-contenitore')
 router.register(r'preferenze-maturazione', PreferenzaMaturazionViewSet, basename='api-preferenza-maturazione')
+router.register(r'varroa-checkpoints', VarroaCheckpointViewSet, basename='api-varroa-checkpoint')
 
 # URLs per le API
 urlpatterns = [

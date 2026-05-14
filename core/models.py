@@ -1126,12 +1126,22 @@ class TipoTrattamento(models.Model):
                                                help_text="Indica se questo trattamento richiede un blocco di covata")
     giorni_blocco_covata = models.IntegerField(default=0, 
                                              help_text="Durata consigliata in giorni del blocco di covata")
-    nota_blocco_covata = models.TextField(blank=True, null=True, 
+    nota_blocco_covata = models.TextField(blank=True, null=True,
                                         help_text="Note specifiche sul blocco di covata (ad es. metodo, tempistiche)")
-    
+
+    # Efficacy fields used by VarroaEngine
+    efficacia_foretica = models.FloatField(
+        default=0.90,
+        help_text="Frazione di varroa foretiche uccise (0-1). Es: ossalico ≈ 0.95, formico ≈ 0.80",
+    )
+    efficacia_in_covata = models.FloatField(
+        default=0.0,
+        help_text="Frazione di varroa in covata uccise (0-1). Es: formico ≈ 0.60, calore ≈ 0.90",
+    )
+
     def __str__(self):
         return self.nome
-    
+
     class Meta:
         verbose_name = "Tipo Trattamento"
         verbose_name_plural = "Tipi Trattamento"
@@ -2214,3 +2224,101 @@ class Notifica(models.Model):
         ordering = ['-data_creazione']
         verbose_name = 'Notifica'
         verbose_name_plural = 'Notifiche'
+
+
+# ── Varroa monitoring ───────────────────────────────────────────────────────
+
+class VarroaCheckpoint(models.Model):
+    """
+    Misurazione sperimentale del livello di infestazione da Varroa destructor.
+    Ogni checkpoint fornisce un dato calibrato che VarroaEngine usa per costruire
+    la traiettoria di popolazione e proiettare l'andamento futuro.
+    """
+    METODO_CHOICES = [
+        ('lavaggio_alcolico', 'Lavaggio alcolico'),
+        ('caduta_naturale',   'Caduta naturale (fondo)'),
+        ('sugar_shake',       'Zucchero a velo (sugar shake)'),
+    ]
+
+    colonia = models.ForeignKey(
+        Colonia, on_delete=models.CASCADE, related_name='varroa_checkpoints',
+    )
+    data_campionamento = models.DateField()
+    metodo = models.CharField(max_length=30, choices=METODO_CHOICES)
+
+    # Raw measurement fields
+    api_campionate = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text="Numero di api nel campione (lavaggio alcolico / sugar shake)",
+    )
+    acari_contati = models.PositiveIntegerField(
+        help_text="Acari Varroa contati nel campione o nel periodo di rilevazione",
+    )
+    giorni_misurazione = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text="Giorni di rilevazione con fondo (solo caduta naturale)",
+    )
+
+    # Brood context at sampling time
+    telaini_covata = models.FloatField(
+        null=True, blank=True,
+        help_text="Telaini di covata al campionamento (per calibrazione modello)",
+    )
+
+    # Computed results
+    percentuale_calcolata = models.FloatField(
+        help_text="% infestazione stimata calcolata automaticamente",
+    )
+    caduta_giornaliera = models.FloatField(
+        null=True, blank=True,
+        help_text="Acari/giorno (calcolato solo per caduta naturale)",
+    )
+    confidenza = models.FloatField(
+        default=1.0,
+        help_text="Affidabilità: 0.95 lavaggio, 0.75 sugar shake, 0.50 caduta naturale",
+    )
+
+    note   = models.TextField(blank=True, null=True)
+    utente = models.ForeignKey(User, on_delete=models.CASCADE)
+    data_creazione = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Checkpoint Varroa"
+        verbose_name_plural = "Checkpoint Varroa"
+        ordering = ['-data_campionamento']
+        indexes = [
+            models.Index(fields=['colonia', 'data_campionamento'],
+                         name='idx_varroa_cp_colonia_data'),
+        ]
+
+    def __str__(self):
+        return (
+            f"Varroa {self.colonia} — {self.data_campionamento} "
+            f"({self.get_metodo_display()}: {self.percentuale_calcolata:.2f}%)"
+        )
+
+    def save(self, *args, **kwargs):
+        self._compute_percentuale()
+        super().save(*args, **kwargs)
+
+    def _compute_percentuale(self):
+        """Derive percentuale_calcolata and confidenza from raw measurements."""
+        if self.metodo == 'lavaggio_alcolico':
+            if self.api_campionate and self.api_campionate > 0:
+                self.percentuale_calcolata = (self.acari_contati / self.api_campionate) * 100.0
+            self.confidenza = 0.95
+
+        elif self.metodo == 'sugar_shake':
+            if self.api_campionate and self.api_campionate > 0:
+                raw = (self.acari_contati / self.api_campionate) * 100.0
+                # Sugar shake underestimates by ~35%; correct upward
+                self.percentuale_calcolata = raw / 0.65
+            self.confidenza = 0.75
+
+        elif self.metodo == 'caduta_naturale':
+            if self.giorni_misurazione and self.giorni_misurazione > 0:
+                self.caduta_giornaliera = self.acari_contati / self.giorni_misurazione
+                # Rough conversion: % ≈ miti/giorno / 10
+                # Assumes ~30 000 bees, ~0.3% natural daily mite turnover
+                self.percentuale_calcolata = self.caduta_giornaliera / 10.0
+            self.confidenza = 0.50

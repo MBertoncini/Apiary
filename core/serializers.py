@@ -15,6 +15,7 @@ from .models import (
     AnalisiTelaino, ApiarioMapLayout, MeteoGiornaliero,
     PreferenzaMaturazione, Maturatore, ContenitoreStoccaggio,
     GIORNI_MATURAZIONE_DEFAULTS,
+    VarroaCheckpoint,
 )
 
 # Serializzatore utente
@@ -1275,3 +1276,40 @@ class MeteoGiornalieroSerializer(serializers.ModelSerializer):
             'weather_code_dominante', 'source', 'updated_at',
         ]
         read_only_fields = fields
+
+
+class VarroaCheckpointSerializer(serializers.ModelSerializer):
+    """Serializzatore per i checkpoint di monitoraggio Varroa."""
+    colonia_nome = serializers.SerializerMethodField()
+    metodo_display = serializers.ReadOnlyField(source='get_metodo_display')
+
+    class Meta:
+        model = VarroaCheckpoint
+        fields = [
+            'id', 'colonia', 'colonia_nome',
+            'data_campionamento', 'metodo', 'metodo_display',
+            'api_campionate', 'acari_contati', 'giorni_misurazione',
+            'telaini_covata',
+            'percentuale_calcolata', 'caduta_giornaliera', 'confidenza',
+            'note', 'utente', 'data_creazione',
+        ]
+        read_only_fields = ['percentuale_calcolata', 'caduta_giornaliera', 'confidenza', 'utente', 'data_creazione']
+
+    def get_colonia_nome(self, obj):
+        return obj.colonia.contenitore_display() if obj.colonia else None
+
+    def create(self, validated_data):
+        validated_data['utente'] = self.context['request'].user
+        return super().create(validated_data)
+
+    def validate(self, data):
+        metodo = data.get('metodo')
+        if metodo in ('lavaggio_alcolico', 'sugar_shake') and not data.get('api_campionate'):
+            raise serializers.ValidationError(
+                {'api_campionate': 'Campo obbligatorio per lavaggio alcolico e sugar shake.'}
+            )
+        if metodo == 'caduta_naturale' and not data.get('giorni_misurazione'):
+            raise serializers.ValidationError(
+                {'giorni_misurazione': 'Campo obbligatorio per la caduta naturale.'}
+            )
+        return data
