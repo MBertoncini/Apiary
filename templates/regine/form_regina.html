@@ -8,9 +8,9 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">{% if is_new %}👑 {% trans "Aggiungi Regina" %}{% else %}✏️ {% trans "Modifica Regina" %}{% endif %}</h1>
-    <p class="page-subtitle"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'visualizza_regina' arnia.id %}">{% blocktrans with numero=arnia.numero %}Regina #{{ numero }}{% endblocktrans %}</a> › {% if is_new %}{% trans "Aggiungi" %}{% else %}{% trans "Modifica" %}{% endif %}</p>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'visualizza_regina' colonia.id %}">{% blocktrans with cont=colonia.contenitore_display %}Regina – {{ cont }}{% endblocktrans %}</a> › {% if is_new %}{% trans "Aggiungi" %}{% else %}{% trans "Modifica" %}{% endif %}</p>
   </div>
-  <a href="{% url 'visualizza_regina' arnia.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Annulla" %}</a>
+  <a href="{% url 'visualizza_regina' colonia.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Annulla" %}</a>
 </div>
 
 <div class="row">
@@ -113,13 +113,17 @@
 
     <div class="col-md-4">
         <div class="card mb-4">
-            <div class="card-header" {% if arnia.colore_hex %}style="background-color:{{ arnia.colore_hex }}20; border-left:4px solid {{ arnia.colore_hex }};"{% endif %}>
-                <h5 class="mb-0"><i class="bi bi-box me-2"></i>{% blocktrans with numero=arnia.numero %}Arnia #{{ numero }}{% endblocktrans %}</h5>
+            <div class="card-header" {% if arnia and arnia.colore_hex %}style="background-color:{{ arnia.colore_hex }}20; border-left:4px solid {{ arnia.colore_hex }};"{% elif nucleo and nucleo.colore_hex %}style="background-color:{{ nucleo.colore_hex }}20; border-left:4px solid {{ nucleo.colore_hex }};"{% endif %}>
+                <h5 class="mb-0"><i class="bi bi-box me-2"></i>{{ colonia.contenitore_display }}</h5>
             </div>
             <div class="card-body">
                 <p><strong>{% trans "Apiario:" %}</strong> {{ apiario.nome }}</p>
-                <p><strong>{% trans "Colore:" %}</strong> {{ arnia.get_colore_display }}</p>
-                <p><strong>{% trans "Data installazione:" %}</strong> {{ arnia.data_installazione|date:"d/m/Y" }}</p>
+                {% if arnia %}
+                  <p><strong>{% trans "Colore:" %}</strong> {{ arnia.get_colore_display }}</p>
+                  <p><strong>{% trans "Data installazione:" %}</strong> {{ arnia.data_installazione|date:"d/m/Y" }}</p>
+                {% elif nucleo %}
+                  <p><strong>{% trans "Data installazione:" %}</strong> {{ nucleo.data_installazione|date:"d/m/Y" }}</p>
+                {% endif %}
             </div>
         </div>
 

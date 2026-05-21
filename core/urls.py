@@ -23,13 +23,17 @@ urlpatterns = [
     path('controllo/<int:controllo_id>/modifica/', views.modifica_controllo, name='modifica_controllo'),
     path('controllo/<int:pk>/elimina/', views.elimina_controllo, name='elimina_controllo'),
 
-    # Queen management URLs
-    path('arnia/<int:arnia_id>/regina/', views.visualizza_regina, name='visualizza_regina'),
-    path('arnia/<int:arnia_id>/regina/aggiungi/', views.aggiungi_regina, name='aggiungi_regina'),
+    # Queen management URLs (principali: per colonia)
+    path('colonia/<int:colonia_id>/regina/', views.visualizza_regina, name='visualizza_regina'),
+    path('colonia/<int:colonia_id>/regina/aggiungi/', views.aggiungi_regina, name='aggiungi_regina'),
     path('regina/<int:regina_id>/modifica/', views.modifica_regina, name='modifica_regina'),
-    path('arnia/<int:arnia_id>/regina/sostituisci/', views.sostituisci_regina, name='sostituisci_regina'),
+    path('colonia/<int:colonia_id>/regina/sostituisci/', views.sostituisci_regina, name='sostituisci_regina'),
     path('regina/<int:regina_id>/genealogia/', views.albero_genealogico, name='albero_genealogico'),
     path('controllo/<int:controllo_id>/regina/', views.aggiorna_presenza_regina, name='aggiorna_presenza_regina'),
+    # Retro-compat: vecchi URL basati su arnia → redirect alla colonia attiva
+    path('arnia/<int:arnia_id>/regina/', views.visualizza_regina_da_arnia, name='visualizza_regina_da_arnia'),
+    path('arnia/<int:arnia_id>/regina/aggiungi/', views.aggiungi_regina_da_arnia, name='aggiungi_regina_da_arnia'),
+    path('arnia/<int:arnia_id>/regina/sostituisci/', views.sostituisci_regina_da_arnia, name='sostituisci_regina_da_arnia'),
 
     # Gestione Melari e Smielatura
     path('melari/', views.gestione_melari_globale, name='gestione_melari_globale'),

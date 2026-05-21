@@ -189,7 +189,12 @@ class Arnia(models.Model):
 
     def __str__(self):
         return f"Arnia {self.numero} ({self.colore}) - {self.apiario.nome}"
-    
+
+    @property
+    def colonia_attiva(self):
+        """Colonia attualmente residente in questa arnia (o None)."""
+        return self.colonie.filter(stato='attiva', data_fine__isnull=True).first()
+
     def save(self, *args, **kwargs):
         # Per i colori predefiniti il colore_hex è derivato dal nome:
         # normalizziamo sempre, così update di solo `colore` non lasciano hex stale.
@@ -226,6 +231,11 @@ class Nucleo(models.Model):
 
     def __str__(self):
         return f"Nucleo {self.numero} – {self.apiario.nome}"
+
+    @property
+    def colonia_attiva(self):
+        """Colonia attualmente residente in questo nucleo (o None)."""
+        return self.colonie.filter(stato='attiva', data_fine__isnull=True).first()
 
     class Meta:
         verbose_name = "Nucleo"
@@ -674,6 +684,10 @@ class Smielatura(models.Model):
     melari = models.ManyToManyField(
         Melario, through='SmielaturaMelario', related_name='smielature'
     )
+    fioriture = models.ManyToManyField(
+        'Fioritura', related_name='smielature', blank=True,
+        help_text="Fioriture da cui proviene principalmente il raccolto (per modelli predittivi)",
+    )
     quantita_miele = models.DecimalField(max_digits=7, decimal_places=2, help_text="Quantità di miele in kg")
     tipo_miele = models.CharField(max_length=100, help_text="Tipo di miele/origine botanica principale")
     utente = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -725,6 +739,11 @@ class SmielaturaMelario(models.Model):
     Riusa la tabella `core_smielatura_melari` già esistente (in passato
     auto-generata dal M2M senza through). La migrazione aggiunge solo le
     colonne extra e popola `stato_origine` con un default conservativo.
+
+    `kg_miele` attribuisce la quota di produzione di quella smielatura al
+    singolo melario, per costruire dataset ML per-colonia. Può essere
+    valorizzato manualmente o calcolato proporzionalmente al peso lordo
+    delle pesate associate.
     """
     smielatura = models.ForeignKey(Smielatura, on_delete=models.CASCADE)
     melario = models.ForeignKey(Melario, on_delete=models.CASCADE)
@@ -732,6 +751,10 @@ class SmielaturaMelario(models.Model):
         max_length=20, choices=Melario.STATO_CHOICES,
         blank=True, default='',
         help_text="Stato che il melario aveva prima del link; usato per il ripristino"
+    )
+    kg_miele = models.DecimalField(
+        max_digits=7, decimal_places=2, null=True, blank=True,
+        help_text="Kg di miele attribuiti a questo melario (per analisi per-colonia)",
     )
     data_link = models.DateTimeField(null=True, blank=True, auto_now_add=True)
 
@@ -2175,6 +2198,11 @@ class ApiarioMapLayout(models.Model):
 class AnalisiTelaino(models.Model):
     """Modello per memorizzare i risultati dell'analisi AI dei telaini"""
     arnia = models.ForeignKey(Arnia, on_delete=models.CASCADE, related_name='analisi_telaini')
+    colonia = models.ForeignKey(
+        'Colonia', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='analisi_telaini',
+        help_text="Colonia presente nell'arnia al momento dell'analisi (dato biologico)",
+    )
     numero_telaino = models.IntegerField()
     facciata = models.CharField(max_length=1, choices=[('A', 'Facciata A'), ('B', 'Facciata B')])
     data = models.DateField(auto_now_add=True)
@@ -2336,3 +2364,183 @@ class VarroaCheckpoint(models.Model):
                 # Assumes ~30 000 bees, ~0.3% natural daily mite turnover
                 self.percentuale_calcolata = self.caduta_giornaliera / 10.0
             self.confidenza = 0.50
+
+
+# ── ML: tracking granulare per modelli predittivi per-colonia ───────────────
+
+class PesataMelario(models.Model):
+    """Pesata di un melario in uno specifico evento.
+
+    Catturare il peso lordo (e opzionalmente la tara) in più momenti
+    (posizionamento, intermedia, rimozione, pre-smielatura) consente di
+    ricostruire la produzione netta di miele per colonia e per fioritura,
+    target principale dei modelli predittivi.
+    """
+    TIPO_CHOICES = [
+        ('posizionamento', 'Posizionamento'),
+        ('intermedia',     'Pesata intermedia'),
+        ('rimozione',      'Rimozione dal nido'),
+        ('smielatura',     'Pre-smielatura'),
+    ]
+
+    melario = models.ForeignKey(Melario, on_delete=models.CASCADE, related_name='pesate')
+    # Snapshot della colonia produttrice al momento della pesata.
+    # Manteniamo la FK anche se la colonia viene cancellata, per non perdere
+    # il dato storico (SET_NULL).
+    colonia = models.ForeignKey(
+        Colonia, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='pesate_melari',
+        help_text="Colonia produttrice al momento della pesata",
+    )
+    fioritura = models.ForeignKey(
+        Fioritura, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='pesate_melari',
+        help_text="Fioritura principale a cui il melario è stato esposto",
+    )
+    smielatura = models.ForeignKey(
+        Smielatura, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='pesate_melari',
+        help_text="Smielatura a cui questa pesata è collegata (se applicabile)",
+    )
+    data = models.DateField()
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='rimozione')
+    peso_lordo_kg = models.DecimalField(
+        max_digits=6, decimal_places=2,
+        help_text="Peso lordo misurato (melario + favi + miele) in kg",
+    )
+    tara_kg = models.DecimalField(
+        max_digits=6, decimal_places=2, null=True, blank=True,
+        help_text="Tara del melario vuoto in kg (favi inclusi se costruiti)",
+    )
+    peso_netto_kg = models.DecimalField(
+        max_digits=6, decimal_places=2, null=True, blank=True,
+        help_text="Peso netto miele in kg (auto-calcolato come lordo - tara se entrambi disponibili)",
+    )
+    note = models.TextField(blank=True, null=True)
+    utente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pesate_melari')
+    data_creazione = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Pesata Melario"
+        verbose_name_plural = "Pesate Melari"
+        ordering = ['-data', '-id']
+        indexes = [
+            models.Index(fields=['melario', 'data']),
+            models.Index(fields=['colonia', 'data']),
+            models.Index(fields=['fioritura']),
+        ]
+        # NB: nomi indice gestiti da Django (hash-based) per evitare divergenze
+
+    def __str__(self):
+        return (
+            f"Pesata Melario {self.melario_id} – {self.data} "
+            f"({self.get_tipo_display()}: {self.peso_lordo_kg} kg)"
+        )
+
+    def save(self, *args, **kwargs):
+        # Auto-calcolo netto se entrambi noti e netto non valorizzato manualmente
+        if self.peso_netto_kg is None and self.peso_lordo_kg is not None and self.tara_kg is not None:
+            from decimal import Decimal
+            self.peso_netto_kg = max(Decimal('0'), Decimal(self.peso_lordo_kg) - Decimal(self.tara_kg))
+        super().save(*args, **kwargs)
+
+
+class Alimentazione(models.Model):
+    """Somministrazione di nutrimento a una colonia.
+
+    Importante come *confounder* per i modelli predittivi sulla produzione di
+    miele: una colonia nutrita con sciroppo può "produrre" miele che non è
+    di origine bottinica.
+    """
+    TIPO_CHOICES = [
+        ('sciroppo_1_1',     'Sciroppo 1:1 (stimolante)'),
+        ('sciroppo_2_1',     'Sciroppo 2:1 (invernale)'),
+        ('candito',          'Candito'),
+        ('candito_proteico', 'Candito proteico'),
+        ('polline',          'Polline / sostituti'),
+        ('miele',            'Miele'),
+        ('altro',            'Altro'),
+    ]
+    SCOPO_CHOICES = [
+        ('stimolante',  'Stimolante primaverile'),
+        ('sostentamento','Sostentamento estivo'),
+        ('invernale',   'Riserve invernali'),
+        ('emergenza',   'Emergenza (fame)'),
+        ('introduzione','Introduzione regina / sciame'),
+        ('altro',       'Altro'),
+    ]
+
+    colonia = models.ForeignKey(
+        Colonia, on_delete=models.CASCADE, related_name='alimentazioni',
+        help_text="Colonia a cui è stata somministrata l'alimentazione",
+    )
+    data = models.DateField()
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='sciroppo_1_1')
+    scopo = models.CharField(max_length=20, choices=SCOPO_CHOICES, blank=True, default='')
+    quantita_kg = models.DecimalField(
+        max_digits=6, decimal_places=2,
+        help_text="Quantità somministrata in kg (per liquidi: assumere densità ~1.3 kg/l per sciroppo 2:1)",
+    )
+    note = models.TextField(blank=True, null=True)
+    utente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='alimentazioni')
+    data_creazione = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Alimentazione"
+        verbose_name_plural = "Alimentazioni"
+        ordering = ['-data', '-id']
+        indexes = [
+            models.Index(fields=['colonia', 'data']),
+        ]
+
+    def __str__(self):
+        return (
+            f"Alimentazione {self.colonia_id} – {self.data} "
+            f"({self.get_tipo_display()}: {self.quantita_kg} kg)"
+        )
+
+
+class NomadismoEvent(models.Model):
+    """Spostamento fisico di una colonia da un apiario all'altro (nomadismo).
+
+    Permette di ricostruire, per qualsiasi data, in quale apiario si trovava
+    una colonia. Senza questo storico, lo spostamento di un apiario o la
+    riassegnazione di una colonia a un nuovo apiario cancella le condizioni
+    ambientali (meteo, fioriture) precedenti dal training set.
+    """
+    colonia = models.ForeignKey(
+        Colonia, on_delete=models.CASCADE, related_name='spostamenti'
+    )
+    apiario_origine = models.ForeignKey(
+        Apiario, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='nomadismo_partenze',
+        help_text="Apiario di partenza (null per primo insediamento)",
+    )
+    apiario_destinazione = models.ForeignKey(
+        Apiario, on_delete=models.CASCADE,
+        related_name='nomadismo_arrivi',
+        help_text="Apiario di arrivo",
+    )
+    data_spostamento = models.DateField()
+    motivo = models.CharField(
+        max_length=100, blank=True,
+        help_text="Motivo dello spostamento (es. fioritura acacia, svernamento, divisione)",
+    )
+    note = models.TextField(blank=True, null=True)
+    utente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='nomadismi')
+    data_creazione = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Spostamento di nomadismo"
+        verbose_name_plural = "Spostamenti di nomadismo"
+        ordering = ['-data_spostamento', '-id']
+        indexes = [
+            models.Index(fields=['colonia', 'data_spostamento']),
+        ]
+
+    def __str__(self):
+        return (
+            f"Nomadismo {self.colonia_id}: "
+            f"{self.apiario_origine_id or '—'} → {self.apiario_destinazione_id} "
+            f"({self.data_spostamento})"
+        )

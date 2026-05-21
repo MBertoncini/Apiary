@@ -132,12 +132,14 @@
                                         </td>
                                         <td>
                                             <strong>
-                                                <a href="{% url 'visualizza_regina' regina.arnia.id %}">
-                                                    #{{ regina.arnia.numero }}
+                                                {% if regina.colonia %}
+                                                <a href="{% url 'visualizza_regina' regina.colonia.id %}">
+                                                    {{ regina.colonia.contenitore_display }}
                                                 </a>
+                                                {% else %}—{% endif %}
                                             </strong>
                                             <br>
-                                            <small class="text-muted">{{ regina.arnia.apiario.nome }}</small>
+                                            <small class="text-muted">{% if regina.colonia %}{{ regina.colonia.apiario.nome }}{% endif %}</small>
                                         </td>
                                         <td>{{ regina.get_razza_display }}</td>
                                         <td>
@@ -190,10 +192,12 @@
                                         </td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
-                                                <a href="{% url 'visualizza_regina' regina.arnia.id %}"
+                                                {% if regina.colonia %}
+                                                <a href="{% url 'visualizza_regina' regina.colonia.id %}"
                                                    class="btn btn-outline-primary" title="{% trans 'Dettaglio' %}">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
+                                                {% endif %}
                                                 <a href="{% url 'albero_genealogico_completo' regina.id %}"
                                                    class="btn btn-outline-success" title="{% trans 'Genealogia' %}">
                                                     <i class="bi bi-diagram-3"></i>

@@ -56,11 +56,13 @@
                         <th style="width: 200px;">{% trans "Caratteristica" %}</th>
                         {% for item in confronto %}
                         <th class="text-center">
-                            <a href="{% url 'visualizza_regina' item.regina.arnia.id %}">
-                                {% blocktrans with num=item.regina.arnia.numero %}Arnia #{{ num }}{% endblocktrans %}
+                            {% if item.regina.colonia %}
+                            <a href="{% url 'visualizza_regina' item.regina.colonia.id %}">
+                                {{ item.regina.colonia.contenitore_display }}
                             </a>
                             <br>
-                            <small class="text-muted">{{ item.regina.arnia.apiario.nome }}</small>
+                            <small class="text-muted">{{ item.regina.colonia.apiario.nome }}</small>
+                            {% else %}—{% endif %}
                         </th>
                         {% endfor %}
                     </tr>
@@ -280,10 +282,12 @@
                         <th>{% trans "Regina Madre" %}</th>
                         {% for item in confronto %}
                         <td class="text-center">
-                            {% if item.regina.regina_madre %}
-                                <a href="{% url 'visualizza_regina' item.regina.regina_madre.arnia.id %}">
-                                    {% blocktrans with num=item.regina.regina_madre.arnia.numero %}Arnia #{{ num }}{% endblocktrans %}
+                            {% if item.regina.regina_madre and item.regina.regina_madre.colonia %}
+                                <a href="{% url 'visualizza_regina' item.regina.regina_madre.colonia.id %}">
+                                    {{ item.regina.regina_madre.colonia.contenitore_display }}
                                 </a>
+                            {% elif item.regina.regina_madre %}
+                                <span class="text-muted">{{ item.regina.regina_madre }}</span>
                             {% else %}
                                 <span class="text-muted">{% trans "Sconosciuta" %}</span>
                             {% endif %}
@@ -311,10 +315,12 @@
                         {% for item in confronto %}
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
-                                <a href="{% url 'visualizza_regina' item.regina.arnia.id %}"
+                                {% if item.regina.colonia %}
+                                <a href="{% url 'visualizza_regina' item.regina.colonia.id %}"
                                    class="btn btn-outline-primary" title="{% trans 'Dettaglio' %}">
                                     <i class="bi bi-eye"></i>
                                 </a>
+                                {% endif %}
                                 <a href="{% url 'albero_genealogico_completo' item.regina.id %}"
                                    class="btn btn-outline-success" title="{% trans 'Genealogia' %}">
                                     <i class="bi bi-diagram-3"></i>

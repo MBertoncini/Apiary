@@ -19,7 +19,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .models import (
     Apiario, Arnia, Colonia, Nucleo, ControlloNucleo, ControlloArnia,
     Regina, StoriaRegine, Fioritura, FiorituraConferma,
-    TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
+    TrattamentoSanitario, TipoTrattamento, Melario, Smielatura, SmielaturaMelario,
     Gruppo, MembroGruppo, InvitoGruppo, DatiMeteo, PrevisioneMeteo, MeteoGiornaliero,
     Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
@@ -27,7 +27,7 @@ from .models import (
     AnalisiTelaino, ApiarioMapLayout, SystemAiQuota,
     PreferenzaMaturazione, Maturatore, ContenitoreStoccaggio,
     GIORNI_MATURAZIONE_DEFAULTS,
-    VarroaCheckpoint,
+    VarroaCheckpoint, PesataMelario, Alimentazione, NomadismoEvent,
 )
 
 from .serializers import (
@@ -49,6 +49,7 @@ from .serializers import (
     NucleoSerializer, ControlloNucleoSerializer,
     PreferenzaMaturazionSerializer, MatutatoreSerializer, ContenitoreStoccaggioSerializer,
     VarroaCheckpointSerializer,
+    PesataMelarioSerializer, AlimentazioneSerializer, NomadismoEventSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -3252,3 +3253,225 @@ class VarroaCheckpointViewSet(viewsets.ModelViewSet):
             checkpoints, many=True, context={'request': request}
         ).data
         return Response(result)
+
+
+# ── ViewSet ML: pesate / alimentazione / nomadismo ──────────────────────────
+
+class PesataMelarioViewSet(viewsets.ModelViewSet):
+    """CRUD pesate melari per dataset ML produzione miele per-colonia."""
+    serializer_class = PesataMelarioSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['data', 'peso_lordo_kg', 'peso_netto_kg']
+    ordering = ['-data', '-id']
+
+    def get_queryset(self):
+        apiari_accessibili = get_apiari_accessibili(self.request.user)
+        # Una pesata è accessibile se il melario è su un apiario accessibile
+        # (ricostruito dalla colonia attuale del melario o dalla colonia snapshot)
+        qs = PesataMelario.objects.filter(
+            Q(colonia__apiario__in=apiari_accessibili) |
+            Q(melario__colonia__apiario__in=apiari_accessibili)
+        ).select_related('melario', 'colonia', 'fioritura', 'smielatura', 'utente').distinct()
+        melario_id = self.request.query_params.get('melario')
+        colonia_id = self.request.query_params.get('colonia')
+        fioritura_id = self.request.query_params.get('fioritura')
+        smielatura_id = self.request.query_params.get('smielatura')
+        if melario_id:
+            qs = qs.filter(melario_id=melario_id)
+        if colonia_id:
+            qs = qs.filter(colonia_id=colonia_id)
+        if fioritura_id:
+            qs = qs.filter(fioritura_id=fioritura_id)
+        if smielatura_id:
+            qs = qs.filter(smielatura_id=smielatura_id)
+        return qs
+
+    def perform_create(self, serializer):
+        serializer.save(utente=self.request.user)
+
+
+class AlimentazioneViewSet(viewsets.ModelViewSet):
+    """CRUD somministrazioni alimentari per-colonia."""
+    serializer_class = AlimentazioneSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['data', 'quantita_kg']
+    ordering = ['-data', '-id']
+
+    def get_queryset(self):
+        apiari_accessibili = get_apiari_accessibili(self.request.user)
+        qs = Alimentazione.objects.filter(
+            colonia__apiario__in=apiari_accessibili
+        ).select_related('colonia', 'colonia__arnia', 'utente')
+        colonia_id = self.request.query_params.get('colonia')
+        apiario_id = self.request.query_params.get('apiario')
+        if colonia_id:
+            qs = qs.filter(colonia_id=colonia_id)
+        if apiario_id:
+            qs = qs.filter(colonia__apiario_id=apiario_id)
+        return qs
+
+    def perform_create(self, serializer):
+        serializer.save(utente=self.request.user)
+
+
+class NomadismoEventViewSet(viewsets.ModelViewSet):
+    """CRUD spostamenti di nomadismo per colonia."""
+    serializer_class = NomadismoEventSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ['data_spostamento']
+    ordering = ['-data_spostamento', '-id']
+
+    def get_queryset(self):
+        apiari_accessibili = get_apiari_accessibili(self.request.user)
+        qs = NomadismoEvent.objects.filter(
+            Q(apiario_origine__in=apiari_accessibili) |
+            Q(apiario_destinazione__in=apiari_accessibili)
+        ).select_related(
+            'colonia', 'apiario_origine', 'apiario_destinazione', 'utente',
+        ).distinct()
+        colonia_id = self.request.query_params.get('colonia')
+        if colonia_id:
+            qs = qs.filter(colonia_id=colonia_id)
+        return qs
+
+    def perform_create(self, serializer):
+        serializer.save(utente=self.request.user)
+
+
+# ── Endpoint ML export: dataset per-colonia ─────────────────────────────────
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def ml_dataset_colonia(request, colonia_id):
+    """Esporta la serie storica aggregata di una colonia per training ML.
+
+    Restituisce un dizionario con liste parallele indicizzate per data:
+    - controlli (telaini covata/scorte, regina, sciamatura, problemi)
+    - pesate melari (kg lordo/netto, tipo, fioritura)
+    - smielature (kg attribuiti ai melari della colonia)
+    - alimentazioni (tipo, kg)
+    - varroa checkpoints (%, metodo, confidenza)
+    - trattamenti (tipo, date, blocco covata)
+    - meteo giornaliero dell'apiario corrente (last 365d)
+    - storico spostamenti nomadismo
+
+    L'unità di osservazione consigliata è settimana-colonia: il consumatore
+    aggrega le serie su finestre di 7 giorni.
+    """
+    apiari_accessibili = get_apiari_accessibili(request.user)
+    try:
+        colonia = Colonia.objects.select_related('apiario', 'arnia', 'nucleo').get(
+            pk=colonia_id, apiario__in=apiari_accessibili,
+        )
+    except Colonia.DoesNotExist:
+        return Response({'detail': 'Colonia non trovata.'}, status=404)
+
+    # ── Controlli ────────────────────────────────────────────────────────────
+    controlli = list(
+        ControlloArnia.objects.filter(colonia=colonia).values(
+            'id', 'data', 'telaini_covata', 'telaini_scorte',
+            'presenza_regina', 'regina_vista', 'uova_fresche',
+            'celle_reali', 'numero_celle_reali', 'sciamatura',
+            'problemi_sanitari', 'regina_sostituita',
+        ).order_by('data')
+    )
+
+    # ── Pesate ──────────────────────────────────────────────────────────────
+    pesate = list(
+        PesataMelario.objects.filter(colonia=colonia).values(
+            'id', 'data', 'tipo', 'melario_id', 'fioritura_id',
+            'smielatura_id', 'peso_lordo_kg', 'tara_kg', 'peso_netto_kg',
+        ).order_by('data')
+    )
+
+    # ── Smielature: somma kg_miele attribuiti ai melari della colonia ───────
+    smielature_qs = (
+        SmielaturaMelario.objects.filter(melario__colonia=colonia)
+        .select_related('smielatura')
+        .values(
+            'smielatura_id', 'smielatura__data', 'smielatura__tipo_miele',
+            'kg_miele', 'melario_id',
+        ).order_by('smielatura__data')
+    )
+    smielature = list(smielature_qs)
+
+    # ── Alimentazione ────────────────────────────────────────────────────────
+    alimentazioni = list(
+        Alimentazione.objects.filter(colonia=colonia).values(
+            'id', 'data', 'tipo', 'scopo', 'quantita_kg',
+        ).order_by('data')
+    )
+
+    # ── Varroa ───────────────────────────────────────────────────────────────
+    varroa = list(
+        VarroaCheckpoint.objects.filter(colonia=colonia).values(
+            'id', 'data_campionamento', 'metodo',
+            'percentuale_calcolata', 'caduta_giornaliera', 'confidenza',
+            'telaini_covata',
+        ).order_by('data_campionamento')
+    )
+
+    # ── Trattamenti (associati alla colonia, M2M) ───────────────────────────
+    trattamenti = list(
+        TrattamentoSanitario.objects.filter(colonie=colonia)
+        .exclude(stato='annullato').values(
+            'id', 'data_inizio', 'data_fine', 'data_fine_sospensione',
+            'tipo_trattamento_id', 'tipo_trattamento__nome',
+            'tipo_trattamento__principio_attivo',
+            'blocco_covata_attivo', 'data_inizio_blocco', 'data_fine_blocco',
+        ).order_by('data_inizio')
+    )
+
+    # ── Meteo (apiario corrente, ultimi 365 giorni) ─────────────────────────
+    cutoff = date.today() - timedelta(days=365)
+    meteo = list(
+        MeteoGiornaliero.objects.filter(
+            apiario=colonia.apiario, data__gte=cutoff,
+        ).values(
+            'data', 'temp_min', 'temp_max', 'temp_mean',
+            'precip_mm', 'precip_hours', 'umidita_media',
+            'vento_medio', 'pressione_media',
+            'ore_sole', 'radiazione_mj', 'gdd_base10', 'source',
+        ).order_by('data')
+    )
+
+    # ── Nomadismo ────────────────────────────────────────────────────────────
+    nomadismi = list(
+        NomadismoEvent.objects.filter(colonia=colonia).values(
+            'id', 'data_spostamento',
+            'apiario_origine_id', 'apiario_destinazione_id', 'motivo',
+        ).order_by('data_spostamento')
+    )
+
+    # ── Fioriture attive nella stagione dell'apiario (within 2km) ───────────
+    # NB: filtro grossolano via raggio non implementato qui; lasciamo come
+    # input per il modello (fioriture pubbliche dell'apiario + community).
+    fioriture = list(
+        Fioritura.objects.filter(apiario=colonia.apiario).values(
+            'id', 'pianta', 'data_inizio', 'data_fine', 'intensita',
+            'latitudine', 'longitudine',
+        ).order_by('data_inizio')
+    )
+
+    return Response({
+        'colonia': {
+            'id': colonia.id,
+            'apiario_id': colonia.apiario_id,
+            'apiario_nome': colonia.apiario.nome,
+            'data_inizio': colonia.data_inizio,
+            'data_fine': colonia.data_fine,
+            'stato': colonia.stato,
+        },
+        'controlli': controlli,
+        'pesate_melari': pesate,
+        'smielature': smielature,
+        'alimentazioni': alimentazioni,
+        'varroa': varroa,
+        'trattamenti': trattamenti,
+        'meteo_giornaliero': meteo,
+        'nomadismi': nomadismi,
+        'fioriture': fioriture,
+    })

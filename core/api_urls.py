@@ -19,6 +19,8 @@ from .api_views import (
     PreferenzaMaturazionViewSet, MatutatoreViewSet, ContenitoreStoccaggioViewSet,
     google_auth,
     VarroaCheckpointViewSet,
+    PesataMelarioViewSet, AlimentazioneViewSet, NomadismoEventViewSet,
+    ml_dataset_colonia,
 )
 
 # Crea un router e registra i viewsets
@@ -50,6 +52,9 @@ router.register(r'maturatori', MatutatoreViewSet, basename='api-maturatore')
 router.register(r'contenitori-stoccaggio', ContenitoreStoccaggioViewSet, basename='api-contenitore')
 router.register(r'preferenze-maturazione', PreferenzaMaturazionViewSet, basename='api-preferenza-maturazione')
 router.register(r'varroa-checkpoints', VarroaCheckpointViewSet, basename='api-varroa-checkpoint')
+router.register(r'pesate-melari', PesataMelarioViewSet, basename='api-pesata-melario')
+router.register(r'alimentazioni', AlimentazioneViewSet, basename='api-alimentazione')
+router.register(r'nomadismi', NomadismoEventViewSet, basename='api-nomadismo')
 
 # URLs per le API
 urlpatterns = [
@@ -93,4 +98,7 @@ urlpatterns = [
 
     # Endpoint Google Sign-In
     path('auth/google/', google_auth, name='api-google-auth'),
+
+    # Endpoint ML dataset (training set per-colonia)
+    path('ml/dataset/colonia/<int:colonia_id>/', ml_dataset_colonia, name='api-ml-dataset-colonia'),
 ]

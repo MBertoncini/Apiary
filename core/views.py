@@ -535,56 +535,56 @@ def elimina_controllo(request, pk):
 
 # Aggiungi al file views.py
 
+def _check_accesso_apiario(user, apiario):
+    """Restituisce (can_view, can_edit) per l'utente sull'apiario."""
+    if apiario.proprietario == user:
+        return True, True
+    if apiario.gruppo and apiario.condiviso_con_gruppo:
+        try:
+            membro = MembroGruppo.objects.get(utente=user, gruppo=apiario.gruppo)
+            return True, membro.ruolo in ['admin', 'editor']
+        except MembroGruppo.DoesNotExist:
+            return False, False
+    return False, False
+
+
 @login_required
 @richiedi_permesso_scrittura
-def visualizza_regina(request, arnia_id):
-    """Vista per visualizzare i dettagli della regina di un'arnia"""
-    arnia = get_object_or_404(Arnia, pk=arnia_id)
-    apiario = arnia.apiario
-    
-    # Verifica i permessi di accesso
-    can_edit = False
-    if apiario.proprietario == request.user:
-        can_edit = True
-    elif apiario.gruppo and apiario.condiviso_con_gruppo:
-        try:
-            membro = MembroGruppo.objects.get(utente=request.user, gruppo=apiario.gruppo)
-            can_edit = membro.ruolo in ['admin', 'editor']
-        except MembroGruppo.DoesNotExist:
-            pass
-    
-    # Ottieni la regina corrente o None
+def visualizza_regina(request, colonia_id):
+    """Vista per visualizzare i dettagli della regina di una colonia."""
+    colonia = get_object_or_404(Colonia, pk=colonia_id)
+    apiario = colonia.apiario
+    arnia = colonia.arnia
+    nucleo = colonia.nucleo
+
+    can_view, can_edit = _check_accesso_apiario(request.user, apiario)
+    if not can_view:
+        messages.error(request, "Non hai accesso a questa risorsa.")
+        return redirect('dashboard')
+
     try:
-        regina = arnia.regina
+        regina = colonia.regina
     except Regina.DoesNotExist:
         regina = None
-    
-    # Ottieni la storia delle regine per questa arnia
-    storia_regine = StoriaRegine.objects.filter(arnia=arnia).order_by('-data_inizio')
-    
-    # Ottieni l'albero genealogico se la regina esiste
+
+    storia_regine = StoriaRegine.objects.filter(colonia=colonia).order_by('-data_inizio')
+
     genealogia = []
     if regina:
-        # Prepara la genealogia per 3 generazioni
         current = regina
         genealogia = [current]
-        
-        # Prima generazione (regina madre)
         if current.regina_madre:
             genealogia.append(current.regina_madre)
             current = current.regina_madre
-            
-            # Seconda generazione (nonna)
             if current.regina_madre:
                 genealogia.append(current.regina_madre)
-    
-    # Ottieni tutte le figlie della regina corrente
-    figlie = []
-    if regina:
-        figlie = Regina.objects.filter(regina_madre=regina)
-    
+
+    figlie = Regina.objects.filter(regina_madre=regina) if regina else []
+
     context = {
+        'colonia': colonia,
         'arnia': arnia,
+        'nucleo': nucleo,
         'apiario': apiario,
         'regina': regina,
         'storia_regine': storia_regine,
@@ -592,70 +592,89 @@ def visualizza_regina(request, arnia_id):
         'figlie': figlie,
         'can_edit': can_edit,
     }
-    
+
     return render(request, 'regine/dettaglio_regina.html', context)
+
+
+def _redirect_arnia_a_colonia(request, arnia_id, url_name):
+    """Helper retro-compat: dai vecchi URL arnia/<id>/regina/... reindirizza al nuovo URL basato su colonia."""
+    arnia = get_object_or_404(Arnia, pk=arnia_id)
+    colonia = arnia.colonia_attiva
+    if not colonia:
+        messages.error(request, "Questa arnia non ha una colonia attiva.")
+        return redirect('visualizza_apiario', apiario_id=arnia.apiario_id)
+    return redirect(url_name, colonia_id=colonia.id)
+
 
 @login_required
 @richiedi_permesso_scrittura
-def aggiungi_regina(request, arnia_id):
-    """Vista per aggiungere una regina a un'arnia"""
-    arnia = get_object_or_404(Arnia, pk=arnia_id)
-    apiario = arnia.apiario
-    
-    # Verifica se esiste già una regina
-    regina_esistente = None
+def visualizza_regina_da_arnia(request, arnia_id):
+    return _redirect_arnia_a_colonia(request, arnia_id, 'visualizza_regina')
+
+
+@login_required
+@richiedi_permesso_scrittura
+def aggiungi_regina(request, colonia_id):
+    """Vista per aggiungere una regina a una colonia."""
+    colonia = get_object_or_404(Colonia, pk=colonia_id)
+    apiario = colonia.apiario
+
     try:
-        regina_esistente = arnia.regina
+        regina_esistente = colonia.regina
     except Regina.DoesNotExist:
-        pass
-    
+        regina_esistente = None
+
     if regina_esistente:
-        messages.error(request, "Questa arnia ha già una regina. Per sostituirla usa l'apposita funzione.")
-        return redirect('visualizza_regina', arnia_id=arnia.id)
-    
+        messages.error(request, "Questa colonia ha già una regina. Per sostituirla usa l'apposita funzione.")
+        return redirect('visualizza_regina', colonia_id=colonia.id)
+
     if request.method == 'POST':
-        form = ReginaForm(request.POST, arnia=arnia)
+        form = ReginaForm(request.POST, colonia=colonia)
         if form.is_valid():
             regina = form.save(commit=False)
-            regina.arnia = arnia
+            regina.colonia = colonia
             regina.save()
-            
-            # Crea un record nella storia delle regine
+
             StoriaRegine.objects.create(
-                arnia=arnia,
+                colonia=colonia,
                 regina=regina,
                 data_inizio=form.cleaned_data['data_introduzione']
             )
-            
+
             messages.success(request, "Regina aggiunta con successo.")
-            return redirect('visualizza_regina', arnia_id=arnia.id)
+            return redirect('visualizza_regina', colonia_id=colonia.id)
     else:
-        form = ReginaForm(arnia=arnia)
-    
+        form = ReginaForm(colonia=colonia)
+
     context = {
         'form': form,
-        'arnia': arnia,
+        'colonia': colonia,
+        'arnia': colonia.arnia,
+        'nucleo': colonia.nucleo,
         'apiario': apiario,
         'is_new': True,
     }
-    
+
     return render(request, 'regine/form_regina.html', context)
+
+
+@login_required
+@richiedi_permesso_scrittura
+def aggiungi_regina_da_arnia(request, arnia_id):
+    return _redirect_arnia_a_colonia(request, arnia_id, 'aggiungi_regina')
+
 
 @login_required
 def modifica_regina(request, regina_id):
-    """Vista per modificare i dati di una regina"""
+    """Vista per modificare i dati di una regina."""
     regina = get_object_or_404(Regina, pk=regina_id)
-    arnia = regina.arnia
-    apiario = arnia.apiario
+    colonia = regina.colonia
+    if colonia is None:
+        messages.error(request, "Questa regina non è associata a nessuna colonia.")
+        return redirect('dashboard')
+    apiario = colonia.apiario
 
-    # Verifica permessi
-    can_edit = apiario.proprietario == request.user
-    if not can_edit and apiario.gruppo and apiario.condiviso_con_gruppo:
-        try:
-            membro = MembroGruppo.objects.get(utente=request.user, gruppo=apiario.gruppo)
-            can_edit = membro.ruolo in ['admin', 'editor']
-        except MembroGruppo.DoesNotExist:
-            pass
+    _, can_edit = _check_accesso_apiario(request.user, apiario)
     if not can_edit:
         messages.error(request, "Non hai i permessi per modificare questa regina.")
         return redirect('visualizza_apiario', apiario_id=apiario.id)
@@ -665,65 +684,66 @@ def modifica_regina(request, regina_id):
         if form.is_valid():
             form.save()
             messages.success(request, "Dati della regina aggiornati con successo.")
-            return redirect('visualizza_regina', arnia_id=arnia.id)
+            return redirect('visualizza_regina', colonia_id=colonia.id)
     else:
         form = ReginaForm(instance=regina)
-    
+
     context = {
         'form': form,
         'regina': regina,
-        'arnia': arnia,
+        'colonia': colonia,
+        'arnia': colonia.arnia,
+        'nucleo': colonia.nucleo,
         'apiario': apiario,
         'is_new': False,
     }
-    
+
     return render(request, 'regine/form_regina.html', context)
+
 
 @login_required
 @richiedi_permesso_scrittura
-def sostituisci_regina(request, arnia_id):
-    """Vista per sostituire la regina di un'arnia"""
-    arnia = get_object_or_404(Arnia, pk=arnia_id)
-    apiario = arnia.apiario
-    
-    # Verifica se esiste una regina corrente
+def sostituisci_regina(request, colonia_id):
+    """Vista per sostituire la regina di una colonia."""
+    colonia = get_object_or_404(Colonia, pk=colonia_id)
+    apiario = colonia.apiario
+
     try:
-        regina_vecchia = arnia.regina
+        regina_vecchia = colonia.regina
     except Regina.DoesNotExist:
-        messages.error(request, "Non c'è una regina registrata per questa arnia. Usa 'Aggiungi Regina'.")
+        messages.error(request, "Non c'è una regina registrata per questa colonia. Usa 'Aggiungi Regina'.")
         return redirect('visualizza_apiario', apiario_id=apiario.id)
-    
+
     if request.method == 'POST':
         form = SostituzioneReginaForm(request.POST)
         if form.is_valid():
-            # Aggiorna la regina vecchia
-            regina_vecchia.attiva = False
-            regina_vecchia.save()
-            
-            # Aggiorna la storia delle regine
-            try:
-                storia_regina_vecchia = StoriaRegine.objects.filter(
-                    arnia=arnia, 
-                    regina=regina_vecchia, 
-                    data_fine__isnull=True
-                ).latest('data_inizio')
-                
+            # Chiude lo storico della regina vecchia
+            storia_regina_vecchia = StoriaRegine.objects.filter(
+                colonia=colonia,
+                regina=regina_vecchia,
+                data_fine__isnull=True,
+            ).order_by('-data_inizio').first()
+
+            if storia_regina_vecchia:
                 storia_regina_vecchia.data_fine = form.cleaned_data['data_sostituzione']
                 storia_regina_vecchia.motivo_fine = form.cleaned_data['motivo']
                 storia_regina_vecchia.save()
-            except StoriaRegine.DoesNotExist:
-                # Se non esiste un record nella storia, lo creiamo
+            else:
                 StoriaRegine.objects.create(
-                    arnia=arnia,
+                    colonia=colonia,
                     regina=regina_vecchia,
                     data_inizio=regina_vecchia.data_introduzione,
                     data_fine=form.cleaned_data['data_sostituzione'],
-                    motivo_fine=form.cleaned_data['motivo']
+                    motivo_fine=form.cleaned_data['motivo'],
                 )
-            
-            # Crea la nuova regina
-            nuova_regina = Regina(
-                arnia=arnia,
+
+            # Stacca la regina vecchia dalla colonia per liberare il vincolo OneToOne
+            regina_vecchia.colonia = None
+            regina_vecchia.save(update_fields=['colonia'])
+
+            # Crea la nuova regina sulla colonia
+            nuova_regina = Regina.objects.create(
+                colonia=colonia,
                 data_nascita=form.cleaned_data['nuova_regina_data_nascita'],
                 data_introduzione=form.cleaned_data['data_sostituzione'],
                 origine=form.cleaned_data['nuova_regina_origine'],
@@ -731,149 +751,128 @@ def sostituisci_regina(request, arnia_id):
                 marcata=form.cleaned_data['nuova_regina_marcata'],
                 codice_marcatura=form.cleaned_data['nuova_regina_codice'],
                 colore_marcatura=form.cleaned_data['nuova_regina_colore_marcatura'],
-                note=form.cleaned_data['note']
+                note=form.cleaned_data['note'],
             )
-            nuova_regina.save()
-            
-            # Aggiungi alla storia delle regine
+
             StoriaRegine.objects.create(
-                arnia=arnia,
+                colonia=colonia,
                 regina=nuova_regina,
                 data_inizio=form.cleaned_data['data_sostituzione'],
-                note=form.cleaned_data['note']
+                note=form.cleaned_data['note'],
             )
-            
+
             messages.success(request, "Regina sostituita con successo.")
-            return redirect('visualizza_regina', arnia_id=arnia.id)
+            return redirect('visualizza_regina', colonia_id=colonia.id)
     else:
         form = SostituzioneReginaForm()
-    
+
     context = {
         'form': form,
-        'arnia': arnia,
+        'colonia': colonia,
+        'arnia': colonia.arnia,
+        'nucleo': colonia.nucleo,
         'apiario': apiario,
         'regina_vecchia': regina_vecchia,
     }
-    
+
     return render(request, 'regine/sostituisci_regina.html', context)
+
+
+@login_required
+@richiedi_permesso_scrittura
+def sostituisci_regina_da_arnia(request, arnia_id):
+    return _redirect_arnia_a_colonia(request, arnia_id, 'sostituisci_regina')
+
 
 @login_required
 def albero_genealogico(request, regina_id):
-    """Vista per visualizzare l'albero genealogico completo di una regina"""
+    """Vista per visualizzare l'albero genealogico (3 gen) di una regina."""
     regina = get_object_or_404(Regina, pk=regina_id)
-    arnia = regina.arnia
-    apiario = arnia.apiario
-    
-    # Verifica accesso
-    if apiario.proprietario != request.user:
-        # Verifica se l'apiario è condiviso con un gruppo di cui l'utente fa parte
-        if apiario.gruppo and apiario.condiviso_con_gruppo:
-            if not MembroGruppo.objects.filter(utente=request.user, gruppo=apiario.gruppo).exists():
-                messages.error(request, "Non hai accesso a questa risorsa.")
-                return redirect('dashboard')
-        else:
-            messages.error(request, "Non hai accesso a questa risorsa.")
-            return redirect('dashboard')
-    
-    # Costruisci l'albero genealogico
-    # In questa versione useremo un approccio semplice, solo fino a 3 generazioni indietro
-    
-    # Prepariamo i dati per il template
+    colonia = regina.colonia
+    apiario = colonia.apiario if colonia else None
+
+    if apiario is None or not _check_accesso_apiario(request.user, apiario)[0]:
+        messages.error(request, "Non hai accesso a questa risorsa.")
+        return redirect('dashboard')
+
     genealogia = {
         'regina': regina,
         'madre': None,
         'nonna_materna': None,
         'bisnonna_materna': None,
     }
-    
-    # Trova la madre
+
     if regina.regina_madre:
         genealogia['madre'] = regina.regina_madre
-        
-        # Trova la nonna
         if regina.regina_madre.regina_madre:
             genealogia['nonna_materna'] = regina.regina_madre.regina_madre
-            
-            # Trova la bisnonna
             if regina.regina_madre.regina_madre.regina_madre:
                 genealogia['bisnonna_materna'] = regina.regina_madre.regina_madre.regina_madre
-    
-    # Trova tutte le figlie (sorelle)
+
     figlie = Regina.objects.filter(regina_madre=regina)
-    
+
     context = {
         'regina': regina,
-        'arnia': arnia,
+        'colonia': colonia,
+        'arnia': colonia.arnia if colonia else None,
+        'nucleo': colonia.nucleo if colonia else None,
         'apiario': apiario,
         'genealogia': genealogia,
         'figlie': figlie,
     }
-    
+
     return render(request, 'regine/albero_genealogico.html', context)
 
-# Aggiungi questa funzione alle viste esistenti per aggiornare la presenza regina durante i controlli
+
 @login_required
 def aggiorna_presenza_regina(request, controllo_id):
-    """Aggiorna lo stato della regina dopo un controllo"""
+    """Aggiorna lo stato della regina dopo un controllo."""
     controllo = get_object_or_404(ControlloArnia, pk=controllo_id)
+    colonia = controllo.colonia
     arnia = controllo.arnia
-    
-    # Verifica permessi
-    apiario = arnia.apiario
-    can_edit = False
-    if apiario.proprietario == request.user:
-        can_edit = True
-    elif apiario.gruppo and apiario.condiviso_con_gruppo:
-        try:
-            membro = MembroGruppo.objects.get(utente=request.user, gruppo=apiario.gruppo)
-            can_edit = membro.ruolo in ['admin', 'editor']
-        except MembroGruppo.DoesNotExist:
-            pass
-    
+
+    apiario = colonia.apiario if colonia else (arnia.apiario if arnia else None)
+    if apiario is None:
+        messages.error(request, "Controllo senza colonia/arnia associata.")
+        return redirect('dashboard')
+
+    _, can_edit = _check_accesso_apiario(request.user, apiario)
     if not can_edit:
         messages.error(request, "Non hai i permessi necessari.")
         return redirect('visualizza_apiario', apiario_id=apiario.id)
-    
+
     try:
-        regina = arnia.regina
+        regina = colonia.regina if colonia else None
     except Regina.DoesNotExist:
         regina = None
-    
+
     if request.method == 'POST':
-        # Aggiorna i campi relativi alla regina
         regina_vista = request.POST.get('regina_vista') == 'on'
         uova_fresche = request.POST.get('uova_fresche') == 'on'
         celle_reali = request.POST.get('celle_reali') == 'on'
         numero_celle_reali = int(request.POST.get('numero_celle_reali', 0) or 0)
         regina_sostituita = request.POST.get('regina_sostituita') == 'on'
-        
-        # Aggiorna il controllo
+
         controllo.regina_vista = regina_vista
         controllo.uova_fresche = uova_fresche
         controllo.celle_reali = celle_reali
         controllo.numero_celle_reali = numero_celle_reali
         controllo.regina_sostituita = regina_sostituita
         controllo.save()
-        
-        # Se la regina è stata vista, aggiorna la presenza regina
-        if regina_vista and regina:
-            # Aggiorna l'ultimo avvistamento della regina
-            regina.ultimo_avvistamento = controllo.data
-            regina.save()
-        
-        # Se la regina è stata sostituita, reindirizza alla schermata di sostituzione
-        if regina_sostituita:
-            return redirect('sostituisci_regina', arnia_id=arnia.id)
-        
+
+        if regina_sostituita and colonia:
+            return redirect('sostituisci_regina', colonia_id=colonia.id)
+
         messages.success(request, "Informazioni sulla regina aggiornate.")
         return redirect('visualizza_apiario', apiario_id=apiario.id)
-    
+
     context = {
         'controllo': controllo,
+        'colonia': colonia,
         'arnia': arnia,
         'regina': regina,
     }
-    
+
     return render(request, 'regine/aggiorna_presenza_regina.html', context)
 
 @login_required
@@ -5154,10 +5153,10 @@ def ricerca_regine(request):
 
     apiari_accessibili = apiari_propri | apiari_condivisi
 
-    # Regine accessibili
+    # Regine accessibili (la colonia può vivere in un'arnia o in un nucleo)
     regine = Regina.objects.filter(
-        arnia__apiario__in=apiari_accessibili
-    ).select_related('arnia', 'arnia__apiario', 'regina_madre')
+        colonia__apiario__in=apiari_accessibili
+    ).select_related('colonia', 'colonia__apiario', 'colonia__arnia', 'colonia__nucleo', 'regina_madre')
 
     # Applica filtri
     form = RicercaReginaForm(request.GET)
@@ -5215,18 +5214,12 @@ def ricerca_regine(request):
 def albero_genealogico_completo(request, regina_id):
     """Vista avanzata dell'albero genealogico con più generazioni"""
     regina = get_object_or_404(Regina, pk=regina_id)
-    arnia = regina.arnia
-    apiario = arnia.apiario
+    colonia = regina.colonia
+    apiario = colonia.apiario if colonia else None
 
-    # Verifica accesso
-    if apiario.proprietario != request.user:
-        if apiario.gruppo and apiario.condiviso_con_gruppo:
-            if not MembroGruppo.objects.filter(utente=request.user, gruppo=apiario.gruppo).exists():
-                messages.error(request, "Non hai accesso a questa risorsa.")
-                return redirect('dashboard')
-        else:
-            messages.error(request, "Non hai accesso a questa risorsa.")
-            return redirect('dashboard')
+    if apiario is None or not _check_accesso_apiario(request.user, apiario)[0]:
+        messages.error(request, "Non hai accesso a questa risorsa.")
+        return redirect('dashboard')
 
     def get_ascendenti(regina, livello=0, max_livelli=5):
         """Recupera ricorsivamente gli ascendenti"""
@@ -5299,7 +5292,9 @@ def albero_genealogico_completo(request, regina_id):
 
     context = {
         'regina': regina,
-        'arnia': arnia,
+        'colonia': colonia,
+        'arnia': colonia.arnia if colonia else None,
+        'nucleo': colonia.nucleo if colonia else None,
         'apiario': apiario,
         'ascendenti': ascendenti,
         'discendenti': discendenti,
@@ -5332,8 +5327,8 @@ def confronta_regine(request):
     # Verifica accesso e recupera regine
     regine = Regina.objects.filter(
         pk__in=regine_ids,
-        arnia__apiario__in=apiari_accessibili
-    ).select_related('arnia', 'arnia__apiario', 'regina_madre')
+        colonia__apiario__in=apiari_accessibili
+    ).select_related('colonia', 'colonia__apiario', 'colonia__arnia', 'colonia__nucleo', 'regina_madre')
 
     if regine.count() < 2:
         messages.error(request, "Non hai accesso a tutte le regine selezionate.")

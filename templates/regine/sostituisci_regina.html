@@ -9,9 +9,9 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">🔄 {% trans "Sostituzione Regina" %}</h1>
-    <p class="page-subtitle"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'visualizza_regina' arnia.id %}">{% blocktrans with n=arnia.numero %}Regina #{{ n }}{% endblocktrans %}</a> › {% trans "Sostituzione" %}</p>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'visualizza_regina' colonia.id %}">{% blocktrans with cont=colonia.contenitore_display %}Regina – {{ cont }}{% endblocktrans %}</a> › {% trans "Sostituzione" %}</p>
   </div>
-  <a href="{% url 'visualizza_regina' arnia.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Annulla" %}</a>
+  <a href="{% url 'visualizza_regina' colonia.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Annulla" %}</a>
 </div>
 
 <div class="row">
@@ -23,7 +23,7 @@
             <div class="card-body">
                 <div class="alert alert-info mb-4">
                     <p class="mb-0">
-                        <i class="bi bi-info-circle"></i> {% blocktrans with n=arnia.numero %}Stai sostituendo la regina dell'arnia <strong>#{{ n }}</strong>. La regina attuale verrà archiviata e sarà registrata una nuova regina al suo posto.{% endblocktrans %}
+                        <i class="bi bi-info-circle"></i> {% blocktrans with cont=colonia.contenitore_display %}Stai sostituendo la regina della colonia in <strong>{{ cont }}</strong>. La regina attuale verrà archiviata e sarà registrata una nuova regina al suo posto.{% endblocktrans %}
                     </p>
                 </div>
 
@@ -115,7 +115,7 @@
                     </div>
 
                     <div class="d-flex justify-content-between">
-                        <a href="{% url 'visualizza_regina' arnia.id %}" class="btn btn-secondary">
+                        <a href="{% url 'visualizza_regina' colonia.id %}" class="btn btn-secondary">
                             <i class="bi bi-arrow-left"></i> {% trans "Annulla" %}
                         </a>
 

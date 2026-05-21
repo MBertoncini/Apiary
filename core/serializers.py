@@ -8,14 +8,14 @@ from django.contrib.auth.models import User
 from .models import (
     Apiario, Arnia, Colonia, Nucleo, ControlloNucleo, ControlloArnia,
     Regina, StoriaRegine, Fioritura, FiorituraConferma,
-    TrattamentoSanitario, TipoTrattamento, Melario, Smielatura,
+    TrattamentoSanitario, TipoTrattamento, Melario, Smielatura, SmielaturaMelario,
     Gruppo, MembroGruppo, InvitoGruppo, Pagamento, QuotaUtente,
     Attrezzatura, SpesaAttrezzatura, ManutenzioneAttrezzatura,
     Invasettamento, Cliente, Vendita, DettaglioVendita,
     AnalisiTelaino, ApiarioMapLayout, MeteoGiornaliero,
     PreferenzaMaturazione, Maturatore, ContenitoreStoccaggio,
     GIORNI_MATURAZIONE_DEFAULTS,
-    VarroaCheckpoint,
+    VarroaCheckpoint, PesataMelario, Alimentazione, NomadismoEvent,
 )
 
 # Serializzatore utente
@@ -570,7 +570,7 @@ class SmielaturaSerializer(serializers.ModelSerializer):
         model = Smielatura
         fields = [
             'id', 'data', 'apiario', 'apiario_nome', 'apiario_gruppo_nome',
-            'melari', 'melari_count', 'quantita_miele', 'tipo_miele',
+            'melari', 'melari_count', 'fioriture', 'quantita_miele', 'tipo_miele',
             'kg_trasferiti', 'kg_residui', 'is_esaurita', 'archiviata',
             'utente', 'utente_username', 'note', 'data_registrazione'
         ]
@@ -1061,7 +1061,7 @@ class AnalisiTelainoSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnalisiTelaino
         fields = [
-            'id', 'arnia', 'arnia_numero', 'numero_telaino', 'facciata',
+            'id', 'arnia', 'arnia_numero', 'colonia', 'numero_telaino', 'facciata',
             'data', 'conteggio_api', 'conteggio_regine', 'conteggio_fuchi',
             'conteggio_celle_reali', 'confidence_media', 'note', 'immagine',
             'utente', 'utente_username', 'data_registrazione'
@@ -1070,6 +1070,13 @@ class AnalisiTelainoSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data['utente'] = self.context['request'].user
+        # Snapshot colonia: se non fornita, deduci dall'arnia attiva al momento
+        if not validated_data.get('colonia'):
+            arnia = validated_data.get('arnia')
+            if arnia is not None:
+                colonia = arnia.colonie.filter(stato='attiva', data_fine__isnull=True).first()
+                if colonia is not None:
+                    validated_data['colonia'] = colonia
         return super().create(validated_data)
 
 
@@ -1334,3 +1341,99 @@ class VarroaCheckpointSerializer(serializers.ModelSerializer):
                 {'giorni_misurazione': 'Campo obbligatorio per la caduta naturale.'}
             )
         return data
+
+
+# ── Serializzatori ML: pesate / alimentazione / nomadismo ───────────────────
+
+class SmielaturaMelarioSerializer(serializers.ModelSerializer):
+    """Through-table serializer: kg miele per (smielatura, melario)."""
+    class Meta:
+        model = SmielaturaMelario
+        fields = ['id', 'smielatura', 'melario', 'kg_miele', 'stato_origine', 'data_link']
+        read_only_fields = ['stato_origine', 'data_link']
+
+
+class PesataMelarioSerializer(serializers.ModelSerializer):
+    """Pesata di un melario in un evento (posizionamento, rimozione, ecc.)."""
+    tipo_display = serializers.ReadOnlyField(source='get_tipo_display')
+    melario_display = serializers.SerializerMethodField()
+    colonia_display = serializers.SerializerMethodField()
+    fioritura_pianta = serializers.ReadOnlyField(source='fioritura.pianta')
+    utente_username = serializers.ReadOnlyField(source='utente.username')
+
+    class Meta:
+        model = PesataMelario
+        fields = [
+            'id', 'melario', 'melario_display', 'colonia', 'colonia_display',
+            'fioritura', 'fioritura_pianta', 'smielatura',
+            'data', 'tipo', 'tipo_display',
+            'peso_lordo_kg', 'tara_kg', 'peso_netto_kg',
+            'note', 'utente', 'utente_username', 'data_creazione',
+        ]
+        read_only_fields = ['utente', 'peso_netto_kg', 'data_creazione']
+
+    def get_melario_display(self, obj):
+        return obj.melario.numero_progressivo or obj.melario_id
+
+    def get_colonia_display(self, obj):
+        return obj.colonia.contenitore_display() if obj.colonia else None
+
+    def create(self, validated_data):
+        validated_data['utente'] = self.context['request'].user
+        # Snapshot colonia se non passata esplicitamente
+        if not validated_data.get('colonia'):
+            melario = validated_data.get('melario')
+            if melario and melario.colonia_id:
+                validated_data['colonia'] = melario.colonia
+        return super().create(validated_data)
+
+
+class AlimentazioneSerializer(serializers.ModelSerializer):
+    """Somministrazione di nutrimento a una colonia."""
+    tipo_display = serializers.ReadOnlyField(source='get_tipo_display')
+    scopo_display = serializers.ReadOnlyField(source='get_scopo_display')
+    colonia_display = serializers.SerializerMethodField()
+    utente_username = serializers.ReadOnlyField(source='utente.username')
+
+    class Meta:
+        model = Alimentazione
+        fields = [
+            'id', 'colonia', 'colonia_display',
+            'data', 'tipo', 'tipo_display', 'scopo', 'scopo_display',
+            'quantita_kg', 'note',
+            'utente', 'utente_username', 'data_creazione',
+        ]
+        read_only_fields = ['utente', 'data_creazione']
+
+    def get_colonia_display(self, obj):
+        return obj.colonia.contenitore_display() if obj.colonia else None
+
+    def create(self, validated_data):
+        validated_data['utente'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+class NomadismoEventSerializer(serializers.ModelSerializer):
+    """Spostamento fisico di una colonia tra due apiari."""
+    apiario_origine_nome = serializers.ReadOnlyField(source='apiario_origine.nome')
+    apiario_destinazione_nome = serializers.ReadOnlyField(source='apiario_destinazione.nome')
+    colonia_display = serializers.SerializerMethodField()
+    utente_username = serializers.ReadOnlyField(source='utente.username')
+
+    class Meta:
+        model = NomadismoEvent
+        fields = [
+            'id', 'colonia', 'colonia_display',
+            'apiario_origine', 'apiario_origine_nome',
+            'apiario_destinazione', 'apiario_destinazione_nome',
+            'data_spostamento', 'motivo', 'note',
+            'utente', 'utente_username', 'data_creazione',
+        ]
+        read_only_fields = ['utente', 'data_creazione']
+
+    def get_colonia_display(self, obj):
+        return obj.colonia.contenitore_display() if obj.colonia else None
+
+    def create(self, validated_data):
+        validated_data['utente'] = self.context['request'].user
+        return super().create(validated_data)

@@ -2,7 +2,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Albero Genealogico Completo" %} - {{ regina.arnia.numero }}{% endblock %}
+{% block title %}{% trans "Albero Genealogico Completo" %} - {{ colonia.contenitore_display }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -111,11 +111,11 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">🌳 {% trans "Albero Genealogico Completo" %}</h1>
-    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'visualizza_regina' arnia.id %}">{% blocktrans with num=arnia.numero %}Regina #{{ num }}{% endblocktrans %}</a> › {% trans "Genealogia" %}</p>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'visualizza_regina' colonia.id %}">{% blocktrans with cont=colonia.contenitore_display %}Regina – {{ cont }}{% endblocktrans %}</a> › {% trans "Genealogia" %}</p>
   </div>
   <div class="d-flex gap-2">
     <a href="{% url 'ricerca_regine' %}" class="btn btn-outline-secondary"><i class="bi bi-search me-1"></i> {% trans "Ricerca" %}</a>
-    <a href="{% url 'visualizza_regina' arnia.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Torna alla Regina" %}</a>
+    <a href="{% url 'visualizza_regina' colonia.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Torna alla Regina" %}</a>
   </div>
 </div>
 
@@ -125,7 +125,7 @@
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <i class="bi bi-gem"></i> {% blocktrans with num=regina.arnia.numero %}Regina Arnia #{{ num }}{% endblocktrans %}
+                    <i class="bi bi-gem"></i> {% blocktrans with cont=colonia.contenitore_display %}Regina – {{ cont }}{% endblocktrans %}
                 </h5>
             </div>
             <div class="card-body">
@@ -198,9 +198,11 @@
                         <div class="col-md-4 mb-3">
                             <div class="descendant-card">
                                 <h6>
-                                    <a href="{% url 'visualizza_regina' figlia_data.regina.arnia.id %}">
-                                        {% blocktrans with num=figlia_data.regina.arnia.numero %}Arnia #{{ num }}{% endblocktrans %}
+                                    {% if figlia_data.regina.colonia %}
+                                    <a href="{% url 'visualizza_regina' figlia_data.regina.colonia.id %}">
+                                        {{ figlia_data.regina.colonia.contenitore_display }}
                                     </a>
+                                    {% else %}—{% endif %}
                                 </h6>
                                 <small class="text-muted">{{ figlia_data.regina.get_razza_display }}</small>
                                 <br>

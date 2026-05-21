@@ -113,9 +113,9 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">🌳 {% trans "Albero Genealogico" %}</h1>
-    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'visualizza_regina' arnia.id %}">{% blocktrans with num=arnia.numero %}Regina #{{ num }}{% endblocktrans %}</a> › {% trans "Genealogia" %}</p>
+    <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'visualizza_regina' colonia.id %}">{% blocktrans with cont=colonia.contenitore_display %}Regina – {{ cont }}{% endblocktrans %}</a> › {% trans "Genealogia" %}</p>
   </div>
-  <a href="{% url 'visualizza_regina' arnia.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Torna alla Regina" %}</a>
+  <a href="{% url 'visualizza_regina' colonia.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Torna alla Regina" %}</a>
 </div>
 
 <div class="row mb-4">
@@ -128,7 +128,7 @@
                 <div class="row">
                     <div class="col-md-4">
                         <h5>{% trans "Regina Attuale" %}</h5>
-                        <p><strong>{% trans "Arnia:" %}</strong> #{{ regina.arnia.numero }}</p>
+                        <p><strong>{% trans "Contenitore:" %}</strong> {{ colonia.contenitore_display }}</p>
                         <p><strong>{% trans "Razza:" %}</strong> {{ regina.get_razza_display }}</p>
                         <p><strong>{% trans "Origine:" %}</strong> {{ regina.get_origine_display }}</p>
                     </div>
@@ -203,7 +203,7 @@
                                 <div class="col-md-4 offset-md-4">
                                     <div class="card regina-card regina-active mb-4">
                                         <div class="card-header">
-                                            <h6 class="mb-0">{{ regina.arnia.numero }} - {{ regina.get_razza_display }}</h6>
+                                            <h6 class="mb-0">{{ colonia.contenitore_display }} - {{ regina.get_razza_display }}</h6>
                                         </div>
                                         <div class="card-body">
                                             <p class="mb-2">
@@ -335,11 +335,12 @@
                             <div class="generation-label">{% trans "Figlie" %}</div>
                             <div class="row">
                                 {% for figlia in figlie %}
+                                    {% with figlia_arnia=figlia.colonia.arnia %}
                                     <div class="col-md-3 descendant-connector">
                                         <div class="card regina-card">
-                                            <div class="card-header {% if figlia.arnia.colore_hex %}bg-custom{% else %}bg-success{% endif %} text-white"
-                                                 {% if figlia.arnia.colore_hex %}style="background-color: {{ figlia.arnia.colore_hex }} !important;"{% endif %}>
-                                                <h6 class="mb-0">{% blocktrans with num=figlia.arnia.numero %}Arnia #{{ num }}{% endblocktrans %}</h6>
+                                            <div class="card-header {% if figlia_arnia.colore_hex %}bg-custom{% else %}bg-success{% endif %} text-white"
+                                                 {% if figlia_arnia.colore_hex %}style="background-color: {{ figlia_arnia.colore_hex }} !important;"{% endif %}>
+                                                <h6 class="mb-0">{% if figlia.colonia %}{{ figlia.colonia.contenitore_display }}{% else %}—{% endif %}</h6>
                                             </div>
                                             <div class="card-body">
                                                 <p class="mb-2">
@@ -357,12 +358,15 @@
                                                 </p>
                                             </div>
                                             <div class="card-footer">
-                                                <a href="{% url 'visualizza_regina' figlia.arnia.id %}" class="btn btn-sm btn-outline-primary w-100">
+                                                {% if figlia.colonia %}
+                                                <a href="{% url 'visualizza_regina' figlia.colonia.id %}" class="btn btn-sm btn-outline-primary w-100">
                                                     <i class="bi bi-eye"></i> {% trans "Visualizza" %}
                                                 </a>
+                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
+                                    {% endwith %}
                                 {% endfor %}
                             </div>
                         </div>

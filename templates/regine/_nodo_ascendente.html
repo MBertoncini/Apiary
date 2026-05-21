@@ -23,11 +23,13 @@
 
         <div class="queen-name">
             {% if regina.livello == 0 %}
-                {% blocktrans with numero=regina.regina.arnia.numero %}Arnia #{{ numero }}{% endblocktrans %}
+                {% if regina.regina.colonia %}{{ regina.regina.colonia.contenitore_display }}{% else %}—{% endif %}
             {% else %}
-                <a href="{% url 'visualizza_regina' regina.regina.arnia.id %}">
-                    {% blocktrans with numero=regina.regina.arnia.numero %}Arnia #{{ numero }}{% endblocktrans %}
-                </a>
+                {% if regina.regina.colonia %}
+                    <a href="{% url 'visualizza_regina' regina.regina.colonia.id %}">
+                        {{ regina.regina.colonia.contenitore_display }}
+                    </a>
+                {% else %}—{% endif %}
             {% endif %}
         </div>
 

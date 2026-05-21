@@ -122,12 +122,14 @@
                     </p>
                 {% else %}
                     <div class="alert alert-warning">
-                        <p class="mb-0">{% trans "Non ci sono dati sulla regina per questa arnia." %}</p>
+                        <p class="mb-0">{% trans "Non ci sono dati sulla regina per questa colonia." %}</p>
+                        {% if colonia %}
                         <p class="mb-0 mt-2">
-                            <a href="{% url 'aggiungi_regina' arnia.id %}" class="btn btn-sm btn-warning">
+                            <a href="{% url 'aggiungi_regina' colonia.id %}" class="btn btn-sm btn-warning">
                                 <i class="bi bi-plus-circle"></i> {% trans "Aggiungi Regina" %}
                             </a>
                         </p>
+                        {% endif %}
                     </div>
                 {% endif %}
             </div>

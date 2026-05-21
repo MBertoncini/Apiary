@@ -273,7 +273,7 @@
                                                 </div>
 
                                                 <!-- Status regina -->
-                                                <a href="{% url 'visualizza_regina' controllo.arnia.id %}" class="text-decoration-none d-block mb-2">
+                                                <a href="{% if controllo.colonia %}{% url 'visualizza_regina' controllo.colonia.id %}{% else %}{% url 'visualizza_regina_da_arnia' controllo.arnia.id %}{% endif %}" class="text-decoration-none d-block mb-2">
                                                   {% if controllo.presenza_regina %}
                                                   <div class="regina-status-row ok">
                                                     <div class="regina-crown-icon">
@@ -282,8 +282,8 @@
                                                     <div class="regina-info">
                                                       <span class="regina-label-ok">{% trans "Regina presente" %}</span>
                                                       <span class="regina-meta">
-                                                        {% if controllo.arnia.regina and controllo.arnia.regina.marcata %}
-                                                          <span class="regina-mark-dot" style="background:{{ controllo.arnia.regina.get_hex_colore_marcatura|default:'#F5A623' }};"></span>
+                                                        {% if controllo.colonia.regina and controllo.colonia.regina.marcata %}
+                                                          <span class="regina-mark-dot" style="background:{{ controllo.colonia.regina.get_hex_colore_marcatura|default:'#F5A623' }};"></span>
                                                           {% trans "marcata" %}
                                                         {% else %}&nbsp;{% endif %}
                                                       </span>

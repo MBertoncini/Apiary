@@ -192,26 +192,26 @@ class ReginaForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
-        arnia = kwargs.pop('arnia', None)
+        colonia = kwargs.pop('colonia', None)
         super().__init__(*args, **kwargs)
-        
+
         # Limitiamo le regine madri alle regine esistenti
         self.fields['regina_madre'].queryset = Regina.objects.all().order_by('-data_introduzione')
-        
+
         # Imposta data di oggi per data_introduzione se è un nuovo record
         if not self.instance.pk and not self.initial.get('data_introduzione'):
             self.initial['data_introduzione'] = timezone.now().date()
-        
+
         # Modifiche condizionali in base agli attributi
         if self.instance.pk:
             self.fields['docilita'].help_text = "Valutazione docilità (1=bassa, 5=alta)"
             self.fields['produttivita'].help_text = "Valutazione produttività (1=bassa, 5=alta)"
             self.fields['resistenza_malattie'].help_text = "Resistenza alle malattie (1=bassa, 5=alta)"
             self.fields['tendenza_sciamatura'].help_text = "Tendenza alla sciamatura (1=bassa, 5=alta)"
-        
-        # Aggiungi arnia all'istanza se specificata
-        if arnia and not self.instance.pk:
-            self.instance.arnia = arnia
+
+        # Aggiungi colonia all'istanza se specificata
+        if colonia and not self.instance.pk:
+            self.instance.colonia = colonia
 
 
 class SostituzioneReginaForm(forms.Form):
