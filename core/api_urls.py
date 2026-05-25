@@ -14,13 +14,14 @@ from .api_views import (
     CustomTokenObtainPairView, CustomTokenRefreshView,
     AttrezzaturaViewSet, SpesaAttrezzaturaViewSet, ManutenzioneAttrezzaturaViewSet,
     InvasettamentoViewSet, ClienteViewSet, VenditaViewSet,
-    AnalisiTelainoViewSet, NucleoViewSet, register_user, chat_ai_api, ai_quota, record_voice_call, request_ai_upgrade, activate_ai_code,
+    AnalisiTelainoViewSet, NucleoViewSet, register_user, chat_ai_api, gemini_proxy, ai_quota, record_voice_call, request_ai_upgrade, activate_ai_code,
     password_reset_request, password_reset_confirm,
     PreferenzaMaturazionViewSet, MatutatoreViewSet, ContenitoreStoccaggioViewSet,
     google_auth,
     VarroaCheckpointViewSet,
     PesataMelarioViewSet, AlimentazioneViewSet, NomadismoEventViewSet,
-    ml_dataset_colonia,
+    ml_dataset_colonia, ml_predict_colonia,
+    NotificaViewSet,
 )
 
 # Crea un router e registra i viewsets
@@ -55,6 +56,7 @@ router.register(r'varroa-checkpoints', VarroaCheckpointViewSet, basename='api-va
 router.register(r'pesate-melari', PesataMelarioViewSet, basename='api-pesata-melario')
 router.register(r'alimentazioni', AlimentazioneViewSet, basename='api-alimentazione')
 router.register(r'nomadismi', NomadismoEventViewSet, basename='api-nomadismo')
+router.register(r'notifiche', NotificaViewSet, basename='api-notifica')
 
 # URLs per le API
 urlpatterns = [
@@ -81,6 +83,7 @@ urlpatterns = [
     
     # Endpoint AI chat (JWT-compatible, per app mobile)
     path('ai/chat/', chat_ai_api, name='api-ai-chat'),
+    path('ai/gemini-proxy/', gemini_proxy, name='api-ai-gemini-proxy'),
     path('ai/quota/', ai_quota, name='api-ai-quota'),
     path('ai/record-voice-call/', record_voice_call, name='api-ai-record-voice-call'),
     path('ai/request-upgrade/', request_ai_upgrade, name='api-ai-request-upgrade'),
@@ -101,4 +104,6 @@ urlpatterns = [
 
     # Endpoint ML dataset (training set per-colonia)
     path('ml/dataset/colonia/<int:colonia_id>/', ml_dataset_colonia, name='api-ml-dataset-colonia'),
+    # Endpoint ML predizioni (pilota: rischio sciamatura)
+    path('ml/predict/colonia/<int:colonia_id>/', ml_predict_colonia, name='api-ml-predict-colonia'),
 ]

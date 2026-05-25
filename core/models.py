@@ -2225,6 +2225,83 @@ class AnalisiTelaino(models.Model):
         ordering = ['-data', '-data_registrazione']
 
 
+# ── Destinazioni deep-link per le notifiche broadcast ───────────────────────
+# Lista centralizzata: il dropdown admin la usa per offrire scelte fisse,
+# l'app Flutter la mappa a una rotta concreta in route_generator.
+NOTIFICA_LINK_ROUTE_CHOICES = [
+    ('', '— Nessun link —'),
+    ('home', 'Home / Dashboard'),
+    ('apiari', 'Lista Apiari'),
+    ('arnie', 'Lista Arnie'),
+    ('trattamenti', 'Lista Trattamenti'),
+    ('melari', 'Lista Melari'),
+    ('community', 'Mappa Community'),
+    ('statistiche', 'Statistiche'),
+    ('subscription', 'Abbonamento'),
+    ('settings', 'Impostazioni'),
+    ('whats_new', 'Novità app'),
+    ('guida', 'Guida'),
+    ('chat', 'Chat AI'),
+]
+
+
+class AdminBroadcast(models.Model):
+    """
+    Comunicazione composta nel pannello admin Django e inviata a tutti gli
+    utenti attivi. Alla pubblicazione viene fan-outata in N istanze di
+    Notifica (una per utente). Il corpo è HTML scritto con CKEditor 5.
+    """
+
+    PRIORITA_CHOICES = [
+        ('bassa', 'Bassa'),
+        ('media', 'Media'),
+        ('alta', 'Alta'),
+    ]
+
+    titolo = models.CharField(
+        max_length=200,
+        help_text="Titolo breve mostrato anche nella push (max ~65 caratteri consigliati)",
+    )
+    body_html = models.TextField(
+        help_text="Corpo della notifica scritto con CKEditor (HTML)",
+    )
+    immagine_url = models.URLField(
+        blank=True, null=True,
+        help_text="URL di un'immagine banner opzionale (https://...)",
+    )
+    link_route = models.CharField(
+        max_length=30, choices=NOTIFICA_LINK_ROUTE_CHOICES, blank=True, default='',
+        help_text="Schermata dell'app aperta quando l'utente tocca la notifica",
+    )
+    link_param = models.CharField(
+        max_length=100, blank=True, default='',
+        help_text="Parametro opzionale per il link (es. id arnia/apiario)",
+    )
+    priorita = models.CharField(max_length=10, choices=PRIORITA_CHOICES, default='media')
+
+    creata_da = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='broadcast_create',
+    )
+    data_creazione = models.DateTimeField(auto_now_add=True)
+
+    pubblicata = models.BooleanField(
+        default=False,
+        help_text="Quando spunti questa casella e salvi, la notifica viene inviata a tutti gli utenti",
+    )
+    data_pubblicazione = models.DateTimeField(null=True, blank=True)
+    destinatari_count = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        stato = '✓ pubblicata' if self.pubblicata else '○ bozza'
+        return f"[{stato}] {self.titolo}"
+
+    class Meta:
+        ordering = ['-data_creazione']
+        verbose_name = 'Comunicazione Broadcast'
+        verbose_name_plural = 'Comunicazioni Broadcast'
+
+
 class Notifica(models.Model):
     """Centro notifiche per ogni utente"""
     TIPO_CHOICES = [
@@ -2239,6 +2316,7 @@ class Notifica(models.Model):
         ('fioritura_vicina', 'Fioritura Vicina'),
         ('regina_assente', 'Regina Assente'),
         ('sistema', 'Notifica di Sistema'),
+        ('broadcast', 'Comunicazione Admin'),
     ]
     PRIORITA_CHOICES = [
         ('bassa', 'Bassa'),
@@ -2259,6 +2337,18 @@ class Notifica(models.Model):
     )
     priorita = models.CharField(max_length=10, choices=PRIORITA_CHOICES, default='media')
 
+    # Campi per il rich content (popolati dalle broadcast admin)
+    broadcast = models.ForeignKey(
+        AdminBroadcast, on_delete=models.CASCADE, null=True, blank=True,
+        related_name='notifiche',
+    )
+    messaggio_html = models.TextField(blank=True, default='')
+    immagine_url = models.URLField(blank=True, null=True)
+    link_route = models.CharField(
+        max_length=30, choices=NOTIFICA_LINK_ROUTE_CHOICES, blank=True, default='',
+    )
+    link_param = models.CharField(max_length=100, blank=True, default='')
+
     def __str__(self):
         return f"[{self.get_tipo_display()}] {self.utente.username}: {self.titolo}"
 
@@ -2266,6 +2356,9 @@ class Notifica(models.Model):
         ordering = ['-data_creazione']
         verbose_name = 'Notifica'
         verbose_name_plural = 'Notifiche'
+        indexes = [
+            models.Index(fields=['utente', 'letta', '-data_creazione']),
+        ]
 
 
 # ── Varroa monitoring ───────────────────────────────────────────────────────

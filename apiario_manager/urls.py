@@ -30,6 +30,9 @@ urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('admin/', admin.site.urls),
 
+    # CKEditor 5 (asset/upload per il rich editor nel pannello admin)
+    path('ckeditor5/', include('django_ckeditor_5.urls')),
+
     # API REST (non localizzate)
     path('api/v1/', include('core.api_urls')),
 

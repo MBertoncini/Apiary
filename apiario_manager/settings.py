@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'anymail',
     'rest_framework_simplejwt.token_blacklist',
+    'django_ckeditor_5',
 ]
 
 MIDDLEWARE = [
@@ -184,11 +185,38 @@ OPENWEATHERMAP_API_KEY = os.environ.get('OPENWEATHERMAP_API_KEY', '')
 
 # Gemini AI
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+# Il proxy /ai/gemini-proxy/ inoltra anche audio base64 (voce) nel corpo JSON:
+# il default Django di 2.5MB lo rifiuterebbe (RequestDataTooBig). ~15MB raw
+# audio → ~20MB base64; concediamo 25MB di margine.
+DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get('DATA_UPLOAD_MAX_MEMORY_SIZE', 25 * 1024 * 1024))
 
 # Groq AI (per modulo Statistiche NL Query)
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 STATS_MAX_RESULT_ROWS = int(os.environ.get('STATS_MAX_RESULT_ROWS', 500))
 STATS_CACHE_WIDGETS_SECONDS = int(os.environ.get('STATS_CACHE_WIDGETS_SECONDS', 300))
+
+# CKEditor 5 — editor WYSIWYG per le Comunicazioni Broadcast nel pannello admin
+CKEDITOR_5_CONFIGS = {
+    'broadcast': {
+        'toolbar': [
+            'heading', '|',
+            'bold', 'italic', 'underline', 'link', '|',
+            'bulletedList', 'numberedList', 'blockQuote', '|',
+            'highlight', 'horizontalLine', '|',
+            'undo', 'redo', 'sourceEditing',
+        ],
+        'heading': {
+            'options': [
+                {'model': 'paragraph', 'title': 'Paragrafo'},
+                {'model': 'heading2', 'view': 'h2', 'title': 'Titolo'},
+                {'model': 'heading3', 'view': 'h3', 'title': 'Sottotitolo'},
+            ]
+        },
+        'language': 'it',
+    },
+}
+# Senza upload di immagini in-editor: l'admin usa il campo immagine_url separato.
+CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
 # Cache (locmem in sviluppo, Redis in produzione)
 CACHES = {

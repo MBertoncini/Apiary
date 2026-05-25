@@ -18,3 +18,6 @@ google-auth>=2.28.0
 openpyxl==3.1.2
 reportlab==4.2.0
 
+# Editor WYSIWYG per Comunicazioni Broadcast (pannello admin)
+django-ckeditor-5>=0.2.12
+

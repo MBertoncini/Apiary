@@ -16,8 +16,9 @@ from datetime import date, timedelta
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils.html import strip_tags
 
-from .models import Apiario
+from .models import Apiario, AdminBroadcast, Notifica
 
 
 logger = logging.getLogger(__name__)
@@ -77,3 +78,69 @@ def apiario_post_save_backfill_meteo(sender, instance, created, **kwargs):
         daemon=True,
     )
     t.start()
+
+
+# ── Fan-out broadcast admin → una Notifica per ogni utente attivo ───────────
+
+def _plain_excerpt(html: str, max_len: int = 500) -> str:
+    """Estrae un testo plain dall'HTML del corpo, troncato.
+
+    Serve come `messaggio` plain delle Notifica generate dalla broadcast: il
+    centro notifiche dell'app può mostrare l'HTML pieno via `messaggio_html`,
+    ma il fallback (lista, push) usa il plain.
+    """
+    text = strip_tags(html or '').strip()
+    if len(text) > max_len:
+        text = text[: max_len - 1].rstrip() + '…'
+    return text
+
+
+@receiver(post_save, sender=AdminBroadcast)
+def broadcast_post_save_fanout(sender, instance, created, **kwargs):
+    """Quando una AdminBroadcast viene marcata pubblicata per la prima volta,
+    crea una Notifica per ciascun utente attivo. Idempotente: una volta che
+    `data_pubblicazione` è stato impostato, il fan-out non viene ripetuto.
+    """
+    if not instance.pubblicata:
+        return
+    if instance.data_pubblicazione is not None:
+        return  # già fan-outata
+
+    from django.contrib.auth import get_user_model
+    UserModel = get_user_model()
+
+    user_ids = list(
+        UserModel.objects.filter(is_active=True).values_list('id', flat=True)
+    )
+    if not user_ids:
+        return
+
+    plain = _plain_excerpt(instance.body_html)
+    notifiche = [
+        Notifica(
+            utente_id=u_id,
+            tipo='broadcast',
+            titolo=instance.titolo,
+            messaggio=plain,
+            messaggio_html=instance.body_html or '',
+            immagine_url=instance.immagine_url or None,
+            link_route=instance.link_route or '',
+            link_param=instance.link_param or '',
+            priorita=instance.priorita,
+            broadcast=instance,
+            mittente=instance.creata_da,
+        )
+        for u_id in user_ids
+    ]
+    Notifica.objects.bulk_create(notifiche, batch_size=500)
+
+    # Aggiorna senza ritriggerare il signal (.update() bypassa save())
+    from django.utils import timezone as tz
+    AdminBroadcast.objects.filter(pk=instance.pk).update(
+        data_pubblicazione=tz.now(),
+        destinatari_count=len(user_ids),
+    )
+    logger.info(
+        "AdminBroadcast %s pubblicata → fan-out a %s utenti",
+        instance.pk, len(user_ids),
+    )

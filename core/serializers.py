@@ -16,6 +16,7 @@ from .models import (
     PreferenzaMaturazione, Maturatore, ContenitoreStoccaggio,
     GIORNI_MATURAZIONE_DEFAULTS,
     VarroaCheckpoint, PesataMelario, Alimentazione, NomadismoEvent,
+    Notifica,
 )
 
 # Serializzatore utente
@@ -1437,3 +1438,29 @@ class NomadismoEventSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['utente'] = self.context['request'].user
         return super().create(validated_data)
+
+
+# ── Notifiche utente (centro notifiche app) ─────────────────────────────────
+
+class NotificaSerializer(serializers.ModelSerializer):
+    """Notifica per l'utente, sia legacy (inviti/scadenze) sia broadcast admin.
+
+    `messaggio_html` è popolato solo dalle broadcast — il client decide quale
+    body usare: se non vuoto → render HTML, altrimenti `messaggio` plain.
+    """
+    mittente_username = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Notifica
+        fields = [
+            'id', 'tipo', 'titolo', 'messaggio', 'messaggio_html',
+            'immagine_url', 'link', 'link_route', 'link_param',
+            'letta', 'priorita', 'data_creazione',
+            'mittente_username',
+        ]
+        read_only_fields = fields
+
+    def get_mittente_username(self, obj):
+        if obj.mittente_id:
+            return obj.mittente.username
+        return None

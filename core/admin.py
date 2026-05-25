@@ -1,6 +1,9 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
+from django.utils.html import format_html
+
 from .admin_stats import build_admin_stats
 from .models import (
     Apiario, Arnia, Colonia, ControlloArnia, Regina, StoriaRegine,
@@ -12,7 +15,16 @@ from .models import (
     Invasettamento, Cliente, Vendita, DettaglioVendita,
     AnalisiTelaino, Nucleo, ControlloNucleo,
     Profilo, AI_TIER_LIMITS, ActivationCode,
+    AdminBroadcast, Notifica,
 )
+
+# CKEditor 5 widget per il pannello broadcast (import safe: se la lib non è
+# installata, fall back su Textarea senza rompere il caricamento dell'admin).
+try:
+    from django_ckeditor_5.widgets import CKEditor5Widget
+    _RICH_WIDGET = CKEditor5Widget(config_name='broadcast')
+except Exception:  # pragma: no cover
+    _RICH_WIDGET = forms.Textarea(attrs={'rows': 12, 'cols': 80})
 
 
 # ── Admin index esteso con statistiche ───────────────────────────────────────
@@ -165,6 +177,94 @@ class ColoniaAdmin(admin.ModelAdmin):
     def contenitore_display(self, obj):
         return obj.contenitore_display()
     contenitore_display.short_description = 'Contenitore'
+
+
+# ── Comunicazioni Broadcast (Centro notifiche admin) ────────────────────────
+
+class AdminBroadcastForm(forms.ModelForm):
+    """Form admin con CKEditor 5 per il corpo della broadcast."""
+
+    class Meta:
+        model = AdminBroadcast
+        fields = '__all__'
+        widgets = {
+            'body_html': _RICH_WIDGET,
+        }
+
+
+@admin.register(AdminBroadcast)
+class AdminBroadcastAdmin(admin.ModelAdmin):
+    form = AdminBroadcastForm
+    list_display = ['titolo', 'pubblicata_badge', 'priorita',
+                    'data_creazione', 'data_pubblicazione', 'destinatari_count']
+    list_filter = ['pubblicata', 'priorita']
+    search_fields = ['titolo', 'body_html']
+    readonly_fields = ['data_creazione', 'data_pubblicazione',
+                       'destinatari_count', 'creata_da']
+    fieldsets = (
+        ('Contenuto', {
+            'fields': ('titolo', 'body_html', 'immagine_url'),
+            'description': (
+                "Scrivi il messaggio. Usa la barra dell'editor per formattazione, "
+                "link, elenchi. <b>Immagine</b>: incolla l'URL pubblico di "
+                "un'immagine (https://...) opzionale come banner."
+            ),
+        }),
+        ('Azione al tap', {
+            'fields': ('link_route', 'link_param'),
+            'description': (
+                "Quando l'utente tocca la notifica, l'app apre la schermata "
+                "scelta. <code>link_param</code> serve solo per alcune rotte "
+                "(es. id dell'arnia)."
+            ),
+        }),
+        ('Pubblicazione', {
+            'fields': ('pubblicata', 'priorita',
+                       'data_pubblicazione', 'destinatari_count'),
+            'description': (
+                "⚠️ Quando salvi con <b>Pubblicata</b> spuntato, la notifica "
+                "viene inviata a tutti gli utenti attivi e <b>non è più "
+                "modificabile</b>."
+            ),
+        }),
+        ('Audit', {
+            'fields': ('creata_da', 'data_creazione'),
+            'classes': ('collapse',),
+        }),
+    )
+
+    def pubblicata_badge(self, obj):
+        if obj.pubblicata and obj.data_pubblicazione:
+            return format_html('<span style="color:#080">✓ inviata</span>')
+        if obj.pubblicata:
+            return format_html('<span style="color:#a60">in invio…</span>')
+        return format_html('<span style="color:#888">bozza</span>')
+    pubblicata_badge.short_description = 'Stato'
+
+    def save_model(self, request, obj, form, change):
+        if not obj.creata_da_id:
+            obj.creata_da = request.user
+        super().save_model(request, obj, form, change)
+
+    def get_readonly_fields(self, request, obj=None):
+        ro = list(super().get_readonly_fields(request, obj))
+        # Una volta pubblicata, blocca tutto tranne i campi audit (che sono
+        # già readonly). Evita di modificare titolo/body dopo l'invio.
+        if obj and obj.data_pubblicazione is not None:
+            ro.extend(['titolo', 'body_html', 'immagine_url', 'link_route',
+                       'link_param', 'priorita', 'pubblicata'])
+        return ro
+
+
+@admin.register(Notifica)
+class NotificaAdmin(admin.ModelAdmin):
+    list_display = ['utente', 'tipo', 'titolo', 'letta',
+                    'priorita', 'data_creazione']
+    list_filter = ['tipo', 'letta', 'priorita']
+    search_fields = ['titolo', 'messaggio',
+                     'utente__username', 'utente__email']
+    readonly_fields = ['data_creazione', 'broadcast', 'mittente']
+    raw_id_fields = ['utente']
 
 
 # Registrazioni semplici per il resto dei model

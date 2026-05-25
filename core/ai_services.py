@@ -121,6 +121,54 @@ class GeminiService:
 
         raise Exception(f"Tutti i modelli Gemini hanno fallito. Ultimo errore: {last_error}")
 
+    def generate_raw(self, payload, models=None, timeout=30, api_key=None):
+        """
+        Inoltra a Gemini un payload generateContent GIA' COMPLETO costruito dal
+        client (contents / tools / systemInstruction / generationConfig) e
+        ritorna la risposta GREZZA, senza rimodellarla né estrarre il testo.
+
+        Serve al proxy mobile: il client continua a orchestrare il function
+        calling (tool MCP) e il parsing, ma la chiave Gemini resta server-side
+        e non viene mai spedita nel binario dell'app.
+
+        Ritorna (success: bool, data: dict|str, status: int, model_used: str|None).
+        Su success `data` è il JSON Gemini; altrimenti è il testo d'errore.
+        Ruota i modelli su 429 / 404 / 502 / 503; si ferma su 4xx client.
+        """
+        key = api_key or self.api_key
+        if not key:
+            return False, 'Nessuna GEMINI_API_KEY configurata (né personale né di sistema)', 403, None
+
+        models = models or GEMINI_MODELS
+        last_status, last_text = -1, ''
+        for model in models:
+            url = f"{GEMINI_API_BASE}/{model}:generateContent?key={key}"
+            try:
+                resp = requests.post(url, json=payload, timeout=timeout)
+            except requests.exceptions.Timeout:
+                last_status, last_text = 0, 'timeout'
+                break
+            except Exception as e:
+                last_status, last_text = -1, str(e)
+                break
+
+            if resp.status_code == 200:
+                try:
+                    return True, resp.json(), 200, model
+                except ValueError:
+                    last_status, last_text = -1, 'Risposta Gemini non JSON'
+                    break
+
+            last_status, last_text = resp.status_code, resp.text
+            # 429 (rate limit / quota modello), o problemi infrastrutturali:
+            # prova il modello successivo. Su errori client (400/401/403)
+            # cambiare modello non aiuta → esci.
+            if resp.status_code in (429, 404, 502, 503):
+                continue
+            break
+
+        return False, last_text, last_status, None
+
     def generate_with_image(self, text_prompt, image_data_base64, mime_type='image/jpeg',
                             system_prompt=None, temperature=0.3, api_key=None):
         """

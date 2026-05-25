@@ -28,6 +28,7 @@ from .models import (
     PreferenzaMaturazione, Maturatore, ContenitoreStoccaggio,
     GIORNI_MATURAZIONE_DEFAULTS,
     VarroaCheckpoint, PesataMelario, Alimentazione, NomadismoEvent,
+    Notifica,
 )
 
 from .serializers import (
@@ -50,6 +51,7 @@ from .serializers import (
     PreferenzaMaturazionSerializer, MatutatoreSerializer, ContenitoreStoccaggioSerializer,
     VarroaCheckpointSerializer,
     PesataMelarioSerializer, AlimentazioneSerializer, NomadismoEventSerializer,
+    NotificaSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -2504,6 +2506,114 @@ def current_user(request):
     return Response(serializer.data)
 
 
+def _ai_usage_snapshot(user):
+    """Contatori AI giornalieri autoritativi + residui, nello shape atteso dal
+    client (AiQuotaService). Riusato da chat_ai_api(record_only), record_voice_call
+    e gemini_proxy per restituire la quota aggiornata senza un GET aggiuntivo."""
+    from .models import AI_TIER_LIMITS, AI_TIER_FREE
+    chat_today = voice_today = total_today = 0
+    ai_tier = AI_TIER_FREE
+    try:
+        profilo = user.profilo
+        ai_tier = profilo.ai_tier or AI_TIER_FREE
+        now = timezone.now()
+        if profilo.ai_requests_reset_at and profilo.ai_requests_reset_at > now:
+            chat_today = profilo.ai_chat_today
+            voice_today = profilo.ai_voice_today
+            total_today = profilo.ai_requests_today
+    except Exception:
+        pass
+    limits = AI_TIER_LIMITS.get(ai_tier, AI_TIER_LIMITS[AI_TIER_FREE])
+    return {
+        'chat_today': chat_today,
+        'voice_today': voice_today,
+        'total_today': total_today,
+        'usage': {
+            'chat_today': chat_today,
+            'voice_today': voice_today,
+            'total_today': total_today,
+        },
+        'remaining': {
+            'chat': max(0, limits['chat'] - chat_today),
+            'voice': max(0, limits['voice'] - voice_today),
+            'total': max(0, limits['total'] - total_today),
+        },
+    }
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def gemini_proxy(request):
+    """
+    Proxy autenticato verso Gemini. Il client invia il payload generateContent
+    GREZZO (contents/tools/systemInstruction/generationConfig); il backend
+    inietta la chiave server-side (personale dell'utente se presente, altrimenti
+    quella di sistema) e inoltra a Gemini con rotazione modelli.
+
+    Esiste per UN motivo di sicurezza: la chiave Gemini condivisa NON deve più
+    essere compilata nel binario dell'app (web/APK), dove finiva esposta e
+    veniva sospesa da Google. Con il proxy una chiave compromessa si ruota
+    cambiando una env var sul server, senza rilasciare un aggiornamento app.
+
+    Questo endpoint fa SOLO il gate di quota (rifiuta 429 se il tier è
+    esaurito) + l'inoltro: NON incrementa i contatori, che restano gestiti
+    dalla telemetria esistente (chat_ai_api record_only / record_voice_call),
+    così il conteggio resta invariato rispetto a oggi.
+
+    Payload: {"feature": "chat"|"voice", "payload": {...}, "models": [...]?}
+    200: risposta Gemini grezza (con "candidates", ...).
+    429: {"error", "quota_exceeded": true, "tier_limits"}.
+    502: {"error", "detail"} per errori upstream Gemini.
+    """
+    from .ai_views import _get_user_api_key, gemini_service
+    from .ai_services import check_ai_quota
+
+    feature = request.data.get('feature', 'chat')
+    if feature not in ('chat', 'voice'):
+        feature = 'chat'
+
+    payload = request.data.get('payload')
+    if not isinstance(payload, dict) or 'contents' not in payload:
+        return Response({'error': 'payload Gemini mancante o non valido'}, status=400)
+
+    allowed, quota_error, tier_limits = check_ai_quota(request.user, call_type=feature)
+    if not allowed:
+        return Response({
+            'error': quota_error,
+            'quota_exceeded': True,
+            'tier_limits': tier_limits,
+        }, status=429)
+
+    user_api_key = _get_user_api_key(request.user)
+    models = request.data.get('models') or None
+    # L'audio multimodale (voice) richiede più tempo della chat testuale.
+    timeout = 90 if feature == 'voice' else 30
+
+    success, data, http_status, model_used = gemini_service.generate_raw(
+        payload, models=models, timeout=timeout, api_key=user_api_key,
+    )
+
+    if success:
+        # Restituisce la risposta Gemini GREZZA al top level così il parser
+        # client esistente (response['candidates']) funziona invariato.
+        return Response(data)
+
+    # Rate limit upstream: mappa a 429 quota_exceeded per coerenza col gating
+    # client (ApiService lancia QuotaExceededException sul 429).
+    if http_status == 429:
+        return Response({
+            'error': 'Limite Gemini raggiunto, riprova più tardi',
+            'quota_exceeded': True,
+            'tier_limits': tier_limits,
+            'detail': str(data)[:300],
+        }, status=429)
+
+    return Response({
+        'error': f'Errore Gemini (status {http_status})',
+        'detail': str(data)[:500],
+    }, status=502)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def chat_ai_api(request):
@@ -2522,6 +2632,21 @@ def chat_ai_api(request):
             'quota_exceeded': True,
             'tier_limits': tier_limits,
         }, status=429)
+
+    # ── Sola telemetria ──────────────────────────────────────────────────────
+    # Il client che invoca Gemini altrove (proxy o chiave personale diretta)
+    # chiama qui con record_only=true SOLO per incrementare il contatore tier
+    # autoritativo. NON va eseguita una seconda generazione (spreco di quota e
+    # uso improprio della chiave di sistema).
+    if request.data.get('record_only'):
+        from .ai_services import increment_ai_quota
+        personal_key_set = False
+        try:
+            personal_key_set = bool(request.user.profilo.gemini_api_key)
+        except Exception:
+            pass
+        increment_ai_quota(request.user, used_personal_key=personal_key_set, call_type='chat')
+        return Response(_ai_usage_snapshot(request.user))
 
     CHART_INSTRUCTIONS = """
 
@@ -3369,109 +3494,64 @@ def ml_dataset_colonia(request, colonia_id):
     except Colonia.DoesNotExist:
         return Response({'detail': 'Colonia non trovata.'}, status=404)
 
-    # ── Controlli ────────────────────────────────────────────────────────────
-    controlli = list(
-        ControlloArnia.objects.filter(colonia=colonia).values(
-            'id', 'data', 'telaini_covata', 'telaini_scorte',
-            'presenza_regina', 'regina_vista', 'uova_fresche',
-            'celle_reali', 'numero_celle_reali', 'sciamatura',
-            'problemi_sanitari', 'regina_sostituita',
-        ).order_by('data')
-    )
+    # Raccolta dati centralizzata: stessa funzione usata dalla pipeline di training
+    # (vedi core/ml/dataset.py). Estendere lì, non qui.
+    from core.ml.dataset import build_colonia_dataset
+    return Response(build_colonia_dataset(colonia))
 
-    # ── Pesate ──────────────────────────────────────────────────────────────
-    pesate = list(
-        PesataMelario.objects.filter(colonia=colonia).values(
-            'id', 'data', 'tipo', 'melario_id', 'fioritura_id',
-            'smielatura_id', 'peso_lordo_kg', 'tara_kg', 'peso_netto_kg',
-        ).order_by('data')
-    )
 
-    # ── Smielature: somma kg_miele attribuiti ai melari della colonia ───────
-    smielature_qs = (
-        SmielaturaMelario.objects.filter(melario__colonia=colonia)
-        .select_related('smielatura')
-        .values(
-            'smielatura_id', 'smielatura__data', 'smielatura__tipo_miele',
-            'kg_miele', 'melario_id',
-        ).order_by('smielatura__data')
-    )
-    smielature = list(smielature_qs)
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def ml_predict_colonia(request, colonia_id):
+    """Predizioni predittive per-colonia (pilota: rischio sciamatura).
 
-    # ── Alimentazione ────────────────────────────────────────────────────────
-    alimentazioni = list(
-        Alimentazione.objects.filter(colonia=colonia).values(
-            'id', 'data', 'tipo', 'scopo', 'quantita_kg',
-        ).order_by('data')
-    )
+    Restituisce, per ogni target disponibile, livello/score + confidenza +
+    flag dati-scarsi + i fattori che hanno determinato la stima. Vedi
+    core/ml/predict.py per l'orchestrazione e core/ml/models/ per i modelli.
+    """
+    apiari_accessibili = get_apiari_accessibili(request.user)
+    try:
+        colonia = Colonia.objects.select_related('apiario', 'arnia', 'nucleo').get(
+            pk=colonia_id, apiario__in=apiari_accessibili,
+        )
+    except Colonia.DoesNotExist:
+        return Response({'detail': 'Colonia non trovata.'}, status=404)
 
-    # ── Varroa ───────────────────────────────────────────────────────────────
-    varroa = list(
-        VarroaCheckpoint.objects.filter(colonia=colonia).values(
-            'id', 'data_campionamento', 'metodo',
-            'percentuale_calcolata', 'caduta_giornaliera', 'confidenza',
-            'telaini_covata',
-        ).order_by('data_campionamento')
-    )
+    from core.ml.predict import predict_colonia
+    return Response(predict_colonia(colonia))
 
-    # ── Trattamenti (associati alla colonia, M2M) ───────────────────────────
-    trattamenti = list(
-        TrattamentoSanitario.objects.filter(colonie=colonia)
-        .exclude(stato='annullato').values(
-            'id', 'data_inizio', 'data_fine', 'data_fine_sospensione',
-            'tipo_trattamento_id', 'tipo_trattamento__nome',
-            'tipo_trattamento__principio_attivo',
-            'blocco_covata_attivo', 'data_inizio_blocco', 'data_fine_blocco',
-        ).order_by('data_inizio')
-    )
 
-    # ── Meteo (apiario corrente, ultimi 365 giorni) ─────────────────────────
-    cutoff = date.today() - timedelta(days=365)
-    meteo = list(
-        MeteoGiornaliero.objects.filter(
-            apiario=colonia.apiario, data__gte=cutoff,
-        ).values(
-            'data', 'temp_min', 'temp_max', 'temp_mean',
-            'precip_mm', 'precip_hours', 'umidita_media',
-            'vento_medio', 'pressione_media',
-            'ore_sole', 'radiazione_mj', 'gdd_base10', 'source',
-        ).order_by('data')
-    )
+# ── Notifiche utente (centro notifiche app) ─────────────────────────────────
 
-    # ── Nomadismo ────────────────────────────────────────────────────────────
-    nomadismi = list(
-        NomadismoEvent.objects.filter(colonia=colonia).values(
-            'id', 'data_spostamento',
-            'apiario_origine_id', 'apiario_destinazione_id', 'motivo',
-        ).order_by('data_spostamento')
-    )
+class NotificaViewSet(viewsets.ReadOnlyModelViewSet):
+    """Centro notifiche dell'utente autenticato.
 
-    # ── Fioriture attive nella stagione dell'apiario (within 2km) ───────────
-    # NB: filtro grossolano via raggio non implementato qui; lasciamo come
-    # input per il modello (fioriture pubbliche dell'apiario + community).
-    fioriture = list(
-        Fioritura.objects.filter(apiario=colonia.apiario).values(
-            'id', 'pianta', 'data_inizio', 'data_fine', 'intensita',
-            'latitudine', 'longitudine',
-        ).order_by('data_inizio')
-    )
+    GET  /api/v1/notifiche/                 → lista (paginata)
+    GET  /api/v1/notifiche/<id>/            → dettaglio (con messaggio_html)
+    GET  /api/v1/notifiche/unread_count/    → numero non lette
+    POST /api/v1/notifiche/<id>/mark_read/  → marca come letta
+    POST /api/v1/notifiche/mark_all_read/   → marca tutte come lette
+    """
+    serializer_class = NotificaSerializer
+    permission_classes = [IsAuthenticated]
 
-    return Response({
-        'colonia': {
-            'id': colonia.id,
-            'apiario_id': colonia.apiario_id,
-            'apiario_nome': colonia.apiario.nome,
-            'data_inizio': colonia.data_inizio,
-            'data_fine': colonia.data_fine,
-            'stato': colonia.stato,
-        },
-        'controlli': controlli,
-        'pesate_melari': pesate,
-        'smielature': smielature,
-        'alimentazioni': alimentazioni,
-        'varroa': varroa,
-        'trattamenti': trattamenti,
-        'meteo_giornaliero': meteo,
-        'nomadismi': nomadismi,
-        'fioriture': fioriture,
-    })
+    def get_queryset(self):
+        return Notifica.objects.filter(utente=self.request.user)
+
+    @action(detail=False, methods=['get'], url_path='unread_count')
+    def unread_count(self, request):
+        count = self.get_queryset().filter(letta=False).count()
+        return Response({'unread_count': count})
+
+    @action(detail=True, methods=['post'], url_path='mark_read')
+    def mark_read(self, request, pk=None):
+        notifica = self.get_object()
+        if not notifica.letta:
+            notifica.letta = True
+            notifica.save(update_fields=['letta'])
+        return Response({'status': 'ok'})
+
+    @action(detail=False, methods=['post'], url_path='mark_all_read')
+    def mark_all_read(self, request):
+        updated = self.get_queryset().filter(letta=False).update(letta=True)
+        return Response({'status': 'ok', 'updated': updated})
