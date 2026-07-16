@@ -70,7 +70,8 @@ def get_apiari_accessibili(user):
         gruppo__in=gruppi_utente,
         condiviso_con_gruppo=True
     ).exclude(proprietario=user)
-    return (apiari_propri | apiari_condivisi).distinct()
+    # order_by esplicito: la paginazione DRF richiede un queryset ordinato
+    return (apiari_propri | apiari_condivisi).distinct().order_by('id')
 
 
 def get_gruppi_utente(user):
@@ -637,7 +638,7 @@ class ArniaViewSet(viewsets.ModelViewSet):
         Filtra le arnie in base agli apiari accessibili all'utente.
         """
         apiari_accessibili = get_apiari_accessibili(self.request.user)
-        return Arnia.objects.filter(apiario__in=apiari_accessibili)
+        return Arnia.objects.filter(apiario__in=apiari_accessibili).order_by('id')
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -1425,7 +1426,7 @@ class GruppoViewSet(viewsets.ModelViewSet):
         Restituisce i gruppi di cui l'utente è membro.
         """
         user = self.request.user
-        return Gruppo.objects.filter(membri=user)
+        return Gruppo.objects.filter(membri=user).order_by('id')
 
     def perform_create(self, serializer):
         """
@@ -1825,7 +1826,7 @@ class QuotaUtenteViewSet(viewsets.ModelViewSet):
             gruppo__in=gruppi_admin
         )
         
-        return (quote_proprie | quote_gruppo).distinct()
+        return (quote_proprie | quote_gruppo).distinct().order_by('id')
     
     def perform_create(self, serializer):
         """Validazione aggiuntiva prima del salvataggio"""
@@ -2344,12 +2345,16 @@ class CustomTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         try:
             return super().post(request, *args, **kwargs)
+        except APIException:
+            # Token scaduto/blacklistato (InvalidToken) → 401 gestito da DRF,
+            # non va trasformato in un 500
+            raise
         except Exception as e:
             # Log dell'errore per il debug
             import traceback
             print(f"Error in token refresh endpoint: {str(e)}")
             print(traceback.format_exc())
-            
+
             # Restituisci una risposta più utile
             return Response(
                 {"detail": "Si è verificato un errore durante il refresh del token. Effettua nuovamente il login."},
