@@ -144,6 +144,11 @@ class IsOwnerOrGroupRole(permissions.BasePermission):
             if obj.attrezzatura.condiviso_con_gruppo and obj.attrezzatura.gruppo:
                 gruppo = obj.attrezzatura.gruppo
 
+        # Il proprietario dell'apiario può sempre modificare le risorse collegate
+        # (Arnia non ha un campo proprietario proprio: l'ownership passa dall'apiario)
+        if apiario and apiario.proprietario == user:
+            return True
+
         if apiario and apiario.condiviso_con_gruppo and apiario.gruppo:
             gruppo = apiario.gruppo
 
@@ -2387,7 +2392,7 @@ def sync_data(request):
         controlli = ControlloArnia.objects.filter(arnia__in=arnie_accessibili)
         
         try:
-            regine = Regina.objects.filter(arnia__in=arnie_accessibili)
+            regine = Regina.objects.filter(colonia__apiario__in=apiari_accessibili)
         except Exception as e:
             regine = []
             logger.error(f"Errore durante il recupero delle regine: {e}")
@@ -2408,7 +2413,7 @@ def sync_data(request):
             logger.error(f"Errore durante il recupero dei trattamenti: {e}")
         
         try:
-            melari = Melario.objects.filter(arnia__in=arnie_accessibili)
+            melari = Melario.objects.filter(colonia__apiario__in=apiari_accessibili)
         except Exception as e:
             melari = []
             logger.error(f"Errore durante il recupero dei melari: {e}")
