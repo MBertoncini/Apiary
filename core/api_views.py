@@ -1818,18 +1818,35 @@ class PagamentoViewSet(viewsets.ModelViewSet):
 
         descrizione = data.get('descrizione') or ''
         if descrizione.startswith(self._PREFISSI_PAGAMENTO_AUTO):
-            # Il pagante indicato dal client vecchio può essere `pagato_da`
-            # della spesa e non l'utente che l'ha registrata: accettiamo il
-            # match su entrambi i ruoli.
-            gemello = Pagamento.objects.filter(
+            candidati = Pagamento.objects.filter(
                 spesa_attrezzatura__isnull=False,
                 importo=data.get('importo'),
                 data=data.get('data'),
-            ).filter(
+            )
+            # Il pagante indicato dal client vecchio può essere `pagato_da`
+            # della spesa e non l'utente che l'ha registrata: accettiamo il
+            # match su entrambi i ruoli.
+            gemello = candidati.filter(
                 Q(utente=utente)
                 | Q(spesa_attrezzatura__utente=utente)
                 | Q(spesa_attrezzatura__pagato_da=utente)
             ).first()
+
+            gruppo = data.get('gruppo')
+            if gemello is None and gruppo is not None:
+                # Spesa di gruppo pagata da un altro membro: i client fino alla
+                # build 19 scrivevano il pagante solo qui e mai sulla spesa,
+                # quindi il match sui ruoli sopra fallisce. Riconosciamo il
+                # gemello dal gruppo e recuperiamo il pagante sulla spesa: il
+                # signal riallinea il pagamento già collegato.
+                gemello = candidati.filter(spesa_attrezzatura__gruppo=gruppo).first()
+                if gemello is not None:
+                    spesa = gemello.spesa_attrezzatura
+                    if not spesa.pagato_da_id and spesa.utente_id != utente.id:
+                        spesa.pagato_da = utente
+                        spesa.save(update_fields=['pagato_da'])
+                        gemello.refresh_from_db()
+
             if gemello is not None:
                 serializer.instance = gemello
                 return
