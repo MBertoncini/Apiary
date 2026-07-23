@@ -2,10 +2,14 @@
 """
 Signal handlers per il modulo core.
 
-Attualmente: backfill leggero del dataset MeteoGiornaliero quando un Apiario
-viene creato con coordinate (o quando le coordinate vengono settate per la
-prima volta). Il backfill completo è demandato al cron quotidiano
-`aggiorna_meteo_giornaliero` o al management command `backfill_meteo_giornaliero`.
+Contenuto:
+  - backfill leggero del dataset MeteoGiornaliero quando un Apiario viene creato
+    con coordinate (o quando le coordinate vengono settate per la prima volta).
+    Il backfill completo è demandato al cron quotidiano
+    `aggiorna_meteo_giornaliero` o al management command
+    `backfill_meteo_giornaliero`.
+  - fan-out delle AdminBroadcast pubblicate verso le Notifica per utente.
+  - creazione/sincronizzazione del Pagamento collegato a una SpesaAttrezzatura.
 """
 
 from __future__ import annotations
@@ -18,7 +22,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.html import strip_tags
 
-from .models import Apiario, AdminBroadcast, Notifica
+from .models import Apiario, AdminBroadcast, Notifica, Pagamento, SpesaAttrezzatura
 
 
 logger = logging.getLogger(__name__)
@@ -143,4 +147,66 @@ def broadcast_post_save_fanout(sender, instance, created, **kwargs):
     logger.info(
         "AdminBroadcast %s pubblicata → fan-out a %s utenti",
         instance.pk, len(user_ids),
+    )
+
+
+# ── SpesaAttrezzatura → Pagamento collegato ────────────────────────────────
+#
+# Il Pagamento serve al calcolo delle quote di gruppo (chi ha sborsato cosa).
+# Prima veniva creato a mano da ogni chiamante (view web, client Flutter), con
+# due conseguenze: l'importo finiva due volte nelle uscite del bilancio e il
+# pagamento sopravviveva alla cancellazione della spesa/attrezzatura, lasciando
+# un'uscita fantasma. Ora nasce qui, collegato via `spesa_attrezzatura`, così:
+#   - il bilancio economico lo esclude (è già contato come SpesaAttrezzatura);
+#   - la FK è CASCADE, quindi muore insieme alla spesa e all'attrezzatura.
+
+def descrizione_pagamento_spesa(spesa: SpesaAttrezzatura) -> str:
+    """Descrizione leggibile del pagamento generato da una spesa attrezzatura."""
+    nome = spesa.attrezzatura.nome if spesa.attrezzatura_id else 'attrezzatura'
+    if spesa.tipo == 'acquisto':
+        testo = f"Acquisto attrezzatura: {nome}"
+    elif spesa.tipo == 'manutenzione':
+        testo = f"Manutenzione attrezzatura: {nome} - {spesa.descrizione}"
+    else:
+        testo = f"Spesa attrezzatura ({spesa.get_tipo_display()}): {nome} - {spesa.descrizione}"
+    return testo[:200]  # Pagamento.descrizione è un CharField(max_length=200)
+
+
+@receiver(post_save, sender=SpesaAttrezzatura)
+def spesa_attrezzatura_post_save_pagamento(sender, instance, created, **kwargs):
+    """Crea (o riallinea) il Pagamento collegato alla spesa attrezzatura.
+
+    Chi paga è `pagato_da` se valorizzato — è il membro che ha effettivamente
+    sborsato il denaro — altrimenti chi ha registrato la spesa.
+    """
+    if instance.importo is None or instance.importo <= 0:
+        # Spesa a importo nullo: nessun pagamento da registrare. Se ne esisteva
+        # uno da un salvataggio precedente lo rimuoviamo per non lasciare
+        # residui nelle quote di gruppo.
+        Pagamento.objects.filter(spesa_attrezzatura=instance).delete()
+        return
+
+    pagante_id = instance.pagato_da_id or instance.utente_id
+    if not pagante_id:
+        return
+
+    esistenti = Pagamento.objects.filter(spesa_attrezzatura=instance)
+    if esistenti.exists():
+        if not created:
+            esistenti.update(
+                utente_id=pagante_id,
+                importo=instance.importo,
+                data=instance.data,
+                descrizione=descrizione_pagamento_spesa(instance),
+                gruppo_id=instance.gruppo_id,
+            )
+        return
+
+    Pagamento.objects.create(
+        utente_id=pagante_id,
+        importo=instance.importo,
+        data=instance.data,
+        descrizione=descrizione_pagamento_spesa(instance),
+        gruppo_id=instance.gruppo_id,
+        spesa_attrezzatura=instance,
     )

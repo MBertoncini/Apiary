@@ -1795,10 +1795,45 @@ class PagamentoViewSet(viewsets.ModelViewSet):
         ).exclude(utente=user)
         return (pagamenti_propri | pagamenti_gruppo).distinct()
     
+    # Prefissi delle descrizioni generate automaticamente dal signal
+    # `spesa_attrezzatura_post_save_pagamento`. Servono a riconoscere (e
+    # scartare) i pagamenti che i client fino alla build 19 creavano a mano
+    # subito dopo aver registrato la spesa attrezzatura.
+    _PREFISSI_PAGAMENTO_AUTO = (
+        'Acquisto attrezzatura:',
+        'Manutenzione attrezzatura:',
+        'Spesa attrezzatura (',
+    )
+
     def perform_create(self, serializer):
         """Usa utente specificato nel payload (per pagamenti a nome di altri membri),
-        con fallback all'utente autenticato se non indicato."""
-        utente = serializer.validated_data.get('utente', self.request.user)
+        con fallback all'utente autenticato se non indicato.
+
+        Se il payload è il pagamento-gemello di una spesa attrezzatura già
+        registrata (client vecchi), non creiamo nulla: restituiamo il pagamento
+        esistente, quello collegato alla spesa.
+        """
+        data = serializer.validated_data
+        utente = data.get('utente', self.request.user)
+
+        descrizione = data.get('descrizione') or ''
+        if descrizione.startswith(self._PREFISSI_PAGAMENTO_AUTO):
+            # Il pagante indicato dal client vecchio può essere `pagato_da`
+            # della spesa e non l'utente che l'ha registrata: accettiamo il
+            # match su entrambi i ruoli.
+            gemello = Pagamento.objects.filter(
+                spesa_attrezzatura__isnull=False,
+                importo=data.get('importo'),
+                data=data.get('data'),
+            ).filter(
+                Q(utente=utente)
+                | Q(spesa_attrezzatura__utente=utente)
+                | Q(spesa_attrezzatura__pagato_da=utente)
+            ).first()
+            if gemello is not None:
+                serializer.instance = gemello
+                return
+
         serializer.save(utente=utente)
 
 class QuotaUtenteViewSet(viewsets.ModelViewSet):
@@ -1916,6 +1951,29 @@ class SpesaAttrezzaturaViewSet(viewsets.ModelViewSet):
         return (proprie | di_gruppo).distinct()
 
     def perform_create(self, serializer):
+        """Registra la spesa, scartando i doppioni dei client vecchi.
+
+        Fino alla build 19 l'app creava la spesa d'acquisto subito dopo
+        l'attrezzatura, ma `AttrezzaturaViewSet.perform_create` l'ha già
+        registrata: il risultato erano due spese identiche e l'importo contato
+        due volte nel bilancio. Se nei 5 minuti precedenti esiste già una spesa
+        d'acquisto identica per la stessa attrezzatura, restituiamo quella.
+        """
+        data = serializer.validated_data
+        attrezzatura = data.get('attrezzatura')
+        if attrezzatura is not None and data.get('tipo') == 'acquisto':
+            gemella = SpesaAttrezzatura.objects.filter(
+                utente=self.request.user,
+                attrezzatura=attrezzatura,
+                tipo='acquisto',
+                importo=data.get('importo'),
+                data=data.get('data'),
+                data_creazione__gte=timezone.now() - timedelta(minutes=5),
+            ).first()
+            if gemella is not None:
+                serializer.instance = gemella
+                return
+
         serializer.save(utente=self.request.user)
 
 

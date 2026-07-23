@@ -4592,10 +4592,10 @@ def aggiungi_attrezzatura(request):
             attrezzatura.proprietario = request.user
             attrezzatura.save()
 
-            # Se c'è un prezzo di acquisto, crea automaticamente un Pagamento
+            # Se c'è un prezzo di acquisto, registra la spesa: il Pagamento
+            # collegato lo crea il signal `spesa_attrezzatura_post_save_pagamento`.
             if attrezzatura.prezzo_acquisto and attrezzatura.prezzo_acquisto > 0:
-                # Crea la spesa attrezzatura
-                spesa = SpesaAttrezzatura.objects.create(
+                SpesaAttrezzatura.objects.create(
                     attrezzatura=attrezzatura,
                     gruppo=attrezzatura.gruppo if attrezzatura.condiviso_con_gruppo else None,
                     tipo='acquisto',
@@ -4604,15 +4604,6 @@ def aggiungi_attrezzatura(request):
                     data=attrezzatura.data_acquisto or timezone.now().date(),
                     fornitore=attrezzatura.fornitore,
                     utente=request.user
-                )
-
-                # Crea il pagamento corrispondente
-                Pagamento.objects.create(
-                    utente=request.user,
-                    importo=attrezzatura.prezzo_acquisto,
-                    data=attrezzatura.data_acquisto or timezone.now().date(),
-                    descrizione=f"Acquisto attrezzatura: {attrezzatura.nome}",
-                    gruppo=attrezzatura.gruppo if attrezzatura.condiviso_con_gruppo else None
                 )
 
                 messages.success(request, f"Attrezzatura '{attrezzatura.nome}' aggiunta e pagamento registrato automaticamente.")
@@ -4768,9 +4759,9 @@ def aggiungi_manutenzione(request, attrezzatura_id):
                 attrezzatura.stato = 'manutenzione'
                 attrezzatura.save()
 
-            # Se la manutenzione ha un costo, crea SpesaAttrezzatura e Pagamento
+            # Se la manutenzione ha un costo, registra la spesa: il Pagamento
+            # collegato lo crea il signal `spesa_attrezzatura_post_save_pagamento`.
             if manutenzione.costo and manutenzione.costo > 0:
-                # Crea la spesa attrezzatura
                 SpesaAttrezzatura.objects.create(
                     attrezzatura=attrezzatura,
                     gruppo=attrezzatura.gruppo if attrezzatura.condiviso_con_gruppo else None,
@@ -4779,15 +4770,6 @@ def aggiungi_manutenzione(request, attrezzatura_id):
                     importo=manutenzione.costo,
                     data=manutenzione.data_esecuzione or manutenzione.data_programmata,
                     utente=request.user
-                )
-
-                # Crea il pagamento corrispondente
-                Pagamento.objects.create(
-                    utente=request.user,
-                    importo=manutenzione.costo,
-                    data=manutenzione.data_esecuzione or manutenzione.data_programmata,
-                    descrizione=f"Manutenzione attrezzatura: {attrezzatura.nome} - {manutenzione.get_tipo_display()}",
-                    gruppo=attrezzatura.gruppo if attrezzatura.condiviso_con_gruppo else None
                 )
 
                 messages.success(request, "Manutenzione registrata e pagamento aggiunto automaticamente.")
@@ -4935,15 +4917,8 @@ def aggiungi_spesa_attrezzatura(request, attrezzatura_id):
             spesa.gruppo = attrezzatura.gruppo if attrezzatura.condiviso_con_gruppo else None
             spesa.utente = request.user
             spesa.save()
-
-            # Crea automaticamente un Pagamento corrispondente
-            Pagamento.objects.create(
-                utente=request.user,
-                importo=spesa.importo,
-                data=spesa.data,
-                descrizione=f"Spesa attrezzatura ({spesa.get_tipo_display()}): {attrezzatura.nome} - {spesa.descrizione}",
-                gruppo=attrezzatura.gruppo if attrezzatura.condiviso_con_gruppo else None
-            )
+            # Il Pagamento collegato lo crea il signal
+            # `spesa_attrezzatura_post_save_pagamento`.
 
             messages.success(request, "Spesa registrata e pagamento aggiunto automaticamente.")
             return redirect('dettaglio_attrezzatura', attrezzatura_id=attrezzatura.id)

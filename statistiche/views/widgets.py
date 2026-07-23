@@ -423,7 +423,10 @@ class BilancioEconomicoView(APIView):
         )
         entrate_map = {r['mese']: float(r['totale'] or 0) for r in entrate_qs}
 
-        # Uscite: SpesaAttrezzatura + Pagamento personali (senza destinatario) per mese
+        # Uscite: SpesaAttrezzatura + Pagamento personali (senza destinatario) per mese.
+        # I pagamenti generati automaticamente da una SpesaAttrezzatura sono
+        # esclusi: rappresentano la stessa uscita già conteggiata come spesa
+        # (servono solo al calcolo delle quote di gruppo).
         spese_qs = (
             SpesaAttrezzatura.objects.filter(utente=request.user, data__year=anno)
             .annotate(mese=ExtractMonth('data'))
@@ -432,7 +435,12 @@ class BilancioEconomicoView(APIView):
             .order_by('mese')
         )
         pagamenti_qs = (
-            Pagamento.objects.filter(utente=request.user, destinatario__isnull=True, data__year=anno)
+            Pagamento.objects.filter(
+                utente=request.user,
+                destinatario__isnull=True,
+                spesa_attrezzatura__isnull=True,
+                data__year=anno,
+            )
             .annotate(mese=ExtractMonth('data'))
             .values('mese')
             .annotate(totale=Sum('importo'))

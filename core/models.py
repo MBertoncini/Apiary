@@ -1113,7 +1113,15 @@ class Pagamento(models.Model):
     descrizione = models.CharField(max_length=200)
     # Aggiungi questo campo
     gruppo = models.ForeignKey(Gruppo, on_delete=models.SET_NULL, null=True, blank=True, related_name='pagamenti')
-    
+    spesa_attrezzatura = models.ForeignKey(
+        'SpesaAttrezzatura', on_delete=models.CASCADE, null=True, blank=True,
+        related_name='pagamenti',
+        help_text="Spesa attrezzatura che ha generato automaticamente questo pagamento. "
+                  "Se valorizzato, l'importo è già contato nelle uscite come SpesaAttrezzatura "
+                  "e il pagamento viene escluso dal bilancio economico (resta però valido per "
+                  "le quote di gruppo). Cancellando la spesa il pagamento sparisce con lei."
+    )
+
     def __str__(self):
         return f"Pagamento {self.utente.username} - {self.importo}€ ({self.data})"
     
