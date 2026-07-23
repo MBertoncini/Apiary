@@ -253,6 +253,8 @@ class Command(BaseCommand):
             self.stdout.write(
                 "  Nessun segnale forte: usa --link <regina>:<arnia> manualmente, oppure --delete."
             )
+
+    def _do_manual_link(self, pairs):
         for raw in pairs:
             try:
                 rid, aid = (int(x) for x in raw.split(':'))

@@ -34,6 +34,7 @@ from collections import defaultdict
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+from django.db.models import Q
 
 from core.models import Pagamento, SpesaAttrezzatura
 from core.signals import descrizione_pagamento_spesa
@@ -148,32 +149,66 @@ class Command(BaseCommand):
         return {'spese': eliminate, 'importo': importo_tot}
 
     def _step_b_collega_pagamenti(self):
-        """Aggancia i Pagamento automatici superstiti alla loro spesa."""
+        """Aggancia i Pagamento automatici superstiti alla loro spesa.
+
+        Due passate: prima il match esatto sul pagante, poi — solo per le spese
+        di gruppo — il match a pagante diverso. Il client vecchio infatti
+        scriveva il "pagato da" scelto nella UI *solo* sul Pagamento e mai sulla
+        spesa: senza la seconda passata quei pagamenti sembrerebbero fantasma e
+        finirebbero cancellati, perdendo la traccia di chi ha sborsato i soldi.
+        """
         self.stdout.write(self.style.MIGRATE_HEADING(
             "\n--- B) Pagamenti automatici da ricollegare alla spesa ---"
         ))
 
         collegati, importo_tot = 0, 0.0
-        # Spese ancora senza pagamento collegato, indicizzate per (pagante, importo, data).
-        spese_libere = defaultdict(list)
+        # Spese ancora senza pagamento collegato, per pagante/importo/data e,
+        # per la seconda passata, per solo gruppo/importo/data.
+        per_pagante = defaultdict(list)
+        per_gruppo = defaultdict(list)
         spese_qs = SpesaAttrezzatura.objects.filter(pagamenti__isnull=True)
         if self.user_filter:
-            spese_qs = spese_qs.filter(utente=self.user_filter)
+            spese_qs = spese_qs.filter(
+                Q(utente=self.user_filter) | Q(pagato_da=self.user_filter)
+            )
         if self.anno:
             spese_qs = spese_qs.filter(data__year=self.anno)
         for spesa in spese_qs.select_related('attrezzatura').order_by('id'):
             pagante_id = spesa.pagato_da_id or spesa.utente_id
-            spese_libere[(pagante_id, spesa.importo, spesa.data)].append(spesa)
+            per_pagante[(pagante_id, spesa.importo, spesa.data)].append(spesa)
+            if spesa.gruppo_id:
+                per_gruppo[(spesa.gruppo_id, spesa.importo, spesa.data)].append(spesa)
 
+        def _consuma(indice, chiave):
+            """Preleva una spesa libera dall'indice, saltando quelle già prese."""
+            for candidata in indice.get(chiave, []):
+                if candidata.id in presi:
+                    continue
+                presi.add(candidata.id)
+                return candidata
+            return None
+
+        presi = set()
         for pagamento in self._pagamenti_automatici_orfani():
-            chiave = (pagamento.utente_id, pagamento.importo, pagamento.data)
-            candidate = spese_libere.get(chiave)
-            if not candidate:
+            spesa = _consuma(per_pagante,
+                             (pagamento.utente_id, pagamento.importo, pagamento.data))
+            pagante_diverso = False
+            if spesa is None and pagamento.gruppo_id:
+                # Seconda passata: stessa spesa di gruppo, pagante diverso.
+                spesa = _consuma(per_gruppo,
+                                 (pagamento.gruppo_id, pagamento.importo, pagamento.data))
+                pagante_diverso = spesa is not None
+            if spesa is None:
                 continue
-            spesa = candidate.pop(0)
+
+            nota = ''
+            if pagante_diverso:
+                registrata_da = spesa.utente.username if spesa.utente_id else '—'
+                nota = (f"  [pagante {pagamento.utente.username} != "
+                        f"registrata da {registrata_da} -> imposto pagato_da]")
             self.stdout.write(
                 f"  • Pagamento #{pagamento.id} '{pagamento.descrizione}' "
-                f"-> SpesaAttrezzatura #{spesa.id}"
+                f"-> SpesaAttrezzatura #{spesa.id}{nota}"
             )
             collegati += 1
             importo_tot += float(pagamento.importo)
@@ -181,6 +216,11 @@ class Command(BaseCommand):
                 pagamento.spesa_attrezzatura = spesa
                 pagamento.descrizione = descrizione_pagamento_spesa(spesa)
                 pagamento.save(update_fields=['spesa_attrezzatura', 'descrizione'])
+                if pagante_diverso and not spesa.pagato_da_id:
+                    # Recupera sulla spesa l'informazione che il client vecchio
+                    # aveva scritto solo sul pagamento.
+                    spesa.pagato_da_id = pagamento.utente_id
+                    spesa.save(update_fields=['pagato_da'])
             else:
                 self._simulati_collegati.add(pagamento.id)
 
@@ -189,7 +229,13 @@ class Command(BaseCommand):
         return {'pagamenti': collegati, 'importo': importo_tot}
 
     def _step_c_elimina_orfani(self):
-        """Elimina i Pagamento automatici la cui spesa/attrezzatura non esiste più."""
+        """Elimina i Pagamento automatici la cui spesa/attrezzatura non esiste più.
+
+        È l'unico passo che cancella un dato non ricostruibile, quindi per ogni
+        candidato stampiamo anche se esiste una spesa di pari importo e data che
+        il passo B non ha potuto agganciare: se compare, conviene guardarla
+        prima di dare --apply.
+        """
         self.stdout.write(self.style.MIGRATE_HEADING(
             "\n--- C) Pagamenti fantasma (spesa inesistente) ---"
         ))
@@ -200,6 +246,16 @@ class Command(BaseCommand):
                 f"  • Pagamento #{pagamento.id} {pagamento.data} € {pagamento.importo} "
                 f"'{pagamento.descrizione}' (utente {pagamento.utente.username})"
             )
+            simili = SpesaAttrezzatura.objects.filter(
+                importo=pagamento.importo, data=pagamento.data
+            ).select_related('attrezzatura', 'utente')[:3]
+            for spesa in simili:
+                nome = spesa.attrezzatura.nome if spesa.attrezzatura_id else '—'
+                self.stdout.write(self.style.WARNING(
+                    f"      ATTENZIONE: esiste la spesa #{spesa.id} '{nome}' "
+                    f"di {spesa.utente.username} con stesso importo e data — "
+                    f"verifica prima di cancellare"
+                ))
             eliminati += 1
             importo_tot += float(pagamento.importo)
             if self.apply:

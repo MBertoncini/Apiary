@@ -17,6 +17,7 @@ from __future__ import annotations
 import logging
 import threading
 from datetime import date, timedelta
+from decimal import Decimal
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -179,7 +180,15 @@ def spesa_attrezzatura_post_save_pagamento(sender, instance, created, **kwargs):
     Chi paga è `pagato_da` se valorizzato — è il membro che ha effettivamente
     sborsato il denaro — altrimenti chi ha registrato la spesa.
     """
-    if instance.importo is None or instance.importo <= 0:
+    # `importo` può arrivare come str o float da chiamanti che non passano dal
+    # serializer (script, management command, shell): normalizziamo a Decimal
+    # prima di confrontarlo, altrimenti il salvataggio esplode.
+    try:
+        importo = Decimal(str(instance.importo)) if instance.importo is not None else None
+    except (ArithmeticError, TypeError, ValueError):
+        importo = None
+
+    if importo is None or importo <= 0:
         # Spesa a importo nullo: nessun pagamento da registrare. Se ne esisteva
         # uno da un salvataggio precedente lo rimuoviamo per non lasciare
         # residui nelle quote di gruppo.
@@ -195,7 +204,7 @@ def spesa_attrezzatura_post_save_pagamento(sender, instance, created, **kwargs):
         if not created:
             esistenti.update(
                 utente_id=pagante_id,
-                importo=instance.importo,
+                importo=importo,
                 data=instance.data,
                 descrizione=descrizione_pagamento_spesa(instance),
                 gruppo_id=instance.gruppo_id,
@@ -204,7 +213,7 @@ def spesa_attrezzatura_post_save_pagamento(sender, instance, created, **kwargs):
 
     Pagamento.objects.create(
         utente_id=pagante_id,
-        importo=instance.importo,
+        importo=importo,
         data=instance.data,
         descrizione=descrizione_pagamento_spesa(instance),
         gruppo_id=instance.gruppo_id,
