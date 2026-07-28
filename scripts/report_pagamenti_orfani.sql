@@ -178,6 +178,51 @@ WHERE p.destinatario_id       IS NULL
   AND (@username IS NULL OR au.username = @username);
 
 -- ============================================================================
+-- 7) DIAGNOSTICA "cosa sono davvero" — TUTTI i pagamenti personali non
+--    collegati a spesa (NON solo quelli con prefisso attrezzatura), spezzati
+--    per tipo di descrizione. Serve quando la query 1 dà 0 ma il bilancio è
+--    comunque gonfiato: qui si vede da dove arrivano le uscite.
+--    Imposta @username in cima al file (es. 'leobert85').
+-- ----------------------------------------------------------------------------
+SELECT
+    CASE
+        WHEN p.descrizione LIKE 'Acquisto attrezzatura:%'     THEN 'auto: acquisto attrezzatura'
+        WHEN p.descrizione LIKE 'Manutenzione attrezzatura:%' THEN 'auto: manutenzione attrezzatura'
+        WHEN p.descrizione LIKE 'Spesa attrezzatura (%'       THEN 'auto: spesa attrezzatura'
+        WHEN p.descrizione IS NULL OR p.descrizione = ''      THEN '(descrizione vuota)'
+        ELSE CONCAT('altro -> ', LEFT(p.descrizione, 50))
+    END                          AS tipo_descrizione,
+    COUNT(*)                     AS n_pagamenti,
+    COALESCE(SUM(p.importo), 0)  AS totale_euro,
+    MIN(p.importo)               AS importo_min,
+    MAX(p.importo)               AS importo_max
+FROM core_pagamento p
+JOIN auth_user au ON au.id = p.utente_id
+WHERE p.destinatario_id       IS NULL
+  AND p.spesa_attrezzatura_id IS NULL
+  AND (@username IS NULL OR au.username = @username)
+GROUP BY tipo_descrizione
+ORDER BY totale_euro DESC;
+
+-- ----------------------------------------------------------------------------
+-- 8) ELENCO COMPLETO dei pagamenti personali non collegati dell'utente,
+--    ordinati per importo (per stanare eventuali valori assurdi tipo 8.000.000).
+-- ----------------------------------------------------------------------------
+SELECT
+    p.id,
+    au.username,
+    p.data,
+    p.importo,
+    p.descrizione,
+    p.gruppo_id
+FROM core_pagamento p
+JOIN auth_user au ON au.id = p.utente_id
+WHERE p.destinatario_id       IS NULL
+  AND p.spesa_attrezzatura_id IS NULL
+  AND (@username IS NULL OR au.username = @username)
+ORDER BY p.importo DESC, p.data DESC;
+
+-- ============================================================================
 -- NOTE per copia sqlite locale (DEBUG=True, db.sqlite3):
 --   * YEAR(p.data)      ->  CAST(strftime('%Y', p.data) AS INTEGER)
 --   * YEAR(CURDATE())   ->  CAST(strftime('%Y','now')   AS INTEGER)
