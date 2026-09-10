@@ -18,11 +18,14 @@ GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 # lista corta: generate_raw ruota sui 404 e ogni tentativo ri-invia il payload,
 # che per la voce contiene l'audio in base64.
 GEMINI_MODELS = [
-    'gemini-3.6-flash',
+    'gemini-3.8-flash',        # migliore qualità
+    'gemini-3.6-flash',        # fallback indicato da Google sui modelli ritirati
+    'gemini-3.5-flash-lite',   # ultimo fallback, economico
 ]
 
 # Modelli con supporto Vision (immagini)
 GEMINI_VISION_MODELS = [
+    'gemini-3.8-flash',
     'gemini-3.6-flash',
 ]
 
