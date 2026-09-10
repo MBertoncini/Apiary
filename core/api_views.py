@@ -3513,7 +3513,10 @@ class AlimentazioneViewSet(viewsets.ModelViewSet):
         apiari_accessibili = get_apiari_accessibili(self.request.user)
         qs = Alimentazione.objects.filter(
             colonia__apiario__in=apiari_accessibili
-        ).select_related('colonia', 'colonia__arnia', 'utente')
+        ).select_related(
+            'colonia', 'colonia__arnia', 'colonia__nucleo',
+            'colonia__apiario', 'utente',
+        )
         colonia_id = self.request.query_params.get('colonia')
         apiario_id = self.request.query_params.get('apiario')
         if colonia_id:

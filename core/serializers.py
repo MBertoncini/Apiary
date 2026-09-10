@@ -567,6 +567,18 @@ class SmielaturaSerializer(serializers.ModelSerializer):
     kg_residui          = serializers.ReadOnlyField()
     is_esaurita         = serializers.ReadOnlyField()
 
+    # `Smielatura.melari` passa da una through esplicita (SmielaturaMelario).
+    # Per una M2M con through non auto-generata, ModelSerializer costruisce il
+    # campo come READ-ONLY: la lista di melari inviata dall'app veniva
+    # silenziosamente ignorata, la smielatura nasceva senza melari collegati e
+    # i melari restavano in stato 'rimosso' (contatore "da smielare" mai
+    # azzerato). Va quindi dichiarato esplicitamente come scrivibile: la
+    # through ha tutti i campi extra con default, quindi `.set()` funziona e
+    # fa scattare il signal m2m_changed che porta i melari a 'smielato'.
+    melari = serializers.PrimaryKeyRelatedField(
+        many=True, required=False, queryset=Melario.objects.all()
+    )
+
     class Meta:
         model = Smielatura
         fields = [
@@ -585,6 +597,27 @@ class SmielaturaSerializer(serializers.ModelSerializer):
 
     def get_melari_count(self, obj):
         return obj.melari.count()
+
+    def validate_melari(self, value):
+        """Impedisce di collegare melari di apiari non accessibili."""
+        request = self.context.get('request')
+        if request is None or not getattr(request, 'user', None):
+            return value
+        if not request.user.is_authenticated:
+            return value
+        from .api_views import get_apiari_accessibili
+        accessibili = set(
+            get_apiari_accessibili(request.user).values_list('id', flat=True)
+        )
+        for melario in value:
+            apiario_id = (
+                melario.colonia.apiario_id if melario.colonia_id else None
+            )
+            if apiario_id is not None and apiario_id not in accessibili:
+                raise serializers.ValidationError(
+                    "Melario non accessibile con le credenziali correnti."
+                )
+        return value
     
     def create(self, validated_data):
         validated_data['utente'] = self.context['request'].user
@@ -1354,7 +1387,38 @@ class SmielaturaMelarioSerializer(serializers.ModelSerializer):
         read_only_fields = ['stato_origine', 'data_link']
 
 
-class PesataMelarioSerializer(serializers.ModelSerializer):
+class _ColoniaAccessibileMixin:
+    """Valida che la `colonia` in scrittura sia su un apiario accessibile.
+
+    I viewset del dataset ML (pesate, alimentazioni, nomadismo) filtrano per
+    apiari accessibili solo in `get_queryset()`, che governa la lettura e
+    l'accesso per pk. In creazione, invece, la `colonia` arriva come id nel
+    body e senza questo controllo qualsiasi utente autenticato poteva scrivere
+    record sulle colonie altrui.
+    """
+
+    def _colonia_accessibile(self, colonia):
+        request = self.context.get('request')
+        if request is None or not getattr(request, 'user', None):
+            return True
+        if not request.user.is_authenticated:
+            return True
+        if colonia is None or colonia.apiario_id is None:
+            return True
+        from .api_views import get_apiari_accessibili
+        return get_apiari_accessibili(request.user).filter(
+            pk=colonia.apiario_id
+        ).exists()
+
+    def validate_colonia(self, value):
+        if not self._colonia_accessibile(value):
+            raise serializers.ValidationError(
+                "Colonia non accessibile con le credenziali correnti."
+            )
+        return value
+
+
+class PesataMelarioSerializer(_ColoniaAccessibileMixin, serializers.ModelSerializer):
     """Pesata di un melario in un evento (posizionamento, rimozione, ecc.)."""
     tipo_display = serializers.ReadOnlyField(source='get_tipo_display')
     melario_display = serializers.SerializerMethodField()
@@ -1389,17 +1453,21 @@ class PesataMelarioSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class AlimentazioneSerializer(serializers.ModelSerializer):
+class AlimentazioneSerializer(_ColoniaAccessibileMixin, serializers.ModelSerializer):
     """Somministrazione di nutrimento a una colonia."""
     tipo_display = serializers.ReadOnlyField(source='get_tipo_display')
     scopo_display = serializers.ReadOnlyField(source='get_scopo_display')
     colonia_display = serializers.SerializerMethodField()
+    # Apiario della colonia: serve al client per raggruppare le alimentazioni
+    # per postazione senza dover ricaricare tutte le colonie.
+    apiario = serializers.ReadOnlyField(source='colonia.apiario_id')
+    apiario_nome = serializers.ReadOnlyField(source='colonia.apiario.nome')
     utente_username = serializers.ReadOnlyField(source='utente.username')
 
     class Meta:
         model = Alimentazione
         fields = [
-            'id', 'colonia', 'colonia_display',
+            'id', 'colonia', 'colonia_display', 'apiario', 'apiario_nome',
             'data', 'tipo', 'tipo_display', 'scopo', 'scopo_display',
             'quantita_kg', 'note',
             'utente', 'utente_username', 'data_creazione',
@@ -1414,7 +1482,7 @@ class AlimentazioneSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class NomadismoEventSerializer(serializers.ModelSerializer):
+class NomadismoEventSerializer(_ColoniaAccessibileMixin, serializers.ModelSerializer):
     """Spostamento fisico di una colonia tra due apiari."""
     apiario_origine_nome = serializers.ReadOnlyField(source='apiario_origine.nome')
     apiario_destinazione_nome = serializers.ReadOnlyField(source='apiario_destinazione.nome')

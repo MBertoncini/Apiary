@@ -1,12 +1,39 @@
 #!/usr/bin/env python3
-import requests
-import json
+"""Smoke test manuale degli endpoint API contro un server gia in esecuzione.
+
+Le credenziali arrivano dall'ambiente, mai dal sorgente:
+
+    APIARY_API_URL=https://.../api/v1     APIARY_TEST_USER=... APIARY_TEST_PASSWORD=... python core/test_api.py
+
+Per la suite automatica che gira su un database usa e getta si veda
+`core/tests.py` (`python manage.py test core`).
+"""
+import os
 import sys
 
-# Configurazione
-BASE_URL = "https://cible99.pythonanywhere.com/api/v1"
-USERNAME = "Michele"  # Inserisci il tuo username
-PASSWORD = "D0m0d0ss0la2629!!"  # Inserisci la tua password
+import requests
+
+# Configurazione da ambiente. Nessun default per le credenziali: uno script di
+# test non deve mai portarsi dietro una password reale nel repository.
+BASE_URL = os.environ.get(
+    "APIARY_API_URL", "https://cible99.pythonanywhere.com/api/v1"
+)
+USERNAME = os.environ.get("APIARY_TEST_USER")
+PASSWORD = os.environ.get("APIARY_TEST_PASSWORD")
+
+
+
+def _require_credentials():
+    """Il controllo sta in una funzione, non a livello di modulo.
+
+    `manage.py test` scopre anche questo file (il pattern e `test*.py`) e lo
+    importa: un `sys.exit` all'import farebbe fallire l'intera suite.
+    """
+    if not USERNAME or not PASSWORD:
+        sys.exit(
+            "Imposta APIARY_TEST_USER e APIARY_TEST_PASSWORD prima di "
+            "eseguire questo script."
+        )
 
 def login():
     """Effettua il login e restituisce il token di accesso"""
@@ -109,4 +136,5 @@ def main():
         print("Controlla i log per maggiori dettagli.")
 
 if __name__ == "__main__":
+    _require_credentials()
     main()
