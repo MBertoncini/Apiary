@@ -13,19 +13,17 @@ from datetime import timedelta
 GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
 # Modelli in ordine di priorità — si ruota automaticamente in caso di quota esaurita
+# La famiglia 2.5 / 2.0 / 1.5 è stata ritirata per i nuovi progetti: Google
+# risponde 404 NOT_FOUND indicando gemini-3.6-flash come sostituto. Tenere la
+# lista corta: generate_raw ruota sui 404 e ogni tentativo ri-invia il payload,
+# che per la voce contiene l'audio in base64.
 GEMINI_MODELS = [
-    'gemini-2.5-flash',        # migliore qualità
-    'gemini-2.0-flash',        # ottimo bilanciamento
-    'gemini-2.0-flash-lite',   # veloce ed economico
-    'gemini-1.5-flash',        # stabile fallback
-    'gemini-1.5-flash-8b',     # ultimo fallback
+    'gemini-3.6-flash',
 ]
 
 # Modelli con supporto Vision (immagini)
 GEMINI_VISION_MODELS = [
-    'gemini-2.5-flash',
-    'gemini-2.0-flash',
-    'gemini-1.5-flash',
+    'gemini-3.6-flash',
 ]
 
 

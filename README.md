@@ -233,9 +233,9 @@ source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # 4. Configure environment variables
-cp .env.example .env
-# Edit .env with your SECRET_KEY, GEMINI_API_KEY, OPENWEATHERMAP_API_KEY,
-# and (optional) GOOGLE_OAUTH_CLIENT_ID for Google Sign-In
+#    There is no .env.example: create .env in the project root by hand.
+#    settings.py loads /home/Cible99/.env in production, else <project>/.env.
+#    See "Environment Variables" below for the exact names.
 
 # 5. Run migrations
 python manage.py migrate
@@ -251,13 +251,50 @@ Then open [http://localhost:8000](http://localhost:8000).
 
 ### Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `SECRET_KEY` | Django secret key |
-| `DEBUG` | `True` for dev, `False` for prod |
-| `GEMINI_API_KEY` | Google Gemini API key (AI features) |
-| `OPENWEATHERMAP_API_KEY` | Weather data |
-| `GOOGLE_OAUTH_CLIENT_ID` | Google Sign-In (optional) |
+All are read by `apiario_manager/settings.py` from the `.env` loaded at
+startup. Missing values fall back to the defaults shown, so nothing crashes on
+a fresh checkout — the corresponding feature is simply disabled.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DJANGO_SECRET_KEY` | insecure dev key | Django secret key |
+| `DJANGO_DEBUG` | `False` | `True` for dev. Also selects the database: SQLite when true, MySQL when false |
+| `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST` | — | MySQL connection, required only when `DJANGO_DEBUG=False` |
+| `DB_PORT` | `3306` | MySQL port |
+| `GEMINI_API_KEY` | empty | **Shared system Gemini key.** Used by `GeminiService` whenever the caller has no personal key |
+| `GROQ_API_KEY` | empty | Shared system Groq key, statistics NL query |
+| `OPENWEATHERMAP_API_KEY` | empty | Weather data |
+| `BREVO_API_KEY` | empty | Transactional email through Anymail |
+| `DEFAULT_FROM_EMAIL` | `Apiario Manager <noreply@gestioneapiario.it>` | Sender address |
+| `FEEDBACK_RECIPIENT_EMAIL` | `noreply@gestioneapiario.it` | Where in-app feedback is delivered |
+| `DATA_UPLOAD_MAX_MEMORY_SIZE` | 25 MB | Raised from Django's 2.5 MB because the Gemini proxy forwards base64 audio |
+| `STATS_MAX_RESULT_ROWS` | `500` | Row cap for NL query results |
+| `STATS_CACHE_WIDGETS_SECONDS` | `300` | Statistics widget cache TTL |
+
+The Google Sign-In client IDs are **not** environment variables: they are
+hardcoded in `core/api_views.py` (mobile) and `core/auth_views.py` (web), and
+the two values differ.
+
+### The shared Gemini key
+
+`GEMINI_API_KEY` is the key the Flutter app uses when a user has not entered a
+personal one. The app never sees it: it posts to
+`POST /api/v1/ai/gemini-proxy/`, which injects the key server-side. This is
+deliberate — the key used to be compiled into the app binary, was extracted
+from it, and was suspended by Google.
+
+To rotate it, edit the `.env` in use (`/home/Cible99/.env` in production) and
+reload the web app. No app release is needed.
+
+Resolution order per request, in `core/ai_services.py`:
+
+1. The caller's personal key (`Profilo.gemini_api_key`), when set.
+2. `GEMINI_API_KEY` from settings.
+3. Neither → `403 Nessuna GEMINI_API_KEY configurata`.
+
+A `400 API_KEY_INVALID` from `generativelanguage.googleapis.com` means a key
+*was* sent and Google rejected it: revoked, restricted to an app or referrer,
+or belonging to a project where the Generative Language API is not enabled.
 
 ### Optional — AI Frame Analysis
 
