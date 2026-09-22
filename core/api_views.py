@@ -904,7 +904,20 @@ class ColoniaViewSet(viewsets.ModelViewSet):
             apiario = nucleo.apiario
         else:
             raise DRFValidationError("Specificare 'arnia' o 'nucleo'.")
+        if self._colonia_attiva_in(arnia=arnia, nucleo=nucleo).exists():
+            # Un box ospita una sola colonia viva: una seconda colonia attiva
+            # compariva come doppione in ogni elenco e ne duplicava la regina
+            # nelle statistiche.
+            raise DRFValidationError(
+                "Il contenitore ha già una colonia attiva: chiudila o spostala "
+                "prima di crearne una nuova."
+            )
         serializer.save(utente=self.request.user, apiario=apiario)
+
+    @staticmethod
+    def _colonia_attiva_in(arnia=None, nucleo=None):
+        filtro = {'arnia': arnia} if arnia else {'nucleo': nucleo}
+        return Colonia.objects.filter(stato='attiva', data_fine__isnull=True, **filtro)
 
     @action(detail=True, methods=['get'], url_path='controlli')
     def controlli(self, request, pk=None):
@@ -993,11 +1006,23 @@ class ColoniaViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         d = serializer.validated_data
 
+        occupata = self._colonia_attiva_in(
+            arnia=d.get('arnia'), nucleo=d.get('nucleo'),
+        ).exclude(pk=colonia.pk).exists()
+        if occupata:
+            return Response(
+                {'detail': 'Il contenitore di destinazione ha già una colonia attiva.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         colonia.arnia  = d.get('arnia')
         colonia.nucleo = d.get('nucleo')
+        # `apiario` è denormalizzato: se il box di destinazione sta in un altro
+        # apiario la colonia deve seguirlo, altrimenti resta elencata nel vecchio.
+        colonia.apiario = (colonia.arnia or colonia.nucleo).apiario
         if d.get('note'):
             colonia.note = ((colonia.note or '') + '\n' + d['note']).strip()
-        colonia.save(update_fields=['arnia', 'nucleo', 'note'])
+        colonia.save(update_fields=['arnia', 'nucleo', 'apiario', 'note'])
 
         return Response(
             ColoniaDetailSerializer(colonia, context={'request': request}).data,

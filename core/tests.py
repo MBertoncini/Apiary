@@ -1,19 +1,25 @@
 """Test di regressione sui flussi segnalati dagli utenti dell'app.
 
-Coprono due aree:
+Coprono tre aree:
 
 1. Melari e smielatura — il ciclo posiziona → rimuovi → registra smielatura,
    con la verifica che il melario finisca in stato 'smielato' e non resti
    contato fra i "da smielare".
 2. Alimentazioni — creazione singola e multipla via API, e il controllo di
    accesso sulla colonia in scrittura.
+3. Colonie e contenitori — niente colonie attive orfane o duplicate quando si
+   elimina, sposta o riusa un'arnia, e il conteggio delle regine attive che ne
+   dipende.
 
 Eseguire con:  python manage.py test core
 """
 
 from datetime import date
+from io import StringIO
 
 from django.contrib.auth.models import User
+from django.core.cache import cache
+from django.core.management import call_command
 from django.test import TestCase
 from rest_framework.test import APIClient
 
@@ -23,6 +29,7 @@ from .models import (
     Arnia,
     Colonia,
     Melario,
+    Regina,
     Smielatura,
 )
 
@@ -327,3 +334,144 @@ class AlimentazioneAccessoTests(TestCase):
         )
         resp = self.client.get('/api/v1/alimentazioni/')
         self.assertEqual(resp.json()['results'], [])
+
+
+class ColoniaContenitoreTests(TestCase):
+    """Una colonia attiva per box, sempre nell'apiario del suo box."""
+
+    def setUp(self):
+        cache.clear()
+        self.user, self.apiario = _crea_apiario('coloniauser')
+        self.altro_apiario = Apiario.objects.create(nome='Altro', proprietario=self.user)
+        self.colonia = _crea_colonia(self.apiario, numero=1)
+        self.arnia = self.colonia.arnia
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+
+    def _attive(self):
+        return self.client.get('/api/v1/colonie/').json()['results']
+
+    def test_eliminare_arnia_chiude_la_colonia(self):
+        self.client.delete(f'/api/v1/arnie/{self.arnia.id}/')
+        self.colonia.refresh_from_db()
+        self.assertEqual(self.colonia.stato, 'eliminata')
+        self.assertIsNotNone(self.colonia.data_fine)
+        self.assertFalse(any(c['is_attiva'] for c in self._attive()))
+
+    def test_spostare_arnia_di_apiario_sposta_la_colonia(self):
+        self.arnia.apiario = self.altro_apiario
+        self.arnia.save()
+        self.colonia.refresh_from_db()
+        self.assertEqual(self.colonia.apiario_id, self.altro_apiario.id)
+
+    def test_seconda_colonia_nella_stessa_arnia_rifiutata(self):
+        resp = self.client.post('/api/v1/colonie/', {
+            'arnia': self.arnia.id, 'data_inizio': '2026-05-01',
+        }, format='json')
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(Colonia.objects.filter(arnia=self.arnia).count(), 1)
+
+    def test_nuova_colonia_dopo_chiusura_ammessa(self):
+        self.colonia.stato = 'morta'
+        self.colonia.data_fine = date(2026, 4, 1)
+        self.colonia.save()
+        resp = self.client.post('/api/v1/colonie/', {
+            'arnia': self.arnia.id, 'data_inizio': '2026-05-01',
+        }, format='json')
+        self.assertEqual(resp.status_code, 201, resp.content)
+
+    def test_sposta_contenitore_segue_apiario_e_rifiuta_box_occupato(self):
+        occupante = _crea_colonia(self.altro_apiario, numero=2)
+        resp = self.client.post(
+            f'/api/v1/colonie/{self.colonia.id}/sposta_contenitore/',
+            {'arnia': occupante.arnia_id}, format='json',
+        )
+        self.assertEqual(resp.status_code, 400)
+
+        libera = Arnia.objects.create(
+            apiario=self.altro_apiario, numero=3, data_installazione=date(2026, 3, 1),
+        )
+        resp = self.client.post(
+            f'/api/v1/colonie/{self.colonia.id}/sposta_contenitore/',
+            {'arnia': libera.id}, format='json',
+        )
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self.colonia.refresh_from_db()
+        self.assertEqual(self.colonia.arnia_id, libera.id)
+        self.assertEqual(self.colonia.apiario_id, self.altro_apiario.id)
+
+
+class RegineAttiveStatsTests(TestCase):
+    """Il widget conta solo le regine delle colonie vive e ancora in un box."""
+
+    def setUp(self):
+        cache.clear()
+        self.user, self.apiario = _crea_apiario('regineuser')
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+
+    def _regina(self, colonia):
+        return Regina.objects.create(colonia=colonia, data_introduzione=date(2026, 3, 1))
+
+    def test_conta_solo_regine_di_colonie_attive(self):
+        viva = _crea_colonia(self.apiario, numero=1)
+        morta = _crea_colonia(self.apiario, numero=2)
+        orfana = _crea_colonia(self.apiario, numero=3)
+        for c in (viva, morta, orfana):
+            self._regina(c)
+        morta.stato = 'morta'
+        morta.data_fine = date(2026, 6, 1)
+        morta.save()
+        # Stato lasciato dai vecchi delete: colonia attiva senza box.
+        Colonia.objects.filter(pk=orfana.pk).update(arnia=None)
+
+        resp = self.client.get('/api/stats/widgets/regine_statistiche/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()['regine_attive'], 1)
+
+    def test_query_builder_regine(self):
+        self._regina(_crea_colonia(self.apiario, numero=1))
+        resp = self.client.post('/api/stats/query-builder/', {
+            'entita': 'regine', 'aggregazione': 'none',
+        }, format='json')
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self.assertEqual(resp.json()['totale_righe'], 1)
+
+
+class PulisciColonieCommandTests(TestCase):
+    """Il comando ripara i dati lasciati incoerenti dalle versioni precedenti."""
+
+    def setUp(self):
+        self.user, self.apiario = _crea_apiario('pulizia')
+        self.altro_apiario = Apiario.objects.create(nome='Altro', proprietario=self.user)
+
+    def _run(self, *args):
+        call_command('pulisci_colonie', *args, stdout=StringIO())
+
+    def test_dry_run_non_scrive_e_apply_ripara(self):
+        orfana = _crea_colonia(self.apiario, numero=1)
+        Colonia.objects.filter(pk=orfana.pk).update(arnia=None)
+
+        fuori_posto = _crea_colonia(self.apiario, numero=2)
+        Arnia.objects.filter(pk=fuori_posto.arnia_id).update(apiario=self.altro_apiario)
+
+        vecchia = _crea_colonia(self.apiario, numero=3)
+        doppione = Colonia.objects.create(
+            apiario=self.apiario, arnia=vecchia.arnia, utente=self.user,
+            data_inizio=date(2026, 5, 1),
+        )
+
+        self._run()
+        self.assertEqual(Colonia.objects.filter(stato='attiva').count(), 4)
+
+        self._run('--apply')
+        orfana.refresh_from_db()
+        fuori_posto.refresh_from_db()
+        vecchia.refresh_from_db()
+        doppione.refresh_from_db()
+        self.assertEqual(orfana.stato, 'eliminata')
+        self.assertEqual(fuori_posto.apiario_id, self.altro_apiario.id)
+        # Resta quella più recente, cioè quella che l'app mostra già.
+        self.assertEqual(doppione.stato, 'attiva')
+        self.assertEqual(vecchia.stato, 'eliminata')
+

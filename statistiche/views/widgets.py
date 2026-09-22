@@ -283,7 +283,16 @@ class RegineStatisticheView(APIView):
             .order_by('-count')
         )
 
-        regine_attive = Regina.objects.filter(colonia__utente=request.user).count()
+        # Solo le regine di colonie vive e ancora in un box: la regina resta
+        # agganciata alla colonia anche dopo la chiusura (morta, unita, venduta)
+        # e contarle tutte gonfiava il totale rispetto agli alveari reali.
+        regine_attive = Regina.objects.filter(
+            colonia__utente=request.user,
+            colonia__stato='attiva',
+            colonia__data_fine__isnull=True,
+        ).filter(
+            Q(colonia__arnia__isnull=False) | Q(colonia__nucleo__isnull=False)
+        ).count()
 
         # Calcola durata media vita regine (data_inizio → data_fine in StoriaRegine)
         durata_data = StoriaRegine.objects.filter(

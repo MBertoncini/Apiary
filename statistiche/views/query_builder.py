@@ -32,7 +32,7 @@ ENTITY_CONFIG = {
     },
     'regine': {
         'model': Regina,
-        'user_filter': 'arnia__apiario__proprietario',
+        'user_filter': 'colonia__apiario__proprietario',
         'date_field': 'data_introduzione',
         'fields': ['razza', 'origine', 'data_nascita', 'data_introduzione', 'produttivita', 'docilita'],
     },

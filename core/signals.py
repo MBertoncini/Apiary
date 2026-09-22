@@ -10,6 +10,9 @@ Contenuto:
     `backfill_meteo_giornaliero`.
   - fan-out delle AdminBroadcast pubblicate verso le Notifica per utente.
   - creazione/sincronizzazione del Pagamento collegato a una SpesaAttrezzatura.
+  - coerenza fra Colonia e contenitore (Arnia/Nucleo): chiusura della colonia
+    quando il suo box viene eliminato e riallineamento dell'apiario quando il
+    box cambia apiario.
 """
 
 from __future__ import annotations
@@ -19,11 +22,15 @@ import threading
 from datetime import date, timedelta
 from decimal import Decimal
 
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
+from django.utils import timezone
 from django.utils.html import strip_tags
 
-from .models import Apiario, AdminBroadcast, Notifica, Pagamento, SpesaAttrezzatura
+from .models import (
+    Apiario, AdminBroadcast, Arnia, Colonia, Notifica, Nucleo, Pagamento,
+    SpesaAttrezzatura,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -219,3 +226,43 @@ def spesa_attrezzatura_post_save_pagamento(sender, instance, created, **kwargs):
         gruppo_id=instance.gruppo_id,
         spesa_attrezzatura=instance,
     )
+
+
+# ── Colonia ↔ contenitore ────────────────────────────────────────────────────
+# `Colonia.arnia` / `Colonia.nucleo` sono SET_NULL e `Colonia.apiario` è un
+# campo denormalizzato: senza questi handler, eliminare un'arnia lasciava la sua
+# colonia "attiva" ma senza box (un'arnia fantasma negli elenchi, con la sua
+# regina ancora contata nelle statistiche), e spostare un'arnia in un altro
+# apiario lasciava la colonia nel vecchio, dove compariva come doppione.
+
+def _campo_contenitore(sender) -> str:
+    return 'arnia' if sender is Arnia else 'nucleo'
+
+
+@receiver(pre_delete, sender=Arnia)
+@receiver(pre_delete, sender=Nucleo)
+def contenitore_pre_delete_chiudi_colonia(sender, instance, **kwargs):
+    """Chiude come 'eliminata' la colonia attiva del box che sta per sparire."""
+    etichetta = 'Arnia' if sender is Arnia else 'Nucleo'
+    Colonia.objects.filter(
+        **{_campo_contenitore(sender): instance},
+        stato='attiva',
+        data_fine__isnull=True,
+    ).update(
+        stato='eliminata',
+        data_fine=timezone.localdate(),
+        motivo_fine=f"{etichetta} {instance.numero} eliminata",
+    )
+
+
+@receiver(post_save, sender=Arnia)
+@receiver(post_save, sender=Nucleo)
+def contenitore_post_save_allinea_apiario(sender, instance, created, **kwargs):
+    """Porta la colonia attiva nell'apiario in cui ora si trova il suo box."""
+    if created:
+        return
+    Colonia.objects.filter(
+        **{_campo_contenitore(sender): instance},
+        stato='attiva',
+        data_fine__isnull=True,
+    ).exclude(apiario_id=instance.apiario_id).update(apiario_id=instance.apiario_id)
