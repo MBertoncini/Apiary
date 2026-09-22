@@ -13,9 +13,11 @@ Cosa succedeva prima del fix:
 Il comando esegue tre passi, in quest'ordine:
   A. chiude come 'eliminata' le colonie attive senza contenitore;
   B. riallinea l'apiario delle colonie attive a quello del loro box;
-  C. per ogni box con più colonie attive tiene quella che l'app già mostra
-     (data_inizio più recente, poi id più alto — lo stesso criterio di
-     `Arnia.colonia_attiva`) e chiude le altre come 'eliminata'.
+  C. per ogni box con più colonie attive tiene quella con più storia (più
+     controlli, poi quella con la regina, poi data_inizio più recente, poi id
+     più alto) e chiude le altre come 'eliminata'. I doppioni nati da un
+     doppio invio hanno la stessa data: decidere sulla sola data avrebbe
+     potuto chiudere proprio la colonia con controlli e regina.
 
 Nessun record viene cancellato: le colonie chiuse restano consultabili nella
 storia del contenitore con i loro controlli, e si possono riaprire dall'admin.
@@ -153,7 +155,12 @@ class Command(BaseCommand):
         for (tipo, box), colonie in per_box.items():
             if len(colonie) < 2:
                 continue
-            colonie.sort(key=lambda c: (c.data_inizio, c.id), reverse=True)
+            colonie.sort(
+                key=lambda c: (
+                    c.controlli.count(), hasattr(c, 'regina'), c.data_inizio, c.id,
+                ),
+                reverse=True,
+            )
             tenuta, *doppioni = colonie
             self.stdout.write(f"  {tipo} {box.numero} ({box.apiario.nome}):")
             self.stdout.write(self.style.SUCCESS(f"    tengo  {self._descrivi(tenuta)}"))

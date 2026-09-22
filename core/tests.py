@@ -475,3 +475,18 @@ class PulisciColonieCommandTests(TestCase):
         self.assertEqual(doppione.stato, 'attiva')
         self.assertEqual(vecchia.stato, 'eliminata')
 
+
+    def test_a_parita_di_data_tiene_la_colonia_con_regina(self):
+        con_regina = _crea_colonia(self.apiario, numero=1)
+        Regina.objects.create(colonia=con_regina, data_introduzione=date(2026, 3, 1))
+        # Doppio invio: stessa data, id più alto, nessuna storia.
+        vuota = Colonia.objects.create(
+            apiario=self.apiario, arnia=con_regina.arnia, utente=self.user,
+            data_inizio=con_regina.data_inizio,
+        )
+
+        self._run('--apply')
+        con_regina.refresh_from_db()
+        vuota.refresh_from_db()
+        self.assertEqual(con_regina.stato, 'attiva')
+        self.assertEqual(vuota.stato, 'eliminata')
