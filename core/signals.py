@@ -10,6 +10,7 @@ Contenuto:
     `backfill_meteo_giornaliero`.
   - fan-out delle AdminBroadcast pubblicate verso le Notifica per utente.
   - creazione/sincronizzazione del Pagamento collegato a una SpesaAttrezzatura.
+  - riallineamento della spesa di acquisto al prezzo dell'Attrezzatura.
   - coerenza fra Colonia e contenitore (Arnia/Nucleo): chiusura della colonia
     quando il suo box viene eliminato e riallineamento dell'apiario quando il
     box cambia apiario.
@@ -28,8 +29,8 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 
 from .models import (
-    Apiario, AdminBroadcast, Arnia, Colonia, Notifica, Nucleo, Pagamento,
-    SpesaAttrezzatura,
+    Apiario, AdminBroadcast, Arnia, Attrezzatura, Colonia, Notifica, Nucleo,
+    Pagamento, SpesaAttrezzatura,
 )
 
 
@@ -227,6 +228,56 @@ def spesa_attrezzatura_post_save_pagamento(sender, instance, created, **kwargs):
         spesa_attrezzatura=instance,
     )
 
+
+
+# ── Spesa di acquisto ↔ prezzo dell'attrezzatura ─────────────────────────────
+# Creando un'attrezzatura con un prezzo, API e web registrano una spesa
+# "Acquisto: <nome>". Modificando poi il prezzo quella spesa restava com'era:
+# azzerarlo (il modo naturale, per l'utente, di togliere il costo) lasciava
+# l'uscita nel bilancio. Riallineiamo solo la spesa automatica: le spese
+# aggiunte a mano restano dell'utente.
+
+PREFISSO_SPESA_ACQUISTO = 'Acquisto: '
+
+
+def allinea_spesa_acquisto(attrezzatura: Attrezzatura, apply: bool = True) -> str | None:
+    """Porta la spesa di acquisto automatica al prezzo attuale dell'attrezzatura.
+
+    Prezzo nullo o zero → la spesa (e, in cascata, il suo Pagamento) sparisce;
+    prezzo diverso → la spesa lo segue e il signal della spesa riallinea il
+    Pagamento. Non crea spese nuove: se l'utente l'aveva cancellata, resta
+    cancellata. Restituisce una descrizione della modifica, o None se non c'era
+    nulla da fare.
+    """
+    spesa = (
+        SpesaAttrezzatura.objects
+        .filter(attrezzatura=attrezzatura, tipo='acquisto',
+                descrizione__startswith=PREFISSO_SPESA_ACQUISTO)
+        .order_by('id').first()
+    )
+    if spesa is None:
+        return None
+
+    prezzo = attrezzatura.prezzo_acquisto
+    if not prezzo or prezzo <= 0:
+        if apply:
+            spesa.delete()
+        return f"elimino spesa #{spesa.id} di € {spesa.importo} (prezzo ora {prezzo})"
+
+    if spesa.importo == prezzo:
+        return None
+    vecchio = spesa.importo
+    if apply:
+        spesa.importo = prezzo
+        spesa.save(update_fields=['importo'])
+    return f"spesa #{spesa.id}: € {vecchio} -> € {prezzo}"
+
+
+@receiver(post_save, sender=Attrezzatura)
+def attrezzatura_post_save_allinea_spesa(sender, instance, created, raw=False, **kwargs):
+    if created or raw:
+        return
+    allinea_spesa_acquisto(instance)
 
 # ── Colonia ↔ contenitore ────────────────────────────────────────────────────
 # `Colonia.arnia` / `Colonia.nucleo` sono SET_NULL e `Colonia.apiario` è un

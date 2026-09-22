@@ -1,6 +1,6 @@
 """Test di regressione sui flussi segnalati dagli utenti dell'app.
 
-Coprono tre aree:
+Coprono quattro aree:
 
 1. Melari e smielatura — il ciclo posiziona → rimuovi → registra smielatura,
    con la verifica che il melario finisca in stato 'smielato' e non resti
@@ -10,11 +10,14 @@ Coprono tre aree:
 3. Colonie e contenitori — niente colonie attive orfane o duplicate quando si
    elimina, sposta o riusa un'arnia, e il conteggio delle regine attive che ne
    dipende.
+4. Spese attrezzatura — la spesa di acquisto automatica segue il prezzo
+   dell'attrezzatura, così azzerarlo la toglie dal bilancio.
 
 Eseguire con:  python manage.py test core
 """
 
 from datetime import date
+from decimal import Decimal
 from io import StringIO
 
 from django.contrib.auth.models import User
@@ -27,10 +30,13 @@ from .models import (
     Alimentazione,
     Apiario,
     Arnia,
+    Attrezzatura,
     Colonia,
     Melario,
+    Pagamento,
     Regina,
     Smielatura,
+    SpesaAttrezzatura,
 )
 
 
@@ -490,3 +496,58 @@ class PulisciColonieCommandTests(TestCase):
         vuota.refresh_from_db()
         self.assertEqual(con_regina.stato, 'attiva')
         self.assertEqual(vuota.stato, 'eliminata')
+
+
+class SpesaAcquistoAttrezzaturaTests(TestCase):
+    """La spesa di acquisto automatica segue il prezzo dell'attrezzatura."""
+
+    def setUp(self):
+        cache.clear()
+        self.user = User.objects.create_user(username='attrezzi', password='x-test-pw-123')
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+        resp = self.client.post('/api/v1/attrezzature/', {
+            'nome': 'Dadant-Blatt #6', 'prezzo_acquisto': '60.00',
+            'data_acquisto': '2026-07-17',
+        }, format='json')
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.attrezzatura = Attrezzatura.objects.get(pk=resp.json()['id'])
+
+    def _uscite(self):
+        cache.clear()
+        resp = self.client.get('/api/stats/widgets/bilancio_economico/?anno=2026')
+        return sum(resp.json()['uscite'])
+
+    def test_azzerare_il_prezzo_toglie_la_spesa_dal_bilancio(self):
+        self.assertEqual(self._uscite(), 60)
+        self.client.patch(f'/api/v1/attrezzature/{self.attrezzatura.id}/',
+                          {'prezzo_acquisto': '0.00'}, format='json')
+        self.assertFalse(SpesaAttrezzatura.objects.filter(attrezzatura=self.attrezzatura).exists())
+        self.assertFalse(Pagamento.objects.filter(utente=self.user).exists())
+        self.assertEqual(self._uscite(), 0)
+
+    def test_cambiare_il_prezzo_aggiorna_spesa_e_pagamento(self):
+        self.client.patch(f'/api/v1/attrezzature/{self.attrezzatura.id}/',
+                          {'prezzo_acquisto': '75.00'}, format='json')
+        spesa = SpesaAttrezzatura.objects.get(attrezzatura=self.attrezzatura)
+        self.assertEqual(spesa.importo, Decimal('75.00'))
+        self.assertEqual(Pagamento.objects.get(spesa_attrezzatura=spesa).importo, Decimal('75.00'))
+        self.assertEqual(self._uscite(), 75)
+
+    def test_spese_manuali_non_toccate(self):
+        manuale = SpesaAttrezzatura.objects.create(
+            attrezzatura=self.attrezzatura, tipo='altro', descrizione='pulizia',
+            importo=Decimal('60.00'), data=date(2026, 7, 17), utente=self.user,
+        )
+        self.client.patch(f'/api/v1/attrezzature/{self.attrezzatura.id}/',
+                          {'prezzo_acquisto': '0.00'}, format='json')
+        self.assertTrue(SpesaAttrezzatura.objects.filter(pk=manuale.pk).exists())
+
+    def test_comando_riallinea_i_dati_esistenti(self):
+        # Stato lasciato dalle versioni precedenti: prezzo azzerato senza signal.
+        Attrezzatura.objects.filter(pk=self.attrezzatura.pk).update(prezzo_acquisto=Decimal('0'))
+        call_command('pulisci_pagamenti_attrezzature', stdout=StringIO())
+        self.assertTrue(SpesaAttrezzatura.objects.filter(attrezzatura=self.attrezzatura).exists())
+        call_command('pulisci_pagamenti_attrezzature', '--apply', stdout=StringIO())
+        self.assertFalse(SpesaAttrezzatura.objects.filter(attrezzatura=self.attrezzatura).exists())
+        self.assertEqual(self._uscite(), 0)

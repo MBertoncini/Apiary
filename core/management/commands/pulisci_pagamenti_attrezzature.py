@@ -12,14 +12,17 @@ Il bilancio somma SpesaAttrezzatura + Pagamento, quindi un'arnia da 100 € pesa
 restava: un'uscita fantasma che nessuna schermata permetteva di ricondurre alla
 sua origine.
 
-Il comando esegue tre passi, in quest'ordine:
+Il comando esegue quattro passi, in quest'ordine:
   A. elimina le SpesaAttrezzatura duplicate (stessa attrezzatura, tipo, importo,
      data e utente), tenendo la più vecchia;
   B. collega i Pagamento superstiti alla loro SpesaAttrezzatura (match su
      importo, data e pagante): da lì in poi il bilancio smette di contarli due
      volte e la cancellazione della spesa se li porta dietro;
   C. elimina i Pagamento automatici rimasti orfani, cioè quelli la cui spesa (o
-     la cui attrezzatura) non esiste più.
+     la cui attrezzatura) non esiste più;
+  D. riallinea la spesa di acquisto automatica al prezzo attuale
+     dell'attrezzatura: chi azzerava il prezzo per togliere il costo si
+     ritrovava la spesa ancora nel bilancio.
 
 Di default NON scrive nulla: stampa solo cosa farebbe. Per applicare le
 modifiche serve `--apply`.
@@ -36,8 +39,10 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.db.models import Q
 
-from core.models import Pagamento, SpesaAttrezzatura
-from core.signals import descrizione_pagamento_spesa
+from core.models import Attrezzatura, Pagamento, SpesaAttrezzatura
+from core.signals import (
+    PREFISSO_SPESA_ACQUISTO, allinea_spesa_acquisto, descrizione_pagamento_spesa,
+)
 
 # Prefissi delle descrizioni generate automaticamente dai client/view vecchi.
 # Solo i pagamenti che iniziano così sono considerati "automatici": tutto il
@@ -89,16 +94,19 @@ class Command(BaseCommand):
                 duplicati = self._step_a_dedupe_spese()
                 collegati = self._step_b_collega_pagamenti()
                 orfani = self._step_c_elimina_orfani()
+                acquisti = self._step_d_allinea_acquisti()
         else:
             duplicati = self._step_a_dedupe_spese()
             collegati = self._step_b_collega_pagamenti()
             orfani = self._step_c_elimina_orfani()
+            acquisti = self._step_d_allinea_acquisti()
 
         self.stdout.write("")
         self.stdout.write(self.style.MIGRATE_HEADING("=== Riepilogo ==="))
         self.stdout.write(f"  A. spese duplicate eliminate : {duplicati['spese']} (€ {duplicati['importo']:.2f})")
         self.stdout.write(f"  B. pagamenti ricollegati     : {collegati['pagamenti']} (€ {collegati['importo']:.2f})")
         self.stdout.write(f"  C. pagamenti fantasma rimossi: {orfani['pagamenti']} (€ {orfani['importo']:.2f})")
+        self.stdout.write(f"  D. spese acquisto riallineate: {acquisti['spese']}")
         totale = duplicati['importo'] + collegati['importo'] + orfani['importo']
         self.stdout.write(self.style.SUCCESS(
             f"  Uscite tolte dal bilancio: € {totale:.2f}"
@@ -264,6 +272,28 @@ class Command(BaseCommand):
         if eliminati == 0:
             self.stdout.write("  (nessun pagamento fantasma)")
         return {'pagamenti': eliminati, 'importo': importo_tot}
+
+    def _step_d_allinea_acquisti(self):
+        """Riallinea la spesa di acquisto automatica al prezzo dell'attrezzatura."""
+        self.stdout.write(self.style.MIGRATE_HEADING(
+            "\n--- D) Spese di acquisto diverse dal prezzo dell'attrezzatura ---"
+        ))
+        attrezzature = Attrezzatura.objects.filter(
+            spese__tipo='acquisto',
+            spese__descrizione__startswith=PREFISSO_SPESA_ACQUISTO,
+        ).distinct().order_by('id')
+        if self.user_filter:
+            attrezzature = attrezzature.filter(proprietario=self.user_filter)
+
+        n = 0
+        for attrezzatura in attrezzature:
+            modifica = allinea_spesa_acquisto(attrezzatura, apply=self.apply)
+            if modifica:
+                self.stdout.write(f"  • {attrezzatura.nome} (#{attrezzatura.id}): {modifica}")
+                n += 1
+        if n == 0:
+            self.stdout.write("  (nessuna)")
+        return {'spese': n}
 
     # ------------------------------------------------------------------ utils
     def _pagamenti_automatici_orfani(self):
