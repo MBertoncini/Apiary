@@ -32,6 +32,7 @@ from .models import (
     Apiario, AdminBroadcast, Arnia, Attrezzatura, Colonia, Notifica, Nucleo,
     Pagamento, SpesaAttrezzatura,
 )
+from .storia_regine import chiudi_storia_colonia
 
 
 logger = logging.getLogger(__name__)
@@ -295,15 +296,16 @@ def _campo_contenitore(sender) -> str:
 def contenitore_pre_delete_chiudi_colonia(sender, instance, **kwargs):
     """Chiude come 'eliminata' la colonia attiva del box che sta per sparire."""
     etichetta = 'Arnia' if sender is Arnia else 'Nucleo'
-    Colonia.objects.filter(
+    for colonia in Colonia.objects.filter(
         **{_campo_contenitore(sender): instance},
         stato='attiva',
         data_fine__isnull=True,
-    ).update(
-        stato='eliminata',
-        data_fine=timezone.localdate(),
-        motivo_fine=f"{etichetta} {instance.numero} eliminata",
-    )
+    ):
+        colonia.stato = 'eliminata'
+        colonia.data_fine = timezone.localdate()
+        colonia.motivo_fine = f"{etichetta} {instance.numero} eliminata"
+        colonia.save(update_fields=['stato', 'data_fine', 'motivo_fine'])
+        chiudi_storia_colonia(colonia)
 
 
 @receiver(post_save, sender=Arnia)

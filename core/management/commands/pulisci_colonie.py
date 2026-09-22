@@ -39,6 +39,7 @@ from django.db.models import F
 from django.utils import timezone
 
 from core.models import Colonia
+from core.storia_regine import chiudi_storia_colonia
 
 
 class Command(BaseCommand):
@@ -98,6 +99,7 @@ class Command(BaseCommand):
         colonia.data_fine = self.oggi
         colonia.motivo_fine = motivo
         colonia.save(update_fields=['stato', 'data_fine', 'motivo_fine'])
+        chiudi_storia_colonia(colonia)
 
     def _descrivi(self, colonia):
         regina = 'con regina' if hasattr(colonia, 'regina') else 'senza regina'

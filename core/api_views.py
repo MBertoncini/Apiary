@@ -53,6 +53,7 @@ from .serializers import (
     PesataMelarioSerializer, AlimentazioneSerializer, NomadismoEventSerializer,
     NotificaSerializer,
 )
+from .storia_regine import apri_storia, chiudi_storia, chiudi_storia_colonia
 
 logger = logging.getLogger(__name__)
 
@@ -810,7 +811,7 @@ class ReginaViewSet(viewsets.ModelViewSet):
             raise DRFValidationError(
                 {'colonia': "Specificare 'colonia' oppure 'arnia' per collegare la regina."}
             )
-        serializer.save()
+        apri_storia(serializer.save())
 
     @action(detail=True, methods=['get'])
     def genealogy(self, request, pk=None):
@@ -822,8 +823,13 @@ class ReginaViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def sostituisci(self, request, pk=None):
         """
-        Chiude la StoriaRegine attiva della regina e la rimuove dalla colonia,
+        Chiude la StoriaRegine attiva della regina e la stacca dalla colonia,
         pronto per inserirne una nuova.
+
+        La regina non viene cancellata: lo storico ha una FK CASCADE verso di
+        lei, quindi cancellarla faceva sparire anche la sostituzione appena
+        registrata (e la regina come madre nella genealogia). Staccata, esce
+        dagli elenchi e dal conteggio delle regine attive ma resta nello storico.
         Payload: { motivo_fine: str, data_fine: str (YYYY-MM-DD, optional) }
         """
         from datetime import date as date_class
@@ -835,18 +841,10 @@ class ReginaViewSet(viewsets.ModelViewSet):
         except ValueError:
             data_fine = timezone.now().date()
 
-        # Chiudi StoriaRegine attiva per la colonia
-        if regina.colonia_id:
-            storia_attiva = StoriaRegine.objects.filter(
-                colonia=regina.colonia, data_fine__isnull=True
-            ).first()
-            if storia_attiva:
-                storia_attiva.data_fine   = data_fine
-                storia_attiva.motivo_fine = motivo_fine
-                storia_attiva.save()
-
         colonia_id = regina.colonia_id
-        regina.delete()
+        chiudi_storia(regina, data_fine, motivo_fine)
+        regina.colonia = None
+        regina.save(update_fields=['colonia'])
         return Response(
             {'detail': 'Regina sostituita con successo.', 'colonia': colonia_id},
             status=status.HTTP_200_OK,
@@ -979,6 +977,7 @@ class ColoniaViewSet(viewsets.ModelViewSet):
         colonia.arnia  = None
         colonia.nucleo = None
         colonia.save()
+        chiudi_storia_colonia(colonia)
 
         return Response(
             ColoniaDetailSerializer(colonia, context={'request': request}).data,

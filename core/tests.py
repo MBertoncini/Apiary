@@ -1,6 +1,6 @@
 """Test di regressione sui flussi segnalati dagli utenti dell'app.
 
-Coprono quattro aree:
+Coprono cinque aree:
 
 1. Melari e smielatura — il ciclo posiziona → rimuovi → registra smielatura,
    con la verifica che il melario finisca in stato 'smielato' e non resti
@@ -12,6 +12,8 @@ Coprono quattro aree:
    dipende.
 4. Spese attrezzatura — la spesa di acquisto automatica segue il prezzo
    dell'attrezzatura, così azzerarlo la toglie dal bilancio.
+5. Storico regine — aperto alla creazione, chiuso alla sostituzione o alla
+   chiusura della colonia, e mai cancellato insieme alla regina.
 
 Eseguire con:  python manage.py test core
 """
@@ -37,6 +39,7 @@ from .models import (
     Regina,
     Smielatura,
     SpesaAttrezzatura,
+    StoriaRegine,
 )
 
 
@@ -551,3 +554,87 @@ class SpesaAcquistoAttrezzaturaTests(TestCase):
         call_command('pulisci_pagamenti_attrezzature', '--apply', stdout=StringIO())
         self.assertFalse(SpesaAttrezzatura.objects.filter(attrezzatura=self.attrezzatura).exists())
         self.assertEqual(self._uscite(), 0)
+
+
+class StoriaRegineTests(TestCase):
+    """Lo storico regine si apre, si chiude e sopravvive alla sostituzione."""
+
+    def setUp(self):
+        cache.clear()
+        self.user, self.apiario = _crea_apiario('storiaregine')
+        self.colonia = _crea_colonia(self.apiario, numero=1)
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+
+    def _crea_regina(self):
+        resp = self.client.post('/api/v1/regine/', {
+            'colonia': self.colonia.id, 'data_introduzione': '2026-04-01',
+        }, format='json')
+        self.assertEqual(resp.status_code, 201, resp.content)
+        return Regina.objects.get(pk=resp.json()['id'])
+
+    def test_creare_una_regina_apre_lo_storico(self):
+        regina = self._crea_regina()
+        storia = StoriaRegine.objects.get(regina=regina)
+        self.assertEqual(storia.colonia_id, self.colonia.id)
+        self.assertEqual(storia.data_inizio, date(2026, 4, 1))
+        self.assertIsNone(storia.data_fine)
+
+    def test_sostituire_conserva_regina_e_storico(self):
+        regina = self._crea_regina()
+        resp = self.client.post(f'/api/v1/regine/{regina.id}/sostituisci/', {
+            'motivo_fine': 'morta', 'data_fine': '2026-07-01',
+        }, format='json')
+        self.assertEqual(resp.status_code, 200, resp.content)
+
+        regina.refresh_from_db()
+        self.assertIsNone(regina.colonia_id)
+        storia = StoriaRegine.objects.get(regina=regina)
+        self.assertEqual(storia.data_fine, date(2026, 7, 1))
+        self.assertEqual(storia.motivo_fine, 'morta')
+
+        # Sparisce dagli elenchi e dal conteggio, resta nelle statistiche.
+        self.assertEqual(self.client.get('/api/v1/regine/').json()['count'], 0)
+        stats = self.client.get('/api/stats/widgets/regine_statistiche/?anno=2026').json()
+        self.assertEqual(stats['regine_attive'], 0)
+        self.assertEqual(stats['per_motivo'], [{'motivo': 'morta', 'count': 1}])
+        self.assertEqual(stats['durata_media_mesi'], 3.0)
+
+        # La colonia può ricevere la nuova regina.
+        self._crea_regina()
+        self.assertEqual(StoriaRegine.objects.filter(colonia=self.colonia).count(), 2)
+
+    def test_chiudere_la_colonia_chiude_lo_storico(self):
+        regina = self._crea_regina()
+        resp = self.client.post(f'/api/v1/colonie/{self.colonia.id}/chiudi/', {
+            'stato': 'morta', 'data_fine': '2026-08-01',
+        }, format='json')
+        self.assertEqual(resp.status_code, 200, resp.content)
+        storia = StoriaRegine.objects.get(regina=regina)
+        self.assertEqual(storia.data_fine, date(2026, 8, 1))
+
+    def test_comando_ricostruisce_lo_storico_mancante(self):
+        attiva = Regina.objects.create(colonia=self.colonia, data_introduzione=date(2026, 4, 1))
+        chiusa_col = _crea_colonia(self.apiario, numero=2)
+        vecchia = Regina.objects.create(colonia=chiusa_col, data_introduzione=date(2026, 3, 1))
+        Colonia.objects.filter(pk=chiusa_col.pk).update(
+            stato='morta', data_fine=date(2026, 6, 1), arnia=None)
+
+        call_command('ricostruisci_storia_regine', stdout=StringIO())
+        self.assertFalse(StoriaRegine.objects.exists())
+
+        call_command('ricostruisci_storia_regine', '--apply', stdout=StringIO())
+        self.assertIsNone(StoriaRegine.objects.get(regina=attiva).data_fine)
+        self.assertEqual(StoriaRegine.objects.get(regina=vecchia).data_fine, date(2026, 6, 1))
+
+        # Idempotente: una seconda esecuzione non aggiunge righe.
+        call_command('ricostruisci_storia_regine', '--apply', stdout=StringIO())
+        self.assertEqual(StoriaRegine.objects.count(), 2)
+
+    def test_regine_sostituite_non_sono_orfane(self):
+        from core.management.commands.link_orphan_regine import Command as LinkOrphan
+        regina = self._crea_regina()
+        self.client.post(f'/api/v1/regine/{regina.id}/sostituisci/',
+                         {'motivo_fine': 'morta'}, format='json')
+        orfana = Regina.objects.create(colonia=None, data_introduzione=date(2026, 4, 1))
+        self.assertEqual(list(LinkOrphan()._orphans()), [orfana])

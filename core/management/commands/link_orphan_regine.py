@@ -110,6 +110,11 @@ class Command(BaseCommand):
                     f"Regina #{rid} ha già colonia #{r.colonia_id}: salto (usa il pannello admin)."
                 ))
                 continue
+            if r.storia.exists():
+                self.stderr.write(self.style.WARNING(
+                    f"Regina #{rid} è una regina sostituita (ha uno storico): salto."
+                ))
+                continue
             tag = ' [DRY]' if self.dry else ''
             self.stdout.write(self.style.SUCCESS(f"✗ Cancello Regina #{rid}{tag}"))
             if not self.dry:
@@ -325,7 +330,10 @@ class Command(BaseCommand):
 
     # ------------------------------------------------------------------ core
     def _orphans(self):
-        return Regina.objects.filter(colonia__isnull=True).order_by('id')
+        # Una regina staccata ma con storico è stata sostituita (API e web la
+        # staccano invece di cancellarla): non è orfana e non va toccata.
+        return (Regina.objects.filter(colonia__isnull=True, storia__isnull=True)
+                .order_by('id'))
 
     def _candidates_for(self, regina):
         """Restituisce le arnie candidate per `regina`, già filtrate.
