@@ -3667,3 +3667,62 @@ class NotificaViewSet(viewsets.ReadOnlyModelViewSet):
     def mark_all_read(self, request):
         updated = self.get_queryset().filter(letta=False).update(letta=True)
         return Response({'status': 'ok', 'updated': updated})
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def export_dati_excel(request):
+    """Esporta i dati dell'utente in un file Excel multi-foglio.
+
+    Query param (tutti opzionali):
+    - ``apiario``: id di un apiario accessibile (default: tutti)
+    - ``anno``: limita gli eventi datati a quell'anno (default: tutti)
+    - ``sezioni``: chiavi separate da virgola (default: tutte),
+      vedi ``core.export_excel.SEZIONI_KEYS``
+    - ``lang``: ``it`` | ``en`` per intestazioni e nomi dei fogli
+    """
+    from django.http import HttpResponse
+    from core.export_excel import SEZIONI_KEYS, genera_export_excel
+
+    params = request.query_params
+    apiario_id = None
+    if params.get('apiario'):
+        try:
+            apiario_id = int(params['apiario'])
+        except ValueError:
+            return Response({'detail': 'Parametro apiario non valido.'}, status=400)
+        if not get_apiari_accessibili(request.user).filter(pk=apiario_id).exists():
+            return Response({'detail': 'Apiario non trovato.'}, status=404)
+
+    anno = None
+    if params.get('anno'):
+        try:
+            anno = int(params['anno'])
+        except ValueError:
+            return Response({'detail': 'Parametro anno non valido.'}, status=400)
+
+    sezioni = None
+    if params.get('sezioni'):
+        sezioni = [s.strip() for s in params['sezioni'].split(',') if s.strip()]
+        sconosciute = [s for s in sezioni if s not in SEZIONI_KEYS]
+        if sconosciute or not sezioni:
+            return Response(
+                {'detail': f"Sezioni non valide: {', '.join(sconosciute)}",
+                 'sezioni_valide': SEZIONI_KEYS},
+                status=400,
+            )
+
+    contenuto = genera_export_excel(
+        request.user,
+        apiario_id=apiario_id,
+        anno=anno,
+        sezioni=sezioni,
+        lang=params.get('lang', 'it'),
+    )
+    filename = f"apiary_export_{timezone.localdate():%Y%m%d}.xlsx"
+    response = HttpResponse(
+        contenuto,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response

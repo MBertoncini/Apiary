@@ -22,6 +22,7 @@ from .api_views import (
     PesataMelarioViewSet, AlimentazioneViewSet, NomadismoEventViewSet,
     ml_dataset_colonia, ml_predict_colonia,
     NotificaViewSet,
+    export_dati_excel,
 )
 
 # Crea un router e registra i viewsets
@@ -106,4 +107,7 @@ urlpatterns = [
     path('ml/dataset/colonia/<int:colonia_id>/', ml_dataset_colonia, name='api-ml-dataset-colonia'),
     # Endpoint ML predizioni (pilota: rischio sciamatura)
     path('ml/predict/colonia/<int:colonia_id>/', ml_predict_colonia, name='api-ml-predict-colonia'),
+
+    # Esportazione dati utente in Excel (multi-foglio)
+    path('export/excel/', export_dati_excel, name='api-export-excel'),
 ]
