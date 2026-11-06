@@ -305,6 +305,7 @@ pip install ultralytics
 ```
 
 The trained model (`core/ai_models/best.pt`) is not included in the repository. Contact the maintainer to obtain it.
+As for today the model is not useful in production, but the concept was interesting and it can have future developments.
 
 ### i18n (Windows)
 
