@@ -1,6 +1,6 @@
-# Apiary — Beekeeping Management Platform
+# Apiary - Beekeeping Management Platform
 
-A full-stack web application for professional and hobbyist beekeepers. Manage apiaries, hives, colonies, queens, harvests, treatments, equipment, sales, and storage — with AI-powered frame analysis, voice input, and real-time weather integration.
+A full-stack web application for professional and hobbyist beekeepers. Manage apiaries, hives, colonies, queens, harvests, treatments, equipment, sales, and storage - with AI-powered frame analysis, voice input, and real-time weather integration.
 
 **Live demo:** [cible99.pythonanywhere.com](https://cible99.pythonanywhere.com)
 
@@ -43,7 +43,7 @@ A full-stack web application for professional and hobbyist beekeepers. Manage ap
 | Framework | Django 4.2 |
 | Database | SQLite 3 |
 | REST API | Django REST Framework 3.14 |
-| Auth (API) | JWT — `djangorestframework-simplejwt` (with token blacklist + `UPDATE_LAST_LOGIN`) |
+| Auth (API) | JWT - `djangorestframework-simplejwt` (with token blacklist + `UPDATE_LAST_LOGIN`) |
 | Auth (Web) | Django session auth + Google Sign-In (`google-auth`) |
 | CORS | `django-cors-headers` |
 | Forms | django-crispy-forms + crispy-bootstrap5 |
@@ -57,9 +57,9 @@ A full-stack web application for professional and hobbyist beekeepers. Manage ap
 ### AI & ML
 | Component | Technology |
 |-----------|-----------|
-| LLM Chat | Google Gemini API — model rotation (2.5-flash → 2.0-flash → 2.0-flash-lite → 1.5-flash → 1.5-flash-8b) |
+| LLM Chat | Google Gemini API - model rotation (2.5-flash → 2.0-flash → 2.0-flash-lite → 1.5-flash → 1.5-flash-8b) |
 | AI Quota | Per-user quota tiers + activation codes (`SystemAiQuota`, `ActivationCode`) |
-| Frame Analysis | YOLO (`ultralytics`, optional) — detects bees, drones, queen bees, royal cells |
+| Frame Analysis | YOLO (`ultralytics`, optional) - detects bees, drones, queen bees, royal cells |
 | Voice Input | Web Speech API (browser-native) + dedicated voice-creation API endpoints |
 
 ### Frontend
@@ -73,9 +73,9 @@ A full-stack web application for professional and hobbyist beekeepers. Manage ap
 | Real-time | AJAX polling (notifications, 60s interval) |
 
 ### Hosting
-- **PythonAnywhere** — `cible99.pythonanywhere.com`
-- **Media storage** — local filesystem (`/media/`)
-- **Static files** — PythonAnywhere static serving
+- **PythonAnywhere** - `cible99.pythonanywhere.com`
+- **Media storage** - local filesystem (`/media/`)
+- **Static files** - PythonAnywhere static serving
 
 ---
 
@@ -112,7 +112,7 @@ Apiary/
 │   ├── templatetags/           # Custom Django template tags
 │   ├── management/commands/    # aggiorna_meteo, fix_encoding, link_orphan_regine, …
 │   ├── migrations/             # Database migrations
-│   └── ai_models/              # YOLO model weights (best.pt — gitignored)
+│   └── ai_models/              # YOLO model weights (best.pt - gitignored)
 │
 ├── templates/                  # 100 HTML templates (all extend base.html)
 │   ├── base.html               # Main layout: sidebar (260px) + topbar (60px)
@@ -193,28 +193,28 @@ The application uses **43 Django models** in `core/models.py`:
 A full REST API is available at `/api/` with JWT authentication, designed to power the companion **Flutter mobile app** (`Apiary_app`).
 
 ### Auth
-- `POST /api/token/` — obtain JWT token pair
+- `POST /api/token/` - obtain JWT token pair
 - `POST /api/token/refresh/`
-- `POST /api/register/` — user registration (mobile)
-- `POST /api/auth/google/` — Google Sign-In (server-side ID token verification)
+- `POST /api/register/` - user registration (mobile)
+- `POST /api/auth/google/` - Google Sign-In (server-side ID token verification)
 - `POST /api/password-reset/` + `/api/password-reset/confirm/`
 
 ### Core ViewSets (DRF router)
 `apiari`, `arnie`, `colonie`, `controlli`, `regine`, `storia-regine`, `fioriture`, `fioriture-conferme`, `trattamenti`, `tipi-trattamento`, `melari`, `smielature`, `gruppi`, `pagamenti`, `quote`, `attrezzature`, `spese-attrezzatura`, `manutenzioni`, `invasettamenti`, `clienti`, `vendite`, `analisi-telaini`, `nuclei`, `maturatori`, `contenitori-stoccaggio`, `preferenze-maturazione`.
 
 ### Extra endpoints
-- `GET /api/users/me/` — current user
-- `GET /api/sync/` — bulk sync
-- `GET/POST /api/inviti/...` — group invitations
-- `POST /api/arnie/create_from_voice/` and `/api/trattamenti/create_from_voice/` — voice creation
-- `POST /api/ai/chat/` — AI chat (JWT-compatible)
+- `GET /api/users/me/` - current user
+- `GET /api/sync/` - bulk sync
+- `GET/POST /api/inviti/...` - group invitations
+- `POST /api/arnie/create_from_voice/` and `/api/trattamenti/create_from_voice/` - voice creation
+- `POST /api/ai/chat/` - AI chat (JWT-compatible)
 - `GET /api/ai/quota/`, `POST /api/ai/record-voice-call/`, `/api/ai/request-upgrade/`, `/api/ai/activate-code/`
-- `GET /api/meteo/` — weather by location
-- `GET /api/melari/?ids=...` — punctual re-fetch by ID list
+- `GET /api/meteo/` - weather by location
+- `GET /api/melari/?ids=...` - punctual re-fetch by ID list
 
 ### Docs
-- `/api/docs/` — interactive Swagger UI
-- `/api/schema/` — OpenAPI JSON
+- `/api/docs/` - interactive Swagger UI
+- `/api/schema/` - OpenAPI JSON
 
 ---
 
@@ -253,13 +253,13 @@ Then open [http://localhost:8000](http://localhost:8000).
 
 All are read by `apiario_manager/settings.py` from the `.env` loaded at
 startup. Missing values fall back to the defaults shown, so nothing crashes on
-a fresh checkout — the corresponding feature is simply disabled.
+a fresh checkout - the corresponding feature is simply disabled.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `DJANGO_SECRET_KEY` | insecure dev key | Django secret key |
 | `DJANGO_DEBUG` | `False` | `True` for dev. Also selects the database: SQLite when true, MySQL when false |
-| `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST` | — | MySQL connection, required only when `DJANGO_DEBUG=False` |
+| `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST` | - | MySQL connection, required only when `DJANGO_DEBUG=False` |
 | `DB_PORT` | `3306` | MySQL port |
 | `GEMINI_API_KEY` | empty | **Shared system Gemini key.** Used by `GeminiService` whenever the caller has no personal key |
 | `GROQ_API_KEY` | empty | Shared system Groq key, statistics NL query |
@@ -280,7 +280,7 @@ the two values differ.
 `GEMINI_API_KEY` is the key the Flutter app uses when a user has not entered a
 personal one. The app never sees it: it posts to
 `POST /api/v1/ai/gemini-proxy/`, which injects the key server-side. This is
-deliberate — the key used to be compiled into the app binary, was extracted
+deliberate - the key used to be compiled into the app binary, was extracted
 from it, and was suspended by Google.
 
 To rotate it, edit the `.env` in use (`/home/Cible99/.env` in production) and
@@ -296,7 +296,7 @@ A `400 API_KEY_INVALID` from `generativelanguage.googleapis.com` means a key
 *was* sent and Google rejected it: revoked, restricted to an app or referrer,
 or belonging to a project where the Generative Language API is not enabled.
 
-### Optional — AI Frame Analysis
+### Optional - AI Frame Analysis
 
 YOLO-based bee frame analysis requires `ultralytics` (commented out in `requirements.txt`):
 
