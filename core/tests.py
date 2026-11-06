@@ -638,3 +638,60 @@ class StoriaRegineTests(TestCase):
                          {'motivo_fine': 'morta'}, format='json')
         orfana = Regina.objects.create(colonia=None, data_introduzione=date(2026, 4, 1))
         self.assertEqual(list(LinkOrphan()._orphans()), [orfana])
+
+
+# ---------------------------------------------------------------------------
+# 6. Login Google della dashboard web
+# ---------------------------------------------------------------------------
+
+from unittest import mock  # noqa: E402
+
+from django.test import Client, override_settings  # noqa: E402
+from django.urls import reverse  # noqa: E402
+
+
+@override_settings(ALLOWED_HOSTS=['testserver'])
+class GoogleLoginWebTests(TestCase):
+    """Issue #1: dopo il popup Google la dashboard non si apriva mai."""
+
+    ID_INFO = {
+        'email': 'gtest@example.com',
+        'email_verified': True,
+        'given_name': 'G',
+        'family_name': 'Test',
+    }
+
+    def _post(self, client, next_url=''):
+        with mock.patch('google.oauth2.id_token.verify_oauth2_token',
+                        return_value=self.ID_INFO):
+            return client.post(
+                reverse('google_login_web'),
+                data={'credential': 'token', 'next': next_url},
+                content_type='application/json',
+            )
+
+    def test_coop_consente_il_popup_google(self):
+        # Con 'same-origin' (default Django) il popup non restituisce la
+        # credenziale alla pagina di login.
+        response = Client().get(reverse('login'), follow=True)
+        self.assertEqual(response.headers.get('Cross-Origin-Opener-Policy'),
+                         'same-origin-allow-popups')
+        # Pulsante ufficiale (popup), non One Tap che Google puo' sopprimere.
+        self.assertContains(response, 'google.accounts.id.renderButton')
+        self.assertNotContains(response, 'google.accounts.id.prompt()')
+
+    def test_login_crea_la_sessione(self):
+        client = Client()
+        response = self._post(client)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['redirect'], '/app/dashboard/')
+        self.assertEqual(int(client.session['_auth_user_id']),
+                         User.objects.get(email='gtest@example.com').pk)
+
+    def test_redirect_su_next_interno(self):
+        response = self._post(Client(), '/app/apiari/')
+        self.assertEqual(response.json()['redirect'], '/app/apiari/')
+
+    def test_next_esterno_ignorato(self):
+        response = self._post(Client(), 'https://evil.example/x')
+        self.assertEqual(response.json()['redirect'], '/app/dashboard/')

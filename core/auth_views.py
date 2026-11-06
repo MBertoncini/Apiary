@@ -257,8 +257,10 @@ def google_login_web(request):
     try:
         body = json.loads(request.body)
         credential = body.get('credential', '')
+        next_url = body.get('next', '')
     except (json.JSONDecodeError, AttributeError):
         credential = request.POST.get('credential', '')
+        next_url = request.POST.get('next', '')
 
     if not credential:
         return JsonResponse({'error': 'Token mancante.'}, status=400)
@@ -293,7 +295,14 @@ def google_login_web(request):
 
     # Django session login
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-    return JsonResponse({'success': True, 'redirect': '/app/dashboard/'})
+
+    # Come il login classico: torna alla pagina richiesta, se interna al sito.
+    from django.utils.http import url_has_allowed_host_and_scheme
+    if not (next_url and url_has_allowed_host_and_scheme(
+            next_url, allowed_hosts={request.get_host()},
+            require_https=request.is_secure())):
+        next_url = '/app/dashboard/'
+    return JsonResponse({'success': True, 'redirect': next_url})
 
 
 def delete_data_view(request):

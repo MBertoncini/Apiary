@@ -297,13 +297,16 @@
       <div class="auth-divider"><span>{% trans "oppure" %}</span></div>
 
       <!-- Google Sign-In -->
+      <!-- Il pulsante e' disegnato da Google Identity Services (renderButton):
+           apre un popup affidabile, a differenza di One Tap (prompt) che
+           Google sopprime per ore dopo che l'utente lo chiude. -->
       <div id="googleBtnContainer">
-        <button type="button" class="btn-google" id="googleBtn" onclick="triggerGoogleLogin()">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-          <span id="googleBtnText">{% trans "Accedi con Google" %}</span>
-          <span class="spinner-border text-secondary d-none" id="googleSpinner"
-                style="width:18px;height:18px;border-width:2px;" role="status"></span>
-        </button>
+        <div id="googleSignInBtn"></div>
+        <div class="btn-google d-none" id="googleBusy" role="status">
+          <span class="spinner-border text-secondary"
+                style="width:18px;height:18px;border-width:2px;"></span>
+          <span>{% trans "Accesso in corso..." %}</span>
+        </div>
       </div>
 
       <!-- Google error -->
@@ -346,66 +349,82 @@ document.getElementById('loginForm').addEventListener('submit', function() {
   document.getElementById('submitSpinner').classList.remove('d-none');
 });
 
-// Google Sign-In: use google.accounts.id (credential/One Tap flow)
-// This returns an id_token directly — no redirect URI needed.
-function handleGoogleCredential(response) {
-  const btn = document.getElementById('googleBtn');
-  const spinner = document.getElementById('googleSpinner');
-  const btnText = document.getElementById('googleBtnText');
-  const errorBox = document.getElementById('googleError');
-  const errorText = document.getElementById('googleErrorText');
+// Google Sign-In: Google Identity Services, popup del pulsante ufficiale.
+// Restituisce direttamente un id_token: nessun redirect URI necessario.
+// Richiede Cross-Origin-Opener-Policy 'same-origin-allow-popups' (settings.py),
+// altrimenti il popup non riesce a restituire la credenziale a questa pagina.
+{% get_current_language as CURRENT_LANG %}
+const GOOGLE_MSG = {
+  error: "{% trans "Errore durante l'accesso con Google." as m %}{{ m|escapejs }}",
+  network: "{% trans "Errore di connessione. Riprova." as m %}{{ m|escapejs }}",
+  unavailable: "{% trans "Google Sign-In non disponibile. Ricarica la pagina." as m %}{{ m|escapejs }}",
+};
 
-  btn.disabled = true;
-  btnText.textContent = 'Accesso in corso...';
-  spinner.classList.remove('d-none');
-  errorBox.classList.add('d-none');
+function showGoogleError(message) {
+  document.getElementById('googleErrorText').textContent = message;
+  document.getElementById('googleError').classList.remove('d-none');
+}
+
+function setGoogleBusy(busy) {
+  document.getElementById('googleSignInBtn').classList.toggle('d-none', busy);
+  document.getElementById('googleBusy').classList.toggle('d-none', !busy);
+}
+
+function handleGoogleCredential(response) {
+  setGoogleBusy(true);
+  document.getElementById('googleError').classList.add('d-none');
 
   fetch('{% url "google_login_web" %}', {
     method: 'POST',
+    credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ credential: response.credential }),
+    body: JSON.stringify({
+      credential: response.credential,
+      next: document.querySelector('#loginForm input[name="next"]').value,
+    }),
   })
   .then(r => r.json())
   .then(data => {
     if (data.success) {
       window.location.href = data.redirect;
     } else {
-      btn.disabled = false;
-      btnText.textContent = 'Accedi con Google';
-      spinner.classList.add('d-none');
-      errorText.textContent = data.error || 'Errore durante l\'accesso con Google.';
-      errorBox.classList.remove('d-none');
+      setGoogleBusy(false);
+      showGoogleError(data.error || GOOGLE_MSG.error);
     }
   })
   .catch(() => {
-    btn.disabled = false;
-    btnText.textContent = 'Accedi con Google';
-    spinner.classList.add('d-none');
-    errorText.textContent = 'Errore di connessione. Riprova.';
-    errorBox.classList.remove('d-none');
+    setGoogleBusy(false);
+    showGoogleError(GOOGLE_MSG.network);
   });
 }
 
-// Initialize Google Identity Services when the library loads
 function initGoogleSignIn() {
-  if (typeof google === 'undefined' || !google.accounts) return;
+  const container = document.getElementById('googleSignInBtn');
   google.accounts.id.initialize({
     client_id: GOOGLE_CLIENT_ID,
     callback: handleGoogleCredential,
+    ux_mode: 'popup',
     auto_select: false,
-    cancel_on_tap_outside: true,
+  });
+  google.accounts.id.renderButton(container, {
+    type: 'standard',
+    theme: 'outline',
+    size: 'large',
+    text: 'signin_with',
+    shape: 'rectangular',
+    logo_alignment: 'center',
+    // GIS accetta larghezze fino a 400px
+    width: Math.min(400, Math.max(200, container.offsetWidth || 320)),
+    locale: '{{ CURRENT_LANG|default:"it" }}',
   });
 }
 
-// Trigger Google login popup
-function triggerGoogleLogin() {
-  if (typeof google === 'undefined' || !google.accounts) {
-    document.getElementById('googleErrorText').textContent = 'Google Sign-In non disponibile. Ricarica la pagina.';
-    document.getElementById('googleError').classList.remove('d-none');
+window.addEventListener('load', function () {
+  if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
+    showGoogleError(GOOGLE_MSG.unavailable);
     return;
   }
   initGoogleSignIn();
-  google.accounts.id.prompt();
-}
+});
 </script>
 {% endblock %}

@@ -60,6 +60,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Il default di Django (dalla 4.0) e' 'same-origin', che azzera window.opener
+# fra la pagina e il popup di Google Identity Services: il popup completa il
+# login ma la credenziale non torna mai alla pagina, quindi nessuna sessione.
+# 'same-origin-allow-popups' e' il valore richiesto da Google per il popup.
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
+
 # Configurazione REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
