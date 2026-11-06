@@ -309,7 +309,8 @@
         var map = L.map('map');
         
         // Layer base di OpenStreetMap
-        var baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        var baseLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    referrerPolicy: 'strict-origin-when-cross-origin',
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Dati meteo &copy; <a href="https://open-meteo.com">Open-Meteo</a>',
             maxZoom: 18
         }).addTo(map);
