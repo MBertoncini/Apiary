@@ -23,6 +23,10 @@ GEMINI_MODELS = [
     'gemini-3.5-flash-lite',   # ultimo fallback, economico
 ]
 
+# Token in piu' concessi al ragionamento interno dei modelli "thinking",
+# oltre alla lunghezza della risposta visibile richiesta dal chiamante.
+THINKING_HEADROOM_TOKENS = 4096
+
 # Modelli con supporto Vision (immagini)
 GEMINI_VISION_MODELS = [
     'gemini-3.8-flash',
@@ -35,7 +39,7 @@ class GeminiService:
     def api_key(self):
         return getattr(settings, 'GEMINI_API_KEY', '')
 
-    def _call_model(self, model, payload, timeout=20, api_key=None):
+    def _call_model(self, model, payload, timeout=45, api_key=None):
         """Chiama un modello specifico. Ritorna (success, text, status_code)."""
         key = api_key or self.api_key
         if not key:
@@ -56,9 +60,13 @@ class GeminiService:
                 parts = content.get('parts', [])
                 if not parts:
                     return False, f'Risposta senza contenuto (finishReason={finish_reason})', -1
-                text = parts[0].get('text', '')
+                # Il testo puo' arrivare spezzato su piu' parti: le unisco tutte,
+                # saltando quelle che contengono solo il ragionamento del modello.
+                text = ''.join(p.get('text', '') for p in parts if not p.get('thought'))
                 if not text:
                     return False, f'Testo risposta vuoto (finishReason={finish_reason})', -1
+                if finish_reason == 'MAX_TOKENS':
+                    text = text.rstrip() + '…'
                 return True, text, 200
             else:
                 return False, resp.text, resp.status_code
@@ -78,7 +86,10 @@ class GeminiService:
 
         gen_config = {
             'temperature': temperature,
-            'maxOutputTokens': max_tokens,
+            # Sui modelli con ragionamento i token "pensati" contano nel limite:
+            # senza margine il ragionamento consuma quasi tutto e la risposta
+            # visibile arriva troncata (finishReason=MAX_TOKENS).
+            'maxOutputTokens': max_tokens + THINKING_HEADROOM_TOKENS,
         }
         if response_mime_type:
             gen_config['responseMimeType'] = response_mime_type
@@ -185,7 +196,8 @@ class GeminiService:
         }]
         payload = {
             'contents': contents,
-            'generationConfig': {'temperature': temperature, 'maxOutputTokens': 2000},
+            'generationConfig': {'temperature': temperature,
+                                 'maxOutputTokens': 2000 + THINKING_HEADROOM_TOKENS},
         }
         if system_prompt:
             payload['systemInstruction'] = {'parts': [{'text': system_prompt}]}
