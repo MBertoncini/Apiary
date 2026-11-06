@@ -8,8 +8,12 @@
   // -------------------------------------------------------------------------
   // Config
   // -------------------------------------------------------------------------
-  const CHAT_URL = '/app/ai/chat/';
-  const VOICE_URL = '/app/ai/voice/';
+  // URL con il prefisso della lingua (/it/, /en/): passati da base.html.
+  // Senza prefisso la POST viene reindirizzata, diventa GET e risponde 405.
+  const AI_URLS = window.APIARY_AI_URLS || {};
+  const LANG_PREFIX = (location.pathname.match(/^\/(it|en)\//) || [])[0] || '/';
+  const CHAT_URL = AI_URLS.chat || (LANG_PREFIX + 'app/ai/chat/');
+  const VOICE_URL = AI_URLS.voice || (LANG_PREFIX + 'app/ai/voice/');
 
   // -------------------------------------------------------------------------
   // State
@@ -92,7 +96,7 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #D3A121, #B58A1A);
+  background: #D3A121;
   color: #fff;
   display: flex;
   align-items: center;
@@ -105,7 +109,7 @@
   user-select: none;
 }
 #ai-fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(211,161,33,.55); }
-#ai-fab.active { background: linear-gradient(135deg, #3A2E21, #4E3F2E); }
+#ai-fab.active { background: #B58A1A; }
 
 #ai-panel {
   position: fixed;
@@ -117,8 +121,8 @@
   max-height: calc(100vh - 110px);
   background: #fff;
   border: 1px solid #E0D8C2;
-  border-radius: 16px;
-  box-shadow: 0 8px 40px rgba(0,0,0,.18);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(58,46,33,.14);
   display: flex;
   flex-direction: column;
   z-index: 1199;
@@ -133,19 +137,19 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: linear-gradient(135deg, #3A2E21, #4E3F2E);
-  border-radius: 16px 16px 0 0;
-  color: #D3A121;
+  background: #D3A121;
+  border-radius: 8px 8px 0 0;
+  color: #fff;
   font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
 }
 .ai-header-left { display: flex; align-items: center; }
 .ai-header-right { display: flex; gap: 4px; }
 .ai-header-right button {
   background: none;
   border: none;
-  color: #E0D8C2;
+  color: rgba(255,255,255,.85);
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 6px;
@@ -177,7 +181,7 @@
 @keyframes msgIn { from { opacity: 0; transform: translateY(6px); } }
 .ai-msg-user {
   align-self: flex-end;
-  background: linear-gradient(135deg, #D3A121, #B58A1A);
+  background: #D3A121;
   color: #fff;
   border-bottom-right-radius: 4px;
 }

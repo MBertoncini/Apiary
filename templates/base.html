@@ -471,7 +471,8 @@
 
 {% if user.is_authenticated %}
 <!-- AI Chat Widget -->
-<script src="{% static 'js/ai-chat.js' %}?v=20261106"></script>
+<script>window.APIARY_AI_URLS = { chat: "{% url 'ai_chat' %}", voice: "{% url 'ai_voice' %}" };</script>
+<script src="{% static 'js/ai-chat.js' %}?v=20261106-2"></script>
 <!-- Notification Center -->
 <script src="{% static 'js/notifications.js' %}?v=20261106"></script>
 <!-- Contextual Tooltips -->
