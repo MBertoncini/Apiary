@@ -320,7 +320,7 @@ class Colonia(models.Model):
             return f"Arnia {self.arnia.numero}"
         if self.nucleo:
             return f"Nucleo {self.nucleo.numero}"
-        return "—"
+        return "-"
 
     def __str__(self):
         return f"Colonia {self.id} | {self.contenitore_display()} | {self.apiario.nome} | {self.get_stato_display()}"
@@ -869,7 +869,7 @@ class Vendita(models.Model):
     data_registrazione = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        nome = self.cliente.nome if self.cliente_id else (self.acquirente_nome or '—')
+        nome = self.cliente.nome if self.cliente_id else (self.acquirente_nome or '-')
         return f"Vendita {self.data} - {nome}"
 
     @property
@@ -2436,7 +2436,7 @@ class VarroaCheckpoint(models.Model):
 
     def __str__(self):
         return (
-            f"Varroa {self.colonia} — {self.data_campionamento} "
+            f"Varroa {self.colonia} - {self.data_campionamento} "
             f"({self.get_metodo_display()}: {self.percentuale_calcolata:.2f}%)"
         )
 
@@ -2642,6 +2642,6 @@ class NomadismoEvent(models.Model):
     def __str__(self):
         return (
             f"Nomadismo {self.colonia_id}: "
-            f"{self.apiario_origine_id or '—'} → {self.apiario_destinazione_id} "
+            f"{self.apiario_origine_id or '-'} → {self.apiario_destinazione_id} "
             f"({self.data_spostamento})"
         )

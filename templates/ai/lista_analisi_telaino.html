@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% blocktrans with a=arnia %}Analisi Telaini — {{ a }}{% endblocktrans %} — Apiary{% endblock %}
+{% block title %}{% blocktrans with a=arnia %}Analisi Telaini - {{ a }}{% endblocktrans %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -41,7 +41,7 @@
               <small class="text-muted">{{ a.data }} · {{ a.utente.get_short_name|default:a.utente.username }}</small>
             </div>
             {% if a.confidence_media %}
-            <span class="badge" style="background:#F5A623;color:#fff;font-size:.72rem;">
+            <span class="badge" style="background:#D3A121;color:#fff;font-size:.72rem;">
               {% blocktrans with c=a.confidence_media|floatformat:0 %}{{ c }}% conf.{% endblocktrans %}
             </span>
             {% endif %}
@@ -85,7 +85,7 @@
 {% else %}
   <div class="card">
     <div class="card-body text-center py-5">
-      <i class="bi bi-camera" style="font-size:3rem;color:#EAD9BF;"></i>
+      <i class="bi bi-camera" style="font-size:3rem;color:#E0D8C2;"></i>
       <p class="mt-3 text-muted">{% trans "Nessuna analisi telaino ancora registrata per questa arnia." %}</p>
       <a href="{% url 'analisi_telaino' %}?arnia={{ arnia.id }}&apiario={{ arnia.apiario.id }}"
          class="btn btn-primary mt-1">

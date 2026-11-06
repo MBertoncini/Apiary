@@ -25,40 +25,40 @@
 
             <!-- Step 1 -->
             <div class="onboarding-step active" data-step="1">
-                <div class="step-icon">🐝</div>
+                <div class="step-icon"><i class="bi bi-hexagon"></i></div>
                 <h1 class="step-title">{% trans "Benvenuto in Apiary" %}</h1>
-                <p class="step-text">{% trans "Il tuo diario digitale da apicoltore. Registra, monitora e gestisci tutto ciò che riguarda le tue api — dai controlli alle vendite, dalla genealogia delle regine all'analisi AI dei telai." %}</p>
+                <p class="step-text">{% trans "Il tuo diario digitale da apicoltore. Registra, monitora e gestisci tutto ciò che riguarda le tue api: dai controlli alle vendite, dalla genealogia delle regine all'analisi AI dei telai." %}</p>
             </div>
 
             <!-- Step 2 -->
             <div class="onboarding-step" data-step="2">
-                <div class="step-icon">📍</div>
+                <div class="step-icon"><i class="bi bi-geo-alt"></i></div>
                 <h2 class="step-title">{% trans "I tuoi Apiari" %}</h2>
-                <p class="step-text">{% trans "Un apiario è la tua postazione fisica — un campo, un bosco, un terreno. Dentro ogni apiario trovi le tue arnie. Puoi avere più apiari in luoghi diversi e gestirli tutti da qui." %}</p>
+                <p class="step-text">{% trans "Un apiario è la tua postazione fisica: un campo, un bosco, un terreno. Dentro ogni apiario trovi le tue arnie. Puoi avere più apiari in luoghi diversi e gestirli tutti da qui." %}</p>
             </div>
 
             <!-- Step 3 -->
             <div class="onboarding-step" data-step="3">
-                <div class="step-icon">🏠</div>
+                <div class="step-icon"><i class="bi bi-house-door"></i></div>
                 <h2 class="step-title">{% trans "Arnie & Controlli" %}</h2>
                 <p class="step-text">{% trans "Ogni arnia ha la sua storia: regina, trattamenti, melari, raccolti. Registra i controlli periodici per tenere traccia della forza della colonia, della presenza della regina e dello stato sanitario." %}</p>
             </div>
 
             <!-- Step 4 -->
             <div class="onboarding-step" data-step="4">
-                <div class="step-icon">✨</div>
+                <div class="step-icon"><i class="bi bi-stars"></i></div>
                 <h2 class="step-title">{% trans "Funzioni Avanzate" %}</h2>
                 <ul class="step-features">
-                    <li><span class="feature-icon">🎤</span> <strong>{% trans "Controllo Vocale" %}</strong> — {% trans "Registra un'ispezione completa semplicemente parlando" %}</li>
-                    <li><span class="feature-icon">🤖</span> <strong>{% trans "Analisi AI" %}</strong> — {% trans "Fotografa un telaio e scopri subito api, covata e celle reali" %}</li>
-                    <li><span class="feature-icon">📊</span> <strong>{% trans "Statistiche" %}</strong> — {% trans "Grafici di produzione, salute e andamento nel tempo" %}</li>
-                    <li><span class="feature-icon">👥</span> <strong>{% trans "Collaborazione" %}</strong> — {% trans "Condividi gli apiari con soci o collaboratori" %}</li>
+                    <li><span class="feature-icon"><i class="bi bi-mic"></i></span> <strong>{% trans "Controllo Vocale" %}</strong>: {% trans "Registra un'ispezione completa semplicemente parlando" %}</li>
+                    <li><span class="feature-icon"><i class="bi bi-camera"></i></span> <strong>{% trans "Analisi AI" %}</strong>: {% trans "Fotografa un telaio e scopri subito api, covata e celle reali" %}</li>
+                    <li><span class="feature-icon"><i class="bi bi-bar-chart"></i></span> <strong>{% trans "Statistiche" %}</strong>: {% trans "Grafici di produzione, salute e andamento nel tempo" %}</li>
+                    <li><span class="feature-icon"><i class="bi bi-people"></i></span> <strong>{% trans "Collaborazione" %}</strong>: {% trans "Condividi gli apiari con soci o collaboratori" %}</li>
                 </ul>
             </div>
 
             <!-- Step 5 -->
             <div class="onboarding-step" data-step="5">
-                <div class="step-icon">🚀</div>
+                <div class="step-icon"><i class="bi bi-check2-circle"></i></div>
                 <h2 class="step-title">{% trans "Sei pronto!" %}</h2>
                 <p class="step-text">{% trans "Inizia creando il tuo primo apiario. Ci vorranno meno di un minuto. Potrai sempre rivedere questa guida dalla pagina del tuo profilo." %}</p>
                 <div class="step-actions">
@@ -88,7 +88,7 @@
 .onboarding-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(44, 24, 16, 0.7);
+    background: rgba(58,46,33, 0.7);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -101,7 +101,7 @@
     padding: 48px 40px 36px;
     max-width: 520px;
     width: 90%;
-    box-shadow: 0 20px 60px rgba(44,24,16,0.3);
+    box-shadow: 0 20px 60px rgba(58,46,33,0.3);
     position: relative;
     text-align: center;
 }
@@ -117,13 +117,13 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #EAD9BF;
+    background: #E0D8C2;
     transition: all 0.3s;
     cursor: pointer;
 }
 
 .dot.active {
-    background: #F5A623;
+    background: #D3A121;
     width: 28px;
     border-radius: 5px;
 }
@@ -135,13 +135,13 @@
     background: none;
     border: none;
     color: #999;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.85rem;
     cursor: pointer;
     padding: 4px 8px;
 }
 
-.onboarding-skip:hover { color: #F5A623; }
+.onboarding-skip:hover { color: #D3A121; }
 
 .onboarding-step { display: none; animation: fadeIn 0.4s ease; }
 .onboarding-step.active { display: block; }
@@ -152,20 +152,21 @@
 }
 
 .step-icon {
-    font-size: 3.5rem;
-    margin-bottom: 16px;
+    font-size: 2.4rem;
+    margin-bottom: 14px;
     display: block;
+    color: var(--honey-darker);
 }
 
 .step-title {
-    font-family: 'Caveat', cursive;
-    font-size: 2rem;
-    color: #2C1810;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: #3A2E21;
     margin-bottom: 16px;
 }
 
 .step-text {
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-body);
     color: #5a4030;
     line-height: 1.7;
     font-size: 0.95rem;
@@ -184,10 +185,10 @@
     align-items: flex-start;
     gap: 10px;
     padding: 10px 0;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-body);
     font-size: 0.9rem;
     color: #3a2a1a;
-    border-bottom: 1px solid #EAD9BF;
+    border-bottom: 1px solid #E0D8C2;
 }
 
 .step-features li:last-child { border-bottom: none; }

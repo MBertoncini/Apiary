@@ -7,7 +7,7 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">👑 {% trans "Presenza Regina" %}</h1>
+    <h1 class="page-title">{% trans "Presenza Regina" %}</h1>
     <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' arnia.apiario.id %}">{{ arnia.apiario.nome }}</a> › <a href="{% url 'modifica_controllo' controllo.id %}">{% blocktrans with num=arnia.numero %}Controllo #{{ num }}{% endblocktrans %}</a> › {% trans "Regina" %}</p>
   </div>
   <a href="{% url 'modifica_controllo' controllo.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Torna al Controllo" %}</a>

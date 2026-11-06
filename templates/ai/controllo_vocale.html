@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% trans "Controllo Vocale" %} — Apiary{% endblock %}
+{% block title %}{% trans "Controllo Vocale" %} - Apiary{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -13,21 +13,21 @@
   flex-shrink: 0; transition: background .3s;
 }
 .vc-status-dot.recording  { background: #dc3545; animation: pulse 1s infinite; }
-.vc-status-dot.processing { background: #F5A623; animation: pulse .7s infinite; }
+.vc-status-dot.processing { background: #D3A121; animation: pulse .7s infinite; }
 .vc-status-dot.error      { background: #dc3545; }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.25)} }
 
 /* ── Record button ────────────────────────────────────── */
 .vc-record-btn {
   width: 96px; height: 96px; border-radius: 50%;
-  background: linear-gradient(135deg, #F5A623, #e8920f);
+  background: linear-gradient(135deg, #D3A121, #B58A1A);
   color: #fff; font-size: 2.2rem;
   border: none; cursor: pointer;
-  box-shadow: 0 4px 20px rgba(245,166,35,.45);
+  box-shadow: 0 4px 20px rgba(211,161,33,.45);
   transition: transform .15s, box-shadow .15s;
   display: flex; align-items: center; justify-content: center;
 }
-.vc-record-btn:hover  { transform: scale(1.06); box-shadow: 0 6px 26px rgba(245,166,35,.55); }
+.vc-record-btn:hover  { transform: scale(1.06); box-shadow: 0 6px 26px rgba(211,161,33,.55); }
 .vc-record-btn.active { background: linear-gradient(135deg,#dc3545,#b02a37); animation: pulse 1.2s infinite; }
 
 .vc-stop-btn {
@@ -42,22 +42,22 @@
 
 /* ── Transcript box ───────────────────────────────────── */
 .vc-transcript-box {
-  background: #f7f3ec; border: 1px solid #EAD9BF;
+  background: #f7f3ec; border: 1px solid #E0D8C2;
   border-radius: 10px; padding: 14px 16px;
-  min-height: 64px; font-family: 'Poppins', sans-serif;
+  min-height: 64px; font-family: var(--font-body);
   font-size: .9rem; color: #3a2a1a; line-height: 1.6;
 }
 .vc-corrected-box {
-  background: #fff; border: 1.5px solid #F5A623;
+  background: #fff; border: 1.5px solid #D3A121;
   border-radius: 10px; padding: 12px 16px;
-  min-height: 50px; font-size: .88rem; color: #2C1810;
+  min-height: 50px; font-size: .88rem; color: #3A2E21;
 }
 
 /* ── Review cards ─────────────────────────────────────── */
-.review-card { border-color: #EAD9BF; transition: box-shadow .2s; }
+.review-card { border-color: #E0D8C2; transition: box-shadow .2s; }
 .review-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); }
 .review-card .card-header {
-  background: #f7f3ec; border-bottom: 1px solid #EAD9BF;
+  background: #f7f3ec; border-bottom: 1px solid #E0D8C2;
   padding: 10px 14px;
 }
 .form-label-sm {
@@ -67,7 +67,7 @@
 }
 
 /* ── Queue list ───────────────────────────────────────── */
-.bg-amber { background: #F5A623 !important; }
+.bg-amber { background: #D3A121 !important; }
 
 /* Parole corrette dal vocabolario apicolo */
 mark.vc-mark {
@@ -76,7 +76,7 @@ mark.vc-mark {
   border-radius: 3px;
   padding: 0 3px;
   font-weight: 600;
-  border-bottom: 1.5px solid #F5A623;
+  border-bottom: 1.5px solid #D3A121;
 }
 
 /* Item coda modificabile */
@@ -92,13 +92,13 @@ mark.vc-mark {
 }
 
 .trigger-hint {
-  background: #fff8e6; border: 1px solid #F5A623;
+  background: #fff8e6; border: 1px solid #D3A121;
   border-radius: 8px; padding: 10px 14px;
   font-size: .82rem; color: #7a5000; line-height: 1.6;
 }
 .trigger-pill {
   display: inline-block;
-  background: #F5A623; color: #fff;
+  background: #D3A121; color: #fff;
   border-radius: 12px; padding: 1px 9px;
   font-weight: 700; font-size: .78rem;
   margin: 1px;
@@ -119,14 +119,14 @@ mark.vc-mark {
   to   { opacity:1; transform:scale(1) rotate(0deg); }
 }
 @keyframes vcBubblePulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(245,166,35,.5); }
-  50%     { box-shadow: 0 0 0 10px rgba(245,166,35,0); }
+  0%,100% { box-shadow: 0 0 0 0 rgba(211,161,33,.5); }
+  50%     { box-shadow: 0 0 0 10px rgba(211,161,33,0); }
 }
 
 /* Overlay backdrop */
 .vc-info-backdrop {
   position: fixed; inset: 0;
-  background: rgba(44,24,16,.35);
+  background: rgba(58,46,33,.35);
   z-index: 1055;
   display: flex; align-items: center; justify-content: center;
   padding: 16px;
@@ -134,11 +134,11 @@ mark.vc-mark {
 /* Info card */
 .vc-info-panel {
   background: #FFFDF5;
-  border: 1.5px solid #EAD9BF;
+  border: 1.5px solid #E0D8C2;
   border-radius: 16px;
   padding: 24px 28px;
   max-width: 520px; width: 100%;
-  box-shadow: 0 12px 40px rgba(44,24,16,.18);
+  box-shadow: 0 12px 40px rgba(58,46,33,.18);
   position: relative;
   transform-origin: center center; /* CRITICO: scala dal centro, non dal bordo */
 }
@@ -146,8 +146,8 @@ mark.vc-mark {
   animation: vcInfoShrink .45s cubic-bezier(.4,0,.6,1) forwards;
 }
 .vc-info-title {
-  font-family: 'Caveat', cursive;
-  font-size: 1.6rem; color: #2C1810;
+  font-family: var(--font-display);
+  font-size: 1.25rem; color: #3A2E21;
   margin-bottom: 10px; display: flex; align-items: center; gap: 10px;
 }
 .vc-info-close {
@@ -158,11 +158,11 @@ mark.vc-mark {
   cursor: pointer; color: #7a5000; font-size: 1rem;
   transition: background .2s;
 }
-.vc-info-close:hover { background: #EAD9BF; }
+.vc-info-close:hover { background: #E0D8C2; }
 .vc-info-examples {
   background: #fff8e6; border-radius: 10px;
   padding: 12px 14px; font-size: .82rem; color: #7a5000;
-  border: 1px solid #F5A623; margin-top: 14px;
+  border: 1px solid #D3A121; margin-top: 14px;
 }
 .vc-info-examples em { display:block; margin-bottom:4px; line-height:1.55; }
 .vc-info-examples em:last-child { margin-bottom:0; }
@@ -171,25 +171,25 @@ mark.vc-mark {
 .vc-bubble {
   position: fixed; top: 72px; right: 20px;
   width: 46px; height: 46px; border-radius: 50%;
-  background: linear-gradient(135deg,#F5A623,#e8920f);
+  background: linear-gradient(135deg,#D3A121,#B58A1A);
   color: #fff; font-size: 1.2rem;
   border: none; cursor: pointer;
   display: none; align-items: center; justify-content: center;
-  box-shadow: 0 3px 14px rgba(245,166,35,.5);
+  box-shadow: 0 3px 14px rgba(211,161,33,.5);
   z-index: 1054;
   animation: vcBubbleIn .4s cubic-bezier(.22,.68,0,1.2) both, vcBubblePulse 2s ease-in-out 1s 3;
   transition: transform .15s, box-shadow .15s;
 }
 .vc-bubble:hover {
   transform: scale(1.12);
-  box-shadow: 0 5px 20px rgba(245,166,35,.65);
+  box-shadow: 0 5px 20px rgba(211,161,33,.65);
 }
 /* tooltip sul bubble */
 .vc-bubble::after {
   content: "{% trans 'Guida' %}";
   position: absolute; right: calc(100% + 8px); top: 50%;
   transform: translateY(-50%);
-  background: #2C1810; color: #fff;
+  background: #3A2E21; color: #fff;
   font-size: .72rem; white-space: nowrap;
   padding: 3px 8px; border-radius: 6px;
   opacity: 0; pointer-events: none;
@@ -215,7 +215,7 @@ mark.vc-mark {
      id="vc-restore-banner" role="alert">
   <i class="bi bi-arrow-counterclockwise fs-5 flex-shrink-0"></i>
   <div class="flex-grow-1">
-    <strong>{% trans "Sessione precedente ripristinata" %}</strong> — {% trans "hai trascrizioni in coda e/o controlli già elaborati da Gemini." %}
+    <strong>{% trans "Sessione precedente ripristinata" %}</strong>: {% trans "hai trascrizioni in coda e/o controlli già elaborati da Gemini." %}
   </div>
   <button class="btn btn-sm btn-outline-danger flex-shrink-0" id="vc-clear-session-btn">
     <i class="bi bi-trash3 me-1"></i>{% trans "Nuova sessione" %}
@@ -234,7 +234,7 @@ mark.vc-mark {
         <div class="mb-3">
           <label class="form-label fw-semibold">{% trans "Apiario" %}</label>
           <select class="form-select" id="vc-apiario">
-            <option value="">{% trans "— Seleziona apiario —" %}</option>
+            <option value="">{% trans "Seleziona apiario" %}</option>
             {% for a in apiari %}
             <option value="{{ a.id }}">{{ a.nome }}</option>
             {% endfor %}
@@ -376,12 +376,12 @@ mark.vc-mark {
       <i class="bi bi-x-lg"></i>
     </button>
     <div class="vc-info-title">
-      <i class="bi bi-mic-fill" style="color:#F5A623"></i>
+      <i class="bi bi-mic-fill" style="color:#D3A121"></i>
       {% trans "Come funziona il Controllo Vocale" %}
     </div>
     <ol class="mb-2 small" style="color:#5a3a1a;padding-left:18px;line-height:1.8">
       <li>{% trans "Seleziona l'<strong>apiario</strong> e abilita la <strong>modalità batch</strong> se vuoi registrare più arnie di fila." %}</li>
-      <li>{% trans "Premi" %} <i class="bi bi-mic-fill text-amber"></i> {% trans "e parla — la trascrizione appare in tempo reale." %}</li>
+      <li>{% trans "Premi" %} <i class="bi bi-mic-fill text-amber"></i> {% trans "e parla: la trascrizione appare in tempo reale." %}</li>
       <li>{% trans "Usa i <strong>comandi vocali</strong> per passare all'arnia successiva:" %}
         <span class="trigger-pill">{% trans "avanti" %}</span>
         <span class="trigger-pill">{% trans "prossima" %}</span>
@@ -495,7 +495,7 @@ mark.vc-mark {
     animateIn();
   }
 
-  /* Event listeners — registrati SEMPRE (non dentro un if/return) */
+  /* Event listeners: registrati SEMPRE (non dentro un if/return) */
   document.getElementById('vc-info-close').addEventListener('click', () => closePanel(true));
   document.getElementById('vc-info-got-it').addEventListener('click', () => closePanel(true));
   backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closePanel(true); });

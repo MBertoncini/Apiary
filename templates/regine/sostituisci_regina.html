@@ -8,7 +8,7 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">🔄 {% trans "Sostituzione Regina" %}</h1>
+    <h1 class="page-title">{% trans "Sostituzione Regina" %}</h1>
     <p class="page-subtitle"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'visualizza_regina' colonia.id %}">{% blocktrans with cont=colonia.contenitore_display %}Regina – {{ cont }}{% endblocktrans %}</a> › {% trans "Sostituzione" %}</p>
   </div>
   <a href="{% url 'visualizza_regina' colonia.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Annulla" %}</a>

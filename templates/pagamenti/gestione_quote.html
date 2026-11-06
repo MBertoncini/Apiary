@@ -8,7 +8,7 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">💰 {% trans "Quote Utenti" %}</h1>
+    <h1 class="page-title">{% trans "Quote Utenti" %}</h1>
     <p class="page-subtitle"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a> › <a href="{% url 'gestione_pagamenti' %}{% if gruppo_selezionato %}?gruppo_id={{ gruppo_selezionato.id }}{% endif %}">{% trans "Pagamenti" %}</a> › {% trans "Quote" %}</p>
   </div>
   <div class="d-flex gap-2 align-items-center">

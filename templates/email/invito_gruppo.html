@@ -7,20 +7,20 @@
   <title>{% blocktrans with nome=invito.gruppo.nome %}Invito al gruppo {{ nome }}{% endblocktrans %}</title>
   <style>
     body { font-family: 'Poppins', Arial, sans-serif; background: #FFFDF5; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 12px; border: 1px solid #EAD9BF; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-    .header { background: #2C1810; padding: 32px 40px; text-align: center; }
-    .header h1 { color: #F5A623; font-size: 24px; margin: 0 0 4px; }
-    .header p { color: #EAD9BF; margin: 0; font-size: 14px; }
+    .container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 12px; border: 1px solid #E0D8C2; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .header { background: #3A2E21; padding: 32px 40px; text-align: center; }
+    .header h1 { color: #D3A121; font-size: 24px; margin: 0 0 4px; }
+    .header p { color: #E0D8C2; margin: 0; font-size: 14px; }
     .body { padding: 40px; }
-    .body h2 { color: #2C1810; font-size: 20px; margin-top: 0; }
+    .body h2 { color: #3A2E21; font-size: 20px; margin-top: 0; }
     .body p { color: #555; line-height: 1.7; }
-    .info-box { background: #FFFDF5; border: 1px solid #EAD9BF; border-radius: 8px; padding: 16px 20px; margin: 24px 0; }
+    .info-box { background: #FFFDF5; border: 1px solid #E0D8C2; border-radius: 8px; padding: 16px 20px; margin: 24px 0; }
     .info-box p { margin: 4px 0; color: #444; font-size: 14px; }
-    .info-box strong { color: #2C1810; }
-    .btn { display: inline-block; background: #F5A623; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 16px 0; }
+    .info-box strong { color: #3A2E21; }
+    .btn { display: inline-block; background: #D3A121; color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 16px 0; }
     .btn:hover { background: #e09415; }
-    .footer { background: #f8f4ec; border-top: 1px solid #EAD9BF; padding: 20px 40px; text-align: center; color: #888; font-size: 12px; }
-    .footer a { color: #F5A623; text-decoration: none; }
+    .footer { background: #f8f4ec; border-top: 1px solid #E0D8C2; padding: 20px 40px; text-align: center; color: #888; font-size: 12px; }
+    .footer a { color: #D3A121; text-decoration: none; }
   </style>
 </head>
 <body>
@@ -51,7 +51,7 @@
 
       <p style="font-size: 13px; color: #888;">
         {% trans "Se il pulsante non funziona, copia e incolla questo link nel tuo browser:" %}<br>
-        <a href="{{ accept_url }}" style="color: #F5A623; word-break: break-all;">{{ accept_url }}</a>
+        <a href="{{ accept_url }}" style="color: #D3A121; word-break: break-all;">{{ accept_url }}</a>
       </p>
 
       <p style="font-size: 13px; color: #aaa;">

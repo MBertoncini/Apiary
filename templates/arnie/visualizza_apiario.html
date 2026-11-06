@@ -6,7 +6,7 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">🏡 {{ apiario.nome }}</h1>
+    <h1 class="page-title">{{ apiario.nome }}</h1>
     <p class="page-subtitle">
       <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione }}
       {% if apiario.has_coordinates %}
@@ -227,13 +227,13 @@
                                 <div class="card h-100 arnia-card" data-arnia-id="{{ arnia.id }}" data-arnia-numero="{{ arnia.numero }}">
 
                                     <!-- Striscia colorata superiore (stile Flutter) -->
-                                    <div class="arnia-top-strip" style="background:{{ arnia.colore_hex|default:'#F5A623' }};"></div>
+                                    <div class="arnia-top-strip" style="background:{{ arnia.colore_hex|default:'#D3A121' }};"></div>
 
                                     <div class="card-body pb-2">
                                         <!-- Header: badge numero + info + status -->
                                         <div class="d-flex align-items-center gap-3 mb-3">
                                             <div class="arnia-num-badge flex-shrink-0"
-                                                 style="background:{{ arnia.colore_hex|default:'#F5A623' }};
+                                                 style="background:{{ arnia.colore_hex|default:'#D3A121' }};
                                                         color:{% if arnia.colore == 'bianco' or arnia.colore == 'giallo' %}#212529{% else %}#fff{% endif %};">
                                                 {{ arnia.numero }}
                                             </div>
@@ -283,7 +283,7 @@
                                                       <span class="regina-label-ok">{% trans "Regina presente" %}</span>
                                                       <span class="regina-meta">
                                                         {% if controllo.colonia.regina and controllo.colonia.regina.marcata %}
-                                                          <span class="regina-mark-dot" style="background:{{ controllo.colonia.regina.get_hex_colore_marcatura|default:'#F5A623' }};"></span>
+                                                          <span class="regina-mark-dot" style="background:{{ controllo.colonia.regina.get_hex_colore_marcatura|default:'#D3A121' }};"></span>
                                                           {% trans "marcata" %}
                                                         {% else %}&nbsp;{% endif %}
                                                       </span>
@@ -406,7 +406,7 @@
 
 <style>
 /* ══════════════════════════════════════
-   ARNIA CARD — stile ispirato a Flutter
+   ARNIA CARD: stile ispirato a Flutter
    ══════════════════════════════════════ */
 
 /* Striscia colorata in cima alla card */
@@ -425,7 +425,7 @@
   justify-content: center;
   font-size: 1.35rem;
   font-weight: 800;
-  font-family: var(--font-display, 'Caveat', cursive);
+  font-family: var(--font-display);
   box-shadow: 0 3px 8px rgba(0,0,0,.22);
   border: 1px solid rgba(0,0,0,.09);
   flex-shrink: 0;
@@ -435,7 +435,7 @@
 .arnia-title {
   font-weight: 700;
   font-size: 1.1rem;
-  font-family: var(--font-display, 'Caveat', cursive);
+  font-family: var(--font-display);
   line-height: 1.2;
 }
 .arnia-subtitle {
@@ -503,7 +503,7 @@
 }
 .mini-frame:hover { filter: brightness(1.12); transform: scaleY(1.08); }
 
-/* Colori telaini — palette Flutter */
+/* Colori telaini: palette Flutter */
 .mini-frame.t-covata          { background: #FF8C42; }
 .mini-frame.t-scorte          { background: #FFD166; }
 .mini-frame.t-misto           { background: linear-gradient(180deg, #FF8C42 50%, #FFD166 50%); }
@@ -551,7 +551,7 @@
   justify-content: space-between;
   gap: 6px;
   padding: 10px 14px;
-  border-top: 1px solid var(--cream-border, #EAD9BF);
+  border-top: 1px solid var(--cream-border, #E0D8C2);
 }
 .arnia-btn-main { flex-shrink: 0; }
 .arnia-btn-group { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
@@ -698,7 +698,7 @@
 .tool-sep { width:1px;background:#d8cdb8;margin:2px 4px;align-self:stretch; }
 .tool-btn { width:34px;height:34px;border-radius:8px;border:1.5px solid transparent;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#5a4030;transition:background .15s,border-color .15s,color .15s; }
 .tool-btn:hover:not(:disabled) { background:#ede0c8;border-color:#d4b896; }
-.tool-btn.active { background:#F5A623;border-color:#d4851a;color:#fff;box-shadow:0 2px 6px rgba(245,166,35,.35); }
+.tool-btn.active { background:#D3A121;border-color:#d4851a;color:#fff;box-shadow:0 2px 6px rgba(211,161,33,.35); }
 .tool-btn.danger:not(:disabled):hover { background:#fee2e2;border-color:#fca5a5;color:#b91c1c; }
 .tool-btn:disabled { opacity:.38;cursor:not-allowed; }
 #piantina-body { background:#e8e0c8;border-radius:0 0 12px 12px;overflow:hidden; }
@@ -706,19 +706,19 @@
 .piantina-info { position:absolute;bottom:40px;right:12px;width:220px;border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.22);z-index:20;animation:slideInInfo .2s ease; }
 #piantina-nucleo-info { bottom:40px;right:240px; }
 @keyframes slideInInfo { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
-.piantina-tooltip { position:absolute;pointer-events:none;z-index:30;background:rgba(44,24,16,.92);color:#fff;padding:6px 10px;border-radius:7px;font-size:.75rem;white-space:normal;max-width:230px;line-height:1.4;box-shadow:0 2px 8px rgba(0,0,0,.35); }
-.piantina-status { position:absolute;bottom:0;left:0;right:0;background:rgba(44,24,16,.72);color:rgba(255,255,255,.9);font-size:.7rem;padding:3px 10px;pointer-events:none;z-index:10;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-@keyframes arniaHighlight { 0%,100%{box-shadow:none} 20%,80%{box-shadow:0 0 0 4px #F5A623,0 0 20px rgba(245,166,35,.5)} }
+.piantina-tooltip { position:absolute;pointer-events:none;z-index:30;background:rgba(58,46,33,.92);color:#fff;padding:6px 10px;border-radius:7px;font-size:.75rem;white-space:normal;max-width:230px;line-height:1.4;box-shadow:0 2px 8px rgba(0,0,0,.35); }
+.piantina-status { position:absolute;bottom:0;left:0;right:0;background:rgba(58,46,33,.72);color:rgba(255,255,255,.9);font-size:.7rem;padding:3px 10px;pointer-events:none;z-index:10;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+@keyframes arniaHighlight { 0%,100%{box-shadow:none} 20%,80%{box-shadow:0 0 0 4px #D3A121,0 0 20px rgba(211,161,33,.5)} }
 .arnia-highlight { animation:arniaHighlight 2.2s ease; }
 /* Nucleo color picker */
 .nucleo-color-btn { width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:transform .15s,border-color .15s;flex-shrink:0; }
 .nucleo-color-btn:hover { transform:scale(1.15); }
-.nucleo-color-btn.active { border-color:#2C1810;transform:scale(1.1);box-shadow:0 0 0 2px #F5A623; }
+.nucleo-color-btn.active { border-color:#3A2E21;transform:scale(1.1);box-shadow:0 0 0 2px #D3A121; }
 /* Tray arnie non posizionate */
 #arnie-tray { flex-direction:column; }
 .tray-header { padding:8px 10px;font-size:.68rem;font-weight:700;color:#5a3a1a;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #e8dfc8;background:#ede4d0;display:flex;align-items:center;gap:5px;position:sticky;top:0;z-index:2; }
 .tray-hint { padding:6px 8px;font-size:.66rem;color:#8a6a3a;text-align:center;line-height:1.35;border-bottom:1px solid #e8dfc8;font-style:italic; }
-.tray-arnia-item { margin:6px 8px;padding:7px 9px;border-radius:8px;cursor:grab;display:flex;align-items:center;gap:7px;font-size:.78rem;font-weight:600;border:1.5px solid rgba(0,0,0,.09);background:#fff;user-select:none;transition:box-shadow .15s,transform .1s;color:#2c1810; }
+.tray-arnia-item { margin:6px 8px;padding:7px 9px;border-radius:8px;cursor:grab;display:flex;align-items:center;gap:7px;font-size:.78rem;font-weight:600;border:1.5px solid rgba(0,0,0,.09);background:#fff;user-select:none;transition:box-shadow .15s,transform .1s;color:#3A2E21; }
 .tray-arnia-item:hover { box-shadow:0 3px 10px rgba(0,0,0,.16);transform:translateY(-1px); }
 .tray-arnia-item:active { cursor:grabbing; }
 .tray-arnia-dot { width:18px;height:18px;border-radius:4px;flex-shrink:0;border:1px solid rgba(0,0,0,.14); }
@@ -751,7 +751,7 @@ const PIANTINA = (() => {
   function toF(cx,cy){return[(cx-vp.x)/vp.scale,(cy-vp.y)/vp.scale];}
   function mPos(e){const r=canvas.getBoundingClientRect(),s=e.touches?e.touches[0]:e;return[s.clientX-r.left,s.clientY-r.top];}
   function snapV(v){return snapOn?Math.round(v/SNAP)*SNAP:v;}
-  function hexRgb(h){h=(h||'#F5A623').replace('#','');return{r:parseInt(h.slice(0,2),16),g:parseInt(h.slice(2,4),16),b:parseInt(h.slice(4,6),16)};}
+  function hexRgb(h){h=(h||'#D3A121').replace('#','');return{r:parseInt(h.slice(0,2),16),g:parseInt(h.slice(2,4),16),b:parseInt(h.slice(4,6),16)};}
   function lum({r,g,b}){return(0.299*r+0.587*g+0.114*b)/255;}
   function tcol(hex){return lum(hexRgb(hex))>0.55?'#111':'#fff';}
   function shade(hex,p){const{r,g,b}=hexRgb(hex),f=p/100,c=v=>Math.max(0,Math.min(255,Math.round(v+255*f)));return'#'+[c(r),c(g),c(b)].map(v=>v.toString(16).padStart(2,'0')).join('');}
@@ -839,7 +839,7 @@ const PIANTINA = (() => {
 
   function drawTree(el,isSel,isHov){
     const s=vp.scale,[x,y]=toS(el.x,el.y),tw=10*s,th=24*s,fw=44*s,fh=38*s;
-    if(isSel){ctx.strokeStyle='rgba(245,166,35,.7)';ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y-fh*.5,fw*.58,0,Math.PI*2);ctx.stroke();}
+    if(isSel){ctx.strokeStyle='rgba(211,161,33,.7)';ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y-fh*.5,fw*.58,0,Math.PI*2);ctx.stroke();}
     ctx.fillStyle='#795548';ctx.beginPath();ctx.roundRect(x-tw/2,y,tw,th,[2*s]);ctx.fill();ctx.strokeStyle='#4e342e';ctx.lineWidth=s;ctx.stroke();
     ctx.fillStyle='#1b5e20';ctx.beginPath();ctx.arc(x-fw*.22,y-fh*.3,fw*.38,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(x+fw*.22,y-fh*.3,fw*.38,0,Math.PI*2);ctx.fill();
     ctx.fillStyle=isHov?'#388e3c':'#2e7d32';ctx.beginPath();ctx.arc(x,y-fh*.5,fw*.48,0,Math.PI*2);ctx.fill();
@@ -1011,11 +1011,11 @@ const PIANTINA = (() => {
 
   /* ─── Dispatcher principale ─────────────────────────────────── */
   function drawHive(x,y,lbl,col,isSel,isHov,tipo){
-    tipo=tipo||'dadant';col=col||'#F5A623';
+    tipo=tipo||'dadant';col=col||'#D3A121';
     const isSmall=TIPO_SMALL.has(tipo);
     const s=vp.scale,sz=(isSmall?70:CELL)*s,cx=x-sz/2,cy=y-sz/2;
     const c=isHov?shade(col,12):col;
-    ctx.shadowColor=isSel?'#F5A623':'rgba(0,0,0,.22)';ctx.shadowBlur=isSel?16:6;ctx.shadowOffsetY=isSel?0:3;
+    ctx.shadowColor=isSel?'#D3A121':'rgba(0,0,0,.22)';ctx.shadowBlur=isSel?16:6;ctx.shadowOffsetY=isSel?0:3;
     switch(tipo){
       case 'langstroth':        _drawLangstroth(cx,cy,sz,s,c,col);break;
       case 'top_bar':           _drawTopBar(cx,cy,sz,s,c,col);break;
@@ -1030,18 +1030,18 @@ const PIANTINA = (() => {
       default:                  _drawDadant(cx,cy,sz,s,c,col);break;
     }
     ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetY=0;
-    if(isSel){ctx.strokeStyle='#F5A623';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(cx-3,cy-3,sz+6,sz+6,[6*s]);ctx.stroke();}
+    if(isSel){ctx.strokeStyle='#D3A121';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(cx-3,cy-3,sz+6,sz+6,[6*s]);ctx.stroke();}
     _hiveLabel(cx,cy,sz,s,lbl,col,isSmall);
   }
 
   function drawVialettoPreview(){
     if(tool!=='vialetto'||!pathPts.length)return;
     const pts=[...pathPts,...(pathPrev?[pathPrev]:[])];
-    ctx.save();ctx.setLineDash([8,6]);ctx.strokeStyle='rgba(245,166,35,.75)';ctx.lineWidth=3;ctx.lineCap='round';
+    ctx.save();ctx.setLineDash([8,6]);ctx.strokeStyle='rgba(211,161,33,.75)';ctx.lineWidth=3;ctx.lineCap='round';
     ctx.beginPath();const[sx,sy]=toS(pts[0].x,pts[0].y);ctx.moveTo(sx,sy);
     for(let i=1;i<pts.length;i++){const[px,py]=toS(pts[i].x,pts[i].y);ctx.lineTo(px,py);}ctx.stroke();ctx.setLineDash([]);
-    for(const p of pathPts){const[px,py]=toS(p.x,p.y);ctx.fillStyle='#F5A623';ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill();}
-    if(pathPrev){const[px,py]=toS(pathPrev.x,pathPrev.y);ctx.fillStyle='rgba(245,166,35,.5)';ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill();}
+    for(const p of pathPts){const[px,py]=toS(p.x,p.y);ctx.fillStyle='#D3A121';ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill();}
+    if(pathPrev){const[px,py]=toS(pathPrev.x,pathPrev.y);ctx.fillStyle='rgba(211,161,33,.5)';ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill();}
     ctx.restore();
   }
 
@@ -1334,7 +1334,7 @@ const PIANTINA = (() => {
 
   function showInfo(id){
     const a=ARNIE_DATA[id];if(!a||!infoEl)return;
-    const rB=a.presenza_regina===true?'<span class="badge bg-success" style="font-size:.7rem">Presente</span>':a.presenza_regina===false?'<span class="badge bg-danger" style="font-size:.7rem">Assente</span>':'<span class="badge bg-secondary" style="font-size:.7rem">—</span>';
+    const rB=a.presenza_regina===true?'<span class="badge bg-success" style="font-size:.7rem">Presente</span>':a.presenza_regina===false?'<span class="badge bg-danger" style="font-size:.7rem">Assente</span>':'<span class="badge bg-secondary" style="font-size:.7rem">-</span>';
     const w=(a.problemi_sanitari?'<span class="badge bg-danger ms-1" style="font-size:.68rem">Problemi</span>':'')+(a.sciamatura?'<span class="badge bg-warning text-dark ms-1" style="font-size:.68rem">Sciamatura</span>':'');
     // Calcola i conteggi dalla telaini_config se disponibile
     let nCovata=a.telaini_covata??null, nScorte=a.telaini_scorte??null, nDiaframma=null, nTrapp=0, nGabbia=0;
@@ -1344,15 +1344,15 @@ const PIANTINA = (() => {
       +'<div style="padding:10px 12px;background:rgba(255,253,245,.97)">'
       +'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Tipo</small><small class="fw-semibold" style="font-size:.75rem">'+tipoLbl+'</small></div>'
       +'<div class="d-flex justify-content-between align-items-center mb-1"><small class="text-muted">Regina</small>'+rB+'</div>'
-      +'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Covata</small><small class="fw-semibold">'+(nCovata??'—')+' tel.</small></div>'
-      +'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Scorte</small><small class="fw-semibold">'+(nScorte??'—')+' tel.</small></div>'
+      +'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Covata</small><small class="fw-semibold">'+(nCovata??'-')+' tel.</small></div>'
+      +'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Scorte</small><small class="fw-semibold">'+(nScorte??'-')+' tel.</small></div>'
       +(nDiaframma!==null?'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Diaframma</small><small class="fw-semibold">'+nDiaframma+' tel.</small></div>':'')
       +(nTrapp>0?'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Trapp. Varroa</small><small class="fw-semibold" style="color:#6D4C41">'+nTrapp+' tel.</small></div>':'')
       +(nGabbia>0?'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Gabbia Regina</small><small class="fw-semibold" style="color:#7E57C2">'+nGabbia+' tel.</small></div>':'')
       +(a.ultimo_controllo?'<div class="d-flex justify-content-between mb-1"><small class="text-muted">Controllo</small><small>'+a.ultimo_controllo+'</small></div>':'')
       +(w?'<div class="mt-1">'+w+'</div>':'')
       +(a.note?'<p class="mb-0 mt-2 fst-italic" style="font-size:.72rem;color:#666">"'+a.note+'"</p>':'')
-      +'<button onclick="PIANTINA.scrollToArnia(\''+id+'\')" class="btn btn-sm w-100 mt-2 fw-semibold" style="background:#F5A623;color:#2C1810;border:none"><i class="bi bi-arrow-down-circle me-1"></i>Vedi dettagli</button></div>';
+      +'<button onclick="PIANTINA.scrollToArnia(\''+id+'\')" class="btn btn-sm w-100 mt-2 fw-semibold" style="background:#D3A121;color:#3A2E21;border:none"><i class="bi bi-arrow-down-circle me-1"></i>Vedi dettagli</button></div>';
     infoEl.style.display='block';
   }
   function hideInfo(){if(infoEl)infoEl.style.display='none';}
@@ -1400,7 +1400,7 @@ const PIANTINA = (() => {
       const lbl=TIPO_LABELS[tipo]||tipo;
       const desc=TIPO_DESC[tipo]||'';
       html='<strong style="font-size:.82rem">Arnia #'+(a?.numero||'?')+'</strong>'
-          +'<br><span style="color:#F5A623;font-size:.76rem">'+lbl+'</span>'
+          +'<br><span style="color:#D3A121;font-size:.76rem">'+lbl+'</span>'
           +(desc?'<br><span style="font-size:.72rem;opacity:.85">'+desc+'</span>':'')
           +'<br><span style="font-size:.68rem;opacity:.6;margin-top:2px;display:block">Trascina · [Canc] rimuove dalla piantina</span>';
     } else {
@@ -1423,7 +1423,7 @@ const PIANTINA = (() => {
   }
 
   function setTool(t){tool=t;if(t!=='vialetto'){pathPts=[];pathPrev=null;}document.querySelectorAll('.tool-btn[id^="tool-"]').forEach(b=>b.classList.remove('active'));document.getElementById('tool-'+t)?.classList.add('active');const c={select:'default',albero:'crosshair',vialetto:'crosshair',nucleo:'crosshair'};canvas.style.cursor=c[t]||'default';updStatus();needDraw=true;}
-  function updStatus(){if(!statEl)return;const n={select:'Puntatore',albero:'Pianta albero',vialetto:'Disegna vialetto',nucleo:'Aggiungi nucleo'};const t={select:'Clic elemento → seleziona/sposta · Clic prato → panoramica · Rotella zoom · [Canc] per rimuovere',albero:'Clicca per piazzare',vialetto:'Clicca per punti · Doppio clic per terminare · Esc per annullare',nucleo:'Clicca per posizionare (apre configurazione)'};statEl.textContent=(n[tool]||'')+'  —  '+(t[tool]||'')+(snapOn?' · Snap griglia':'')+(sel?' · Selezionato':'');}
+  function updStatus(){if(!statEl)return;const n={select:'Puntatore',albero:'Pianta albero',vialetto:'Disegna vialetto',nucleo:'Aggiungi nucleo'};const t={select:'Clic elemento → seleziona/sposta · Clic prato → panoramica · Rotella zoom · [Canc] per rimuovere',albero:'Clicca per piazzare',vialetto:'Clicca per punti · Doppio clic per terminare · Esc per annullare',nucleo:'Clicca per posizionare (apre configurazione)'};statEl.textContent=(n[tool]||'')+'  -  '+(t[tool]||'')+(snapOn?' · Snap griglia':'')+(sel?' · Selezionato':'');}
 
   let lastTD=null;
   function onTouchStart(e){if(e.touches.length===2)lastTD=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);else onDown(e);}

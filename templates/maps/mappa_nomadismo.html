@@ -2,7 +2,7 @@
 {% extends 'maps/base_map.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Mappa Nomadismo" %} — Apiary{% endblock %}
+{% block title %}{% trans "Mappa Nomadismo" %} - Apiary{% endblock %}
 
 {% block extra_css %}
 {{ block.super }}
@@ -18,13 +18,13 @@
   #pannello-info {
     position: absolute; top: 10px; right: 10px;
     width: 270px; background: #fff;
-    border-radius: 12px; border: 1px solid #EAD9BF;
-    box-shadow: 0 4px 20px rgba(44,24,16,.18);
+    border-radius: 12px; border: 1px solid #E0D8C2;
+    box-shadow: 0 4px 20px rgba(58,46,33,.18);
     z-index: 1000; overflow: hidden; transition: all .22s;
   }
   #pannello-info.nascosto { width: 42px; }
   .pannello-header {
-    background: linear-gradient(135deg,#2C1810,#4a2c1a);
+    background: var(--honey);
     color: #fff; padding: 10px 14px;
     display: flex; align-items: center; justify-content: space-between;
     cursor: pointer; user-select: none;
@@ -41,7 +41,7 @@
     padding: 5px 0; border-bottom: 1px solid #f0e8d8; font-size: .8rem; gap: 8px;
   }
   .specie-row:last-child { border-bottom: none; }
-  .specie-row em { font-style: italic; color: #2C1810; }
+  .specie-row em { font-style: italic; color: #3A2E21; }
   .sp-fam   { color: #9e9e9e; font-size: .72rem; }
   .sp-badge { font-size: .65rem; font-weight: 700; background: #e8f5e9; color: #2e7d32;
               border-radius: 8px; padding: 1px 6px; white-space: nowrap; }
@@ -63,7 +63,7 @@
 
   #risultato-click {
     display: none; margin-top: 10px; padding: 12px 14px;
-    background: #FFFDF5; border-radius: 8px; border: 1px solid #EAD9BF;
+    background: #FFFDF5; border-radius: 8px; border: 1px solid #E0D8C2;
   }
 </style>
 {% endblock %}
@@ -86,7 +86,7 @@
 
     <!-- Selezione miele -->
     <div class="small fw-semibold text-muted mb-2">
-      <i class="bi bi-jar-fill me-1" style="color:var(--honey);"></i>{% trans "Seleziona il tipo di miele:" %}
+      <i class="bi bi-archive-fill me-1" style="color:var(--honey);"></i>{% trans "Seleziona il tipo di miele:" %}
     </div>
     <div class="d-flex flex-wrap gap-2 mb-3" id="presetBar">
       <button class="preset-btn active" data-preset="nessuno"
@@ -96,7 +96,7 @@
       {% for key, p in preset_miele.items %}
       <button class="preset-btn" data-preset="{{ key }}"
               style="border-color:{{ p.colore_bordo }};background:{{ p.colore }};"
-              title="{{ p.pianta }} — {{ p.periodo }}">
+              title="{{ p.pianta }} - {{ p.periodo }}">
         {{ p.emoji }} {{ p.nome }}
       </button>
       {% endfor %}
@@ -104,7 +104,7 @@
 
     <!-- Info preset -->
     <div id="preset-info" class="mb-3 p-3 rounded"
-         style="display:none;background:#FFFDF5;border:1px solid #EAD9BF;">
+         style="display:none;background:#FFFDF5;border:1px solid #E0D8C2;">
       <div class="d-flex align-items-center gap-3 flex-wrap">
         <span id="pi-emoji" style="font-size:1.6rem;"></span>
         <div>
@@ -132,7 +132,7 @@
       <div class="d-flex align-items-center justify-content-between mb-2">
         <div class="fw-semibold small">
           <i class="bi bi-tree text-success me-1"></i>
-          {% trans "Flora mellifera" %} — <span id="click-label" class="text-muted fw-normal"></span>
+          {% trans "Flora mellifera" %} - <span id="click-label" class="text-muted fw-normal"></span>
         </div>
         <button class="btn-close btn-sm" id="btnChiudiClick"></button>
       </div>
@@ -176,7 +176,7 @@
         {% trans "Densità GBIF (milioni di osservazioni aggregate)" %}
       </span>
       <span class="vr"></span>
-      <span><span class="badge me-1" style="background:#F5A623;">🍯</span>{% trans "Tuo apiario" %}</span>
+      <span><span class="badge me-1" style="background:#D3A121;">🍯</span>{% trans "Tuo apiario" %}</span>
       <span class="ms-auto"><i class="bi bi-info-circle me-1"></i>{% trans "Dati GBIF 2000–2025" %}</span>
     </div>
   </div>
@@ -284,7 +284,7 @@ var _nomadismoMap;
     }).addTo(map);
 
     document.getElementById('click-label').textContent =
-      lat.toFixed(3) + ', ' + lng.toFixed(3) + ' — raggio 5 km';
+      lat.toFixed(3) + ', ' + lng.toFixed(3) + ': raggio 5 km';
     document.getElementById('click-specie-list').innerHTML =
       '<div class="text-center py-2"><span class="spinner-border spinner-border-sm text-success"></span> Ricerca…</div>';
     document.getElementById('risultato-click').style.display = 'block';
@@ -352,7 +352,7 @@ var _nomadismoMap;
 
     var icon = L.divIcon({
       className: '', iconSize: [28,28], iconAnchor: [14,14], popupAnchor: [0,-14],
-      html: '<div style="width:28px;height:28px;border-radius:50%;background:#F5A623;'
+      html: '<div style="width:28px;height:28px;border-radius:50%;background:#D3A121;'
           + 'border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);'
           + 'display:flex;align-items:center;justify-content:center;">'
           + '<span style="font-size:13px;">🍯</span></div>',
@@ -362,7 +362,7 @@ var _nomadismoMap;
       '<div style="min-width:180px;"><div style="font-weight:700;">' + a.nome + '</div>'
       + (a.posizione ? '<div style="color:#7B6E5D;font-size:.82rem;">'
         + '<i class="bi bi-geo-alt"></i> ' + a.posizione + '</div>' : '')
-      + '<hr style="margin:6px 0;border-color:#EAD9BF;">'
+      + '<hr style="margin:6px 0;border-color:#E0D8C2;">'
       + '<a href="/app/apiario/' + a.id + '/" class="btn btn-sm btn-primary" style="font-size:.8rem;">'
       + '<i class="bi bi-grid"></i> Dettagli</a></div>'
     );

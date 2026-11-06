@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
-{% block title %}{% trans "Nuclei" %} — Apiary{% endblock %}
+{% block title %}{% trans "Nuclei" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -17,7 +17,7 @@
 <div class="row g-3 mb-4">
   <div class="col-sm-6 col-lg-3">
     <div class="card stat-card">
-      <div class="stat-icon" style="background:rgba(245,166,35,.15);">
+      <div class="stat-icon" style="background:rgba(211,161,33,.15);">
         <i class="bi bi-hexagon-half" style="color:var(--honey);"></i>
       </div>
       <div class="stat-value">{{ nuclei_attivi|length }}</div>
@@ -76,7 +76,7 @@
             </td>
             <td class="small text-muted">
               {% with last=nucleo.controlli.first %}
-                {% if last %}{{ last.data|date:"d/m/Y" }}{% else %}—{% endif %}
+                {% if last %}{{ last.data|date:"d/m/Y" }}{% else %}-{% endif %}
               {% endwith %}
             </td>
             <td class="text-end">
@@ -127,13 +127,13 @@
           <tr>
             <td class="text-muted">{% blocktrans with n=nucleo.numero %}Nucleo #{{ n }}{% endblocktrans %}</td>
             <td class="small text-muted">{{ nucleo.apiario.nome }}</td>
-            <td class="small">{{ nucleo.data_conversione|date:"d/m/Y"|default:"—" }}</td>
+            <td class="small">{{ nucleo.data_conversione|date:"d/m/Y"|default:"-" }}</td>
             <td>
               {% if nucleo.arnia %}
               <a href="{% url 'visualizza_apiario' nucleo.apiario.id %}" class="text-decoration-none small">
                 {% blocktrans with n=nucleo.arnia.numero %}Arnia #{{ n }}{% endblocktrans %}
               </a>
-              {% else %}—{% endif %}
+              {% else %}-{% endif %}
             </td>
           </tr>
           {% endfor %}

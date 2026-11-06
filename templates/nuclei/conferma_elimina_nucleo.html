@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% load i18n %}
-{% block title %}{% blocktrans with n=nucleo.numero %}Elimina Nucleo #{{ n }}{% endblocktrans %} — Apiary{% endblock %}
+{% block title %}{% blocktrans with n=nucleo.numero %}Elimina Nucleo #{{ n }}{% endblocktrans %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
     <h1 class="page-title"><i class="bi bi-trash me-2 text-danger"></i>{% trans "Elimina Nucleo" %}</h1>
-    <p class="page-subtitle">{% blocktrans with n=nucleo.numero a=nucleo.apiario.nome %}Nucleo #{{ n }} — {{ a }}{% endblocktrans %}</p>
+    <p class="page-subtitle">{% blocktrans with n=nucleo.numero a=nucleo.apiario.nome %}Nucleo #{{ n }} - {{ a }}{% endblocktrans %}</p>
   </div>
   <a href="{% url 'dettaglio_nucleo' nucleo.pk %}" class="btn btn-outline-secondary">
     <i class="bi bi-arrow-left me-1"></i>{% trans "Annulla" %}

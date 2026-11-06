@@ -959,7 +959,7 @@ def ajax_melari_disponibili(request, apiario_id):
     data = [
         {
             'id': m.id,
-            'label': f"Arnia #{m.colonia.arnia.numero if m.colonia and m.colonia.arnia else '?'} — Pos. {m.posizione} ({m.numero_telaini} telaini)",
+            'label': f"Arnia #{m.colonia.arnia.numero if m.colonia and m.colonia.arnia else '?'} - Pos. {m.posizione} ({m.numero_telaini} telaini)",
         }
         for m in melari
     ]
@@ -5550,9 +5550,9 @@ def export_ispezioni_pdf(request, apiario_id):
     story = []
 
     # Intestazione
-    story.append(Paragraph(f"Registro Ispezioni — {apiario.nome}", title_style))
+    story.append(Paragraph(f"Registro Ispezioni - {apiario.nome}", title_style))
     story.append(Paragraph(
-        f"Posizione: {apiario.posizione or '—'} | "
+        f"Posizione: {apiario.posizione or '-'} | "
         f"Generato il: {timezone.now().strftime('%d/%m/%Y')} | "
         f"Totale ispezioni: {controlli.count()}",
         subtitle_style
@@ -5565,7 +5565,7 @@ def export_ispezioni_pdf(request, apiario_id):
         for c in controlli:
             # Titolo riga ispezione
             story.append(Paragraph(
-                f"<b>Ispezione {c.data.strftime('%d/%m/%Y')}</b> — Arnia: <b>#{c.arnia.numero}</b>",
+                f"<b>Ispezione {c.data.strftime('%d/%m/%Y')}</b> - Arnia: <b>#{c.arnia.numero}</b>",
                 section_style
             ))
 
@@ -5701,7 +5701,7 @@ def export_vendite_csv(request):
         'Categoria', 'Tipo miele', 'Formato (g)', 'Quantità', 'Prezzo unitario (€)', 'Subtotale (€)', 'Note vendita'
     ])
     for v in vendite:
-        cliente_nome = v.cliente.nome if v.cliente_id else (v.acquirente_nome or '—')
+        cliente_nome = v.cliente.nome if v.cliente_id else (v.acquirente_nome or '-')
         for d in v.dettagli.all():
             writer.writerow([
                 v.data.strftime('%d/%m/%Y'),

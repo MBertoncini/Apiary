@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% trans "Guida" %} — Apiary{% endblock %}
+{% block title %}{% trans "Guida" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -10,9 +10,9 @@
         <div class="col-lg-8">
 
             <div class="d-flex align-items-center gap-3 mb-4">
-                <span style="font-size:2rem;">📖</span>
+                <i class="bi bi-book" style="font-size:1.6rem;color:var(--honey-darker);"></i>
                 <div>
-                    <h1 class="mb-0" style="font-family:'Caveat',cursive; font-size:2.2rem; color:#2C1810;">{% trans "Guida Completa" %}</h1>
+                    <h1 class="mb-0" style="font-size:1.55rem; color:#3A2E21;">{% trans "Guida Completa" %}</h1>
                     <p class="text-muted mb-0" style="font-size:0.9rem;">{% trans "Tutto quello che devi sapere per usare Apiary al meglio" %}</p>
                 </div>
             </div>
@@ -20,82 +20,82 @@
             <div class="accordion" id="guidaAccordion">
 
                 <!-- 1. Primi Passi -->
-                <div class="accordion-item" style="border:1px solid #EAD9BF; border-radius:12px; margin-bottom:12px; overflow:hidden;">
+                <div class="accordion-item" style="border:1px solid #E0D8C2; border-radius:12px; margin-bottom:12px; overflow:hidden;">
                     <h2 class="accordion-header">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#step1" style="font-family:'Poppins',sans-serif; font-weight:600; background:#fff;">
-                            🌱 {% trans "Primi Passi — Creare il primo apiario" %}
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#step1" style="font-family:var(--font-body); font-weight:600; background:#fff;">
+                            {% trans "Primi Passi - Creare il primo apiario" %}
                         </button>
                     </h2>
                     <div id="step1" class="accordion-collapse collapse show" data-bs-parent="#guidaAccordion">
                         <div class="accordion-body">
-                            <ol style="font-family:'Poppins',sans-serif; line-height:1.9; color:#3a2a1a;">
+                            <ol style="font-family:var(--font-body); line-height:1.9; color:#3a2a1a;">
                                 <li>{% trans "Clicca su <strong>Nuovo Apiario</strong> nella barra laterale o dal pulsante in alto a destra" %}</li>
                                 <li>{% trans "Inserisci un nome (es: \"Apiario Collina\"), seleziona la posizione sulla mappa e scegli il tipo" %}</li>
-                                <li>{% trans "Salva — il tuo apiario è pronto" %}</li>
+                                <li>{% trans "Salva: il tuo apiario è pronto" %}</li>
                                 <li>{% trans "Dall'interno dell'apiario, clicca <strong>Nuova Arnia</strong> per aggiungere le tue arnie" %}</li>
                             </ol>
-                            <div class="alert" style="background:#FFF8E7; border:1px solid #F5A623; border-radius:8px; font-size:0.88rem;">
-                                💡 <strong>{% trans "Consiglio:" %}</strong> {% trans "Dai un nome descrittivo alle arnie (es: \"Arnia 1 — Ligustica\", \"Arnia Nucleo Primavera\") per ritrovarle facilmente." %}
+                            <div class="alert" style="background:#FAF3DC; border:1px solid #D3A121; border-radius:8px; font-size:0.88rem;">
+                                <i class="bi bi-lightbulb me-1"></i> <strong>{% trans "Consiglio:" %}</strong> {% trans "Dai un nome descrittivo alle arnie (es: \"Arnia 1 - Ligustica\", \"Arnia Nucleo Primavera\") per ritrovarle facilmente." %}
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- 2. Arnie & Controlli -->
-                <div class="accordion-item" style="border:1px solid #EAD9BF; border-radius:12px; margin-bottom:12px; overflow:hidden;">
+                <div class="accordion-item" style="border:1px solid #E0D8C2; border-radius:12px; margin-bottom:12px; overflow:hidden;">
                     <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step2" style="font-family:'Poppins',sans-serif; font-weight:600; background:#fff;">
-                            🏠 {% trans "Arnie & Controlli — Registrare un'ispezione" %}
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step2" style="font-family:var(--font-body); font-weight:600; background:#fff;">
+                            {% trans "Arnie & Controlli - Registrare un'ispezione" %}
                         </button>
                     </h2>
                     <div id="step2" class="accordion-collapse collapse" data-bs-parent="#guidaAccordion">
                         <div class="accordion-body">
-                            <ol style="font-family:'Poppins',sans-serif; line-height:1.9; color:#3a2a1a;">
+                            <ol style="font-family:var(--font-body); line-height:1.9; color:#3a2a1a;">
                                 <li>{% trans "Entra nell'arnia che vuoi controllare" %}</li>
                                 <li>{% trans "Clicca su <strong>Nuovo Controllo</strong>" %}</li>
                                 <li>{% trans "Compila i campi principali: <em>data, forza della colonia (1–10), presenza della regina, stato sanitario</em>" %}</li>
                                 <li>{% trans "Aggiungi note libere per qualsiasi osservazione specifica" %}</li>
-                                <li>{% trans "Salva — il controllo appare nella cronologia dell'arnia" %}</li>
+                                <li>{% trans "Salva: il controllo appare nella cronologia dell'arnia" %}</li>
                             </ol>
-                            <div class="alert" style="background:#FFF8E7; border:1px solid #F5A623; border-radius:8px; font-size:0.88rem;">
-                                💡 <strong>{% trans "Forza colonia:" %}</strong> {% trans "1 = colonia debolissima, 5 = colonia media, 10 = colonia fortissima che occupa tutti i favi." %}
+                            <div class="alert" style="background:#FAF3DC; border:1px solid #D3A121; border-radius:8px; font-size:0.88rem;">
+                                <i class="bi bi-lightbulb me-1"></i> <strong>{% trans "Forza colonia:" %}</strong> {% trans "1 = colonia debolissima, 5 = colonia media, 10 = colonia fortissima che occupa tutti i favi." %}
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- 3. Regine -->
-                <div class="accordion-item" style="border:1px solid #EAD9BF; border-radius:12px; margin-bottom:12px; overflow:hidden;">
+                <div class="accordion-item" style="border:1px solid #E0D8C2; border-radius:12px; margin-bottom:12px; overflow:hidden;">
                     <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step3" style="font-family:'Poppins',sans-serif; font-weight:600; background:#fff;">
-                            👑 {% trans "Regine — Gestire e tracciare le regine" %}
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step3" style="font-family:var(--font-body); font-weight:600; background:#fff;">
+                            {% trans "Regine - Gestire e tracciare le regine" %}
                         </button>
                     </h2>
                     <div id="step3" class="accordion-collapse collapse" data-bs-parent="#guidaAccordion">
                         <div class="accordion-body">
-                            <ol style="font-family:'Poppins',sans-serif; line-height:1.9; color:#3a2a1a;">
-                                <li>{% trans "Ogni arnia può avere una regina associata — aggiungila dalla scheda dell'arnia" %}</li>
+                            <ol style="font-family:var(--font-body); line-height:1.9; color:#3a2a1a;">
+                                <li>{% trans "Ogni arnia può avere una regina associata: aggiungila dalla scheda dell'arnia" %}</li>
                                 <li>{% trans "Registra: data di nascita, razza, colore di marcatura, origine (allevata, acquistata, sciamatura)" %}</li>
                                 <li>{% trans "Visualizza l'<strong>albero genealogico</strong> per tracciare discendenze e selezione genetica" %}</li>
                                 <li>{% trans "Usa <strong>Confronta Regine</strong> per valutare le prestazioni side-by-side" %}</li>
                             </ol>
-                            <div class="alert" style="background:#FFF8E7; border:1px solid #F5A623; border-radius:8px; font-size:0.88rem;">
-                                💡 <strong>{% trans "Colori di marcatura internazionali:" %}</strong> {% trans "Bianco (anni che finiscono in 1/6), Giallo (2/7), Rosso (3/8), Verde (4/9), Blu (5/0)." %}
+                            <div class="alert" style="background:#FAF3DC; border:1px solid #D3A121; border-radius:8px; font-size:0.88rem;">
+                                <i class="bi bi-lightbulb me-1"></i> <strong>{% trans "Colori di marcatura internazionali:" %}</strong> {% trans "Bianco (anni che finiscono in 1/6), Giallo (2/7), Rosso (3/8), Verde (4/9), Blu (5/0)." %}
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- 4. Melari & Raccolti -->
-                <div class="accordion-item" style="border:1px solid #EAD9BF; border-radius:12px; margin-bottom:12px; overflow:hidden;">
+                <div class="accordion-item" style="border:1px solid #E0D8C2; border-radius:12px; margin-bottom:12px; overflow:hidden;">
                     <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step4" style="font-family:'Poppins',sans-serif; font-weight:600; background:#fff;">
-                            🍯 {% trans "Melari & Raccolti — Dal melario alla cantina" %}
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step4" style="font-family:var(--font-body); font-weight:600; background:#fff;">
+                            {% trans "Melari & Raccolti - Dal melario alla cantina" %}
                         </button>
                     </h2>
                     <div id="step4" class="accordion-collapse collapse" data-bs-parent="#guidaAccordion">
                         <div class="accordion-body">
-                            <ol style="font-family:'Poppins',sans-serif; line-height:1.9; color:#3a2a1a;">
+                            <ol style="font-family:var(--font-body); line-height:1.9; color:#3a2a1a;">
                                 <li>{% trans "Aggiungi un <strong>melario</strong> all'arnia quando è il momento della raccolta" %}</li>
                                 <li>{% trans "Quando è pronto, registra la <strong>smielatura</strong>: data, peso grezzo, qualità, note" %}</li>
                                 <li>{% trans "Il miele estratto va in <strong>Cantina</strong>: maturatori e contenitori di stoccaggio" %}</li>
@@ -106,34 +106,34 @@
                 </div>
 
                 <!-- 5. Funzioni AI -->
-                <div class="accordion-item" style="border:1px solid #EAD9BF; border-radius:12px; margin-bottom:12px; overflow:hidden;">
+                <div class="accordion-item" style="border:1px solid #E0D8C2; border-radius:12px; margin-bottom:12px; overflow:hidden;">
                     <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step5" style="font-family:'Poppins',sans-serif; font-weight:600; background:#fff;">
-                            🤖 {% trans "Funzioni AI — Chat, voce, analisi telaino" %}
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step5" style="font-family:var(--font-body); font-weight:600; background:#fff;">
+                            {% trans "Funzioni AI - Chat, voce, analisi telaino" %}
                         </button>
                     </h2>
                     <div id="step5" class="accordion-collapse collapse" data-bs-parent="#guidaAccordion">
-                        <div class="accordion-body" style="font-family:'Poppins',sans-serif; line-height:1.9; color:#3a2a1a;">
-                            <p><strong>{% trans "🗨️ Chat AI" %}</strong> — {% trans "Clicca sul widget chat in basso a destra per fare domande sull'apicoltura all'assistente Gemini. Puoi chiedere consigli su trattamenti, interpretare i tuoi dati o avere supporto decisionale." %}</p>
-                            <p><strong>{% trans "🎤 Controllo Vocale" %}</strong> — {% trans "Vai su <em>Intelligenza Artificiale → Controllo Vocale</em> nella sidebar. Parla e l'app trascrive e struttura automaticamente un'ispezione completa." %}</p>
-                            <p><strong>{% trans "📷 Analisi Telaino" %}</strong> — {% trans "Vai su <em>Analisi Telaino</em>, carica o scatta una foto di un telaio. Il modello YOLO rileva automaticamente api adulte, covata, celle reali e fuchi." %}</p>
-                            <div class="alert" style="background:#FFF8E7; border:1px solid #F5A623; border-radius:8px; font-size:0.88rem;">
-                                💡 {% trans "Per l'analisi telaino usa luce naturale diffusa e tieni il telaio parallelo alla fotocamera per risultati ottimali." %}
+                        <div class="accordion-body" style="font-family:var(--font-body); line-height:1.9; color:#3a2a1a;">
+                            <p><strong>{% trans "Chat AI" %}</strong>: {% trans "Clicca sul widget chat in basso a destra per fare domande sull'apicoltura all'assistente Gemini. Puoi chiedere consigli su trattamenti, interpretare i tuoi dati o avere supporto decisionale." %}</p>
+                            <p><strong>{% trans "Controllo Vocale" %}</strong>: {% trans "Vai su <em>Intelligenza Artificiale → Controllo Vocale</em> nella sidebar. Parla e l'app trascrive e struttura automaticamente un'ispezione completa." %}</p>
+                            <p><strong>{% trans "Analisi Telaino" %}</strong>: {% trans "Vai su <em>Analisi Telaino</em>, carica o scatta una foto di un telaio. Il modello YOLO rileva automaticamente api adulte, covata, celle reali e fuchi." %}</p>
+                            <div class="alert" style="background:#FAF3DC; border:1px solid #D3A121; border-radius:8px; font-size:0.88rem;">
+                                <i class="bi bi-lightbulb me-1"></i> {% trans "Per l'analisi telaino usa luce naturale diffusa e tieni il telaio parallelo alla fotocamera per risultati ottimali." %}
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- 6. Collaborazione -->
-                <div class="accordion-item" style="border:1px solid #EAD9BF; border-radius:12px; margin-bottom:12px; overflow:hidden;">
+                <div class="accordion-item" style="border:1px solid #E0D8C2; border-radius:12px; margin-bottom:12px; overflow:hidden;">
                     <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step6" style="font-family:'Poppins',sans-serif; font-weight:600; background:#fff;">
-                            👥 {% trans "Collaborazione — Condividere con altri apicoltori" %}
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step6" style="font-family:var(--font-body); font-weight:600; background:#fff;">
+                            {% trans "Collaborazione - Condividere con altri apicoltori" %}
                         </button>
                     </h2>
                     <div id="step6" class="accordion-collapse collapse" data-bs-parent="#guidaAccordion">
                         <div class="accordion-body">
-                            <ol style="font-family:'Poppins',sans-serif; line-height:1.9; color:#3a2a1a;">
+                            <ol style="font-family:var(--font-body); line-height:1.9; color:#3a2a1a;">
                                 <li>{% trans "Vai su <strong>Collaborazione → Gruppi</strong> nella sidebar" %}</li>
                                 <li>{% trans "Crea un gruppo e invita altri apicoltori via email o link" %}</li>
                                 <li>{% trans "Assegna ruoli: <em>Proprietario</em> (controllo totale), <em>Collaboratore</em> (può modificare), <em>Visualizzatore</em> (solo lettura)" %}</li>
@@ -144,22 +144,22 @@
                 </div>
 
                 <!-- 7. Esportazioni -->
-                <div class="accordion-item" style="border:1px solid #EAD9BF; border-radius:12px; margin-bottom:12px; overflow:hidden;">
+                <div class="accordion-item" style="border:1px solid #E0D8C2; border-radius:12px; margin-bottom:12px; overflow:hidden;">
                     <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step7" style="font-family:'Poppins',sans-serif; font-weight:600; background:#fff;">
-                            📤 {% trans "Esportazioni — PDF e CSV" %}
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step7" style="font-family:var(--font-body); font-weight:600; background:#fff;">
+                            {% trans "Esportazioni - PDF e CSV" %}
                         </button>
                     </h2>
                     <div id="step7" class="accordion-collapse collapse" data-bs-parent="#guidaAccordion">
-                        <div class="accordion-body" style="font-family:'Poppins',sans-serif; line-height:1.9; color:#3a2a1a;">
+                        <div class="accordion-body" style="font-family:var(--font-body); line-height:1.9; color:#3a2a1a;">
                             <ul>
                                 <li><strong>{% trans "Ispezioni PDF" %}</strong>: {% trans "dall'interno di un apiario → pulsante <em>Esporta PDF</em>" %}</li>
                                 <li><strong>{% trans "Trattamenti CSV" %}</strong>: {% trans "da <em>Gestione → Trattamenti</em> → pulsante <em>Esporta CSV</em>" %}</li>
                                 <li><strong>{% trans "Vendite CSV" %}</strong>: {% trans "da <em>Gestione → Vendite</em> → pulsante <em>Esporta CSV</em>" %}</li>
                                 <li><strong>{% trans "Produzione CSV" %}</strong>: {% trans "da <em>Gestione → Melari</em> → pulsante <em>Esporta CSV</em>" %}</li>
                             </ul>
-                            <div class="alert" style="background:#FFF8E7; border:1px solid #F5A623; border-radius:8px; font-size:0.88rem;">
-                                💡 {% trans "I CSV sono compatibili con Excel e Google Sheets per la tua contabilità o tracciabilità biologica." %}
+                            <div class="alert" style="background:#FAF3DC; border:1px solid #D3A121; border-radius:8px; font-size:0.88rem;">
+                                <i class="bi bi-lightbulb me-1"></i> {% trans "I CSV sono compatibili con Excel e Google Sheets per la tua contabilità o tracciabilità biologica." %}
                             </div>
                         </div>
                     </div>

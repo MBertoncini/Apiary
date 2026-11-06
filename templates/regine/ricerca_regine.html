@@ -21,7 +21,7 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">👑 {% trans "Ricerca Regine" %}</h1>
+    <h1 class="page-title">{% trans "Ricerca Regine" %}</h1>
     <p class="page-subtitle">{% trans "Filtra e confronta le regine dei tuoi apiari" %}</p>
   </div>
   <a href="{% url 'confronta_regine' %}" class="btn btn-outline-secondary">
@@ -136,7 +136,7 @@
                                                 <a href="{% url 'visualizza_regina' regina.colonia.id %}">
                                                     {{ regina.colonia.contenitore_display }}
                                                 </a>
-                                                {% else %}—{% endif %}
+                                                {% else %}-{% endif %}
                                             </strong>
                                             <br>
                                             <small class="text-muted">{% if regina.colonia %}{{ regina.colonia.apiario.nome }}{% endif %}</small>
@@ -185,7 +185,7 @@
                                             {% if regina.sospetta_assente %}
                                                 <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>{% trans "Sospetta assente" %}</span>
                                             {% elif regina.selezionata %}
-                                                <span class="badge" style="background-color: #F5A623; color: #2C1810;"><i class="bi bi-star-fill me-1"></i>{% trans "Selezionata" %}</span>
+                                                <span class="badge" style="background-color: #D3A121; color: #3A2E21;"><i class="bi bi-star-fill me-1"></i>{% trans "Selezionata" %}</span>
                                             {% else %}
                                                 <span class="badge bg-success">{% trans "Ok" %}</span>
                                             {% endif %}

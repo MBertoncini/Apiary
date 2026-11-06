@@ -112,7 +112,7 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">🌳 {% trans "Albero Genealogico" %}</h1>
+    <h1 class="page-title">{% trans "Albero Genealogico" %}</h1>
     <p class="page-subtitle"><a href="{% url 'dashboard' %}">Dashboard</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'visualizza_regina' colonia.id %}">{% blocktrans with cont=colonia.contenitore_display %}Regina – {{ cont }}{% endblocktrans %}</a> › {% trans "Genealogia" %}</p>
   </div>
   <a href="{% url 'visualizza_regina' colonia.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Torna alla Regina" %}</a>
@@ -340,7 +340,7 @@
                                         <div class="card regina-card">
                                             <div class="card-header {% if figlia_arnia.colore_hex %}bg-custom{% else %}bg-success{% endif %} text-white"
                                                  {% if figlia_arnia.colore_hex %}style="background-color: {{ figlia_arnia.colore_hex }} !important;"{% endif %}>
-                                                <h6 class="mb-0">{% if figlia.colonia %}{{ figlia.colonia.contenitore_display }}{% else %}—{% endif %}</h6>
+                                                <h6 class="mb-0">{% if figlia.colonia %}{{ figlia.colonia.contenitore_display }}{% else %}-{% endif %}</h6>
                                             </div>
                                             <div class="card-body">
                                                 <p class="mb-2">

@@ -54,7 +54,7 @@ def notifica_invito_accettato(invito):
     crea_notifica(
         utente=invito.invitato_da,
         tipo='invito_accettato',
-        titolo=f"Invito accettato — {invito.gruppo.nome}",
+        titolo=f"Invito accettato - {invito.gruppo.nome}",
         messaggio=(
             f"Il tuo invito per il gruppo «{invito.gruppo.nome}» è stato accettato."
         ),
@@ -73,7 +73,7 @@ def notifica_invito_rifiutato(invito):
     crea_notifica(
         utente=invito.invitato_da,
         tipo='invito_rifiutato',
-        titolo=f"Invito rifiutato — {invito.gruppo.nome}",
+        titolo=f"Invito rifiutato - {invito.gruppo.nome}",
         messaggio=(
             f"L'utente ha rifiutato il tuo invito per il gruppo «{invito.gruppo.nome}»."
         ),
@@ -131,7 +131,7 @@ def notifica_fioritura_vicina(fioritura, apiari_vicini):
             messaggio=(
                 f"È stata segnalata una fioritura di «{fioritura.nome}» "
                 f"vicino al tuo apiario «{apiario.nome}». "
-                f"Periodo: {fioritura.data_inizio.strftime('%d/%m/%Y')} — "
+                f"Periodo: {fioritura.data_inizio.strftime('%d/%m/%Y')} - "
                 f"{fioritura.data_fine.strftime('%d/%m/%Y') if fioritura.data_fine else 'in corso'}."
             ),
             link=link,

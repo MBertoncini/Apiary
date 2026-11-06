@@ -25,7 +25,7 @@
 <div class="row g-3 mb-4">
   <div class="col-sm-6 col-lg-3">
     <div class="card stat-card">
-      <div class="stat-icon" style="background:rgba(245,166,35,.15);">
+      <div class="stat-icon" style="background:rgba(211,161,33,.15);">
         <i class="bi bi-currency-euro" style="color:var(--honey);"></i>
       </div>
       <div class="stat-value">€ {{ totale_ricavi|floatformat:2 }}</div>
@@ -34,7 +34,7 @@
   </div>
   <div class="col-sm-6 col-lg-3">
     <div class="card stat-card">
-      <div class="stat-icon" style="background:rgba(245,166,35,.15);">
+      <div class="stat-icon" style="background:rgba(211,161,33,.15);">
         <i class="bi bi-receipt" style="color:var(--honey);"></i>
       </div>
       <div class="stat-value">{{ num_vendite }}</div>
@@ -93,7 +93,7 @@
                   {% if v.cliente %}
                     <a href="{% url 'dettaglio_cliente' v.cliente.pk %}">{{ v.cliente.nome }}</a>
                   {% else %}
-                    {{ v.acquirente_nome|default:"—" }}
+                    {{ v.acquirente_nome|default:"-" }}
                   {% endif %}
                 </td>
                 <td><span class="badge bg-light text-dark border">{{ v.get_canale_display }}</span></td>
@@ -172,8 +172,8 @@ if (ctx) {
       datasets: [{
         label: '{% trans "Ricavi (€)" %}',
         data: {{ mesi_ricavi|safe }},
-        backgroundColor: 'rgba(245,166,35,0.7)',
-        borderColor: '#F5A623',
+        backgroundColor: 'rgba(211,161,33,0.7)',
+        borderColor: '#D3A121',
         borderWidth: 1,
         borderRadius: 6,
       }]

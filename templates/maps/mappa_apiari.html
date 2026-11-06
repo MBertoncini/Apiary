@@ -2,7 +2,7 @@
 {% extends 'maps/base_map.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Mappa Apiari" %} — Apiary{% endblock %}
+{% block title %}{% trans "Mappa Apiari" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -36,7 +36,7 @@
             <div class="form-check form-switch mb-0">
               <input class="form-check-input" type="checkbox" id="showApiari" checked>
               <label class="form-check-label small fw-semibold" for="showApiari">
-                <span class="badge rounded-pill me-1" style="background:#F5A623;">&#x2665;</span>{% trans "Apiari" %}
+                <span class="badge rounded-pill me-1" style="background:#D3A121;">&#x2665;</span>{% trans "Apiari" %}
               </label>
             </div>
             <div class="form-check form-switch mb-0">
@@ -64,7 +64,7 @@
             <div class="form-check form-switch mb-0">
               <input class="form-check-input" type="checkbox" id="showFlightRadius">
               <label class="form-check-label small fw-semibold" for="showFlightRadius">
-                <i class="bi bi-circle-fill me-1" style="color:rgba(245,166,35,.5);"></i>{% trans "Raggio di volo (3 km)" %}
+                <i class="bi bi-circle-fill me-1" style="color:rgba(211,161,33,.5);"></i>{% trans "Raggio di volo (3 km)" %}
               </label>
             </div>
             <button class="btn btn-outline-secondary btn-sm" id="btnFitBounds" title="{% trans 'Adatta vista' %}">
@@ -85,7 +85,7 @@
           <span><span class="badge me-1" style="background:#20c997;">&#10047;</span>{% trans "Fioritura attiva" %}</span>
           <span><span class="badge me-1" style="background:#ffc107; color:#333;">&#10047;</span>{% trans "Programmata" %}</span>
           <span><span class="badge me-1" style="background:#adb5bd;">&#10047;</span>{% trans "Passata" %}</span>
-          <span><i class="bi bi-circle me-1" style="color:#F5A623;"></i>{% trans "Raggio volo 3km" %}</span>
+          <span><i class="bi bi-circle me-1" style="color:#D3A121;"></i>{% trans "Raggio volo 3km" %}</span>
         </div>
       </div>
     </div>
@@ -110,7 +110,7 @@
               <span class="badge" style="background:#28a745; font-size:.65rem;">{% trans "Tuo" %}</span>
             </div>
             <div class="text-muted" style="font-size:.75rem;">
-              <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"—" }}
+              <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"-" }}
               &nbsp;·&nbsp;{% blocktrans count counter=apiario.arnie.count %}{{ counter }} arnia{% plural %}{{ counter }} arnie{% endblocktrans %}
             </div>
           </a>
@@ -125,7 +125,7 @@
               <span class="badge bg-primary" style="font-size:.65rem;">{% trans "Condiviso" %}</span>
             </div>
             <div class="text-muted" style="font-size:.75rem;">
-              <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"—" }}
+              <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"-" }}
               &nbsp;·&nbsp;{% blocktrans count counter=apiario.arnie.count %}{{ counter }} arnia{% plural %}{{ counter }} arnie{% endblocktrans %}
             </div>
           </a>
@@ -140,7 +140,7 @@
               <span class="badge" style="background:#6f42c1; font-size:.65rem;">{% trans "Gruppo" %}</span>
             </div>
             <div class="text-muted" style="font-size:.75rem;">
-              <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"—" }}
+              <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"-" }}
               &nbsp;·&nbsp;{% blocktrans count counter=apiario.arnie.count %}{{ counter }} arnia{% plural %}{{ counter }} arnie{% endblocktrans %}
             </div>
           </a>
@@ -155,7 +155,7 @@
               <span class="badge" style="background:#fd7e14; font-size:.65rem;">{% trans "Pubblico" %}</span>
             </div>
             <div class="text-muted" style="font-size:.75rem;">
-              <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"—" }}
+              <i class="bi bi-geo-alt me-1"></i>{{ apiario.posizione|default:"-" }}
               &nbsp;·&nbsp;{% blocktrans count counter=apiario.arnie.count %}{{ counter }} arnia{% plural %}{{ counter }} arnie{% endblocktrans %}
             </div>
           </a>
@@ -207,13 +207,13 @@
           {% for f in fioriture_programmate %}
           <span class="fioritura-item" data-id="{{ f.id }}" data-stato="programmata"
             {% if f.has_coordinates %}data-lat="{{ f.latitudine|stringformat:'.6f' }}" data-lng="{{ f.longitudine|stringformat:'.6f' }}" data-raggio="{{ f.raggio }}"{% endif %}
-            data-pianta="{{ f.pianta }}" data-apiario="{% if f.apiario %}{{ f.apiario.nome }}{% else %}—{% endif %}"
+            data-pianta="{{ f.pianta }}" data-apiario="{% if f.apiario %}{{ f.apiario.nome }}{% else %}-{% endif %}"
             data-inizio="{{ f.data_inizio|date:'d/m/Y' }}" data-fine="{{ f.data_fine|date:'d/m/Y' }}"></span>
           {% endfor %}
           {% for f in fioriture_passate %}
           <span class="fioritura-item" data-id="{{ f.id }}" data-stato="terminata"
             {% if f.has_coordinates %}data-lat="{{ f.latitudine|stringformat:'.6f' }}" data-lng="{{ f.longitudine|stringformat:'.6f' }}" data-raggio="{{ f.raggio }}"{% endif %}
-            data-pianta="{{ f.pianta }}" data-apiario="{% if f.apiario %}{{ f.apiario.nome }}{% else %}—{% endif %}"
+            data-pianta="{{ f.pianta }}" data-apiario="{% if f.apiario %}{{ f.apiario.nome }}{% else %}-{% endif %}"
             data-inizio="{{ f.data_inizio|date:'d/m/Y' }}" data-fine="{{ f.data_fine|date:'d/m/Y' }}"></span>
           {% endfor %}
         </div>
@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function () {
     iconCreateFunction: function (cluster) {
       var count = cluster.getChildCount();
       return L.divIcon({
-        html: '<div style="background:rgba(245,166,35,.85);color:#fff;font-weight:700;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2);">' + count + '</div>',
+        html: '<div style="background:rgba(211,161,33,.85);color:#fff;font-weight:700;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2);">' + count + '</div>',
         className: '',
         iconSize: [36, 36]
       });
@@ -304,10 +304,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // Ring di volo 3km (nascosto di default)
     var flightRing = L.circle([lat, lng], {
       radius: 3000,
-      color: '#F5A623',
+      color: '#D3A121',
       weight: 2,
       dashArray: '6 4',
-      fillColor: '#F5A623',
+      fillColor: '#D3A121',
       fillOpacity: 0.06,
       className: 'flight-ring'
     });
@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">${nome}</div>
         ${proprietarioHtml}
         <div style="color:#7B6E5D;font-size:.85rem;margin-bottom:8px;">${info}</div>
-        <hr style="margin:6px 0;border-color:#EAD9BF;">
+        <hr style="margin:6px 0;border-color:#E0D8C2;">
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
           ${azioniHtml}
           <button class="btn btn-sm btn-outline-warning toggle-ring-btn" data-lat="${lat}" data-lng="${lng}" style="font-size:.8rem;">
@@ -413,8 +413,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var label  = FIORITURA_LABELS[stato];
 
     // Leggi nome pianta e apiario (da attributi data-* o dall'elemento visibile)
-    var pianta  = el.dataset.pianta  || (el.querySelector && el.querySelector('.fw-semibold') ? el.querySelector('.fw-semibold').textContent : '—');
-    var apiario = el.dataset.apiario || (el.querySelector && el.querySelector('.text-muted') ? el.querySelector('.text-muted').textContent.trim() : '—');
+    var pianta  = el.dataset.pianta  || (el.querySelector && el.querySelector('.fw-semibold') ? el.querySelector('.fw-semibold').textContent : '-');
+    var apiario = el.dataset.apiario || (el.querySelector && el.querySelector('.text-muted') ? el.querySelector('.text-muted').textContent.trim() : '-');
     var inizio  = el.dataset.inizio  || '';
     var fine    = el.dataset.fine    || '';
 
@@ -445,7 +445,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <div style="font-size:.8rem;color:#888;margin-top:2px;">
           <i class="bi bi-circle"></i> Raggio: ${raggio} m
         </div>
-        <hr style="margin:6px 0;border-color:#EAD9BF;">
+        <hr style="margin:6px 0;border-color:#E0D8C2;">
         <a href="/app/fioriture/" class="btn btn-sm btn-outline-secondary" style="font-size:.8rem;">
           <i class="bi bi-flower1"></i> Gestisci fioriture
         </a>

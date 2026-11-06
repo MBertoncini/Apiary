@@ -9,16 +9,16 @@
 .profile-avatar {
     width: 100px; height: 100px;
     border-radius: 50%; object-fit: cover;
-    border: 4px solid var(--honey, #F5A623);
-    box-shadow: 0 4px 16px rgba(245,166,35,.25);
+    border: 4px solid var(--honey, #D3A121);
+    box-shadow: 0 4px 16px rgba(211,161,33,.25);
 }
 .profile-avatar-placeholder {
     width: 100px; height: 100px;
-    border-radius: 50%; background: var(--honey, #F5A623);
+    border-radius: 50%; background: var(--honey, #D3A121);
     display: flex; align-items: center; justify-content: center;
-    font-size: 2.5rem; color: white; font-family: var(--font-display, 'Caveat', cursive);
-    border: 4px solid var(--honey, #F5A623);
-    box-shadow: 0 4px 16px rgba(245,166,35,.25);
+    font-size: 2rem; font-weight: 700; color: white; font-family: var(--font-display);
+    border: 4px solid var(--honey, #D3A121);
+    box-shadow: 0 4px 16px rgba(211,161,33,.25);
 }
 </style>
 {% endblock %}
@@ -26,7 +26,7 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">👤 {% if user_profile == request.user %}{% trans "Il tuo Profilo" %}{% else %}{% blocktrans with username=user_profile.username %}Profilo di {{ username }}{% endblocktrans %}{% endif %}</h1>
+    <h1 class="page-title">{% if user_profile == request.user %}{% trans "Il tuo Profilo" %}{% else %}{% blocktrans with username=user_profile.username %}Profilo di {{ username }}{% endblocktrans %}{% endif %}</h1>
     <p class="page-subtitle"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a> › {% trans "Profilo" %}</p>
   </div>
   {% if can_edit %}
@@ -48,7 +48,7 @@
         {% endif %}
       </div>
       <div class="col">
-        <h2 class="mb-1" style="font-family:var(--font-display,'Caveat',cursive);">{{ user_profile.username }}</h2>
+        <h2 class="mb-1" style="font-family:var(--font-display);">{{ user_profile.username }}</h2>
         {% if user_profile.first_name or user_profile.last_name %}
           <p class="text-muted mb-1">{{ user_profile.first_name }} {{ user_profile.last_name }}</p>
         {% endif %}
@@ -70,21 +70,21 @@
 <div class="row g-3 mb-4">
   <div class="col-md-4">
     <div class="stat-card">
-      <div class="stat-icon">🏡</div>
+      <div class="stat-icon"><i class="bi bi-house-door"></i></div>
       <div class="stat-value">{{ apiari.count }}</div>
       <div class="stat-label">{% trans "Apiari" %}</div>
     </div>
   </div>
   <div class="col-md-4">
     <div class="stat-card">
-      <div class="stat-icon">👥</div>
+      <div class="stat-icon"><i class="bi bi-people"></i></div>
       <div class="stat-value">{{ gruppi.count }}</div>
       <div class="stat-label">{% trans "Gruppi" %}</div>
     </div>
   </div>
   <div class="col-md-4">
     <div class="stat-card">
-      <div class="stat-icon">📅</div>
+      <div class="stat-icon"><i class="bi bi-calendar3"></i></div>
       <div class="stat-value" style="font-size:1.1rem;">{{ user_profile.date_joined|date:"d/m/Y" }}</div>
       <div class="stat-label">{% trans "Iscritto dal" %}</div>
     </div>
@@ -162,9 +162,9 @@
 </div>
 
 {% if can_edit %}
-<div class="card mt-3" style="border:1px solid #EAD9BF; border-radius:12px;">
+<div class="card mt-3" style="border:1px solid #E0D8C2; border-radius:12px;">
     <div class="card-body">
-        <h6 style="font-family:'Caveat',cursive; font-size:1.2rem; color:#2C1810;">{% trans "Guida & Tutorial" %}</h6>
+        <h6 style="font-size:1rem; color:#3A2E21;">{% trans "Guida & Tutorial" %}</h6>
         <div class="d-flex gap-2 flex-wrap">
             <a href="{% url 'onboarding' %}" class="btn btn-sm btn-outline-warning">
                 <i class="bi bi-play-circle me-1"></i>{% trans "Rivedi il tutorial" %}

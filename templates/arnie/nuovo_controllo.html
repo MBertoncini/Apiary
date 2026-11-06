@@ -27,9 +27,9 @@
 <div class="modal fade" id="voiceFillModal" tabindex="-1" aria-labelledby="voiceFillModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header" style="background:linear-gradient(135deg,#2C1810,#3d2215);color:#F5A623;">
-        <h5 class="modal-title" id="voiceFillModalLabel" style="font-family:'Caveat',cursive;font-size:1.3rem;">
-          <i class="bi bi-mic-fill me-2"></i>{% trans "Compila con voce" %} — {% blocktrans with numero=arnia.numero %}Arnia #{{ numero }}{% endblocktrans %}
+      <div class="modal-header" style="background:var(--honey);color:#fff;">
+        <h5 class="modal-title" id="voiceFillModalLabel" style="font-size:1.05rem;">
+          <i class="bi bi-mic-fill me-2"></i>{% trans "Compila con voce" %} - {% blocktrans with numero=arnia.numero %}Arnia #{{ numero }}{% endblocktrans %}
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
@@ -42,7 +42,7 @@
         </button>
         <p class="small mt-3 mb-2" id="vf-status" style="min-height:20px">{% trans "Clicca il microfono e parla" %}</p>
         <div class="vf-transcript-box mt-2" id="vf-transcript" style="
-          background:#f7f3ec; border:1px solid #EAD9BF; border-radius:10px;
+          background:#f7f3ec; border:1px solid #E0D8C2; border-radius:10px;
           padding:12px 14px; min-height:52px; font-size:.88rem; color:#3a2a1a;
           text-align:left; white-space:pre-wrap;">…</div>
       </div>
@@ -295,7 +295,7 @@
 {% block extra_js %}
 <style>
 /* ══ FRAME EDITOR STYLES ══ */
-.frame-editor-card { border-color: #EAD9BF; }
+.frame-editor-card { border-color: #E0D8C2; }
 
 /* Palette */
 .frame-palette {
@@ -318,8 +318,8 @@
   transition: border-color .15s, box-shadow .15s, transform .1s;
   user-select: none;
 }
-.frame-tool:hover { border-color: #F5A623; transform: translateY(-1px); }
-.frame-tool.active { border-color: #F5A623; box-shadow: 0 0 0 3px rgba(245,166,35,.25); background: #fffdf5; }
+.frame-tool:hover { border-color: #D3A121; transform: translateY(-1px); }
+.frame-tool.active { border-color: #D3A121; box-shadow: 0 0 0 3px rgba(211,161,33,.25); background: #fffdf5; }
 .frame-tool-dot {
   display: inline-block;
   width: 14px; height: 14px;

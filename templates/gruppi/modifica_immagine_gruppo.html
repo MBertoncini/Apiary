@@ -27,7 +27,7 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">🖼️ {% trans "Immagine Gruppo" %}</h1>
+    <h1 class="page-title">{% trans "Immagine Gruppo" %}</h1>
     <p class="page-subtitle"><a href="{% url 'gestione_gruppi' %}">{% trans "Gruppi" %}</a> › <a href="{% url 'dettaglio_gruppo' gruppo.id %}">{{ gruppo.nome }}</a> › {% trans "Immagine" %}</p>
   </div>
   <a href="{% url 'dettaglio_gruppo' gruppo.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Torna al Gruppo" %}</a>

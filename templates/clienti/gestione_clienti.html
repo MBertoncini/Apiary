@@ -35,8 +35,8 @@
               {% for c in clienti %}
               <tr>
                 <td><strong>{{ c.nome }}</strong></td>
-                <td>{{ c.email|default:"—" }}</td>
-                <td>{{ c.telefono|default:"—" }}</td>
+                <td>{{ c.email|default:"-" }}</td>
+                <td>{{ c.telefono|default:"-" }}</td>
                 <td class="text-center">
                   <span class="badge" style="background:var(--honey);color:#fff;">{{ c.num_acquisti }}</span>
                 </td>

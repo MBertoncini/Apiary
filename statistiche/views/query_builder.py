@@ -109,7 +109,7 @@ class QueryBuilderView(APIView):
             qs = qs.filter(razza=filtri['razza'])
 
         totale = qs.count()
-        titolo = f"{entita.capitalize()} — {raggruppa_per or 'tutti'}"
+        titolo = f"{entita.capitalize()} - {raggruppa_per or 'tutti'}"
 
         # Gestione aggregazione + raggruppamento
         if aggregazione == 'none' or not raggruppa_per:

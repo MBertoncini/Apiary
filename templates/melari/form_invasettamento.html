@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 {% load i18n %}
-{% block title %}{% trans "Registra Invasettamento" %} — Apiary{% endblock %}
+{% block title %}{% trans "Registra Invasettamento" %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title"><i class="bi bi-jar me-2" style="color:var(--honey);"></i>{% trans "Registra Invasettamento" %}</h1>
+    <h1 class="page-title"><i class="bi bi-archive me-2" style="color:var(--honey);"></i>{% trans "Registra Invasettamento" %}</h1>
     <p class="page-subtitle">
-      {% blocktrans with d=smielatura.data|date:"d/m/Y" %}Smielatura del {{ d }}{% endblocktrans %} —
+      {% blocktrans with d=smielatura.data|date:"d/m/Y" %}Smielatura del {{ d }}{% endblocktrans %} ·
       {{ smielatura.tipo_miele }} · {{ smielatura.quantita_miele }} kg
     </p>
   </div>
@@ -40,7 +40,7 @@
           <div class="d-flex gap-2 justify-content-end mt-4">
             <a href="{% url 'dettaglio_smielatura' smielatura.id %}" class="btn btn-outline-secondary">{% trans "Annulla" %}</a>
             <button type="submit" class="btn btn-primary">
-              <i class="bi bi-jar me-1"></i>{% trans "Salva invasettamento" %}
+              <i class="bi bi-archive me-1"></i>{% trans "Salva invasettamento" %}
             </button>
           </div>
         </form>

@@ -1,5 +1,5 @@
 /**
- * Contextual tooltip system — shows once per section, tracked via localStorage
+ * Contextual tooltip system: shows once per section, tracked via localStorage
  * Also provides addHelpIcon() for inline form help
  */
 
@@ -45,22 +45,22 @@ const SECTION_TOOLTIPS = {
     dashboard: new ApiaryTooltip(
         'dashboard_v1',
         '.page-header, h1.page-title',
-        '👋 Benvenuto nella dashboard — qui trovi il riepilogo di tutte le tue attività: arnie, controlli recenti e raccolti.'
+        'Benvenuto nella dashboard: qui trovi il riepilogo di tutte le tue attività: arnie, controlli recenti e raccolti.'
     ),
     apiario: new ApiaryTooltip(
         'apiario_detail_v1',
         '.card:first-of-type .card-header, .page-header',
-        '🏠 Qui trovi le arnie del tuo apiario. Clicca su un\'arnia per aprirla e registrare un controllo.'
+        'Qui trovi le arnie del tuo apiario. Clicca su un\'arnia per aprirla e registrare un controllo.'
     ),
     controllo: new ApiaryTooltip(
         'controllo_form_v1',
         '.frame-editor-card .card-header, #controlloForm',
-        '📋 Usa il configuratore dei telaini per rappresentare la disposizione nell\'arnia. Clicca o trascina per dipingere ogni telaino.'
+        'Usa il configuratore dei telaini per rappresentare la disposizione nell\'arnia. Clicca o trascina per dipingere ogni telaino.'
     ),
     analisi_telaino: new ApiaryTooltip(
         'analisi_telaino_v1',
         '.drop-zone, .step-wizard',
-        '📷 Consiglio: scatta la foto con luce naturale diffusa e tieni il telaio parallelo alla fotocamera per risultati ottimali.'
+        'Consiglio: scatta la foto con luce naturale diffusa e tieni il telaio parallelo alla fotocamera per risultati ottimali.'
     ),
 };
 

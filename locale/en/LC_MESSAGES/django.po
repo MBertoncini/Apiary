@@ -185,8 +185,8 @@ msgstr "Monitor every hive with colors, visual frames and full inspection histor
 msgid "Tracciamento Regine"
 msgstr "Queen Tracking"
 
-msgid "Genealogia, marcatura, razza e performance — tieni traccia di ogni regina nel dettaglio."
-msgstr "Genealogy, marking, breed and performance — track every queen in detail."
+msgid "Genealogia, marcatura, razza e performance: tieni traccia di ogni regina nel dettaglio."
+msgstr "Genealogy, marking, breed and performance: track every queen in detail."
 
 msgid "Produzione Miele"
 msgstr "Honey Production"
@@ -335,8 +335,8 @@ msgid "Modifica"
 msgstr "Edit"
 
 #, python-format
-msgid "Controllo — Arnia #%(n)s"
-msgstr "Inspection — Hive #%(n)s"
+msgid "Controllo - Arnia #%(n)s"
+msgstr "Inspection - Hive #%(n)s"
 
 msgid "Telaini covata"
 msgstr "Brood frames"
@@ -995,8 +995,8 @@ msgid "%(n)s tel."
 msgstr "%(n)s tel."
 
 #, python-format
-msgid "%(p)s% ammortato — %(v)s anni vita utile"
-msgstr "%(p)s% ammortato — %(v)s anni vita utile"
+msgid "%(p)s% ammortato - %(v)s anni vita utile"
+msgstr "%(p)s% ammortato - %(v)s anni vita utile"
 
 #, python-format
 msgid "%(p)s% prob. pioggia"
@@ -1154,10 +1154,6 @@ msgstr "Add Super"
 msgid "Aggiungi Melario - Arnia #%(n)s"
 msgstr "Aggiungi Melario - Arnia #%(n)s"
 
-#, python-format
-msgid "Aggiungi Melario — Arnia #%(n)s"
-msgstr "Aggiungi Melario — Arnia #%(n)s"
-
 msgid "Aggiungi Quota"
 msgstr "Add Share"
 
@@ -1239,14 +1235,14 @@ msgid "Analisi AI"
 msgstr "AI Analysis"
 
 #, python-format
-msgid "Analisi Telaini — %(a)s"
-msgstr "Analisi Telaini — %(a)s"
+msgid "Analisi Telaini - %(a)s"
+msgstr "Analisi Telaini - %(a)s"
 
 msgid "Analisi Telaino AI"
 msgstr "Analisi Telaino AI"
 
-msgid "Analisi Telaino AI — Apiary"
-msgstr "Analisi Telaino AI — Apiary"
+msgid "Analisi Telaino AI - Apiary"
+msgstr "Analisi Telaino AI - Apiary"
 
 msgid "Analisi diagnostica"
 msgstr "Analisi diagnostica"
@@ -1333,8 +1329,8 @@ msgstr "Apiary Manager"
 msgid "Apiary è sviluppato con passione nel tempo libero da appassionati di apicoltura e tecnologia."
 msgstr "Apiary is developed with passion in spare time by beekeeping and technology enthusiasts."
 
-msgid "Apiary — Apiary"
-msgstr "Apiary — Apiary"
+msgid "Apiary - Apiary"
+msgstr "Apiary - Apiary"
 
 msgid "Applica filtri"
 msgstr "Apply filters"
@@ -1401,8 +1397,8 @@ msgstr "Hives"
 msgid "Arnie & Controlli"
 msgstr "Hives & Inspections"
 
-msgid "Arnie & Controlli — Registrare un'ispezione"
-msgstr "Hives & Inspections — Record an inspection"
+msgid "Arnie & Controlli - Registrare un'ispezione"
+msgstr "Hives & Inspections - Record an inspection"
 
 msgid "Arnie Controllate"
 msgstr "Inspected Hives"
@@ -1411,8 +1407,8 @@ msgid "Arnie da trattare"
 msgstr "Arnie da trattare"
 
 #, python-format
-msgid "Arnie trattate — %(nome)s"
-msgstr "Arnie trattate — %(nome)s"
+msgid "Arnie trattate - %(nome)s"
+msgstr "Arnie trattate - %(nome)s"
 
 msgid "Arnie:"
 msgstr "Arnie:"
@@ -1631,8 +1627,8 @@ msgstr "Codici Colore Standard:"
 msgid "Collabora con altri apicoltori condividendo apiari e risorse"
 msgstr "Collaborate with other beekeepers by sharing apiaries and resources"
 
-msgid "Collaborazione — Condividere con altri apicoltori"
-msgstr "Collaboration — Share with other beekeepers"
+msgid "Collaborazione - Condividere con altri apicoltori"
+msgstr "Collaboration - Share with other beekeepers"
 
 msgid "Colore:"
 msgstr "Colore:"
@@ -1907,8 +1903,8 @@ msgstr "AI chat history"
 msgid "Da qui puoi gestire la condivisione dell'apiario \"%(nome)s\" con un gruppo di collaboratori."
 msgstr "Da qui puoi gestire la condivisione dell'apiario \"%(nome)s\" con un gruppo di collaboratori."
 
-msgid "Dai un nome descrittivo alle arnie (es: \\\"Arnia 1 — Ligustica\\\", \\\"Arnia Nucleo Primavera\\\") per ritrovarle facilmente."
-msgstr "Dai un nome descrittivo alle arnie (es: \\\"Arnia 1 — Ligustica\\\", \\\"Arnia Nucleo Primavera\\\") per ritrovarle facilmente."
+msgid "Dai un nome descrittivo alle arnie (es: \\\"Arnia 1 - Ligustica\\\", \\\"Arnia Nucleo Primavera\\\") per ritrovarle facilmente."
+msgstr "Dai un nome descrittivo alle arnie (es: \\\"Arnia 1 - Ligustica\\\", \\\"Arnia Nucleo Primavera\\\") per ritrovarle facilmente."
 
 #, python-format
 msgid "Dal %(d)s"
@@ -2324,8 +2320,8 @@ msgstr "Export production"
 msgid "Esporta produzione miele"
 msgstr "Export honey production"
 
-msgid "Esportazioni — PDF e CSV"
-msgstr "Exports — PDF and CSV"
+msgid "Esportazioni - PDF e CSV"
+msgstr "Exports - PDF and CSV"
 
 msgid "Età"
 msgstr "Age"
@@ -2439,8 +2435,8 @@ msgstr "Photograph a frame and discover bees, brood and queen cells instantly"
 msgid "Fuchi"
 msgstr "Fuchi"
 
-msgid "Funzioni AI — Chat, voce, analisi telaino"
-msgstr "AI Features — Chat, voice, frame analysis"
+msgid "Funzioni AI - Chat, voce, analisi telaino"
+msgstr "AI Features - Chat, voice, frame analysis"
 
 msgid "Funzioni Avanzate"
 msgstr "Advanced Features"
@@ -2664,8 +2660,8 @@ msgstr "Recording extraction is a two-step process:"
 msgid "Il team di Apiary"
 msgstr "The Apiary team"
 
-msgid "Il tuo diario digitale da apicoltore. Registra, monitora e gestisci tutto ciò che riguarda le tue api — dai controlli alle vendite, dalla genealogia delle regine all'analisi AI dei telai."
-msgstr "Your digital beekeeper's diary. Record, monitor and manage everything about your bees — from inspections to sales, queen genealogy to AI frame analysis."
+msgid "Il tuo diario digitale da apicoltore. Registra, monitora e gestisci tutto ciò che riguarda le tue api: dai controlli alle vendite, dalla genealogia delle regine all'analisi AI dei telai."
+msgstr "Your digital beekeeper's diary. Record, monitor and manage everything about your bees: from inspections to sales, queen genealogy to AI frame analysis."
 
 msgid "Il tuo nome *"
 msgstr "Your name *"
@@ -2878,10 +2874,6 @@ msgstr "Send to Extraction"
 #, python-format
 msgid "Invia in Smielatura - Melario #%(i)s"
 msgstr "Invia in Smielatura - Melario #%(i)s"
-
-#, python-format
-msgid "Invia in Smielatura — Melario #%(i)s"
-msgstr "Invia in Smielatura — Melario #%(i)s"
 
 msgid "Invia in smielatura"
 msgstr "Send to extraction"
@@ -3194,8 +3186,8 @@ msgstr "Average per frame:"
 msgid "Medie Valutazioni"
 msgstr "Medie Valutazioni"
 
-msgid "Melari & Raccolti — Dal melario alla cantina"
-msgstr "Supers & Harvests — From super to honey house"
+msgid "Melari & Raccolti - Dal melario alla cantina"
+msgstr "Supers & Harvests - From super to honey house"
 
 msgid "Melari Smielati"
 msgstr "Extracted Supers"
@@ -3224,8 +3216,8 @@ msgid "Melario #%(i)s - Posizione %(p)s (%(t)s telaini)"
 msgstr "Melario #%(i)s - Posizione %(p)s (%(t)s telaini)"
 
 #, python-format
-msgid "Melario #%(i)s — %(t)s — %(n)s telaini — Pos. %(p)s"
-msgstr "Melario #%(i)s — %(t)s — %(n)s telaini — Pos. %(p)s"
+msgid "Melario #%(i)s · %(t)s · %(n)s telaini · Pos. %(p)s"
+msgstr "Melario #%(i)s · %(t)s · %(n)s telaini · Pos. %(p)s"
 
 msgid "Membri del Gruppo"
 msgstr "Membri del Gruppo"
@@ -3631,8 +3623,8 @@ msgid "Nucleo #%(n)s"
 msgstr "Nucleo #%(n)s"
 
 #, python-format
-msgid "Nucleo #%(n)s — %(a)s"
-msgstr "Nucleo #%(n)s — %(a)s"
+msgid "Nucleo #%(n)s - %(a)s"
+msgstr "Nucleo #%(n)s - %(a)s"
 
 msgid "Numero Fattura"
 msgstr "Invoice Number"
@@ -3748,8 +3740,8 @@ msgstr "Today"
 msgid "Ogni arnia ha la sua storia: regina, trattamenti, melari, raccolti. Registra i controlli periodici per tenere traccia della forza della colonia, della presenza della regina e dello stato sanitario."
 msgstr "Each hive has its history: queen, treatments, supers, harvests. Record periodic inspections to track colony strength, queen presence and health status."
 
-msgid "Ogni arnia può avere una regina associata — aggiungila dalla scheda dell'arnia"
-msgstr "Each hive can have an associated queen — add it from the hive's tab"
+msgid "Ogni arnia può avere una regina associata: aggiungila dalla scheda dell'arnia"
+msgstr "Each hive can have an associated queen: add it from the hive's tab"
 
 msgid "Ogni membro può avere ruoli diversi:"
 msgstr "Each member can have different roles:"
@@ -4000,8 +3992,8 @@ msgstr "First analysis"
 msgid "Prima vendita"
 msgstr "First sale"
 
-msgid "Primi Passi — Creare il primo apiario"
-msgstr "First Steps — Create your first apiary"
+msgid "Primi Passi - Creare il primo apiario"
+msgstr "First Steps - Create your first apiary"
 
 msgid "Principio Attivo"
 msgstr "Principio Attivo"
@@ -4242,8 +4234,8 @@ msgstr "Queen ✗"
 msgid "Regine nella linea:"
 msgstr "Regine nella linea:"
 
-msgid "Regine — Gestire e tracciare le regine"
-msgstr "Queens — Manage and track queens"
+msgid "Regine - Gestire e tracciare le regine"
+msgstr "Queens - Manage and track queens"
 
 msgid "Regine, nuclei e movimenti"
 msgstr "Queens, nuclei and movements"
@@ -4492,11 +4484,11 @@ msgstr "Save a snapshot of values"
 msgid "Salva vendita"
 msgstr "Salva vendita"
 
-msgid "Salva — il controllo appare nella cronologia dell'arnia"
-msgstr "Save — the inspection appears in the hive's history"
+msgid "Salva: il controllo appare nella cronologia dell'arnia"
+msgstr "Save: the inspection appears in the hive's history"
 
-msgid "Salva — il tuo apiario è pronto"
-msgstr "Save — your apiary is ready"
+msgid "Salva: il tuo apiario è pronto"
+msgstr "Save: your apiary is ready"
 
 #, python-format
 msgid "Scade il %(d)s"
@@ -4692,8 +4684,8 @@ msgstr "Seleziona un gruppo con cui condividere questo apiario e i suoi dati."
 msgid "Seleziona un gruppo..."
 msgstr "Select a group..."
 
-msgid "Seleziona un telaino di una tua arnia, scatta/carica la foto — il modello locale rileva api, fuchi, regine e celle reali"
-msgstr "Seleziona un telaino di una tua arnia, scatta/carica la foto — il modello locale rileva api, fuchi, regine e celle reali"
+msgid "Seleziona un telaino di una tua arnia, scatta/carica la foto: il modello locale rileva api, fuchi, regine e celle reali"
+msgstr "Seleziona un telaino di una tua arnia, scatta/carica la foto: il modello locale rileva api, fuchi, regine e celle reali"
 
 msgid "Selezionando questa opzione, verrai reindirizzato alla pagina di sostituzione regina dopo il salvataggio."
 msgstr "Selezionando questa opzione, verrai reindirizzato alla pagina di sostituzione regina dopo il salvataggio."
@@ -4902,8 +4894,8 @@ msgstr "Tips based on current weather:"
 msgid "Suggerimento:"
 msgstr "Tip:"
 
-msgid "Supporta Apiary — Offrici un Caffè"
-msgstr "Support Apiary — Buy Us a Coffee"
+msgid "Supporta Apiary - Offrici un Caffè"
+msgstr "Support Apiary - Buy Us a Coffee"
 
 msgid "Sviluppato da chi alleva api e conosce le reali esigenze di chi lavora in campo."
 msgstr "Developed by those who keep bees and understand real field needs."
@@ -5209,8 +5201,8 @@ msgstr "Humidity"
 msgid "Umidità elevata (%(u)s%): Attenzione a possibili problemi di condensa nelle arnie."
 msgstr "Umidità elevata (%(u)s%): Attenzione a possibili problemi di condensa nelle arnie."
 
-msgid "Un apiario è la tua postazione fisica — un campo, un bosco, un terreno. Dentro ogni apiario trovi le tue arnie. Puoi avere più apiari in luoghi diversi e gestirli tutti da qui."
-msgstr "An apiary is your physical location — a field, woods, land. Each apiary contains your hives. You can have multiple apiaries in different places and manage them all from here."
+msgid "Un apiario è la tua postazione fisica: un campo, un bosco, un terreno. Dentro ogni apiario trovi le tue arnie. Puoi avere più apiari in luoghi diversi e gestirli tutti da qui."
+msgstr "An apiary is your physical location: a field, woods, land. Each apiary contains your hives. You can have multiple apiaries in different places and manage them all from here."
 
 msgid "Una breve descrizione del trattamento"
 msgstr "Una breve descrizione del trattamento"
@@ -5434,8 +5426,8 @@ msgstr "from inside an apiary → <em>Export PDF</em> button"
 msgid "debole, impreciso ed embrionale"
 msgstr "debole, impreciso ed embrionale"
 
-msgid "e parla — la trascrizione appare in tempo reale."
-msgstr "and speak — the transcription appears in real time."
+msgid "e parla: la trascrizione appare in tempo reale."
+msgstr "and speak: the transcription appears in real time."
 
 msgid "es. Apiguard"
 msgstr "es. Apiguard"
@@ -5546,41 +5538,28 @@ msgstr "jars available"
 msgid "{n} vasetti × {fmt}g = {kg} kg confezionati"
 msgstr "{n} vasetti × {fmt}g = {kg} kg confezionati"
 
-msgid "— Nessuna —"
-msgstr "— None —"
+msgid "Nessuno"
+msgstr "None"
 
-msgid "— Nessuno —"
-msgstr "— None —"
+msgid "Seleziona apiario"
+msgstr "Select apiary"
 
-msgid "— Seleziona apiario —"
-msgstr "— Select apiary —"
-
-msgid "— Tutte —"
-msgstr "— All —"
-
-msgid "— Tutti —"
-msgstr "— All —"
-
-msgid "— seleziona apiario —"
-msgstr "— seleziona apiario —"
+msgid "Tutti"
+msgstr "All"
 
 msgid "→ Cantina"
 msgstr "→ Honey House"
 
 msgid "✅ Pronto"
-msgstr "✅ Ready"
+msgstr "Ready"
 
-msgid "🎤 Controllo Vocale"
-msgstr "🎤 Voice Control"
 
-msgid "📷 Analisi Telaino"
-msgstr "📷 Frame Analysis"
 
 msgid "🔷 0 celle"
-msgstr "🔷 0 cells"
+msgstr "0 cells"
 
-msgid "🗨️ Chat AI"
-msgstr "🗨️ AI Chat"
+msgid "Chat AI"
+msgstr "AI Chat"
 
 #, python-format
 msgid "%(counter)s elemento"
@@ -5640,3 +5619,54 @@ msgid "%(counter)s anno"
 msgid_plural "%(counter)s anni"
 msgstr[0] "%(counter)s year"
 msgstr[1] "%(counter)s years"
+
+msgid "Scegli da dove iniziare."
+msgstr "Choose where to start."
+
+msgid "Il registro del tuo apiario"
+msgstr "Your apiary logbook"
+
+msgid "Apiary tiene in un unico posto apiari, arnie, controlli, regine, trattamenti e produzione di miele. In apiario lo usi dall'app sul telefono, a casa dal computer."
+msgstr "Apiary keeps apiaries, hives, inspections, queens, treatments and honey production in one place. Use the phone app in the apiary and your computer at home."
+
+msgid "Cosa puoi registrare"
+msgstr "What you can record"
+
+msgid "Gli stessi dati che trovi nell'app, sincronizzati tra telefono e computer."
+msgstr "The same data you have in the app, synced between phone and computer."
+
+msgid "Posizione degli apiari, stato dei telaini e storico dei controlli di ogni arnia."
+msgstr "Apiary locations, frame status and the inspection history of every hive."
+
+msgid "Origine, anno, marcatura, razza e genealogia di ogni regina."
+msgstr "Origin, year, marking, breed and lineage of every queen."
+
+msgid "Melari e produzione"
+msgstr "Supers and production"
+
+msgid "Melari posati e tolti, smielature e invasettamento, con la resa per colonia."
+msgstr "Supers added and removed, extractions and jarring, with the yield per colony."
+
+msgid "Trattamenti sanitari"
+msgstr "Health treatments"
+
+msgid "Trattamenti programmati e in corso, con il periodo di sospensione calcolato."
+msgstr "Planned and ongoing treatments, with the withdrawal period calculated."
+
+msgid "Le fioriture della zona su mappa, condivise con gli altri apicoltori."
+msgstr "Local blooms on a map, shared with other beekeepers."
+
+msgid "Apiari gestiti insieme ad altri, con quote e pagamenti del gruppo."
+msgstr "Apiaries managed with others, with group shares and payments."
+
+msgid "L'app per Android"
+msgstr "The Android app"
+
+msgid "Registra i controlli direttamente in apiario, anche senza connessione. I dati si sincronizzano appena torni online."
+msgstr "Record inspections right in the apiary, even offline. Data syncs as soon as you are back online."
+
+msgid "Scarica da Google Play"
+msgstr "Get it on Google Play"
+
+msgid "Informativa sulla privacy"
+msgstr "Privacy policy"

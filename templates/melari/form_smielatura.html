@@ -8,7 +8,7 @@
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">💧 {% trans "Registrazione Smielatura" %}</h1>
+    <h1 class="page-title">{% trans "Registrazione Smielatura" %}</h1>
     <p class="page-subtitle"><a href="{% url 'dashboard' %}">{% trans "Dashboard" %}</a> › <a href="{% url 'visualizza_apiario' apiario.id %}">{{ apiario.nome }}</a> › <a href="{% url 'gestione_melari' apiario.id %}">{% trans "Melari" %}</a> › {% trans "Smielatura" %}</p>
   </div>
   <a href="{% url 'gestione_melari' apiario.id %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> {% trans "Annulla" %}</a>

@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% load i18n %}
-{% block title %}{% blocktrans with n=nucleo.numero %}Nucleo #{{ n }}{% endblocktrans %} — Apiary{% endblock %}
+{% block title %}{% blocktrans with n=nucleo.numero %}Nucleo #{{ n }}{% endblocktrans %} - Apiary{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
     <h1 class="page-title">
-      <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:{{ nucleo.colore_hex }};border:2px solid #EAD9BF;vertical-align:middle;margin-right:6px;"></span>
+      <span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:{{ nucleo.colore_hex }};border:2px solid #E0D8C2;vertical-align:middle;margin-right:6px;"></span>
       {% blocktrans with n=nucleo.numero %}Nucleo #{{ n }}{% endblocktrans %}
     </h1>
     <p class="page-subtitle">
@@ -111,22 +111,22 @@
                 <td class="small">
                   {% if c.n_telaini is not None %}
                   <span class="badge bg-secondary">{% blocktrans with n=c.n_telaini %}{{ n }} tel.{% endblocktrans %}</span>
-                  {% else %}—{% endif %}
+                  {% else %}-{% endif %}
                 </td>
                 <td class="small">
                   {% if c.forza_colonia %}
                   {% for i in "12345" %}
                     <i class="bi bi-star{% if forloop.counter <= c.forza_colonia %}-fill{% endif %}" style="color:var(--honey);font-size:.7rem;"></i>
                   {% endfor %}
-                  {% else %}—{% endif %}
+                  {% else %}-{% endif %}
                 </td>
                 <td class="small">
                   {% if c.presenza_regina is True %}<span class="badge bg-success">{% trans "Sì" %}</span>
                   {% elif c.presenza_regina is False %}<span class="badge bg-danger">{% trans "No" %}</span>
-                  {% else %}<span class="text-muted">—</span>{% endif %}
+                  {% else %}<span class="text-muted">-</span>{% endif %}
                 </td>
                 <td class="small text-muted" style="max-width:200px;">
-                  {% if c.note %}<span title="{{ c.note }}">{{ c.note|truncatechars:50 }}</span>{% else %}—{% endif %}
+                  {% if c.note %}<span title="{{ c.note }}">{{ c.note|truncatechars:50 }}</span>{% else %}-{% endif %}
                 </td>
               </tr>
               {% endfor %}

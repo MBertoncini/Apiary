@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Dashboard" %} — Apiary{% endblock %}
+{% block title %}{% trans "Dashboard" %} - Apiary{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -15,7 +15,7 @@
 <!-- Page header -->
 <div class="page-header">
   <div>
-    <h1 class="page-title">🐝 {% trans "Buongiorno!" %}</h1>
+    <h1 class="page-title">{% trans "Buongiorno!" %}</h1>
     <p class="page-subtitle">{{ data_selezionata|date:"l d F Y" }}</p>
   </div>
   <a href="{% url 'crea_apiario' %}" class="btn btn-primary">
@@ -30,7 +30,7 @@
 
   <div class="col-6 col-md-3">
     <div class="stat-card">
-      <span class="stat-icon">🏡</span>
+      <span class="stat-icon"><i class="bi bi-house-door"></i></span>
       <div class="stat-value">{{ apiari|length }}</div>
       <div class="stat-label">{% trans "Apiari" %}</div>
     </div>
@@ -38,15 +38,15 @@
 
   <div class="col-6 col-md-3">
     <div class="stat-card">
-      <span class="stat-icon">🐝</span>
-      <div class="stat-value">{{ num_arnie|default:"—" }}</div>
+      <span class="stat-icon"><i class="bi bi-hexagon"></i></span>
+      <div class="stat-value">{{ num_arnie|default:"-" }}</div>
       <div class="stat-label">{% trans "Arnie totali" %}</div>
     </div>
   </div>
 
   <div class="col-6 col-md-3">
     <div class="stat-card">
-      <span class="stat-icon">🌸</span>
+      <span class="stat-icon"><i class="bi bi-flower1"></i></span>
       <div class="stat-value">{{ fioriture_attuali|length }}</div>
       <div class="stat-label">{% trans "Fioriture attive" %}</div>
     </div>
@@ -54,7 +54,7 @@
 
   <div class="col-6 col-md-3">
     <div class="stat-card">
-      <span class="stat-icon">📋</span>
+      <span class="stat-icon"><i class="bi bi-clipboard-check"></i></span>
       <div class="stat-value">{{ ultimi_controlli|length }}</div>
       <div class="stat-label">{% trans "Controlli recenti" %}</div>
     </div>
@@ -99,7 +99,7 @@
         </div>
         {% else %}
         <div class="empty-state">
-          <span class="empty-icon">🏡</span>
+          <span class="empty-icon"><i class="bi bi-house-door"></i></span>
           <h5>{% trans "Nessun apiario ancora" %}</h5>
           <p>{% trans "Crea il tuo primo apiario per iniziare." %}</p>
           <a href="{% url 'crea_apiario' %}" class="btn btn-primary">
@@ -150,7 +150,7 @@
         </div>
         {% else %}
         <div class="empty-state">
-          <span class="empty-icon">🌸</span>
+          <span class="empty-icon"><i class="bi bi-flower1"></i></span>
           <h5>{% trans "Nessuna fioritura attiva" %}</h5>
           <p>{% trans "Registra le fioriture per monitorare il pascolo." %}</p>
           <a href="{% url 'gestione_fioriture' %}" class="btn btn-success">
@@ -209,7 +209,7 @@
     <div class="card card-honey">
       <div class="card-body py-3">
         <div class="d-flex align-items-center gap-4 flex-wrap">
-          <strong style="font-size:0.9rem;">🐝 {% trans "Stato arnie" %}</strong>
+          <strong style="font-size:0.9rem;">{% trans "Stato arnie" %}</strong>
           <span>
             <span class="health-dot me-1" style="background:var(--success);"></span>
             <span class="text-muted" style="font-size:0.85rem;">{% blocktrans with n=num_arnie|add:"-"|add:arnie_senza_regina|add:"-"|add:arnie_con_problemi %}{{ n }} in buona salute{% endblocktrans %}</span>
@@ -274,9 +274,9 @@
           <td>{{ controllo.utente.username }}</td>
           <td>
             {% if controllo.presenza_regina %}
-              <span class="badge bg-success">👑 {% trans "Regina" %} ✓</span>
+              <span class="badge bg-success">{% trans "Regina" %} ✓</span>
             {% else %}
-              <span class="badge bg-danger">👑 {% trans "Regina" %} ✗</span>
+              <span class="badge bg-danger">{% trans "Regina" %} ✗</span>
             {% endif %}
             {% if controllo.sciamatura %}
               <span class="badge bg-warning">{% trans "Sciamatura" %}</span>
@@ -304,7 +304,7 @@
                     {% endif %}>
                     <h5 class="modal-title">
                       <i class="bi bi-clipboard-check me-2"></i>
-                      {% blocktrans with n=controllo.arnia.numero %}Controllo — Arnia #{{ n }}{% endblocktrans %}
+                      {% blocktrans with n=controllo.arnia.numero %}Controllo - Arnia #{{ n }}{% endblocktrans %}
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                       {% if controllo.arnia.colore_hex and controllo.arnia.colore_hex != '#FFFFFF' %}
@@ -331,11 +331,11 @@
                       </div>
                       <div class="col-6">
                         <small class="text-muted d-block">{% trans "Presenza regina" %}</small>
-                        <strong>{% if controllo.presenza_regina %}✅ {% trans "Sì" %}{% else %}❌ {% trans "No" %}{% endif %}</strong>
+                        <strong>{% if controllo.presenza_regina %}<span class="text-success">{% trans "Sì" %}</span>{% else %}<span class="text-danger">{% trans "No" %}</span>{% endif %}</strong>
                       </div>
                       <div class="col-6">
                         <small class="text-muted d-block">{% trans "Sciamatura" %}</small>
-                        <strong>{% if controllo.sciamatura %}⚠️ {% trans "Sì" %}{% else %}{% trans "No" %}{% endif %}</strong>
+                        <strong>{% if controllo.sciamatura %}<span class="text-warning"><i class="bi bi-exclamation-triangle-fill"></i> {% trans "Sì" %}</span>{% else %}{% trans "No" %}{% endif %}</strong>
                       </div>
                       {% if controllo.note %}
                       <div class="col-12">
@@ -373,7 +373,7 @@
   {% else %}
   <div class="card-body">
     <div class="empty-state">
-      <span class="empty-icon">📋</span>
+      <span class="empty-icon"><i class="bi bi-clipboard-check"></i></span>
       <h5>{% trans "Nessun controllo recente" %}</h5>
       <p>{% trans "I controlli delle arnie appariranno qui." %}</p>
     </div>
@@ -391,17 +391,17 @@
   const ctrl   = {{ chart_controlli|safe }};
   const prod   = {{ chart_produzione|safe }};
 
-  const honey      = '#F5A623';
-  const honeyLight = 'rgba(245,166,35,0.15)';
-  const brown      = '#8B4513';
+  const honey      = '#D3A121';
+  const honeyLight = 'rgba(211,161,33,0.15)';
+  const brown      = '#8B5E00';
   const brownLight = 'rgba(139,69,19,0.12)';
 
-  Chart.defaults.font.family = "'Poppins', sans-serif";
+  Chart.defaults.font.family = "var(--font-body)";
   Chart.defaults.font.size   = 12;
-  Chart.defaults.color       = '#7A5C45';
+  Chart.defaults.color       = '#6D5D4B';
 
   const gridOpts = { color: 'rgba(234,217,191,0.6)', drawBorder: false };
-  const tickOpts = { color: '#A8856A' };
+  const tickOpts = { color: '#8E7F6B' };
 
   // ---- Controlli ----
   new Chart(document.getElementById('chartControlli'), {
@@ -422,7 +422,7 @@
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: { backgroundColor: '#2C1810', titleColor: honey, bodyColor: 'rgba(255,255,255,0.85)', padding: 10, cornerRadius: 8 }
+        tooltip: { backgroundColor: '#3A2E21', titleColor: honey, bodyColor: 'rgba(255,255,255,0.85)', padding: 10, cornerRadius: 8 }
       },
       scales: {
         x: { grid: gridOpts, ticks: tickOpts },
@@ -452,7 +452,7 @@
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#2C1810', titleColor: honey, bodyColor: 'rgba(255,255,255,0.85)', padding: 10, cornerRadius: 8,
+          backgroundColor: '#3A2E21', titleColor: honey, bodyColor: 'rgba(255,255,255,0.85)', padding: 10, cornerRadius: 8,
           callbacks: { label: ctx => ' ' + ctx.parsed.y.toFixed(1) + ' kg' }
         }
       },

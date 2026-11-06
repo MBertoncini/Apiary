@@ -1,5 +1,5 @@
 /**
- * VoiceControllo — Inserimento vocale controlli arnia
+ * VoiceControllo - Inserimento vocale controlli arnia
  * Porta fedele del sistema Flutter: vocabolario, batch mode, trigger words, Gemini rotation
  */
 'use strict';
@@ -336,7 +336,7 @@ class VoiceControllo {
         this.recFinal   = '';
         this.recInterim = '';
         this._updateTranscript('');
-        this._setStatus('recording', 'Prossima arnia — parla ora…');
+        this._setStatus('recording', 'Prossima arnia: parla ora…');
         return;
       }
     }
@@ -379,7 +379,7 @@ class VoiceControllo {
   _finaliseTranscript(text) {
     if (!text) return;
     const corrected = correctVocabulary(text);
-    // Aggiunge sempre alla coda — l'utente deve premere "Elabora con AI" per inviare a Gemini
+    // Aggiunge sempre alla coda: l'utente deve premere "Elabora con AI" per inviare a Gemini
     this._enqueueTranscript(corrected);
   }
 
@@ -457,7 +457,7 @@ class VoiceControllo {
 
     this.state = 'processing';
     const total = this.pendingTranscripts.length;
-    // Copia locale — la coda originale resta intatta finché non siamo sicuri del successo
+    // Copia locale: la coda originale resta intatta finché non siamo sicuri del successo
     const toProcess = [...this.pendingTranscripts];
     this.pendingTranscripts = [];
     this._renderQueue();
@@ -490,17 +490,17 @@ class VoiceControllo {
         console.warn('[VoiceControllo] Network error:', e.message, '| transcript:', toProcess[i]);
       }
 
-      // Piccola pausa tra chiamate (come nell'app — evita rate limit)
+      // Piccola pausa tra chiamate (come nell'app: evita rate limit)
       if (i < toProcess.length - 1) await sleep(600);
     }
 
-    // I transcript falliti tornano in coda — l'utente può riprovare
+    // I transcript falliti tornano in coda: l'utente può riprovare
     if (failedTexts.length > 0) {
       this.pendingTranscripts.push(...failedTexts);
       this._renderQueue();
       if (this.ui.processBtn) this.ui.processBtn.disabled = false;
       this._showToast(
-        `⚠️ ${failedTexts.length} trascrizione/i non elaborate (errore AI/rete) — rimesse in coda per riprovare.`,
+        `⚠️ ${failedTexts.length} trascrizione/i non elaborate (errore AI/rete): rimesse in coda per riprovare.`,
         'warning'
       );
     }
@@ -510,8 +510,8 @@ class VoiceControllo {
     this._renderReview();
 
     const status = newEntries.length > 0
-      ? `Elaborazione completata — ${newEntries.length} arnie ok${failedTexts.length ? `, ${failedTexts.length} in coda da riprovare` : ''}`
-      : 'Errore — trascrizioni rimesse in coda, riprova';
+      ? `Elaborazione completata - ${newEntries.length} arnie ok${failedTexts.length ? `, ${failedTexts.length} in coda da riprovare` : ''}`
+      : 'Errore: trascrizioni rimesse in coda, riprova';
     this._setStatus(failedTexts.length > 0 && newEntries.length === 0 ? 'error' : 'idle', status);
     this.state = this.entries.length > 0 ? 'review' : 'idle';
   }
@@ -578,14 +578,14 @@ class VoiceControllo {
 
   // ── Toast notifica ────────────────────────────────────────────────────────
   _showToast(message, type = 'info') {
-    const colors = { warning: '#F5A623', error: '#dc3545', success: '#198754', info: '#0dcaf0' };
+    const colors = { warning: '#D3A121', error: '#dc3545', success: '#198754', info: '#0dcaf0' };
     const el = document.createElement('div');
     el.style.cssText = `
       position:fixed; bottom:24px; right:24px; z-index:9999;
       background:#fff; border-left:4px solid ${colors[type] || colors.info};
       border-radius:8px; padding:12px 16px; max-width:360px;
       box-shadow:0 4px 16px rgba(0,0,0,.15); font-size:.88rem;
-      color:#2C1810; animation:fadeInUp .3s ease;
+      color:#3A2E21; animation:fadeInUp .3s ease;
     `;
     el.textContent = message;
     document.body.appendChild(el);
@@ -612,7 +612,7 @@ class VoiceControllo {
       }
 
       const arniaNum = e.arnia_numero ?? '';
-      const label = (v) => v === true ? 'Sì' : v === false ? 'No' : '—';
+      const label = (v) => v === true ? 'Sì' : v === false ? 'No' : '-';
 
       return `
         <div class="col-md-6 col-lg-4">
@@ -636,7 +636,7 @@ class VoiceControllo {
                 <div class="col-6">
                   <label class="form-label-sm">Forza</label>
                   <select class="form-select form-select-sm" data-field="forza_famiglia">
-                    <option value="">—</option>
+                    <option value="">-</option>
                     <option value="debole"  ${e.forza_famiglia==='debole'  ?'selected':''}>Debole</option>
                     <option value="normale" ${e.forza_famiglia==='normale' ?'selected':''}>Normale</option>
                     <option value="forte"   ${e.forza_famiglia==='forte'   ?'selected':''}>Forte</option>
@@ -758,7 +758,7 @@ class VoiceControllo {
       let html = `<div class="alert alert-success mb-2">
         <i class="bi bi-check-circle-fill me-2"></i>
         <strong>${ok.length} controlli salvati</strong>
-        ${ok.length > 0 ? '— ' + ok.map(r => `Arnia #${r.arnia}`).join(', ') : ''}
+        ${ok.length > 0 ? '- ' + ok.map(r => `Arnia #${r.arnia}`).join(', ') : ''}
       </div>`;
 
       if (errs.length > 0) {
@@ -812,7 +812,7 @@ class VoiceControllo {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// VOICE FILL — pulsante mic sul form nuovo_controllo.html
+// VOICE FILL: pulsante mic sul form nuovo_controllo.html
 // ────────────────────────────────────────────────────────────────────────────
 class VoiceFill {
   constructor() {
@@ -907,7 +907,7 @@ class VoiceFill {
       if (data.error) { this._setStatus('error', data.error); return; }
 
       this.parsed = data;
-      this._setStatus('ok', `Estratto — Modello: ${data._model || ''}`);
+      this._setStatus('ok', `Estratto - Modello: ${data._model || ''}`);
       if (this.applyBtn) this.applyBtn.style.display = 'inline-flex';
       this.applyBtn.onclick = () => { this._fillForm(data); this.modal.hide(); };
     } catch (e) {

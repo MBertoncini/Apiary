@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static i18n %}
 
-{% block title %}{% trans "Analisi Telaino AI — Apiary" %}{% endblock %}
+{% block title %}{% trans "Analisi Telaino AI - Apiary" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -10,40 +10,40 @@
 .step-wizard .step {
   flex: 1; text-align: center; padding: .5rem .25rem;
   font-size: .78rem; font-weight: 600; color: #aaa;
-  border-bottom: 3px solid #EAD9BF; position: relative;
+  border-bottom: 3px solid #E0D8C2; position: relative;
   transition: color .3s, border-color .3s;
 }
-.step-wizard .step.active { color: #F5A623; border-color: #F5A623; }
+.step-wizard .step.active { color: #D3A121; border-color: #D3A121; }
 .step-wizard .step.done   { color: #4caf7d; border-color: #4caf7d; }
 .step-wizard .step .step-num {
   display: inline-flex; align-items: center; justify-content: center;
   width: 22px; height: 22px; border-radius: 50%;
-  background: #EAD9BF; color: #2C1810; font-size: .72rem;
+  background: #E0D8C2; color: #3A2E21; font-size: .72rem;
   font-weight: 700; margin-right: 5px; transition: background .3s;
 }
-.step-wizard .step.active .step-num { background: #F5A623; color: #fff; }
+.step-wizard .step.active .step-num { background: #D3A121; color: #fff; }
 .step-wizard .step.done   .step-num { background: #4caf7d; color: #fff; }
 
 /* ── Apiario/Arnia selectors ── */
 .arnia-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(90px,1fr)); gap: 8px; margin-top: 8px; }
 .arnia-btn {
-  border: 2px solid #EAD9BF; border-radius: 10px; background: #fff;
+  border: 2px solid #E0D8C2; border-radius: 10px; background: #fff;
   padding: 8px 4px; text-align: center; cursor: pointer;
   transition: border-color .2s, transform .15s; font-size: .82rem; font-weight: 600;
 }
-.arnia-btn:hover { border-color: #F5A623; transform: translateY(-1px); }
-.arnia-btn.selected { border-color: #F5A623; background: #FFF3D6; }
+.arnia-btn:hover { border-color: #D3A121; transform: translateY(-1px); }
+.arnia-btn.selected { border-color: #D3A121; background: #FFF3D6; }
 .arnia-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-bottom: 3px; }
 
 /* ── Telaino selector ── */
 .telaino-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; }
 .tel-btn {
-  border: 2px solid #EAD9BF; border-radius: 8px; background: #fff;
+  border: 2px solid #E0D8C2; border-radius: 8px; background: #fff;
   padding: 6px 2px; text-align: center; cursor: pointer;
   font-size: .8rem; font-weight: 600; transition: .15s;
 }
-.tel-btn:hover { border-color: #F5A623; }
-.tel-btn.selected { border-color: #F5A623; background: #FFF3D6; color: #c07a00; }
+.tel-btn:hover { border-color: #D3A121; }
+.tel-btn.selected { border-color: #D3A121; background: #FFF3D6; color: #c07a00; }
 .tel-btn.tipo-covata       { border-color: #e53935aa; }
 .tel-btn.tipo-scorte       { border-color: #f9a825aa; }
 .tel-btn.tipo-foglio_cereo { border-color: #8fbc5aaa; }
@@ -53,12 +53,12 @@
 
 /* ── Drop zone ── */
 .drop-zone {
-  border: 2px dashed #F5A623; border-radius: 12px;
+  border: 2px dashed #D3A121; border-radius: 12px;
   padding: 2rem 1rem; text-align: center; cursor: pointer;
   background: #FFFDF5; position: relative;
   transition: background .2s, border-color .2s;
 }
-.drop-zone.dragover { background: #FFF3D6; border-color: #e8920f; }
+.drop-zone.dragover { background: #FFF3D6; border-color: #B58A1A; }
 #previewImg { max-height: 220px; max-width: 100%; border-radius: 8px; display: none; margin: 0 auto; object-fit: contain; }
 
 /* ── Loading overlay ── */
@@ -72,11 +72,11 @@
 /* ── Badges ── */
 .det-badge {
   display: inline-flex; align-items: center; gap: 5px;
-  background: #fff; border: 1.5px solid #EAD9BF; border-radius: 20px;
-  padding: 4px 12px; font-size: .82rem; font-weight: 600; color: #2C1810; margin: 3px;
+  background: #fff; border: 1.5px solid #E0D8C2; border-radius: 20px;
+  padding: 4px 12px; font-size: .82rem; font-weight: 600; color: #3A2E21; margin: 3px;
 }
 .det-badge .count {
-  background: #F5A623; color: #fff; border-radius: 50%;
+  background: #D3A121; color: #fff; border-radius: 50%;
   width: 22px; height: 22px;
   display: flex; align-items: center; justify-content: center;
   font-size: .78rem; font-weight: 700;
@@ -84,14 +84,14 @@
 .det-badge.zero .count { background: #ccc; }
 
 /* ── Risultati ── */
-#annotatedImg { width: 100%; border-radius: 10px; border: 2px solid #EAD9BF; display: block; }
-.analysis-text { white-space: pre-wrap; font-family: 'Poppins',sans-serif; font-size: .88rem; line-height: 1.75; color: #3a2a1a; }
+#annotatedImg { width: 100%; border-radius: 10px; border: 2px solid #E0D8C2; display: block; }
+.analysis-text { white-space: pre-wrap; font-family: var(--font-body); font-size: .88rem; line-height: 1.75; color: #3a2a1a; }
 .model-badge { font-size: .72rem; color: #bbb; font-style: italic; }
 .result-card { animation: fadeIn .35s ease; }
 @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } }
 
-.conf-bar-wrap { height: 6px; background: #EAD9BF; border-radius: 3px; flex: 1; }
-.conf-bar      { height: 6px; border-radius: 3px; background: #F5A623; transition: width .6s; }
+.conf-bar-wrap { height: 6px; background: #E0D8C2; border-radius: 3px; flex: 1; }
+.conf-bar      { height: 6px; border-radius: 3px; background: #D3A121; transition: width .6s; }
 
 /* ── Saved alert ── */
 .saved-banner {
@@ -119,7 +119,7 @@
   transition: color 0.2s;
 }
 .coffee-link:hover {
-  color: #F5A623;
+  color: #D3A121;
   text-decoration: underline;
 }
 
@@ -131,7 +131,7 @@
   padding: 1rem;
   border-radius: 0.375rem;
   box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
-  border-left: 5px solid #F5A623;
+  border-left: 5px solid #D3A121;
   background-color: #FFFDF5;
   color: #4a3518;
 }
@@ -142,7 +142,7 @@
 <div class="page-header">
   <div>
     <h1 class="page-title"><i class="bi bi-camera me-2"></i>{% trans "Analisi Telaino AI" %}</h1>
-    <p class="page-subtitle">{% trans "Seleziona un telaino di una tua arnia, scatta/carica la foto — il modello locale rileva api, fuchi, regine e celle reali" %}</p>
+    <p class="page-subtitle">{% trans "Seleziona un telaino di una tua arnia, scatta/carica la foto: il modello locale rileva api, fuchi, regine e celle reali" %}</p>
   </div>
 </div>
 
@@ -172,7 +172,7 @@
           {% if apiari %}
             <label class="form-label fw-semibold mb-1">{% trans "Apiario" %}</label>
             <select class="form-select form-select-sm mb-3" id="selApiario">
-              <option value="">{% trans "— seleziona apiario —" %}</option>
+              <option value="">{% trans "Seleziona apiario" %}</option>
               {% for ap in apiari %}
                 <option value="{{ ap.id }}" {% if preselect_apiario == ap.id|stringformat:"s" %}selected{% endif %}>{{ ap.nome }}</option>
               {% endfor %}
@@ -229,13 +229,13 @@
           <div class="drop-zone mb-3" id="dropZone">
             <img id="previewImg" alt="{% trans "Anteprima" %}">
             <div id="dropPlaceholder">
-              <i class="bi bi-image" style="font-size:2.5rem;color:#F5A623;"></i>
+              <i class="bi bi-image" style="font-size:2.5rem;color:#D3A121;"></i>
               <p class="mt-2 mb-1 fw-medium">{% trans "Trascina la foto del telaino" %}</p>
               <p class="small text-muted mb-0">{% trans "oppure clicca per scegliere" %}</p>
             </div>
             <div id="loadingOverlay">
               <div class="spinner-border text-warning" style="width:2.2rem;height:2.2rem;"></div>
-              <div class="small fw-semibold mt-1" style="color:#F5A623" id="loadingMsg">{% trans "Analisi in corso…" %}</div>
+              <div class="small fw-semibold mt-1" style="color:#D3A121" id="loadingMsg">{% trans "Analisi in corso…" %}</div>
             </div>
           </div>
           <input type="file" id="imageInput" accept="image/*" style="display:none">
@@ -501,7 +501,7 @@
         telainoGrid.appendChild(btn);
       });
     } else {
-      telainoInfo.textContent = 'Nessun controllo disponibile — selezione manuale (1–10)';
+      telainoInfo.textContent = 'Nessun controllo disponibile: selezione manuale (1–10)';
       for (let i = 1; i <= 10; i++) {
         const btn = document.createElement('div');
         btn.className = 'tel-btn';
@@ -606,7 +606,7 @@
     // ── Banner salvataggio ──
     if (data.saved_id && selectedArniaId) {
       const num = selectedTelaino?.numero;
-      savedBannerText.textContent = ` Telaino ${num}${facciata} — ${selectedArniaNome}`;
+      savedBannerText.textContent = ` Telaino ${num}${facciata} - ${selectedArniaNome}`;
       btnCreaControllo.href = `/app/ai/analisi-telaino/${data.saved_id}/crea-controllo/`;
       btnListaAnalisi.href  = `/app/arnia/${selectedArniaId}/analisi-telaini/`;
       savedBanner.style.display = 'flex';

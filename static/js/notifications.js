@@ -1,5 +1,5 @@
 /**
- * Apiary — Notification Center
+ * Apiary - Notification Center
  * Gestisce il pannello dropdown notifiche nella topbar e il polling periodico.
  */
 (function () {

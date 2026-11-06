@@ -5,7 +5,7 @@
 
 {% block extra_css %}
 <style>
-  body { background: linear-gradient(135deg, #2C1810 0%, #5D2E1A 50%, #8B4513 100%); min-height: 100vh; }
+  body { background: var(--cream); min-height: 100vh; }
 
   .auth-wrapper {
     min-height: 100vh;
@@ -18,33 +18,24 @@
   .auth-card {
     width: 100%;
     max-width: 460px;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    background: var(--card);
+    border: 1px solid var(--cream-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
     overflow: hidden;
   }
 
   .auth-body { padding: 36px 32px 28px; }
 
   /* Logo */
-  .auth-logo {
-    width: 80px;
-    height: 80px;
-    background: var(--honey, #F5A623);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px;
-    box-shadow: 0 4px 16px rgba(245, 166, 35, 0.3);
-  }
-  .auth-logo img { width: 48px; height: 48px; filter: brightness(0) invert(1); }
+  .auth-logo { width: 72px; height: 72px; margin: 0 auto 14px; }
+  .auth-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
 
   .auth-title {
-    font-family: var(--font-display, 'Caveat', cursive);
-    font-size: 1.75rem;
+    font-family: var(--font-display);
+    font-size: 1.45rem;
     font-weight: 700;
-    color: var(--honey, #F5A623);
+    color: var(--text-primary);
     text-align: center;
     margin-bottom: 4px;
   }
@@ -61,22 +52,22 @@
     display: block;
     font-weight: 500;
     font-size: 0.85rem;
-    color: #4A2515;
+    color: #4E3F2E;
     margin-bottom: 5px;
   }
   .input-wrapper { position: relative; }
   .form-group .form-control {
     background: #FFFDF5;
-    border: 1.5px solid #EAD9BF;
-    border-radius: 10px;
+    border: 1px solid #E0D8C2;
+    border-radius: var(--radius-sm);
     padding: 10px 14px;
     font-size: 0.875rem;
     width: 100%;
     transition: border-color 0.2s, box-shadow 0.2s;
   }
   .form-group .form-control:focus {
-    border-color: var(--honey, #F5A623);
-    box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+    border-color: var(--honey, #D3A121);
+    box-shadow: 0 0 0 3px rgba(211,161,33, 0.15);
     background: white;
     outline: none;
   }
@@ -110,7 +101,7 @@
     font-size: 1.1rem;
     line-height: 1;
   }
-  .password-toggle:hover { color: var(--honey, #F5A623); }
+  .password-toggle:hover { color: var(--honey, #D3A121); }
 
   /* Privacy checkbox */
   .privacy-group {
@@ -123,7 +114,7 @@
     width: 18px;
     height: 18px;
     margin-top: 2px;
-    accent-color: var(--honey, #F5A623);
+    accent-color: var(--honey, #D3A121);
     flex-shrink: 0;
     cursor: pointer;
   }
@@ -134,7 +125,7 @@
     line-height: 1.4;
   }
   .privacy-group label a {
-    color: var(--honey-darker, #A86800);
+    color: var(--honey-darker, #8B5E00);
     font-weight: 600;
     text-decoration: none;
   }
@@ -142,10 +133,10 @@
 
   /* Submit button */
   .btn-auth {
-    background: var(--honey, #F5A623);
+    background: var(--honey, #D3A121);
     color: white;
     border: 1px solid rgba(139, 94, 0, 0.3);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     padding: 12px;
     font-weight: 600;
     font-size: 0.95rem;
@@ -157,11 +148,11 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    box-shadow: 0 2px 6px rgba(245, 166, 35, 0.3);
+    box-shadow: 0 2px 6px rgba(211,161,33, 0.3);
   }
   .btn-auth:hover:not(:disabled) {
-    background: var(--honey-dark, #D4880A);
-    box-shadow: 0 4px 12px rgba(245, 166, 35, 0.4);
+    background: var(--honey-dark, #B58A1A);
+    box-shadow: 0 4px 12px rgba(211,161,33, 0.4);
   }
   .btn-auth:disabled { opacity: 0.7; cursor: not-allowed; }
   .btn-auth .spinner-border { width: 20px; height: 20px; border-width: 2px; }
@@ -177,12 +168,12 @@
   .auth-footer {
     text-align: center;
     padding: 18px 32px 24px;
-    border-top: 1px solid #EAD9BF;
+    border-top: 1px solid #E0D8C2;
     font-size: 0.85rem;
-    color: #7A5C45;
+    color: #6D5D4B;
     background: #FFFDF5;
   }
-  .auth-footer a { color: var(--honey-darker, #A86800); font-weight: 600; text-decoration: none; }
+  .auth-footer a { color: var(--honey-darker, #8B5E00); font-weight: 600; text-decoration: none; }
   .auth-footer a:hover { text-decoration: underline; }
 </style>
 {% endblock %}
@@ -194,7 +185,7 @@
 
       <!-- Logo -->
       <div class="auth-logo">
-        <img src="{% static 'images/logo.svg' %}" alt="Apiary">
+        <img src="{% static 'images/icon.svg' %}" alt="Apiary">
       </div>
       <h1 class="auth-title">{% trans "Crea Account" %}</h1>
       <p class="auth-subtitle">{% trans "Registrati su Apiary" %}</p>

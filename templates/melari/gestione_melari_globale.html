@@ -24,7 +24,7 @@
 }
 .melari-stat-card {
   background: white;
-  border: 1px solid var(--border-color, #EAD9BF);
+  border: 1px solid var(--border-color, #E0D8C2);
   border-radius: 14px;
   padding: .85rem 1.4rem;
   min-width: 120px;
@@ -32,11 +32,11 @@
   box-shadow: 0 2px 8px rgba(0,0,0,.05);
 }
 .melari-stat-value {
-  font-family: 'Caveat', cursive;
-  font-size: 2.2rem;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
   font-weight: 700;
   line-height: 1;
-  color: var(--honey, #F5A623);
+  color: var(--honey, #D3A121);
 }
 .melari-stat-label {
   font-size: .7rem;
@@ -50,7 +50,7 @@
 .melari-tabs {
   display: flex;
   gap: 0;
-  border-bottom: 2px solid var(--border-color, #EAD9BF);
+  border-bottom: 2px solid var(--border-color, #E0D8C2);
   margin-bottom: 2rem;
 }
 .melari-tab-btn {
@@ -68,20 +68,20 @@
   gap: .4rem;
   transition: color .15s, border-color .15s;
 }
-.melari-tab-btn:hover { color: var(--honey, #F5A623); }
+.melari-tab-btn:hover { color: var(--honey, #D3A121); }
 .melari-tab-btn.active {
-  color: var(--brown-dark, #2C1810);
-  border-bottom-color: var(--honey, #F5A623);
+  color: var(--brown-dark, #3A2E21);
+  border-bottom-color: var(--honey, #D3A121);
 }
 .melari-tab-btn .tab-badge {
-  background: var(--honey, #F5A623);
+  background: var(--honey, #D3A121);
   color: white;
   font-size: .65rem;
   border-radius: 20px;
   padding: 1px 8px;
   font-weight: 700;
 }
-.melari-tab-btn.active .tab-badge { background: var(--brown-dark, #2C1810); }
+.melari-tab-btn.active .tab-badge { background: var(--brown-dark, #3A2E21); }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
@@ -96,7 +96,7 @@
   margin-bottom: 2rem;
   padding: .75rem 1rem;
   background: white;
-  border: 1px solid var(--border-color, #EAD9BF);
+  border: 1px solid var(--border-color, #E0D8C2);
   border-radius: 10px;
 }
 .legend-swatch {
@@ -126,12 +126,12 @@
   gap: .75rem;
   padding-bottom: .8rem;
   margin-bottom: 1.8rem;
-  border-bottom: 2px solid var(--honey, #F5A623);
+  border-bottom: 2px solid var(--honey, #D3A121);
 }
 .apiario-section-title {
-  font-family: 'Caveat', cursive;
-  font-size: 1.75rem;
-  color: var(--brown-dark, #2C1810);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--brown-dark, #3A2E21);
   margin: 0;
 }
 
@@ -144,10 +144,10 @@
   padding-bottom: 1.2rem;
   align-items: flex-end;
   scrollbar-width: thin;
-  scrollbar-color: var(--honey,#F5A623) transparent;
+  scrollbar-color: var(--honey,#D3A121) transparent;
 }
 .arnie-hive-row::-webkit-scrollbar { height: 4px; }
-.arnie-hive-row::-webkit-scrollbar-thumb { background: var(--honey,#F5A623); border-radius: 2px; }
+.arnie-hive-row::-webkit-scrollbar-thumb { background: var(--honey,#D3A121); border-radius: 2px; }
 
 /* ── Single hive column ── */
 .arnia-hive-col {
@@ -162,7 +162,7 @@
 .arnia-hive-label-num {
   font-size: .82rem;
   font-weight: 700;
-  color: var(--brown-dark, #2C1810);
+  color: var(--brown-dark, #3A2E21);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -182,9 +182,9 @@
   width: var(--sw);
   height: 28px;
   background: transparent;
-  border: 2px dashed var(--honey, #F5A623);
+  border: 2px dashed var(--honey, #D3A121);
   border-radius: 6px;
-  color: var(--honey, #F5A623);
+  color: var(--honey, #D3A121);
   font-size: .72rem;
   font-weight: 600;
   cursor: pointer;
@@ -195,7 +195,7 @@
   margin-bottom: 5px;
   transition: background .15s, color .15s;
 }
-.hive-add-btn:hover { background: var(--honey, #F5A623); color: white; }
+.hive-add-btn:hover { background: var(--honey, #D3A121); color: white; }
 
 /* ── Sortable stack container ── */
 .hive-supers-stack {
@@ -224,7 +224,7 @@
   box-sizing: border-box;
 }
 .hive-super.posizionato {
-  background: linear-gradient(180deg, #FFCF70 0%, #F5A623 55%, #E08C15 100%);
+  background: linear-gradient(180deg, #FFCF70 0%, #D3A121 55%, #E08C15 100%);
   border-color: #C07A0A;
   color: #5C3A00;
   cursor: grab;
@@ -379,7 +379,7 @@
   width: var(--sw);
   text-align: center;
   font-size: .65rem;
-  color: var(--honey, #F5A623);
+  color: var(--honey, #D3A121);
   height: 14px;
   margin-bottom: 2px;
   opacity: 0;
@@ -397,7 +397,7 @@
 }
 .smiel-row-card {
   background: white;
-  border: 1.5px solid var(--border-color, #EAD9BF);
+  border: 1.5px solid var(--border-color, #E0D8C2);
   border-radius: 12px;
   padding: .85rem 1.1rem;
   margin-bottom: .65rem;
@@ -419,17 +419,17 @@
   border-radius: 10px;
 }
 .smiel-body { flex: 1; min-width: 0; }
-.smiel-title { font-weight: 700; color: var(--brown-dark, #2C1810); font-size: .95rem; }
+.smiel-title { font-weight: 700; color: var(--brown-dark, #3A2E21); font-size: .95rem; }
 .smiel-meta  { font-size: .78rem; color: #888; margin-top: 1px; }
 .smiel-kg {
-  font-family: 'Caveat', cursive;
-  font-size: 1.5rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
   font-weight: 700;
-  color: var(--honey, #F5A623);
+  color: var(--honey, #D3A121);
   white-space: nowrap;
   text-align: right;
 }
-.smiel-kg small { font-family: 'Poppins', sans-serif; font-size: .68rem; color: #AAA; font-weight: 400; display: block; line-height: 1; }
+.smiel-kg small { font-family: var(--font-body); font-size: .68rem; color: #AAA; font-weight: 400; display: block; line-height: 1; }
 
 .smielature-empty {
   text-align: center;
@@ -456,7 +456,7 @@
   align-items: center;
   gap: 4px;
   font-weight: 600;
-  color: var(--brown-dark, #2C1810);
+  color: var(--brown-dark, #3A2E21);
 }
 .flusso-arrow { color: #DDD; font-size: .9rem; }
 </style>
@@ -468,12 +468,12 @@
   <!-- ── Page header ── -->
   <div class="page-header">
     <div>
-      <h1 class="page-title">🍯 {% trans "Gestione Melari" %}</h1>
+      <h1 class="page-title">{% trans "Gestione Melari" %}</h1>
       <p class="text-muted mb-0">{% trans "Visualizzazione grafica su tutte le arnie" %}</p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
       <a href="{% url 'gestione_cantina' %}" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-jar me-1"></i>{% trans "Cantina" %}
+        <i class="bi bi-archive me-1"></i>{% trans "Cantina" %}
       </a>
       <button class="btn btn-sm btn-outline-warning" data-tab-target="smielature" id="btnNuovaSmielatura">
         <i class="bi bi-droplet me-1"></i>{% trans "Nuova smielatura" %}
@@ -518,13 +518,13 @@
   </div>
 
   <!-- ════════════════════════════════
-       TAB 1 — ALVEARI
+       TAB 1 - ALVEARI
        ════════════════════════════════ -->
   <div class="tab-panel active" id="panel-alveari">
 
     <!-- Legenda -->
     <div class="hive-legend">
-      <strong style="color:#2C1810;font-size:.78rem;">{% trans "Legenda:" %}</strong>
+      <strong style="color:#3A2E21;font-size:.78rem;">{% trans "Legenda:" %}</strong>
       <span><span class="legend-swatch nido"></span>{% trans "Nido" %}</span>
       <span><span class="legend-swatch excluder"></span>{% trans "Escludi-regina (QE)" %}</span>
       <span><span class="legend-swatch posizionato"></span>{% trans "Posizionato" %}</span>
@@ -546,8 +546,8 @@
       <div class="apiario-section">
 
         <div class="apiario-section-header">
-          <h2 class="apiario-section-title">🏡 {{ ap.apiario.nome }}</h2>
-          <span class="badge" style="background:var(--honey,#F5A623);color:#fff;font-size:.75rem;">
+          <h2 class="apiario-section-title">{{ ap.apiario.nome }}</h2>
+          <span class="badge" style="background:var(--honey,#D3A121);color:#fff;font-size:.75rem;">
             {% blocktrans count counter=ap.arnie|length %}{{ counter }} arnia{% plural %}{{ counter }} arnie{% endblocktrans %}
           </span>
           <div class="ms-auto d-flex gap-2">
@@ -601,9 +601,9 @@
               {% for melario in ai.melari %}
               <div class="hive-super {{ melario.stato }}"
                    data-id="{{ melario.id }}"
-                   title="{% blocktrans with i=melario.id t=melario.get_tipo_melario_display n=melario.numero_telaini p=melario.posizione %}Melario #{{ i }} — {{ t }} — {{ n }} telaini — Pos. {{ p }}{% endblocktrans %}">
+                   title="{% blocktrans with i=melario.id t=melario.get_tipo_melario_display n=melario.numero_telaini p=melario.posizione %}Melario #{{ i }} · {{ t }} · {{ n }} telaini · Pos. {{ p }}{% endblocktrans %}">
                 <div class="hive-super-info">
-                  <span class="hive-super-telaini">🍯 {% blocktrans with n=melario.numero_telaini %}{{ n }} favi{% endblocktrans %}</span>
+                  <span class="hive-super-telaini">{% blocktrans with n=melario.numero_telaini %}{{ n }} favi{% endblocktrans %}</span>
                   <span class="hive-super-sub" data-pos="{{ melario.posizione }}">
                     {% blocktrans with p=melario.posizione t=melario.get_tipo_melario_display %}Pos. {{ p }} · {{ t }}{% endblocktrans %}
                   </span>
@@ -651,7 +651,7 @@
 
             <!-- Nido -->
             <div class="hive-nido">
-              <div class="hive-nido-title">🐝 {% trans "Nido" %}</div>
+              <div class="hive-nido-title">{% trans "Nido" %}</div>
               {% if ai.ultimo_controllo %}
               <div class="hive-nido-stats">
                 {% blocktrans with c=ai.ultimo_controllo.telaini_covata s=ai.ultimo_controllo.telaini_scorte %}Cov: {{ c }} · Sc: {{ s }}{% endblocktrans %}
@@ -701,7 +701,7 @@
   </div>{# end panel-alveari #}
 
   <!-- ════════════════════════════════
-       TAB 2 — SMIELATURE
+       TAB 2 - SMIELATURE
        ════════════════════════════════ -->
   <div class="tab-panel" id="panel-smielature">
 
@@ -715,8 +715,8 @@
       <span class="flusso-arrow">›</span>
       <span class="flusso-step"><i class="bi bi-bucket"></i> {% trans "Stoccaggio" %}</span>
       <span class="flusso-arrow">›</span>
-      <span class="flusso-step"><i class="bi bi-jar"></i> {% trans "Vasetti" %}</span>
-      <a href="{% url 'gestione_cantina' %}" class="ms-auto text-decoration-none" style="color:var(--honey,#F5A623);font-weight:600;font-size:.78rem;">
+      <span class="flusso-step"><i class="bi bi-archive"></i> {% trans "Vasetti" %}</span>
+      <a href="{% url 'gestione_cantina' %}" class="ms-auto text-decoration-none" style="color:var(--honey,#D3A121);font-weight:600;font-size:.78rem;">
         {% trans "Apri Cantina →" %}
       </a>
     </div>
@@ -746,7 +746,7 @@
     <div id="listaSmielature">
       {% for s in smielature %}
       <div class="smiel-row-card">
-        <div class="smiel-icon">🍯</div>
+        <div class="smiel-icon"><i class="bi bi-droplet"></i></div>
         <div class="smiel-body">
           <div class="smiel-title">{{ s.tipo_miele|default:_("Tipo non specificato") }}</div>
           <div class="smiel-meta">
@@ -760,7 +760,7 @@
           </div>
         </div>
         <div class="smiel-kg">
-          {% if s.quantita_miele %}{{ s.quantita_miele|floatformat:1 }}{% else %}—{% endif %}
+          {% if s.quantita_miele %}{{ s.quantita_miele|floatformat:1 }}{% else %}-{% endif %}
           <small>{% trans "kg" %}</small>
         </div>
         <a href="{% url 'dettaglio_smielatura' s.id %}" class="btn btn-sm btn-outline-secondary ms-2" title="{% trans 'Dettaglio' %}">
@@ -787,19 +787,19 @@
 
 
 <!-- ============================================================
-   MODALS — Alveari
+   MODALS - Alveari
    ============================================================ -->
 {% for ap in apiari_data %}
   {% for ai in ap.arnie %}
 
-  <!-- Modal: Aggiungi Melario — Arnia #{{ ai.arnia.numero }} -->
+  <!-- Modal: Aggiungi Melario - Arnia #{{ ai.arnia.numero }} -->
   <div class="modal fade" id="addModal{{ ai.arnia.id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
-        <div class="modal-header" style="background:var(--honey,#F5A623);color:white;">
+        <div class="modal-header" style="background:var(--honey,#D3A121);color:white;">
           <h5 class="modal-title">
             <i class="bi bi-plus-circle me-1"></i>
-            {% blocktrans with n=ai.arnia.numero %}Aggiungi Melario — Arnia #{{ n }}{% endblocktrans %}
+            {% blocktrans with n=ai.arnia.numero %}Aggiungi Melario - Arnia #{{ n }}{% endblocktrans %}
           </h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
@@ -851,7 +851,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
-            <button type="submit" class="btn" style="background:var(--honey,#F5A623);color:white;border:none;">
+            <button type="submit" class="btn" style="background:var(--honey,#D3A121);color:white;border:none;">
               <i class="bi bi-plus-circle me-1"></i>{% trans "Aggiungi" %}
             </button>
           </div>
@@ -907,14 +907,14 @@
   </div>
 
   {% if melario.stato == 'posizionato' %}
-  <!-- Modal: Invia in Smielatura — Melario #{{ melario.id }} -->
+  <!-- Modal: Invia in Smielatura - Melario #{{ melario.id }} -->
   <div class="modal fade" id="smielModal{{ melario.id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header text-white" style="background:#E87000;">
           <h5 class="modal-title">
             <i class="bi bi-droplet-fill me-1"></i>
-            {% blocktrans with i=melario.id %}Invia in Smielatura — Melario #{{ i }}{% endblocktrans %}
+            {% blocktrans with i=melario.id %}Invia in Smielatura - Melario #{{ i }}{% endblocktrans %}
           </h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
@@ -947,7 +947,7 @@
 
 
 <!-- ============================================================
-   MODAL — Nuova Smielatura (globale, con selezione apiario)
+   MODAL - Nuova Smielatura (globale, con selezione apiario)
    ============================================================ -->
 <div class="modal fade" id="modalNuovaSmielatura" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -963,7 +963,7 @@
             <div class="col-12">
               <label class="form-label fw-semibold">{% trans "Apiario" %} *</label>
               <select class="form-select" id="smielApiario" name="_apiario_select" required>
-                <option value="">{% trans "— Seleziona apiario —" %}</option>
+                <option value="">{% trans "Seleziona apiario" %}</option>
                 {% for ap in apiari %}
                 <option value="{{ ap.id }}" data-url="{% url 'registra_smielatura' ap.id %}" data-ajax="{% url 'ajax_melari_disponibili' ap.id %}">{{ ap.nome }}</option>
                 {% endfor %}

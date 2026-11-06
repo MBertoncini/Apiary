@@ -27,42 +27,42 @@
 <div class="row g-3 mb-4">
   <div class="col-6 col-md-2">
     <div class="stat-card">
-      <span class="stat-icon">📦</span>
+      <span class="stat-icon"><i class="bi bi-box-seam"></i></span>
       <div class="stat-value">{{ stats.totale }}</div>
       <div class="stat-label">{% trans "Totale" %}</div>
     </div>
   </div>
   <div class="col-6 col-md-2">
     <div class="stat-card" style="border-top: 3px solid var(--success);">
-      <span class="stat-icon">✅</span>
+      <span class="stat-icon"><i class="bi bi-check-circle"></i></span>
       <div class="stat-value" style="color:var(--success);">{{ stats.disponibili }}</div>
       <div class="stat-label">{% trans "Disponibili" %}</div>
     </div>
   </div>
   <div class="col-6 col-md-2">
     <div class="stat-card" style="border-top: 3px solid var(--warning);">
-      <span class="stat-icon">🔧</span>
+      <span class="stat-icon"><i class="bi bi-wrench"></i></span>
       <div class="stat-value" style="color:var(--warning);">{{ stats.in_manutenzione }}</div>
       <div class="stat-label">{% trans "Manutenzione" %}</div>
     </div>
   </div>
   <div class="col-6 col-md-2">
     <div class="stat-card" style="border-top: 3px solid var(--info);">
-      <span class="stat-icon">🔄</span>
+      <span class="stat-icon"><i class="bi bi-arrow-left-right"></i></span>
       <div class="stat-value" style="color:var(--info);">{{ stats.prestate }}</div>
       <div class="stat-label">{% trans "Prestate" %}</div>
     </div>
   </div>
   <div class="col-6 col-md-2">
     <div class="stat-card" style="border-top: 3px solid var(--honey);">
-      <span class="stat-icon">💰</span>
+      <span class="stat-icon"><i class="bi bi-cash-coin"></i></span>
       <div class="stat-value" style="font-size:1.6rem;">€{{ stats.valore_totale|floatformat:0 }}</div>
       <div class="stat-label">{% trans "Valore acquisto" %}</div>
     </div>
   </div>
   <div class="col-6 col-md-2">
     <div class="stat-card" style="border-top: 3px solid var(--brown-medium);">
-      <span class="stat-icon">📊</span>
+      <span class="stat-icon"><i class="bi bi-bar-chart"></i></span>
       <div class="stat-value" style="font-size:1.6rem;">€{{ stats.valore_residuo|floatformat:0 }}</div>
       <div class="stat-label">{% trans "Valore residuo" %}</div>
     </div>

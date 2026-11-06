@@ -497,7 +497,7 @@ def genera_export_excel(user, *, apiario_id=None, anno=None, sezioni=None, lang=
         conteggi.append((t(*sezione.titolo), n, sezione.key))
 
     # Foglio di riepilogo
-    riepilogo.append([t('Apiary Manager — esportazione dati', 'Apiary Manager — data export')])
+    riepilogo.append([t('Apiary Manager: esportazione dati', 'Apiary Manager: data export')])
     riepilogo['A1'].font = Font(bold=True, size=14, color='FFFFFF')
     riepilogo['A1'].fill = _TITLE_FILL
     riepilogo.merge_cells('A1:B1')

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Trattamenti Sanitari" %} — Apiary{% endblock %}
+{% block title %}{% trans "Trattamenti Sanitari" %} - Apiary{% endblock %}
 
 {% block content %}
 
@@ -65,9 +65,9 @@
           </td>
           <td>
             {% if trattamento.stato == 'programmato' %}
-              <span class="badge bg-info">📅 {% trans "Programmato" %}</span>
+              <span class="badge bg-info">{% trans "Programmato" %}</span>
             {% elif trattamento.stato == 'in_corso' %}
-              <span class="badge bg-warning">⚡ {% trans "In Corso" %}</span>
+              <span class="badge bg-warning">{% trans "In Corso" %}</span>
             {% endif %}
           </td>
           <td>
@@ -84,7 +84,7 @@
                 <div class="modal-dialog">
                   <div class="modal-content">
                     <div class="modal-header">
-                      <h5 class="modal-title">{% blocktrans with nome=trattamento.tipo_trattamento.nome %}Arnie trattate — {{ nome }}{% endblocktrans %}</h5>
+                      <h5 class="modal-title">{% blocktrans with nome=trattamento.tipo_trattamento.nome %}Arnie trattate - {{ nome }}{% endblocktrans %}</h5>
                       <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -156,7 +156,7 @@
   {% else %}
   <div class="card-body">
     <div class="empty-state">
-      <span class="empty-icon">💊</span>
+      <span class="empty-icon"><i class="bi bi-capsule"></i></span>
       <h5>{% trans "Nessun trattamento attivo" %}</h5>
       <p>{% trans "Non ci sono trattamenti attivi o programmati al momento." %}</p>
       <a href="{% url 'nuovo_trattamento' %}" class="btn btn-primary">
@@ -170,9 +170,9 @@
 <!-- Sospensione -->
 {% if trattamenti_sospensione %}
 <div class="card mb-4">
-  <div class="card-header" style="background-color: var(--honey, #F5A623)20; border-left: 4px solid var(--honey, #F5A623);">
+  <div class="card-header" style="background-color: var(--honey, #D3A121)20; border-left: 4px solid var(--honey, #D3A121);">
     <i class="bi bi-hourglass-split"></i>
-    ⚠️ {% trans "Periodo di Sospensione Attivo" %}
+    <i class="bi bi-exclamation-triangle-fill me-1"></i>{% trans "Periodo di Sospensione Attivo" %}
     <span class="badge bg-white ms-2" style="color: #E65100 !important;">{{ trattamenti_sospensione|length }}</span>
   </div>
   <div class="card-body">
@@ -263,7 +263,7 @@
   {% else %}
   <div class="card-body">
     <div class="empty-state">
-      <span class="empty-icon">📋</span>
+      <span class="empty-icon"><i class="bi bi-clipboard-check"></i></span>
       <h5>{% trans "Nessuno storico" %}</h5>
       <p>{% trans "I trattamenti completati o annullati appariranno qui." %}</p>
     </div>

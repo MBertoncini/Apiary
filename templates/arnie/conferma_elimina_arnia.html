@@ -28,7 +28,7 @@
       <div class="card-body">
         <p>{% trans "Stai per eliminare definitivamente l'arnia:" %}</p>
         <ul>
-          <li><strong>{% blocktrans with numero=arnia.numero nome=apiario.nome %}Arnia #{{ numero }}{% endblocktrans %}</strong> — {{ apiario.nome }}</li>
+          <li><strong>{% blocktrans with numero=arnia.numero nome=apiario.nome %}Arnia #{{ numero }}{% endblocktrans %}</strong>: {{ apiario.nome }}</li>
           {% if arnia.colore %}<li>{% trans "Colore:" %} {{ arnia.get_colore_display }}</li>{% endif %}
           {% if arnia.data_installazione %}<li>{% trans "Installata il:" %} {{ arnia.data_installazione }}</li>{% endif %}
         </ul>

@@ -7,7 +7,7 @@
 {% block extra_css %}
 <style>
 /* ============================================================
-   CANTINA — design system
+   CANTINA: design system
    ============================================================ */
 
 /* ── Stats chips ── */
@@ -33,7 +33,7 @@
   line-height: 1;
 }
 .cantina-chip .chip-body { display: flex; flex-direction: column; line-height: 1.25; }
-.cantina-chip .chip-val  { font-family: 'Caveat', cursive; font-size: 1.55rem; font-weight: 700; line-height: 1; }
+.cantina-chip .chip-val  { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; line-height: 1; }
 .cantina-chip .chip-lbl  { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; opacity: .75; }
 .chip-orange { background: #FFF3E0; border: 1.5px solid #FFCC80; color: #E65100; }
 .chip-blue   { background: #E3F2FD; border: 1.5px solid #90CAF9; color: #1565C0; }
@@ -47,16 +47,16 @@
   gap: .75rem;
   margin-bottom: 1.2rem;
   padding-bottom: .6rem;
-  border-bottom: 2px solid var(--border-color, #EAD9BF);
+  border-bottom: 2px solid var(--border-color, #E0D8C2);
 }
 .section-hdr-title {
-  font-family: 'Caveat', cursive;
-  font-size: 1.5rem;
-  color: var(--brown-dark, #2C1810);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--brown-dark, #3A2E21);
   margin: 0;
 }
 .section-hdr-badge {
-  background: var(--honey, #F5A623);
+  background: var(--honey, #D3A121);
   color: white;
   font-size: .72rem;
   border-radius: 20px;
@@ -67,7 +67,7 @@
 /* ── Maturatore card ── */
 .maturatore-card {
   background: white;
-  border: 1.5px solid var(--border-color, #EAD9BF);
+  border: 1.5px solid var(--border-color, #E0D8C2);
   border-radius: 14px;
   padding: 1.1rem 1.3rem;
   margin-bottom: 1rem;
@@ -86,7 +86,7 @@
 .mat-nome {
   font-weight: 700;
   font-size: 1rem;
-  color: var(--brown-dark, #2C1810);
+  color: var(--brown-dark, #3A2E21);
 }
 .mat-tipo {
   font-size: .78rem;
@@ -115,7 +115,7 @@
   margin-bottom: .45rem;
 }
 .mat-kg-label { font-size: .8rem; color: #666; }
-.mat-kg-pct   { font-size: .8rem; font-weight: 700; color: var(--honey, #F5A623); }
+.mat-kg-pct   { font-size: .8rem; font-weight: 700; color: var(--honey, #D3A121); }
 .mat-progress {
   height: 8px;
   border-radius: 4px;
@@ -159,7 +159,7 @@
 /* ── Contenitore card ── */
 .contenitore-card {
   background: white;
-  border: 1.5px solid var(--border-color, #EAD9BF);
+  border: 1.5px solid var(--border-color, #E0D8C2);
   border-radius: 12px;
   padding: 1rem;
   width: 170px;
@@ -168,7 +168,7 @@
   position: relative;
 }
 .con-icon  { font-size: 1.5rem; margin-bottom: .3rem; }
-.con-nome  { font-size: .82rem; font-weight: 700; color: var(--brown-dark, #2C1810); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.con-nome  { font-size: .82rem; font-weight: 700; color: var(--brown-dark, #3A2E21); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .con-kg    { font-size: .78rem; color: #555; margin: 2px 0 5px; }
 .con-progress {
   height: 5px;
@@ -178,7 +178,7 @@
   margin-bottom: .7rem;
 }
 .con-progress-bar { height: 100%; border-radius: 3px; }
-.con-bar-secchio { background: #F5A623; }
+.con-bar-secchio { background: #D3A121; }
 .con-bar-bidone  { background: #42A5F5; }
 .con-bar-fusto   { background: #8D6E63; }
 .con-bar-altro   { background: #78909C; }
@@ -202,7 +202,7 @@
   align-items: center;
   margin-bottom: .65rem;
 }
-.inv-tipo { font-weight: 700; color: var(--brown-dark, #2C1810); font-size: .95rem; }
+.inv-tipo { font-weight: 700; color: var(--brown-dark, #3A2E21); font-size: .95rem; }
 .inv-totale { font-size: .8rem; color: #888; }
 .inv-formati {
   display: flex;
@@ -214,13 +214,13 @@
   flex-direction: column;
   align-items: center;
   background: white;
-  border: 1px solid #EAD9BF;
+  border: 1px solid #E0D8C2;
   border-radius: 8px;
   padding: .5rem .9rem;
   min-width: 70px;
   text-align: center;
 }
-.formato-chip .fc-count { font-family: 'Caveat', cursive; font-size: 1.6rem; font-weight: 700; color: var(--honey, #F5A623); line-height: 1; }
+.formato-chip .fc-count { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; color: var(--honey, #D3A121); line-height: 1; }
 .formato-chip .fc-label { font-size: .68rem; color: #999; margin-top: 1px; }
 
 /* ── Empty state ── */
@@ -257,14 +257,14 @@
   <!-- ── Page header ── -->
   <div class="page-header">
     <div>
-      <h1 class="page-title">🍯 {% trans "Cantina" %}</h1>
+      <h1 class="page-title">{% trans "Cantina" %}</h1>
       <p class="text-muted mb-0">{% trans "Maturazione, stoccaggio e invasettamento del miele" %}</p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
       <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalNuovoContenitore">
         <i class="bi bi-bucket me-1"></i>{% trans "Nuovo contenitore" %}
       </button>
-      <button class="btn btn-sm" style="background:var(--honey,#F5A623);color:white;border:none;" data-bs-toggle="modal" data-bs-target="#modalNuovoMaturatore">
+      <button class="btn btn-sm" style="background:var(--honey,#D3A121);color:white;border:none;" data-bs-toggle="modal" data-bs-target="#modalNuovoMaturatore">
         <i class="bi bi-plus-circle me-1"></i>{% trans "Nuovo maturatore" %}
       </button>
     </div>
@@ -280,14 +280,14 @@
       </div>
     </div>
     <div class="cantina-chip chip-blue">
-      <div class="chip-icon">🪣</div>
+      <div class="chip-icon"><i class="bi bi-archive"></i></div>
       <div class="chip-body">
         <span class="chip-val">{{ kg_stoccati|floatformat:1 }}</span>
         <span class="chip-lbl">{% trans "kg stoccati" %}</span>
       </div>
     </div>
     <div class="cantina-chip chip-green">
-      <div class="chip-icon">🫙</div>
+      <div class="chip-icon"><i class="bi bi-box"></i></div>
       <div class="chip-body">
         <span class="chip-val">{{ totale_vasetti_disponibili }}</span>
         <span class="chip-lbl">{% trans "vasetti disponibili" %}</span>
@@ -296,11 +296,11 @@
   </div>
 
   <!-- ════════════════════════════════
-       SEZIONE 1 — MATURATORI
+       SEZIONE 1 - MATURATORI
        ════════════════════════════════ -->
   <div class="cantina-section">
     <div class="section-hdr">
-      <h2 class="section-hdr-title">🥛 {% trans "Maturatori" %}</h2>
+      <h2 class="section-hdr-title">{% trans "Maturatori" %}</h2>
       {% if maturatori_attivi %}
       <span class="section-hdr-badge">{% blocktrans count counter=maturatori_attivi|length %}{{ counter }} attivo{% plural %}{{ counter }} attivi{% endblocktrans %}</span>
       {% endif %}
@@ -396,11 +396,11 @@
   </div>
 
   <!-- ════════════════════════════════
-       SEZIONE 2 — STOCCAGGIO
+       SEZIONE 2 - STOCCAGGIO
        ════════════════════════════════ -->
   <div class="cantina-section">
     <div class="section-hdr">
-      <h2 class="section-hdr-title">🪣 {% trans "Stoccaggio" %}</h2>
+      <h2 class="section-hdr-title">{% trans "Stoccaggio" %}</h2>
       {% if contenitori_attivi %}
       <span class="section-hdr-badge">{% blocktrans count counter=contenitori_attivi|length %}{{ counter }} contenitore{% plural %}{{ counter }} contenitori{% endblocktrans %}</span>
       {% endif %}
@@ -417,9 +417,9 @@
         <div class="contenitore-card">
           <div class="d-flex justify-content-between align-items-start">
             <div class="con-icon">
-              {% if c.tipo == 'bidone' %}🛢️
-              {% elif c.tipo == 'fusto' %}🧴
-              {% else %}🪣{% endif %}
+              {% if c.tipo == 'bidone' %}<i class="bi bi-archive"></i>
+              {% elif c.tipo == 'fusto' %}<i class="bi bi-archive"></i>
+              {% else %}<i class="bi bi-archive"></i>{% endif %}
             </div>
             <div class="dropdown">
               <button class="card-menu-btn" data-bs-toggle="dropdown" style="font-size:.8rem;"><i class="bi bi-three-dots-vertical"></i></button>
@@ -449,7 +449,7 @@
             {% if c.kg_attuali > 0 %}
             <button class="btn btn-sm btn-outline-warning w-100"
                     onclick="apriInvasetta({{ c.id }}, '{{ c.nome|default:c.get_tipo_display|escapejs }}', '{{ c.tipo_miele|escapejs }}', {{ c.kg_attuali }})">
-              🫙 {% trans "Invasetta" %}
+              {% trans "Invasetta" %}
             </button>
             {% else %}
             <span class="text-muted small">{% trans "Vuoto" %}</span>
@@ -469,11 +469,11 @@
   </div>
 
   <!-- ════════════════════════════════
-       SEZIONE 3 — INVASETTATO
+       SEZIONE 3 - INVASETTATO
        ════════════════════════════════ -->
   <div class="cantina-section">
     <div class="section-hdr">
-      <h2 class="section-hdr-title">🫙 {% trans "Invasettato" %}</h2>
+      <h2 class="section-hdr-title">{% trans "Invasettato" %}</h2>
       {% if totale_vasetti %}
       <span class="section-hdr-badge">{% blocktrans count counter=totale_vasetti %}{{ counter }} vasetto{% plural %}{{ counter }} vasetti{% endblocktrans %}</span>
       {% endif %}
@@ -483,7 +483,7 @@
       {% for tipo_miele, dati in invasettamenti_per_tipo.items %}
       <div class="invasettato-card">
         <div class="inv-card-head">
-          <span class="inv-tipo">🍯 {{ tipo_miele }}</span>
+          <span class="inv-tipo">{{ tipo_miele }}</span>
           <div class="d-flex align-items-center gap-2">
             <span class="inv-totale">{% blocktrans count counter=dati.disponibili %}{{ counter }} disponibile{% plural %}{{ counter }} disponibili{% endblocktrans %}</span>
             {% if dati.venduti_totale %}
@@ -526,7 +526,7 @@
                   <td>{{ inv.data|date:"d/m/Y" }}</td>
                   <td>{{ inv.formato_vasetto }}g</td>
                   <td>{{ inv.numero_vasetti }}</td>
-                  <td>{{ inv.lotto|default:"—" }}</td>
+                  <td>{{ inv.lotto|default:"-" }}</td>
                   <td>
                     <div class="dropdown">
                       <button class="btn btn-sm btn-outline-secondary py-0 px-1" data-bs-toggle="dropdown" style="font-size:.75rem;line-height:1.4;">
@@ -564,7 +564,7 @@
       {% endfor %}
     {% else %}
     <div class="cantina-empty">
-      <i class="bi bi-jar" style="font-size:2.5rem;opacity:.25;display:block;margin-bottom:.5rem;"></i>
+      <i class="bi bi-archive" style="font-size:2.5rem;opacity:.25;display:block;margin-bottom:.5rem;"></i>
       {% trans "Nessun vasetto registrato." %}<br>
       <span class="text-muted small">{% trans "Invasetta da un contenitore di stoccaggio." %}</span>
     </div>
@@ -582,7 +582,7 @@
 <div class="modal fade" id="modalNuovoMaturatore" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header" style="background:var(--honey,#F5A623);color:white;">
+      <div class="modal-header" style="background:var(--honey,#D3A121);color:white;">
         <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>{% trans "Nuovo Maturatore" %}</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
@@ -617,7 +617,7 @@
             <div class="col-12">
               <label class="form-label fw-semibold">{% trans "Smielatura collegata" %}</label>
               <select class="form-select" name="smielatura">
-                <option value="">{% trans "— Nessuna —" %}</option>
+                <option value="">{% trans "Nessuna" %}</option>
                 {% for s in smielature_disponibili %}
                 <option value="{{ s.id }}">{{ s.data|date:"d/m/Y" }} – {{ s.tipo_miele }} ({{ s.quantita_miele }} kg)</option>
                 {% endfor %}
@@ -631,7 +631,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
-          <button type="submit" class="btn" style="background:var(--honey,#F5A623);color:white;border:none;">
+          <button type="submit" class="btn" style="background:var(--honey,#D3A121);color:white;border:none;">
             <i class="bi bi-plus-circle me-1"></i>{% trans "Crea maturatore" %}
           </button>
         </div>
@@ -644,7 +644,7 @@
 <div class="modal fade" id="modalModificaMaturatore" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header" style="background:var(--honey,#F5A623);color:white;">
+      <div class="modal-header" style="background:var(--honey,#D3A121);color:white;">
         <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>{% trans "Modifica Maturatore" %}</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
@@ -684,7 +684,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
-          <button type="submit" class="btn" style="background:var(--honey,#F5A623);color:white;border:none;">
+          <button type="submit" class="btn" style="background:var(--honey,#D3A121);color:white;border:none;">
             <i class="bi bi-check2 me-1"></i>{% trans "Salva" %}
           </button>
         </div>
@@ -750,7 +750,7 @@
             <div class="col-12">
               <label class="form-label fw-semibold">{% trans "Maturatore collegato" %}</label>
               <select class="form-select" name="maturatore">
-                <option value="">{% trans "— Nessuno —" %}</option>
+                <option value="">{% trans "Nessuno" %}</option>
                 {% for m in maturatori_con_miele %}
                 <option value="{{ m.id }}">{{ m.nome }} – {{ m.tipo_miele }} ({{ m.kg_attuali }} kg)</option>
                 {% endfor %}
@@ -902,7 +902,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header" style="background:#F9A825;color:white;">
-        <h5 class="modal-title">🫙 {% trans "Invasetta" %}</h5>
+        <h5 class="modal-title">{% trans "Invasetta" %}</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -918,11 +918,11 @@
               <label class="form-label fw-semibold">{% trans "Formato vasetto" %}</label>
               <div class="btn-group w-100" role="group">
                 <input type="radio" class="btn-check" name="formato_vasetto" value="250" id="fmt250" autocomplete="off" checked>
-                <label class="btn btn-outline-warning" for="fmt250">🫙 {% trans "250g" %}</label>
+                <label class="btn btn-outline-warning" for="fmt250">{% trans "250g" %}</label>
                 <input type="radio" class="btn-check" name="formato_vasetto" value="500" id="fmt500" autocomplete="off">
-                <label class="btn btn-outline-warning" for="fmt500">🫙 {% trans "500g" %}</label>
+                <label class="btn btn-outline-warning" for="fmt500">{% trans "500g" %}</label>
                 <input type="radio" class="btn-check" name="formato_vasetto" value="1000" id="fmt1000" autocomplete="off">
-                <label class="btn btn-outline-warning" for="fmt1000">🫙 {% trans "1 kg" %}</label>
+                <label class="btn btn-outline-warning" for="fmt1000">{% trans "1 kg" %}</label>
               </div>
             </div>
             <div class="col-6">
@@ -951,7 +951,7 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Annulla" %}</button>
         <button type="submit" form="formInvasetta" class="btn" style="background:#F9A825;color:white;border:none;">
-          🫙 {% trans "Invasetta" %}
+          {% trans "Invasetta" %}
         </button>
       </div>
     </div>

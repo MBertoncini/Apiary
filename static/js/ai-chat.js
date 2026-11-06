@@ -1,5 +1,5 @@
 /**
- * ApiarioAI — Chat widget + Voice input
+ * ApiarioAI - Chat widget + Voice input
  * Gemini-powered beekeeping assistant with Web Speech API
  */
 (function () {
@@ -92,20 +92,20 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #F5A623, #e8920f);
+  background: linear-gradient(135deg, #D3A121, #B58A1A);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(245,166,35,.45);
+  box-shadow: 0 4px 16px rgba(211,161,33,.45);
   z-index: 1200;
   transition: transform .2s, box-shadow .2s;
   user-select: none;
 }
-#ai-fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(245,166,35,.55); }
-#ai-fab.active { background: linear-gradient(135deg, #2C1810, #3d2215); }
+#ai-fab:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(211,161,33,.55); }
+#ai-fab.active { background: linear-gradient(135deg, #3A2E21, #4E3F2E); }
 
 #ai-panel {
   position: fixed;
@@ -116,7 +116,7 @@
   height: 520px;
   max-height: calc(100vh - 110px);
   background: #fff;
-  border: 1px solid #EAD9BF;
+  border: 1px solid #E0D8C2;
   border-radius: 16px;
   box-shadow: 0 8px 40px rgba(0,0,0,.18);
   display: flex;
@@ -133,10 +133,10 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: linear-gradient(135deg, #2C1810, #3d2215);
+  background: linear-gradient(135deg, #3A2E21, #4E3F2E);
   border-radius: 16px 16px 0 0;
-  color: #F5A623;
-  font-family: 'Caveat', cursive;
+  color: #D3A121;
+  font-family: var(--font-display);
   font-size: 1.1rem;
   font-weight: 600;
 }
@@ -145,7 +145,7 @@
 .ai-header-right button {
   background: none;
   border: none;
-  color: #EAD9BF;
+  color: #E0D8C2;
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 6px;
@@ -162,7 +162,7 @@
   flex-direction: column;
   gap: 8px;
   scrollbar-width: thin;
-  scrollbar-color: #EAD9BF transparent;
+  scrollbar-color: #E0D8C2 transparent;
 }
 
 .ai-msg {
@@ -177,16 +177,16 @@
 @keyframes msgIn { from { opacity: 0; transform: translateY(6px); } }
 .ai-msg-user {
   align-self: flex-end;
-  background: linear-gradient(135deg, #F5A623, #e8920f);
+  background: linear-gradient(135deg, #D3A121, #B58A1A);
   color: #fff;
   border-bottom-right-radius: 4px;
 }
 .ai-msg-model {
   align-self: flex-start;
   background: #f7f3ec;
-  color: #2C1810;
+  color: #3A2E21;
   border-bottom-left-radius: 4px;
-  border: 1px solid #EAD9BF;
+  border: 1px solid #E0D8C2;
 }
 .ai-msg-model small { display: block; font-size: .68rem; color: #bbb; margin-top: 4px; }
 
@@ -199,7 +199,7 @@
 .ai-typing-dot {
   width: 7px; height: 7px;
   border-radius: 50%;
-  background: #F5A623;
+  background: #D3A121;
   animation: typingBounce 1.1s infinite;
 }
 .ai-typing-dot:nth-child(2) { animation-delay: .18s; }
@@ -214,15 +214,15 @@
   align-items: flex-end;
   gap: 6px;
   padding: 10px 12px;
-  border-top: 1px solid #EAD9BF;
+  border-top: 1px solid #E0D8C2;
 }
 #ai-input {
   flex: 1;
-  border: 1px solid #EAD9BF;
+  border: 1px solid #E0D8C2;
   border-radius: 20px;
   padding: 7px 12px;
   font-size: .875rem;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-body);
   resize: none;
   max-height: 96px;
   outline: none;
@@ -230,7 +230,7 @@
   background: #FFFDF5;
   line-height: 1.4;
 }
-#ai-input:focus { border-color: #F5A623; }
+#ai-input:focus { border-color: #D3A121; }
 
 #ai-send-btn, #ai-voice-btn {
   background: none;
@@ -242,7 +242,7 @@
   transition: background .15s, color .15s;
   line-height: 1;
 }
-#ai-send-btn { color: #F5A623; }
+#ai-send-btn { color: #D3A121; }
 #ai-send-btn:hover { background: #FFF3D6; }
 #ai-voice-btn { color: #888; }
 #ai-voice-btn:hover { background: #f0f0f0; }
@@ -264,7 +264,7 @@
   color: #999;
   font-size: .85rem;
 }
-.ai-welcome i { font-size: 2rem; color: #F5A623; display: block; margin-bottom: 8px; }
+.ai-welcome i { font-size: 2rem; color: #D3A121; display: block; margin-bottom: 8px; }
 `;
 
   // -------------------------------------------------------------------------
@@ -361,7 +361,7 @@
       { transform: `translate(${tx}px,${ty}px) scale(0)`,           opacity: 0,  borderRadius: '50%'  },
       { transform: `translate(${tx*.4}px,${ty*.4}px) scale(.55)`,   opacity: .7, borderRadius: '24px', offset: .45 },
       { transform: 'translate(0,0) scale(1)',                        opacity: 1,  borderRadius: '16px' }
-    ], { duration: 380, easing: 'cubic-bezier(.22,.68,0,1.15)' }); // no fill — gestiamo noi lo stato finale
+    ], { duration: 380, easing: 'cubic-bezier(.22,.68,0,1.15)' }); // no fill: gestiamo noi lo stato finale
 
     anim.onfinish = () => {
       panel.style.opacity       = '1';

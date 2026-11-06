@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% trans "Supporta Apiary — Offrici un Caffè" %}{% endblock %}
+{% block title %}{% trans "Supporta Apiary - Offrici un Caffè" %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -15,15 +15,15 @@
 
   /* ===== HERO CARD ===== */
   .donation-hero {
-    background: linear-gradient(135deg, #2C1810 0%, #5C3317 60%, #8B4513 100%);
-    border-radius: 24px;
+    background: var(--brown-deep);
+    border-radius: var(--radius-lg);
     padding: 3rem 2.5rem;
     color: #fff;
     text-align: center;
     position: relative;
     overflow: hidden;
     margin-bottom: 2rem;
-    box-shadow: 0 12px 40px rgba(44,24,16,.35);
+    box-shadow: var(--shadow-md);
   }
 
   .donation-hero::before {
@@ -31,7 +31,7 @@
     position: absolute;
     top: -60px; right: -60px;
     width: 250px; height: 250px;
-    background: rgba(245,166,35,.12);
+    background: rgba(211,161,33,.12);
     border-radius: 50%;
     pointer-events: none;
   }
@@ -40,7 +40,7 @@
     position: absolute;
     bottom: -80px; left: -40px;
     width: 200px; height: 200px;
-    background: rgba(245,166,35,.08);
+    background: rgba(211,161,33,.08);
     border-radius: 50%;
     pointer-events: none;
   }
@@ -105,10 +105,10 @@
 
   /* ===== HERO TEXT ===== */
   .hero-title {
-    font-family: 'Caveat', cursive;
-    font-size: 2.6rem;
+    font-family: var(--font-display);
+    font-size: 1.9rem;
     font-weight: 700;
-    color: #F5A623;
+    color: #D3A121;
     margin-bottom: .5rem;
     position: relative;
     z-index: 1;
@@ -129,8 +129,8 @@
     display: inline-flex;
     align-items: center;
     gap: .6rem;
-    background: #F5A623;
-    color: #2C1810;
+    background: #D3A121;
+    color: #3A2E21;
     font-weight: 700;
     font-size: 1.1rem;
     padding: .85rem 2.2rem;
@@ -139,7 +139,7 @@
     border: none;
     cursor: pointer;
     transition: transform .2s, box-shadow .2s, background .2s;
-    box-shadow: 0 4px 16px rgba(245,166,35,.45);
+    box-shadow: 0 4px 16px rgba(211,161,33,.45);
     position: relative;
     z-index: 1;
     animation: btnPulse 3s ease-in-out infinite;
@@ -149,13 +149,13 @@
     background: #FFB733;
     color: #1a0e08;
     transform: translateY(-3px) scale(1.04);
-    box-shadow: 0 8px 28px rgba(245,166,35,.6);
+    box-shadow: 0 8px 28px rgba(211,161,33,.6);
     text-decoration: none;
   }
 
   @keyframes btnPulse {
-    0%, 100% { box-shadow: 0 4px 16px rgba(245,166,35,.45); }
-    50%       { box-shadow: 0 4px 28px rgba(245,166,35,.75); }
+    0%, 100% { box-shadow: 0 4px 16px rgba(211,161,33,.45); }
+    50%       { box-shadow: 0 4px 28px rgba(211,161,33,.75); }
   }
 
   /* ===== INFO CARDS ===== */
@@ -175,7 +175,7 @@
 
   .info-card {
     background: #fff;
-    border: 1px solid #EAD9BF;
+    border: 1px solid #E0D8C2;
     border-radius: 16px;
     padding: 1.5rem 1.25rem;
     display: flex;
@@ -201,7 +201,7 @@
   .info-card h6 {
     font-weight: 600;
     font-size: .95rem;
-    color: #2C1810;
+    color: #3A2E21;
     margin-bottom: .3rem;
   }
 
@@ -222,7 +222,7 @@
 
   .tech-pill {
     background: #FFF7EC;
-    border: 1px solid #EAD9BF;
+    border: 1px solid #E0D8C2;
     color: #7a4e1e;
     font-size: .75rem;
     font-weight: 500;
@@ -239,7 +239,7 @@
   }
 
   .donation-footer-note a {
-    color: #F5A623;
+    color: #D3A121;
     text-decoration: none;
   }
   .donation-footer-note a:hover {
@@ -298,7 +298,7 @@
 
     <div class="info-card">
       <div class="info-icon" style="background:#FFF3E0;">
-        <i class="bi bi-code-slash" style="color:#F5A623;"></i>
+        <i class="bi bi-code-slash" style="color:#D3A121;"></i>
       </div>
       <div>
         <h6>{% trans "100% Open Source" %}</h6>
@@ -345,9 +345,9 @@
   </div>
 
   <!-- ALTERNATIVE SUPPORT NOTE -->
-  <div class="card" style="border:1px solid #EAD9BF;border-radius:16px;background:#FFFDF5;">
+  <div class="card" style="border:1px solid #E0D8C2;border-radius:16px;background:#FFFDF5;">
     <div class="card-body text-center py-4">
-      <h5 style="font-family:'Caveat',cursive;font-size:1.5rem;color:#2C1810;margin-bottom:.5rem;">
+      <h5 style="font-size:1.15rem;color:#3A2E21;margin-bottom:.5rem;">
         {% trans "Anche un piccolo gesto conta 🍯" %}
       </h5>
       <p style="color:#7a6a5a;font-size:.9rem;max-width:460px;margin:0 auto 1.25rem;">
@@ -367,21 +367,21 @@
         <div class="row g-2">
           <div class="col-sm-6">
             <input type="text" name="nome" class="form-control form-control-sm" placeholder="{% trans 'Il tuo nome *' %}"
-                   style="border-radius:10px;border-color:#EAD9BF;background:#fff;" required maxlength="100">
+                   style="border-radius:10px;border-color:#E0D8C2;background:#fff;" required maxlength="100">
           </div>
           <div class="col-sm-6">
             <input type="email" name="email" class="form-control form-control-sm" placeholder="{% trans 'Email (opzionale, per risponderti)' %}"
-                   style="border-radius:10px;border-color:#EAD9BF;background:#fff;" maxlength="254">
+                   style="border-radius:10px;border-color:#E0D8C2;background:#fff;" maxlength="254">
           </div>
           <div class="col-12">
             <textarea name="messaggio" class="form-control form-control-sm" rows="3"
                       placeholder="{% trans 'Messaggio, suggerimento o segnalazione bug... *' %}"
-                      style="border-radius:10px;border-color:#EAD9BF;background:#fff;resize:vertical;"
+                      style="border-radius:10px;border-color:#E0D8C2;background:#fff;resize:vertical;"
                       required maxlength="2000"></textarea>
           </div>
           <div class="col-12 d-flex flex-wrap gap-2 align-items-center justify-content-between mt-1">
             <a href="{% url 'dashboard' %}" class="btn btn-sm"
-               style="background:#F5A623;color:#fff;border-radius:20px;font-weight:500;">
+               style="background:#D3A121;color:#fff;border-radius:20px;font-weight:500;">
               <i class="bi bi-speedometer2 me-1"></i> {% trans "Torna alla Dashboard" %}
             </a>
             <button type="submit" class="btn btn-sm btn-outline-secondary" style="border-radius:20px;">
@@ -395,8 +395,8 @@
 
   <p class="donation-footer-note mt-3">
     {% trans "Le donazioni vengono gestite tramite" %}
-    <a href="https://www.buymeacoffee.com" target="_blank" rel="noopener">{% trans "Buy Me a Coffee" %}</a>
-    — {% trans "piattaforma sicura e trasparente." %}
+    <a href="https://www.buymeacoffee.com" target="_blank" rel="noopener">{% trans "Buy Me a Coffee" %}</a>,
+    {% trans "piattaforma sicura e trasparente." %}
   </p>
 
 </div>
