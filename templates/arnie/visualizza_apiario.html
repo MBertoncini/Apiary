@@ -616,26 +616,6 @@
     gabbia_regina:   ['Gabbia Regina',   '#7E57C2'],
   };
 
-  // Ordina telaini: scorte(sx)|covata(sx)|foglio_cereo|trappola_varroa|gabbia_regina|covata(dx)|scorte(dx)|nutritore|diaframma|vuoto
-  function sortTelaini(frames) {
-    const vuoti        = frames.filter(f => f === 'vuoto');
-    const diaframmi    = frames.filter(f => f === 'diaframma');
-    const fogliCerei   = frames.filter(f => f === 'foglio_cereo');
-    const trappVarroa  = frames.filter(f => f === 'trappola_varroa');
-    const gabbieRegina = frames.filter(f => f === 'gabbia_regina');
-    const covata       = frames.filter(f => f === 'covata' || f === 'misto');
-    const scorte       = frames.filter(f => f === 'scorte');
-    const nutritori    = frames.filter(f => f === 'nutritore');
-    const halfC = Math.ceil(covata.length / 2);
-    const halfS = Math.ceil(scorte.length / 2);
-    return [
-      ...scorte.slice(0, halfS), ...covata.slice(0, halfC),
-      ...fogliCerei, ...trappVarroa, ...gabbieRegina,
-      ...covata.slice(halfC), ...scorte.slice(halfS),
-      ...nutritori, ...diaframmi, ...vuoti
-    ];
-  }
-
   function buildFallback(nC, nS, total) {
     total = total || 10;
     const frames = Array(total).fill('vuoto');
@@ -655,13 +635,13 @@
     const nC       = parseInt(wrap.dataset.covata) || 0;
     const nS       = parseInt(wrap.dataset.scorte)  || 0;
 
+    // La configurazione salvata riflette le posizioni reali: non va riordinata.
     let frames;
     try {
       frames = raw ? JSON.parse(raw) : buildFallback(nC, nS);
     } catch(e) {
       frames = buildFallback(nC, nS);
     }
-    frames = sortTelaini(frames);
 
     // Render frames
     const counts = { covata:0, scorte:0, foglio_cereo:0, diaframma:0, nutritore:0, trappola_varroa:0, gabbia_regina:0 };
@@ -1067,7 +1047,7 @@ const PIANTINA = (() => {
 
   function _getArnieFrames(arnia){
     const raw=arnia.telaini_config;
-    if(raw){try{const p=typeof raw==='string'?JSON.parse(raw):raw;if(Array.isArray(p)&&p.length)return sortTelainiCanvas(p);}catch(e){}}
+    if(raw){try{const p=typeof raw==='string'?JSON.parse(raw):raw;if(Array.isArray(p)&&p.length)return p;}catch(e){}} // posizioni reali, senza riordino
     const nC=arnia.telaini_covata||0,nS=arnia.telaini_scorte||0,total=10;
     const base=[];
     for(let i=0;i<nS;i++)base.push('scorte');

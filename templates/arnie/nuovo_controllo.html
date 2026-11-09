@@ -669,7 +669,7 @@ document.addEventListener('DOMContentLoaded', function () {
         numFrames  = Math.min(Math.max(saved.length, MIN_FRAMES), MAX_FRAMES);
         frameTypes = saved.slice(0, numFrames);
         while (frameTypes.length < numFrames) frameTypes.push('vuoto');
-        frameTypes = sortTelaini(frameTypes);
+        // Niente riordino: un salvataggio perderebbe le posizioni reali.
       }
     } catch(e) { console.warn('telaini_config parse error', e); }
   })();
