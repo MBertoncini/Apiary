@@ -5670,3 +5670,9 @@ msgstr "Scarica da Google Play"
 
 msgid "Informativa sulla privacy"
 msgstr "Informativa sulla privacy"
+
+msgid "Carica la disposizione del controllo del %(data)s"
+msgstr "Carica la disposizione del controllo del %(data)s"
+
+msgid "Sostituire i telaini disegnati con la disposizione del controllo precedente?"
+msgstr "Sostituire i telaini disegnati con la disposizione del controllo precedente?"

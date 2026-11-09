@@ -85,11 +85,14 @@
                     <div class="card mb-4 frame-editor-card">
                       <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
                         <h5 class="mb-0"><i class="bi bi-grid-3x3 me-2"></i>{% trans "Configurazione Telaini" %}</h5>
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
                           <span class="small text-muted">Telaini:</span>
                           <button type="button" class="btn btn-sm btn-outline-secondary frame-count-btn" id="btn-frame-minus" style="width:28px;padding:0">−</button>
                           <span id="frame-count-label" class="fw-bold" style="min-width:22px;text-align:center"></span>
                           <button type="button" class="btn btn-sm btn-outline-secondary frame-count-btn" id="btn-frame-plus" style="width:28px;padding:0">+</button>
+                          {% if ultima_disposizione %}
+                          <button type="button" class="btn btn-sm btn-outline-primary text-nowrap ms-2" id="btn-load-prev-frames" title="{% blocktrans with data=ultima_disposizione.data|date:'d/m/Y' %}Carica la disposizione del controllo del {{ data }}{% endblocktrans %}"><i class="bi bi-clock-history me-1"></i>{% trans "Precedente" %}</button>
+                          {% endif %}
                           <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="btn-reset-frames" title="Azzera tutto"><i class="bi bi-arrow-counterclockwise"></i></button>
                           <button type="button" class="btn btn-sm btn-outline-success ms-1" id="btn-sort-frames" title="Auto-ordina telaini (scorte|covata|foglio cereo|diaframma|vuoto)"><i class="bi bi-sort-down-alt"></i></button>
                         </div>
@@ -503,6 +506,9 @@ document.addEventListener('DOMContentLoaded', function () {
   let frameTypes = Array(numFrames).fill('vuoto');
   let currentTool = 'covata';
   let isPainting  = false;
+  let paintTool   = currentTool;  // strumento del trascinamento in corso
+  let lastPaintIdx = null;        // ultimo telaino toccato, per non saltarne col mouse veloce
+  let suppressMenu = false;       // niente menu del browser a fine trascinamento destro
 
   const frameRow    = document.getElementById('frame-row');
   const hiveNumbers = document.getElementById('hive-numbers');
@@ -548,13 +554,13 @@ document.addEventListener('DOMContentLoaded', function () {
     saveConfig();
   }
 
-  function paintFrame(idx) {
+  function paintFrame(idx, tool = currentTool) {
     if (idx < 0 || idx >= numFrames) return;
-    frameTypes[idx] = currentTool;
+    frameTypes[idx] = tool;
     const wrap = frameRow.children[idx];
     if (!wrap) return;
-    wrap.dataset.type = currentTool;
-    wrap.querySelector('.frame-body').title = `Telaino ${idx+1}: ${FRAME_META[currentTool].label}`;
+    wrap.dataset.type = tool;
+    wrap.querySelector('.frame-body').title = `Telaino ${idx+1}: ${FRAME_META[tool].label}`;
     syncCounters();
     saveConfig();
   }
@@ -586,29 +592,44 @@ document.addEventListener('DOMContentLoaded', function () {
   /* --- Mouse events on hive-shell --- */
   const hiveShell = document.querySelector('.hive-shell');
   hiveShell.addEventListener('mousedown', e => {
-    if (e.button === 2) return; // gestito nel contextmenu
+    if (e.button !== 0 && e.button !== 2) return;
     const wrap = e.target.closest('.hive-frame');
     if (!wrap) return;
     isPainting = true;
-    paintFrame(parseInt(wrap.dataset.idx));
+    // Tasto destro (o Ctrl+clic su Mac) = cancella, anche trascinando
+    paintTool = (e.button === 2 || e.ctrlKey) ? 'vuoto' : currentTool;
+    lastPaintIdx = parseInt(wrap.dataset.idx);
+    paintFrame(lastPaintIdx, paintTool);
     e.preventDefault();
   });
   hiveShell.addEventListener('mousemove', e => {
     if (!isPainting) return;
     const wrap = e.target.closest('.hive-frame');
-    if (wrap) paintFrame(parseInt(wrap.dataset.idx));
+    if (!wrap) return;
+    const idx = parseInt(wrap.dataset.idx);
+    const from = lastPaintIdx === null ? idx : lastPaintIdx;
+    const step = idx >= from ? 1 : -1;
+    for (let i = from; i !== idx + step; i += step) paintFrame(i, paintTool);
+    lastPaintIdx = idx;
   });
-  document.addEventListener('mouseup', () => { isPainting = false; });
+  hiveShell.addEventListener('mouseleave', () => { lastPaintIdx = null; });
+  document.addEventListener('mouseup', e => {
+    if (isPainting && e.button === 2) {
+      suppressMenu = true;
+      setTimeout(() => { suppressMenu = false; }, 100);
+    }
+    isPainting = false;
+    lastPaintIdx = null;
+  });
+  document.addEventListener('contextmenu', e => {
+    if (suppressMenu) e.preventDefault();
+  });
 
-  // Tasto destro = cancella (vuoto)
+  // Tasto destro = cancella (vuoto); copre anche la pressione lunga su touch
   hiveShell.addEventListener('contextmenu', e => {
     e.preventDefault();
     const wrap = e.target.closest('.hive-frame');
-    if (!wrap) return;
-    const prev = currentTool;
-    currentTool = 'vuoto';
-    paintFrame(parseInt(wrap.dataset.idx));
-    currentTool = prev;
+    if (wrap) paintFrame(parseInt(wrap.dataset.idx), 'vuoto');
   });
 
   /* --- Palette tool buttons --- */
@@ -647,6 +668,24 @@ document.addEventListener('DOMContentLoaded', function () {
     renderFrames();
   });
 
+  /* --- Disposizione salvata --- */
+  function applySavedFrames(saved) {
+    if (!Array.isArray(saved) || saved.length < MIN_FRAMES) return false;
+    numFrames  = Math.min(saved.length, MAX_FRAMES);
+    frameTypes = saved.slice(0, numFrames);
+    return true;
+  }
+
+  {% if ultima_disposizione %}
+  document.getElementById('btn-load-prev-frames').addEventListener('click', () => {
+    const giaDisegnati = frameTypes.some(t => t !== 'vuoto');
+    if (giaDisegnati && !confirm('{% trans "Sostituire i telaini disegnati con la disposizione del controllo precedente?" %}')) return;
+    try {
+      if (applySavedFrames(JSON.parse('{{ ultima_disposizione.telaini_config|escapejs }}'))) renderFrames();
+    } catch(e) { console.warn('telaini_config parse error', e); }
+  });
+  {% endif %}
+
   /* --- Keyboard shortcuts --- */
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -664,13 +703,8 @@ document.addEventListener('DOMContentLoaded', function () {
   {% if controllo.telaini_config %}
   (function () {
     try {
-      const saved = JSON.parse('{{ controllo.telaini_config|escapejs }}');
-      if (Array.isArray(saved) && saved.length >= MIN_FRAMES) {
-        numFrames  = Math.min(Math.max(saved.length, MIN_FRAMES), MAX_FRAMES);
-        frameTypes = saved.slice(0, numFrames);
-        while (frameTypes.length < numFrames) frameTypes.push('vuoto');
-        // Niente riordino: un salvataggio perderebbe le posizioni reali.
-      }
+      // Niente riordino: un salvataggio perderebbe le posizioni reali.
+      applySavedFrames(JSON.parse('{{ controllo.telaini_config|escapejs }}'));
     } catch(e) { console.warn('telaini_config parse error', e); }
   })();
   {% elif is_edit %}

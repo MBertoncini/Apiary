@@ -3905,7 +3905,7 @@ msgid "Posizione:"
 msgstr "Position:"
 
 msgid "Precedente"
-msgstr "Precedente"
+msgstr "Previous"
 
 msgid "Premi"
 msgstr "Press"
@@ -5670,3 +5670,9 @@ msgstr "Get it on Google Play"
 
 msgid "Informativa sulla privacy"
 msgstr "Privacy policy"
+
+msgid "Carica la disposizione del controllo del %(data)s"
+msgstr "Load the frame layout from the inspection of %(data)s"
+
+msgid "Sostituire i telaini disegnati con la disposizione del controllo precedente?"
+msgstr "Replace the drawn frames with the layout from the previous inspection?"

@@ -304,7 +304,16 @@ def nuovo_controllo(request, arnia_id):
     if not can_edit:
         messages.error(request, "Non hai i permessi per aggiungere controlli a questa arnia.")
         return redirect('visualizza_apiario', apiario_id=apiario.id)
-    
+
+    # Ultimo controllo con una disposizione dei telaini, per il pulsante "Precedente"
+    ultima_disposizione = (
+        ControlloArnia.objects
+        .filter(arnia=arnia, telaini_config__isnull=False)
+        .exclude(telaini_config='')
+        .order_by('-data', '-id')
+        .first()
+    )
+
     if request.method == 'POST':
         form = ControlloArniaForm(request.POST)
         if form.is_valid():
@@ -332,10 +341,11 @@ def nuovo_controllo(request, arnia_id):
             }
         
         form = ControlloArniaForm(initial=initial_data)
-    
+
     context = {
         'form': form,
         'arnia': arnia,
+        'ultima_disposizione': ultima_disposizione,
     }
     
     return render(request, 'arnie/nuovo_controllo.html', context)
