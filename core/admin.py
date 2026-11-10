@@ -63,11 +63,12 @@ class UserAdminWithActivity(UserAdmin):
 @admin.register(Profilo)
 class ProfiloAdmin(admin.ModelAdmin):
     list_display = ['utente', 'ai_tier', 'chat_usage', 'voice_usage',
-                    'total_usage', 'ai_requests_reset_at']
+                    'total_usage', 'stats_usage', 'ai_requests_reset_at']
     list_filter = ['ai_tier']
     search_fields = ['utente__username', 'utente__email']
     list_editable = ['ai_tier']
-    readonly_fields = ['utente', 'ai_requests_reset_at', 'chat_usage', 'voice_usage', 'total_usage']
+    readonly_fields = ['utente', 'ai_requests_reset_at', 'chat_usage', 'voice_usage',
+                       'total_usage', 'stats_usage', 'proxy_usage']
     fieldsets = (
         (None, {
             'fields': ('utente', 'immagine', 'data_nascita', 'bio',
@@ -78,37 +79,62 @@ class ProfiloAdmin(admin.ModelAdmin):
         }),
         ('Piano AI & Utilizzo', {
             'fields': ('ai_tier', 'chat_usage', 'voice_usage',
-                       'total_usage', 'ai_requests_reset_at'),
+                       'total_usage', 'stats_usage', 'proxy_usage',
+                       'ai_requests_reset_at'),
             'description': (
                 'Limiti giornalieri per tier — '
                 f'Base: {AI_TIER_LIMITS["free"]}, '
                 f'Sostenitore: {AI_TIER_LIMITS["apicoltore"]}, '
-                f'Tester Avanzato: {AI_TIER_LIMITS["professionale"]}'
+                f'Tester Avanzato: {AI_TIER_LIMITS["professionale"]}. '
+                'I contatori misurano solo le chiamate fatte con le chiavi di sistema: '
+                'con una chiave personale le chiamate non vengono contate.'
             ),
         }),
     )
 
+    @staticmethod
+    def _oggi(obj, campo):
+        """Valore del contatore valido OGGI: il reset è pigro (avviene alla
+        prima chiamata dopo la mezzanotte UTC), quindi un contatore con reset
+        scaduto contiene ancora il valore di un giorno passato e vale zero."""
+        from django.utils import timezone
+        if obj.ai_requests_reset_at is None or obj.ai_requests_reset_at <= timezone.now():
+            return 0
+        return getattr(obj, campo)
+
+    @staticmethod
+    def _limiti(obj):
+        return AI_TIER_LIMITS.get(obj.ai_tier, AI_TIER_LIMITS['free'])
+
     def chat_usage(self, obj):
-        limit = AI_TIER_LIMITS.get(obj.ai_tier, AI_TIER_LIMITS['free'])['chat']
-        return f"{obj.ai_chat_today} / {limit}"
+        return f"{self._oggi(obj, 'ai_chat_today')} / {self._limiti(obj)['chat']}"
     chat_usage.short_description = 'Chat (oggi/max)'
 
     def voice_usage(self, obj):
-        limit = AI_TIER_LIMITS.get(obj.ai_tier, AI_TIER_LIMITS['free'])['voice']
-        return f"{obj.ai_voice_today} / {limit}"
+        return f"{self._oggi(obj, 'ai_voice_today')} / {self._limiti(obj)['voice']}"
     voice_usage.short_description = 'Voice (oggi/max)'
 
     def total_usage(self, obj):
-        limit = AI_TIER_LIMITS.get(obj.ai_tier, AI_TIER_LIMITS['free'])['total']
-        return f"{obj.ai_requests_today} / {limit}"
+        return f"{self._oggi(obj, 'ai_requests_today')} / {self._limiti(obj)['total']}"
     total_usage.short_description = 'Totale (oggi/max)'
+
+    def stats_usage(self, obj):
+        return f"{self._oggi(obj, 'ai_stats_today')} / {self._limiti(obj)['stats']}"
+    stats_usage.short_description = 'Statistiche (oggi/max)'
+
+    def proxy_usage(self, obj):
+        from .models import AI_PROXY_CALLS_PER_UNIT
+        cap = self._limiti(obj)['total'] * AI_PROXY_CALLS_PER_UNIT
+        return f"{self._oggi(obj, 'ai_proxy_calls_today')} / {cap}"
+    proxy_usage.short_description = 'Chiamate proxy Gemini (oggi/max)'
 
     actions = ['reset_ai_counters', 'set_tier_free', 'set_tier_apicoltore',
                'set_tier_professionale']
 
     @admin.action(description='Reset contatori AI a zero')
     def reset_ai_counters(self, request, queryset):
-        queryset.update(ai_chat_today=0, ai_voice_today=0, ai_requests_today=0)
+        queryset.update(ai_chat_today=0, ai_voice_today=0, ai_requests_today=0,
+                        ai_stats_today=0, ai_proxy_calls_today=0)
         self.message_user(request, f'{queryset.count()} profili resettati.')
 
     @admin.action(description='Imposta tier → Base (Test)')

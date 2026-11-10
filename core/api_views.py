@@ -2620,16 +2620,20 @@ def _ai_usage_snapshot(user):
     client (AiQuotaService). Riusato da chat_ai_api(record_only), record_voice_call
     e gemini_proxy per restituire la quota aggiornata senza un GET aggiuntivo."""
     from .models import AI_TIER_LIMITS, AI_TIER_FREE
-    chat_today = voice_today = total_today = 0
+    from .models import Profilo
+    chat_today = voice_today = total_today = stats_today = 0
     ai_tier = AI_TIER_FREE
     try:
-        profilo = user.profilo
+        # Rilegge dal DB: `user.profilo` può essere in cache sulla request con
+        # i valori precedenti all'incremento appena fatto.
+        profilo = Profilo.objects.get(utente=user)
         ai_tier = profilo.ai_tier or AI_TIER_FREE
         now = timezone.now()
         if profilo.ai_requests_reset_at and profilo.ai_requests_reset_at > now:
             chat_today = profilo.ai_chat_today
             voice_today = profilo.ai_voice_today
             total_today = profilo.ai_requests_today
+            stats_today = profilo.ai_stats_today
     except Exception:
         pass
     limits = AI_TIER_LIMITS.get(ai_tier, AI_TIER_LIMITS[AI_TIER_FREE])
@@ -2641,11 +2645,13 @@ def _ai_usage_snapshot(user):
             'chat_today': chat_today,
             'voice_today': voice_today,
             'total_today': total_today,
+            'stats_today': stats_today,
         },
         'remaining': {
             'chat': max(0, limits['chat'] - chat_today),
             'voice': max(0, limits['voice'] - voice_today),
             'total': max(0, limits['total'] - total_today),
+            'stats': max(0, limits['stats'] - stats_today),
         },
     }
 
@@ -2664,18 +2670,23 @@ def gemini_proxy(request):
     veniva sospesa da Google. Con il proxy una chiave compromessa si ruota
     cambiando una env var sul server, senza rilasciare un aggiornamento app.
 
-    Questo endpoint fa SOLO il gate di quota (rifiuta 429 se il tier è
-    esaurito) + l'inoltro: NON incrementa i contatori, che restano gestiti
-    dalla telemetria esistente (chat_ai_api record_only / record_voice_call),
-    così il conteggio resta invariato rispetto a oggi.
+    La quota è contata QUI, lato server: non ci si può fidare della telemetria
+    inviata dal client (basterebbe non mandarla per usare la chiave condivisa
+    senza limiti). Con la chiave condivisa:
+      - ogni chiamata prenota un posto sul tetto grezzo giornaliero
+        (reserve_proxy_call), anche i giri intermedi di function calling;
+      - la risposta finale (senza functionCall) consuma un'unità chat/voice.
+    Gli endpoint di telemetria (chat_ai_api record_only / record_voice_call)
+    restano per compatibilità ma non incrementano più nulla.
 
     Payload: {"feature": "chat"|"voice", "payload": {...}, "models": [...]?}
+    `models` è accettato solo come sottoinsieme di GEMINI_MODELS.
     200: risposta Gemini grezza (con "candidates", ...).
     429: {"error", "quota_exceeded": true, "tier_limits"}.
     502: {"error", "detail"} per errori upstream Gemini.
     """
     from .ai_views import _get_user_api_key, gemini_service
-    from .ai_services import check_ai_quota
+    from .ai_services import reserve_proxy_call, record_proxy_success, GEMINI_MODELS
 
     feature = request.data.get('feature', 'chat')
     if feature not in ('chat', 'voice'):
@@ -2685,7 +2696,7 @@ def gemini_proxy(request):
     if not isinstance(payload, dict) or 'contents' not in payload:
         return Response({'error': 'payload Gemini mancante o non valido'}, status=400)
 
-    allowed, quota_error, tier_limits = check_ai_quota(request.user, call_type=feature)
+    allowed, quota_error, tier_limits = reserve_proxy_call(request.user, call_type=feature)
     if not allowed:
         return Response({
             'error': quota_error,
@@ -2694,7 +2705,12 @@ def gemini_proxy(request):
         }, status=429)
 
     user_api_key = _get_user_api_key(request.user)
-    models = request.data.get('models') or None
+    # Il client può solo restringere/riordinare i modelli previsti dal server:
+    # non può far usare alla chiave condivisa un modello arbitrario (più caro).
+    requested_models = request.data.get('models')
+    models = None
+    if isinstance(requested_models, list):
+        models = [m for m in requested_models if m in GEMINI_MODELS] or None
     # L'audio multimodale (voice) richiede più tempo della chat testuale.
     timeout = 90 if feature == 'voice' else 30
 
@@ -2703,6 +2719,8 @@ def gemini_proxy(request):
     )
 
     if success:
+        if not user_api_key:
+            record_proxy_success(request.user, feature, data)
         # Restituisce la risposta Gemini GREZZA al top level così il parser
         # client esistente (response['candidates']) funziona invariato.
         return Response(data)
@@ -2733,6 +2751,14 @@ def chat_ai_api(request):
     from .ai_views import _build_user_context, _get_user_api_key, BEE_SYSTEM_PROMPT, gemini_service
     from .ai_services import increment_ai_quota, check_ai_quota
 
+    # ── Sola telemetria (compatibilità) ─────────────────────────────────────
+    # Il client chiama qui con record_only=true dopo aver invocato Gemini
+    # altrove. Non incrementa più nulla: con la chiave condivisa la chiamata è
+    # già stata contata dal proxy, con quella personale non consuma il tier.
+    # Restituisce solo i contatori autoritativi, così il client si riallinea.
+    if request.data.get('record_only'):
+        return Response(_ai_usage_snapshot(request.user))
+
     # ── Verifica quota tier ────────────────────────────────────────────────
     allowed, quota_error, tier_limits = check_ai_quota(request.user, call_type='chat')
     if not allowed:
@@ -2741,21 +2767,6 @@ def chat_ai_api(request):
             'quota_exceeded': True,
             'tier_limits': tier_limits,
         }, status=429)
-
-    # ── Sola telemetria ──────────────────────────────────────────────────────
-    # Il client che invoca Gemini altrove (proxy o chiave personale diretta)
-    # chiama qui con record_only=true SOLO per incrementare il contatore tier
-    # autoritativo. NON va eseguita una seconda generazione (spreco di quota e
-    # uso improprio della chiave di sistema).
-    if request.data.get('record_only'):
-        from .ai_services import increment_ai_quota
-        personal_key_set = False
-        try:
-            personal_key_set = bool(request.user.profilo.gemini_api_key)
-        except Exception:
-            pass
-        increment_ai_quota(request.user, used_personal_key=personal_key_set, call_type='chat')
-        return Response(_ai_usage_snapshot(request.user))
 
     CHART_INSTRUCTIONS = """
 
@@ -2819,6 +2830,7 @@ def ai_quota(request):
     ai_tier = AI_TIER_FREE
     chat_today = 0
     voice_today = 0
+    stats_today = 0
     try:
         profilo = request.user.profilo
         personal_key_set = bool(profilo.gemini_api_key)
@@ -2828,6 +2840,7 @@ def ai_quota(request):
             personal_reset_at = profilo.ai_requests_reset_at.isoformat()
             chat_today = profilo.ai_chat_today
             voice_today = profilo.ai_voice_today
+            stats_today = profilo.ai_stats_today
     except Exception:
         pass
 
@@ -2854,11 +2867,13 @@ def ai_quota(request):
             'chat_today': chat_today,
             'voice_today': voice_today,
             'total_today': personal_requests,
+            'stats_today': stats_today,
         },
         'remaining': {
             'chat': max(0, tier_limits['chat'] - chat_today),
             'voice': max(0, tier_limits['voice'] - voice_today),
             'total': max(0, tier_limits['total'] - personal_requests),
+            'stats': max(0, tier_limits['stats'] - stats_today),
         },
         'personal': {
             'requests_today': personal_requests,
@@ -2875,70 +2890,21 @@ def ai_quota(request):
 @permission_classes([IsAuthenticated])
 def record_voice_call(request):
     """
-    Telemetria chiamate Gemini voice effettuate direttamente dal client.
-    Il client (Flutter) invoca Gemini multimodale senza passare dal backend;
-    questo endpoint serve a mantenere ai_voice_today autoritativo server-side
-    e a rispettare i limiti del tier.
+    Ex telemetria delle chiamate Gemini voice fatte dal client. Il conteggio
+    ora avviene nel proxy (chiave condivisa); con la chiave personale le
+    chiamate non consumano il tier. Resta per compatibilità con le app già
+    installate e restituisce i contatori correnti.
 
     Payload opzionale: {"model": "gemini-2.5-flash"}
     Risposta 200: {"voice_today": N, "usage": {"chat_today": ..., "voice_today": N,
                                               "total_today": ...},
                    "remaining": {"chat": ..., "voice": ..., "total": ...}}
-    Risposta 429: {"error": "...", "quota_exceeded": true, "tier_limits": {...}}
     """
-    from .ai_services import increment_ai_quota, check_ai_quota
-    from .models import AI_TIER_LIMITS, AI_TIER_FREE
-
-    # Verifica quota prima di incrementare: se già esaurita, 429 coerente
-    # con la gestione client-side di QuotaExceededException.
-    allowed, quota_error, tier_limits = check_ai_quota(request.user, call_type='voice')
-    if not allowed:
-        return Response({
-            'error': quota_error,
-            'quota_exceeded': True,
-            'tier_limits': tier_limits,
-        }, status=429)
-
-    personal_key_set = False
-    try:
-        personal_key_set = bool(request.user.profilo.gemini_api_key)
-    except Exception:
-        pass
-
-    increment_ai_quota(request.user, used_personal_key=personal_key_set, call_type='voice')
-
-    # Rileggi i contatori aggiornati per restituirli autoritativi al client.
-    voice_today = 0
-    chat_today = 0
-    total_today = 0
-    ai_tier = AI_TIER_FREE
-    try:
-        profilo = request.user.profilo
-        ai_tier = profilo.ai_tier or AI_TIER_FREE
-        now = timezone.now()
-        if profilo.ai_requests_reset_at and profilo.ai_requests_reset_at > now:
-            voice_today = profilo.ai_voice_today
-            chat_today = profilo.ai_chat_today
-            total_today = profilo.ai_requests_today
-    except Exception:
-        pass
-
-    limits = AI_TIER_LIMITS.get(ai_tier, AI_TIER_LIMITS[AI_TIER_FREE])
-
-    return Response({
-        'voice_today': voice_today,
-        'usage': {
-            'chat_today': chat_today,
-            'voice_today': voice_today,
-            'total_today': total_today,
-        },
-        'remaining': {
-            'chat': max(0, limits['chat'] - chat_today),
-            'voice': max(0, limits['voice'] - voice_today),
-            'total': max(0, limits['total'] - total_today),
-        },
-        'model': request.data.get('model'),
-    })
+    # Compatibilità: non incrementa più nulla (vedi gemini_proxy). Restituisce
+    # i contatori autoritativi nello stesso formato di prima.
+    snapshot = _ai_usage_snapshot(request.user)
+    snapshot['model'] = request.data.get('model')
+    return Response(snapshot)
 
 
 @api_view(['POST'])
@@ -3036,23 +3002,34 @@ def activate_ai_code(request):
             status=status.HTTP_410_GONE,
         )
 
-    # Apply the tier upgrade.
-    profilo = request.user.profilo
+    # Apply the tier upgrade. Il codice viene riletto con lock dentro una
+    # transazione: due richieste simultanee non possono superare max_uses.
+    from django.db import transaction
+    from .models import Profilo
     valid_tiers = [t[0] for t in AI_TIER_CHOICES]
-    current_idx = valid_tiers.index(profilo.ai_tier) if profilo.ai_tier in valid_tiers else 0
-    target_idx = valid_tiers.index(activation.target_tier) if activation.target_tier in valid_tiers else 0
+    with transaction.atomic():
+        activation = ActivationCode.objects.select_for_update().get(pk=activation.pk)
+        if not activation.is_valid:
+            return Response(
+                {'error': 'Codice scaduto o già utilizzato al massimo.'},
+                status=status.HTTP_410_GONE,
+            )
 
-    if target_idx <= current_idx:
-        return Response(
-            {'error': f'Il tuo piano attuale ({profilo.ai_tier}) è già uguale o superiore.'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        profilo = Profilo.objects.select_for_update().get(utente=request.user)
+        current_idx = valid_tiers.index(profilo.ai_tier) if profilo.ai_tier in valid_tiers else 0
+        target_idx = valid_tiers.index(activation.target_tier) if activation.target_tier in valid_tiers else 0
 
-    profilo.ai_tier = activation.target_tier
-    profilo.save(update_fields=['ai_tier'])
+        if target_idx <= current_idx:
+            return Response(
+                {'error': f'Il tuo piano attuale ({profilo.ai_tier}) è già uguale o superiore.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    activation.times_used += 1
-    activation.save(update_fields=['times_used'])
+        profilo.ai_tier = activation.target_tier
+        profilo.save(update_fields=['ai_tier'])
+
+        activation.times_used += 1
+        activation.save(update_fields=['times_used'])
 
     logger.info(
         f'Activation code {code_str} used by {request.user.username} '

@@ -1353,12 +1353,21 @@ AI_TIER_CHOICES = [
     (AI_TIER_PROFESSIONALE, 'Tester Avanzato'),
 ]
 
-# Limiti giornalieri per tier: chat, voice, totale
+# Limiti giornalieri per tier: chat, voice, totale (= chat + voice) e stats.
+# `stats` (domande in linguaggio naturale nelle statistiche, via Groq) ha un
+# contatore a parte e NON rientra in `total`.
 AI_TIER_LIMITS = {
-    AI_TIER_FREE:           {'chat': 10,  'voice': 5,   'total': 15},
-    AI_TIER_APICOLTORE:     {'chat': 30,  'voice': 30,  'total': 60},
-    AI_TIER_PROFESSIONALE:  {'chat': 200, 'voice': 100, 'total': 300},
+    AI_TIER_FREE:           {'chat': 10,  'voice': 5,   'total': 15,  'stats': 10},
+    AI_TIER_APICOLTORE:     {'chat': 30,  'voice': 30,  'total': 60,  'stats': 30},
+    AI_TIER_PROFESSIONALE:  {'chat': 200, 'voice': 100, 'total': 300, 'stats': 100},
 }
+
+# Tetto alle chiamate GREZZE al proxy Gemini: `total` * questo fattore.
+# Un messaggio di chat puo' fare piu' giri (function calling sui tool): il
+# client ne fa al massimo 5 per messaggio, e solo la risposta finale consuma
+# un'unita' di quota. Il tetto impedisce di usare i giri "gratuiti" per
+# interrogare la chiave condivisa senza limiti.
+AI_PROXY_CALLS_PER_UNIT = 5
 
 
 class Profilo(models.Model):
@@ -1380,15 +1389,27 @@ class Profilo(models.Model):
                                         verbose_name='Richieste chat AI oggi')
     ai_voice_today = models.IntegerField(default=0,
                                          verbose_name='Richieste voice AI oggi')
+    ai_stats_today = models.IntegerField(default=0,
+                                         verbose_name='Domande statistiche AI oggi')
+    ai_proxy_calls_today = models.IntegerField(
+        default=0, verbose_name='Chiamate grezze al proxy Gemini oggi')
     ai_requests_reset_at = models.DateTimeField(null=True, blank=True,
                                                 verbose_name='Reset contatore AI')
-    
+
+    class Meta:
+        verbose_name = 'Profilo'
+        verbose_name_plural = 'Profili'
+
     def __str__(self):
         return f"Profilo di {self.utente.username}"
-    
+
     def save(self, *args, **kwargs):
-        # Compressione dell'immagine se è stata caricata una nuova immagine
-        if self.immagine and hasattr(self.immagine, 'name') and not self.immagine.name.endswith('default.png'):
+        # Comprime l'immagine SOLO quando ne e' stata caricata una nuova
+        # (file non ancora salvato sullo storage). Senza questo controllo ogni
+        # save del profilo, compresi gli incrementi dei contatori AI, riapriva
+        # e ricomprimeva l'immagine gia' salvata.
+        nuova_immagine = bool(self.immagine) and not getattr(self.immagine, '_committed', True)
+        if nuova_immagine and not self.immagine.name.endswith('default.png'):
             img = Image.open(self.immagine)
             
             # Converti in RGB se l'immagine è in RGBA (per PNG trasparenti)
@@ -1450,10 +1471,13 @@ def crea_profilo(sender, instance, created, **kwargs):
     if created:
         Profilo.objects.create(utente=instance)
 
-# Salva il profilo quando l'utente viene salvato
+# Garantisce che ogni utente abbia un profilo (anche quelli creati prima del
+# signal). NON risalva il profilo a ogni save dell'utente: farlo riscriveva
+# tutta la riga, contatori AI compresi, a ogni login (last_login).
 @receiver(post_save, sender=User)
-def salva_profilo(sender, instance, **kwargs):
-    instance.profilo.save()
+def salva_profilo(sender, instance, created, **kwargs):
+    if not created:
+        Profilo.objects.get_or_create(utente=instance)
 
 # Aggiungiamo questa estensione al modello Gruppo esistente
 class ImmagineProfilo(models.Model):

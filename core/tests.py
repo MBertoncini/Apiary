@@ -695,3 +695,169 @@ class GoogleLoginWebTests(TestCase):
     def test_next_esterno_ignorato(self):
         response = self._post(Client(), 'https://evil.example/x')
         self.assertEqual(response.json()['redirect'], '/app/dashboard/')
+
+
+# ---------------------------------------------------------------------------
+# 7. Quota AI: conteggio lato server, chiave personale, statistiche, reset
+# ---------------------------------------------------------------------------
+
+from datetime import timedelta  # noqa: E402
+
+from django.utils import timezone  # noqa: E402
+
+from .models import ActivationCode, Profilo  # noqa: E402
+
+RISPOSTA_FINALE = {'candidates': [{'content': {'parts': [{'text': 'ciao'}]}}]}
+RISPOSTA_TOOL = {'candidates': [{'content': {'parts': [
+    {'functionCall': {'name': 'lista_arnie', 'args': {}}}]}}]}
+
+
+class AiQuotaProxyTests(TestCase):
+    """Il proxy Gemini conta la quota lato server: il client non puo'
+    aggirarla saltando la telemetria."""
+
+    def setUp(self):
+        self.user = User.objects.create_user('quota', password='x')
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+
+    def _profilo(self):
+        return Profilo.objects.get(utente=self.user)
+
+    def _proxy(self, risposta=RISPOSTA_FINALE, feature='chat', **extra):
+        with mock.patch('core.ai_views.gemini_service.generate_raw',
+                        return_value=(True, risposta, 200, 'gemini-3.8-flash')) as gen:
+            resp = self.client.post(
+                '/api/v1/ai/gemini-proxy/',
+                {'feature': feature, 'payload': {'contents': []}, **extra},
+                format='json',
+            )
+        return resp, gen
+
+    def test_il_proxy_conta_senza_telemetria(self):
+        for _ in range(10):
+            resp, _gen = self._proxy()
+            self.assertEqual(resp.status_code, 200)
+        self.assertEqual(self._profilo().ai_chat_today, 10)
+        # Undicesima chat del piano Base: rifiutata senza chiamare Gemini.
+        resp, gen = self._proxy()
+        self.assertEqual(resp.status_code, 429)
+        self.assertTrue(resp.json()['quota_exceeded'])
+        gen.assert_not_called()
+
+    def test_la_telemetria_non_conta_due_volte(self):
+        self._proxy()
+        resp = self.client.post('/api/v1/ai/chat/', {'record_only': True}, format='json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()['chat_today'], 1)
+        self._proxy(feature='voice')
+        resp = self.client.post('/api/v1/ai/record-voice-call/', {}, format='json')
+        self.assertEqual(resp.json()['voice_today'], 1)
+        p = self._profilo()
+        self.assertEqual((p.ai_chat_today, p.ai_voice_today, p.ai_requests_today), (1, 1, 2))
+
+    def test_i_giri_di_function_calling_non_consumano_la_chat(self):
+        for _ in range(3):
+            self._proxy(risposta=RISPOSTA_TOOL)
+        self._proxy()
+        p = self._profilo()
+        self.assertEqual(p.ai_chat_today, 1)
+        self.assertEqual(p.ai_proxy_calls_today, 4)
+
+    def test_tetto_alle_chiamate_grezze(self):
+        # Base: total 15 * 5 = 75 chiamate grezze al giorno.
+        Profilo.objects.filter(utente=self.user).update(
+            ai_proxy_calls_today=75,
+            ai_requests_reset_at=timezone.now() + timedelta(hours=1))
+        resp, gen = self._proxy(risposta=RISPOSTA_TOOL)
+        self.assertEqual(resp.status_code, 429)
+        gen.assert_not_called()
+
+    def test_modelli_fuori_lista_ignorati(self):
+        _resp, gen = self._proxy(models=['gemini-9-ultra-pro', 'gemini-3.6-flash'])
+        self.assertEqual(gen.call_args.kwargs['models'], ['gemini-3.6-flash'])
+        _resp, gen = self._proxy(models=['gemini-9-ultra-pro'])
+        self.assertIsNone(gen.call_args.kwargs['models'])
+
+    def test_chiave_personale_niente_limite_e_niente_conteggio(self):
+        Profilo.objects.filter(utente=self.user).update(
+            gemini_api_key='chiave-utente', ai_chat_today=10, ai_requests_today=15,
+            ai_requests_reset_at=timezone.now() + timedelta(hours=1))
+        self.client.force_authenticate(User.objects.get(pk=self.user.pk))
+        resp, gen = self._proxy()
+        self.assertEqual(resp.status_code, 200)
+        # Usa la chiave dell'utente, mai quella di sistema.
+        self.assertEqual(gen.call_args.kwargs['api_key'], 'chiave-utente')
+        self.assertEqual(self._profilo().ai_chat_today, 10)
+
+    def test_contatori_scaduti_valgono_zero(self):
+        Profilo.objects.filter(utente=self.user).update(
+            ai_chat_today=10, ai_requests_today=15, ai_stats_today=10,
+            ai_proxy_calls_today=75,
+            ai_requests_reset_at=timezone.now() - timedelta(minutes=1))
+        quota = self.client.get('/api/v1/ai/quota/').json()
+        self.assertEqual(quota['usage'], {
+            'chat_today': 0, 'voice_today': 0, 'total_today': 0, 'stats_today': 0})
+        resp, _gen = self._proxy()
+        self.assertEqual(resp.status_code, 200)
+        p = self._profilo()
+        self.assertEqual((p.ai_chat_today, p.ai_requests_today, p.ai_stats_today,
+                          p.ai_proxy_calls_today), (1, 1, 0, 1))
+        self.assertGreater(p.ai_requests_reset_at, timezone.now())
+
+    def test_salvare_l_utente_non_riscrive_i_contatori(self):
+        user = User.objects.get(pk=self.user.pk)
+        user.profilo  # carica il profilo in cache sull'istanza
+        Profilo.objects.filter(utente=self.user).update(ai_chat_today=7)
+        user.save()
+        self.assertEqual(self._profilo().ai_chat_today, 7)
+
+
+class AiQuotaStatsTests(TestCase):
+    """Le domande AI nelle statistiche hanno una quota per utente."""
+
+    def setUp(self):
+        self.user = User.objects.create_user('stats', password='x')
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+
+    def _chiedi(self, **extra):
+        with mock.patch('statistiche.views.nl_query.text_to_sql',
+                        return_value={'sql': 'SELECT 1 AS uno', 'raw': ''}) as t2s:
+            resp = self.client.post('/api/stats/nl-query/',
+                                    {'domanda': 'quante arnie ho?', **extra}, format='json')
+        return resp, t2s
+
+    def test_conta_e_blocca_al_limite(self):
+        resp, _ = self._chiedi()
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()['stats_today'], 1)
+        Profilo.objects.filter(utente=self.user).update(ai_stats_today=10)
+        resp, t2s = self._chiedi()
+        self.assertEqual(resp.status_code, 429)
+        self.assertTrue(resp.json()['quota_exceeded'])
+        t2s.assert_not_called()
+
+    def test_chiave_groq_personale_usata_e_non_contata(self):
+        Profilo.objects.filter(utente=self.user).update(
+            ai_stats_today=10, ai_requests_reset_at=timezone.now() + timedelta(hours=1))
+        resp, t2s = self._chiedi(groq_api_key='gsk_utente')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(t2s.call_args.kwargs['api_key'], 'gsk_utente')
+        self.assertNotIn('stats_today', resp.json())
+        self.assertEqual(Profilo.objects.get(utente=self.user).ai_stats_today, 10)
+
+
+class ActivationCodeTests(TestCase):
+    def test_codice_esaurito_rifiutato(self):
+        ActivationCode.objects.create(code='PROMO', target_tier='apicoltore', max_uses=1)
+        esiti = []
+        for nome in ('uno', 'due'):
+            client = APIClient()
+            client.force_authenticate(User.objects.create_user(nome, password='x'))
+            esiti.append(client.post('/api/v1/ai/activate-code/', {'code': 'promo'},
+                                     format='json').status_code)
+        self.assertEqual(esiti, [200, 410])
+        self.assertEqual(ActivationCode.objects.get(code='PROMO').times_used, 1)
+        self.assertEqual(Profilo.objects.get(utente__username='uno').ai_tier, 'apicoltore')
+        self.assertEqual(Profilo.objects.get(utente__username='due').ai_tier, 'free')

@@ -236,13 +236,37 @@ def _next_midnight_utc():
     return (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
 
 
+_COUNTER_FIELDS = [
+    'ai_requests_today', 'ai_chat_today', 'ai_voice_today',
+    'ai_stats_today', 'ai_proxy_calls_today', 'ai_requests_reset_at',
+]
+
+
 def _reset_if_needed(profilo, now):
     """Azzera i contatori se è passata la mezzanotte."""
     if profilo.ai_requests_reset_at is None or profilo.ai_requests_reset_at <= now:
         profilo.ai_requests_today = 0
         profilo.ai_chat_today = 0
         profilo.ai_voice_today = 0
+        profilo.ai_stats_today = 0
+        profilo.ai_proxy_calls_today = 0
         profilo.ai_requests_reset_at = _next_midnight_utc()
+
+
+def _tier_limits(profilo):
+    from .models import AI_TIER_LIMITS, AI_TIER_FREE
+    tier = (profilo.ai_tier if profilo else None) or AI_TIER_FREE
+    return tier, AI_TIER_LIMITS.get(tier, AI_TIER_LIMITS[AI_TIER_FREE])
+
+
+def _system_quota_exhausted(now):
+    try:
+        from .models import SystemAiQuota
+        quota = SystemAiQuota.objects.get(pk=1)
+        return bool(quota.reset_at and quota.reset_at > now
+                    and quota.requests_today >= AI_DAILY_LIMIT)
+    except Exception:
+        return False
 
 
 def check_ai_quota(user, call_type='chat'):
@@ -250,64 +274,79 @@ def check_ai_quota(user, call_type='chat'):
 
     call_type: 'chat' o 'voice'
     Ritorna (allowed: bool, error_msg: str|None, tier_limits: dict).
-    Se l'utente ha chiave personale e tier != free, i limiti per-tier si applicano
-    comunque per evitare abusi (ma sono molto più alti).
-    Se l'utente ha chiave personale senza tier a pagamento, si applicano i limiti free.
+
+    Con una chiave Gemini personale i limiti del tier NON si applicano:
+    l'utente paga Google direttamente e la chiave condivisa non viene toccata
+    (tutti i percorsi server usano la chiave personale quando è impostata,
+    quindi impostarne una fasulla non dà accesso a quella di sistema).
     """
     from .models import AI_TIER_LIMITS, AI_TIER_FREE
 
+    # Legge dal DB e non da user.profilo: quest'ultimo resta in cache
+    # sull'istanza e mostrerebbe contatori vecchi.
+    from .models import Profilo
     try:
-        profilo = user.profilo
+        profilo = Profilo.objects.get(utente=user)
     except Exception:
         return True, None, AI_TIER_LIMITS[AI_TIER_FREE]
 
-    tier = profilo.ai_tier or AI_TIER_FREE
-    limits = AI_TIER_LIMITS.get(tier, AI_TIER_LIMITS[AI_TIER_FREE])
+    tier, limits = _tier_limits(profilo)
     now = timezone.now()
 
-    # Reset contatori se necessario (senza salvare — lo fa increment_ai_quota)
-    if profilo.ai_requests_reset_at is None or profilo.ai_requests_reset_at <= now:
-        # Contatori scaduti → sicuramente ha quota
+    if profilo.gemini_api_key:
         return True, None, limits
 
-    # Chiave personale: bypass del limite di sistema, ma i limiti per-tier restano
-    has_personal_key = bool(profilo.gemini_api_key)
+    # Contatori scaduti → valgono zero (li azzera il prossimo incremento).
+    expired = profilo.ai_requests_reset_at is None or profilo.ai_requests_reset_at <= now
+    chat_today = 0 if expired else profilo.ai_chat_today
+    voice_today = 0 if expired else profilo.ai_voice_today
+    total_today = 0 if expired else profilo.ai_requests_today
 
     # Controlla limite specifico per tipo
-    if call_type == 'chat' and profilo.ai_chat_today >= limits['chat']:
+    if call_type == 'chat' and chat_today >= limits['chat']:
         return False, f'Limite chat giornaliero raggiunto ({limits["chat"]}/{limits["chat"]}). ' \
                        f'Piano attuale: {tier}.', limits
-    if call_type == 'voice' and profilo.ai_voice_today >= limits['voice']:
+    if call_type == 'voice' and voice_today >= limits['voice']:
         return False, f'Limite voice giornaliero raggiunto ({limits["voice"]}/{limits["voice"]}). ' \
                        f'Piano attuale: {tier}.', limits
 
     # Controlla limite totale
-    if profilo.ai_requests_today >= limits['total']:
+    if total_today >= limits['total']:
         return False, f'Limite totale giornaliero raggiunto ({limits["total"]}/{limits["total"]}). ' \
                        f'Piano attuale: {tier}.', limits
 
-    # Se usa chiave di sistema, controlla anche la quota globale
-    if not has_personal_key:
-        try:
-            from .models import SystemAiQuota
-            quota = SystemAiQuota.objects.get(pk=1)
-            if quota.reset_at and quota.reset_at > now and quota.requests_today >= AI_DAILY_LIMIT:
-                return False, 'Quota di sistema esaurita per oggi. ' \
-                              'Inserisci una chiave Gemini personale nelle impostazioni.', limits
-        except Exception:
-            pass
+    # Usa la chiave di sistema: controlla anche la quota globale
+    if _system_quota_exhausted(now):
+        return False, 'Quota di sistema esaurita per oggi. ' \
+                      'Inserisci una chiave Gemini personale nelle impostazioni.', limits
 
     return True, None, limits
+
+
+def _increment_system_quota(now):
+    from .models import SystemAiQuota
+    with transaction.atomic():
+        quota, created = SystemAiQuota.objects.select_for_update().get_or_create(pk=1)
+        if quota.reset_at is None or quota.reset_at <= now:
+            quota.requests_today = 1
+            quota.reset_at = _next_midnight_utc()
+        else:
+            quota.requests_today += 1
+        quota.save(update_fields=['requests_today', 'reset_at'])
 
 
 def increment_ai_quota(user, used_personal_key: bool, call_type='chat'):
     """Incrementa il contatore giornaliero richieste AI.
     Non lancia mai eccezioni — il tracking non deve bloccare la risposta.
-    Usa select_for_update per evitare race condition."""
+    Usa select_for_update per evitare race condition.
+
+    I contatori misurano SOLO l'uso della chiave condivisa: le chiamate fatte
+    con la chiave personale non consumano il tier e non vengono contate."""
+    if used_personal_key:
+        return
     try:
         now = timezone.now()
 
-        # Aggiorna contatori per-utente (sempre, indipendentemente dalla chiave)
         with transaction.atomic():
             from .models import Profilo
             profilo = Profilo.objects.select_for_update().get(utente=user)
@@ -317,21 +356,112 @@ def increment_ai_quota(user, used_personal_key: bool, call_type='chat'):
                 profilo.ai_chat_today += 1
             elif call_type == 'voice':
                 profilo.ai_voice_today += 1
-            profilo.save(update_fields=[
-                'ai_requests_today', 'ai_chat_today', 'ai_voice_today',
-                'ai_requests_reset_at',
-            ])
+            profilo.save(update_fields=_COUNTER_FIELDS)
 
-        # Aggiorna anche quota di sistema se usa la chiave condivisa
-        if not used_personal_key:
-            from .models import SystemAiQuota
-            with transaction.atomic():
-                quota, created = SystemAiQuota.objects.select_for_update().get_or_create(pk=1)
-                if quota.reset_at is None or quota.reset_at <= now:
-                    quota.requests_today = 1
-                    quota.reset_at = _next_midnight_utc()
-                else:
-                    quota.requests_today += 1
-                quota.save(update_fields=['requests_today', 'reset_at'])
+        _increment_system_quota(now)
     except Exception:
         pass
+
+
+# ---------------------------------------------------------------------------
+# Proxy Gemini — il conteggio avviene QUI, lato server
+# ---------------------------------------------------------------------------
+
+def reserve_proxy_call(user, call_type='chat'):
+    """Gate atomico per una chiamata al proxy Gemini con la chiave condivisa.
+
+    Oltre ai limiti del tier (check_ai_quota) prenota una chiamata grezza sul
+    tetto giornaliero `total * AI_PROXY_CALLS_PER_UNIT`. La prenotazione è
+    atomica e avviene PRIMA di contattare Gemini, quindi richieste parallele
+    non possono superare il tetto.
+
+    Ritorna (allowed, error_msg, tier_limits).
+    """
+    from .models import Profilo, AI_PROXY_CALLS_PER_UNIT
+
+    allowed, error, limits = check_ai_quota(user, call_type=call_type)
+    if not allowed:
+        return allowed, error, limits
+
+    now = timezone.now()
+    with transaction.atomic():
+        try:
+            profilo = Profilo.objects.select_for_update().get(utente=user)
+        except Profilo.DoesNotExist:
+            profilo = Profilo.objects.create(utente=user)
+        if profilo.gemini_api_key:
+            return True, None, limits
+        _reset_if_needed(profilo, now)
+        cap = limits['total'] * AI_PROXY_CALLS_PER_UNIT
+        if profilo.ai_proxy_calls_today >= cap:
+            return False, 'Troppe richieste AI per oggi. Riprova dopo il reset giornaliero.', limits
+        profilo.ai_proxy_calls_today += 1
+        profilo.save(update_fields=_COUNTER_FIELDS)
+    return True, None, limits
+
+
+def gemini_response_has_function_call(data):
+    """True se la risposta Gemini chiede al client di eseguire dei tool
+    (giro intermedio del function calling, non una risposta finale)."""
+    try:
+        for candidate in data.get('candidates') or []:
+            for part in (candidate.get('content') or {}).get('parts') or []:
+                if isinstance(part, dict) and ('functionCall' in part or 'function_call' in part):
+                    return True
+    except AttributeError:
+        pass
+    return False
+
+
+def record_proxy_success(user, call_type, data):
+    """Contabilizza una chiamata al proxy andata a buon fine con la chiave
+    condivisa. La risposta finale consuma un'unità di quota chat/voice; i giri
+    intermedi di function calling contano solo sulla quota di sistema (e sul
+    tetto grezzo già prenotato da reserve_proxy_call)."""
+    if gemini_response_has_function_call(data):
+        try:
+            _increment_system_quota(timezone.now())
+        except Exception:
+            pass
+        return
+    increment_ai_quota(user, used_personal_key=False, call_type=call_type)
+
+
+# ---------------------------------------------------------------------------
+# Statistiche in linguaggio naturale (Groq)
+# ---------------------------------------------------------------------------
+
+def check_stats_quota(user):
+    """Ritorna (allowed, error_msg, tier_limits) per le domande AI nelle
+    statistiche fatte con la chiave Groq di sistema."""
+    from .models import AI_TIER_LIMITS, AI_TIER_FREE
+    # Legge dal DB e non da user.profilo: quest'ultimo resta in cache
+    # sull'istanza e mostrerebbe contatori vecchi.
+    from .models import Profilo
+    try:
+        profilo = Profilo.objects.get(utente=user)
+    except Exception:
+        return True, None, AI_TIER_LIMITS[AI_TIER_FREE]
+    tier, limits = _tier_limits(profilo)
+    now = timezone.now()
+    expired = profilo.ai_requests_reset_at is None or profilo.ai_requests_reset_at <= now
+    used = 0 if expired else profilo.ai_stats_today
+    if used >= limits['stats']:
+        return False, f'Limite giornaliero domande AI raggiunto ({limits["stats"]}/{limits["stats"]}). ' \
+                      f'Riprova dopo il reset o configura una chiave Groq personale.', limits
+    return True, None, limits
+
+
+def increment_stats_quota(user):
+    """Incrementa il contatore stats e ritorna il nuovo valore (None su errore)."""
+    try:
+        now = timezone.now()
+        with transaction.atomic():
+            from .models import Profilo
+            profilo = Profilo.objects.select_for_update().get(utente=user)
+            _reset_if_needed(profilo, now)
+            profilo.ai_stats_today += 1
+            profilo.save(update_fields=_COUNTER_FIELDS)
+            return profilo.ai_stats_today
+    except Exception:
+        return None

@@ -23,9 +23,13 @@ SCHEMA DEL DATABASE:
 """
 
 
-def text_to_sql(domanda: str, user_id: int) -> dict:
-    """Chiama Groq API per trasformare una domanda in SQL."""
-    if not GROQ_API_KEY:
+def text_to_sql(domanda: str, user_id: int, api_key=None) -> dict:
+    """Chiama Groq API per trasformare una domanda in SQL.
+
+    `api_key`: chiave Groq personale dell'utente; se assente usa quella di
+    sistema."""
+    groq_key = api_key or GROQ_API_KEY
+    if not groq_key:
         raise ValueError('GROQ_API_KEY non configurata. Aggiungila nelle variabili di ambiente.')
 
     schema = get_schema_context()
@@ -35,7 +39,7 @@ def text_to_sql(domanda: str, user_id: int) -> dict:
         response = requests.post(
             GROQ_API_URL,
             headers={
-                'Authorization': f'Bearer {GROQ_API_KEY}',
+                'Authorization': f'Bearer {groq_key}',
                 'Content-Type': 'application/json',
             },
             json={
