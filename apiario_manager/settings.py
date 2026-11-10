@@ -10,12 +10,17 @@ from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Cerca il .env nel percorso di produzione, altrimenti usa quello locale
+# Cerca il .env nel percorso di produzione, altrimenti usa quello locale.
+# override=True e' necessario: il file WSGI di PythonAnywhere puo' contenere
+# vecchi os.environ[...] che altrimenti vincerebbero in silenzio sul .env
+# (e' cosi' che una chiave Gemini revocata e' rimasta in uso dopo il reload).
 env_path_prod = '/home/Cible99/.env'
 if os.path.exists(env_path_prod):
-    load_dotenv(dotenv_path=env_path_prod)
+    load_dotenv(dotenv_path=env_path_prod, override=True)
 else:
-    # In locale, si aspetta di trovare il .env nella root del progetto
+    # In locale, si aspetta di trovare il .env nella root del progetto.
+    # Qui NIENTE override: una variabile esportata a mano deve poter vincere
+    # sul .env (es. DJANGO_DEBUG=True python manage.py test core).
     load_dotenv(dotenv_path=os.path.join(BASE_DIR, '.env'))
 
 # SECURITY WARNING: keep the secret key used in production secret!
