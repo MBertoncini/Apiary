@@ -4,7 +4,9 @@ from rest_framework import viewsets, permissions, filters, status
 from rest_framework.decorators import action, api_view, parser_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from decimal import Decimal, InvalidOperation
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from rest_framework.exceptions import PermissionDenied
 from django.db.models import Q
 from django.utils import timezone
@@ -1435,6 +1437,95 @@ class SmielaturaViewSet(viewsets.ModelViewSet):
         s.save(update_fields=['archiviata'])
         return Response(SmielaturaSerializer(s, context={'request': request}).data)
 
+    @action(detail=True, methods=['get', 'put'])
+    def ripartizione(self, request, pk=None):
+        """Kg di miele attribuiti a ciascun melario (e quindi a ciascuna colonia).
+
+        GET: righe con melario, arnia, colonia, kg e se il valore è manuale.
+        PUT: `{"righe": [{"melario": 12, "kg_miele": 8.5}, ...]}` fissa a mano
+        i kg di alcuni melari; `kg_miele: null` riporta la riga al calcolo
+        automatico. I melari non manuali si dividono il resto.
+        """
+        from .cantina import ripartisci_kg_smielatura
+        s = self.get_object()
+
+        if request.method == 'PUT':
+            righe = request.data.get('righe')
+            if not isinstance(righe, list):
+                return Response({'error': 'Campo "righe" mancante.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            esistenti = {
+                r.melario_id: r
+                for r in SmielaturaMelario.objects.filter(smielatura=s)
+            }
+            valori = {}
+            for riga in righe:
+                try:
+                    melario_id = int(riga.get('melario'))
+                except (TypeError, ValueError, AttributeError):
+                    return Response({'error': 'Melario non valido.'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+                if melario_id not in esistenti:
+                    return Response(
+                        {'error': f'Il melario {melario_id} non fa parte di questa smielatura.'},
+                        status=status.HTTP_400_BAD_REQUEST)
+                kg = riga.get('kg_miele')
+                if kg is None or kg == '':
+                    valori[melario_id] = None
+                    continue
+                try:
+                    kg = Decimal(str(kg).replace(',', '.')).quantize(Decimal('0.01'))
+                except (InvalidOperation, ValueError):
+                    return Response({'error': 'Kg non validi.'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+                if kg < 0:
+                    return Response({'error': 'I kg non possono essere negativi.'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+                valori[melario_id] = kg
+
+            # Somma dei manuali dopo la modifica: non può superare il raccolto.
+            totale_manuale = Decimal('0')
+            for melario_id, r in esistenti.items():
+                if melario_id in valori:
+                    totale_manuale += valori[melario_id] or Decimal('0')
+                elif r.kg_manuale and r.kg_miele is not None:
+                    totale_manuale += r.kg_miele
+            if totale_manuale > Decimal(s.quantita_miele) + Decimal('0.01'):
+                return Response(
+                    {'error': f'I kg inseriti ({totale_manuale}) superano il raccolto '
+                              f'della smielatura ({s.quantita_miele} kg).'},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+            with transaction.atomic():
+                for melario_id, kg in valori.items():
+                    SmielaturaMelario.objects.filter(pk=esistenti[melario_id].pk).update(
+                        kg_miele=kg, kg_manuale=kg is not None)
+                ripartisci_kg_smielatura(s)
+
+        righe = SmielaturaMelario.objects.filter(smielatura=s).select_related(
+            'melario', 'colonia', 'colonia__arnia', 'colonia__nucleo',
+            'melario__colonia', 'melario__colonia__arnia', 'melario__colonia__nucleo',
+        ).order_by('id')
+        out = []
+        for r in righe:
+            colonia = r.colonia or r.melario.colonia
+            out.append({
+                'melario': r.melario_id,
+                'melario_numero': r.melario.numero_progressivo or r.melario_id,
+                'numero_telaini': r.melario.numero_telaini,
+                'tipo_melario': r.melario.tipo_melario,
+                'colonia': colonia.id if colonia else None,
+                'arnia_numero': colonia.arnia.numero if colonia and colonia.arnia_id else None,
+                'colonia_display': colonia.contenitore_display() if colonia else None,
+                'kg_miele': float(r.kg_miele) if r.kg_miele is not None else None,
+                'kg_manuale': r.kg_manuale,
+            })
+        return Response({
+            'smielatura': s.id,
+            'quantita_miele': float(s.quantita_miele),
+            'righe': out,
+        })
+
 # Modifica il GruppoViewSet esistente aggiungendo le nuove azioni
 class GruppoViewSet(viewsets.ModelViewSet):
     """
@@ -2059,7 +2150,10 @@ class InvasettamentoViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         from django.db.models import Q, F
         apiari_accessibili = get_apiari_accessibili(self.request.user)
+        # `utente=...`: un lotto che ha perso sia la smielatura sia il
+        # contenitore (eliminati, FK a NULL) resta del suo proprietario.
         qs = Invasettamento.objects.filter(
+            Q(utente=self.request.user) |
             Q(smielatura__apiario__in=apiari_accessibili) |
             Q(contenitore__utente=self.request.user)
         ).select_related(
@@ -2074,9 +2168,30 @@ class InvasettamentoViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(utente=self.request.user)
 
+    def perform_destroy(self, instance):
+        """Eliminando un lotto il miele non ancora venduto torna da dove veniva."""
+        from .cantina import kg_vasetti, sposta_kg_trasferiti, stato_contenitore
+        with transaction.atomic():
+            kg = kg_vasetti(instance.formato_vasetto, instance.vasetti_disponibili)
+            if kg > 0 and instance.contenitore_id:
+                c = ContenitoreStoccaggio.objects.select_for_update().get(
+                    pk=instance.contenitore_id)
+                c.kg_attuali = Decimal(c.kg_attuali) + kg
+                c.stato = stato_contenitore(c.kg_attuali, c.capacita_kg)
+                c.save(update_fields=['kg_attuali', 'stato'])
+            elif kg > 0 and instance.smielatura_id and instance.kg_scalati_smielatura > 0:
+                sposta_kg_trasferiti(
+                    instance.smielatura_id, -min(kg, instance.kg_scalati_smielatura))
+            instance.delete()
+
     @action(detail=False, methods=['post'])
     def vendi(self, request):
         """Marca come venduti N vasetti di un dato (tipo_miele, formato).
+
+        LEGACY: usato dalle versioni dell'app che creavano la vendita e poi
+        scaricavano i vasetti con una chiamata separata. Le versioni nuove
+        inviano le righe dentro la vendita (vedi VenditaSerializer), che
+        scarica i lotti nella stessa transazione e sa ripristinarli.
 
         Body: `{"tipo_miele": "...", "formato_vasetto": 500, "quantita": 12}`.
         Distribuzione FIFO sui lotti dell'utente con vasetti disponibili.
@@ -2161,44 +2276,63 @@ class MatutatoreViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def trasferisci(self, request, pk=None):
         """Trasferisci miele dal maturatore a N contenitori di stoccaggio."""
-        maturatore = self.get_object()
+        self.get_object()  # permessi / 404
         contenitori_data = request.data.get('contenitori', [])
         if not contenitori_data:
             return Response({'error': 'Nessun contenitore specificato.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        kg_totale = sum(float(c.get('kg_attuali', c.get('capacita_kg', 0))) for c in contenitori_data)
-        if kg_totale > float(maturatore.kg_attuali):
-            return Response(
-                {'error': f'Quantità ({kg_totale}kg) supera il disponibile ({maturatore.kg_attuali}kg).'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # Decimal e non float: i kg si sommano e si sottraggono più volte e
+        # gli errori di arrotondamento lasciavano maturatori con 0.0000001 kg
+        # mai "svuotati".
+        cent = Decimal('0.01')
+        righe = []
+        try:
+            for c in contenitori_data:
+                kg = Decimal(str(c.get('kg_attuali', c.get('capacita_kg', 0)))).quantize(cent)
+                cap = Decimal(str(c.get('capacita_kg', kg))).quantize(cent)
+                righe.append((c, kg, cap))
+        except (InvalidOperation, ValueError, TypeError):
+            return Response({'error': 'Quantità non valida.'}, status=status.HTTP_400_BAD_REQUEST)
+        if any(kg <= 0 for _, kg, _ in righe):
+            return Response({'error': 'Ogni contenitore deve avere una quantità maggiore di zero.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        kg_totale = sum((kg for _, kg, _ in righe), Decimal('0'))
 
         from datetime import date
-        creati = []
-        for c in contenitori_data:
-            kg = float(c.get('kg_attuali', c.get('capacita_kg', 0)))
-            cap = float(c.get('capacita_kg', kg))
-            contenitore = ContenitoreStoccaggio.objects.create(
-                utente=request.user,
-                nome=c.get('nome', ''),
-                tipo=c.get('tipo', 'secchio'),
-                capacita_kg=cap,
-                kg_attuali=kg,
-                tipo_miele=maturatore.tipo_miele,
-                maturatore=maturatore,
-                data_riempimento=date.today(),
-                stato='pieno' if kg >= cap else 'parziale',
-            )
-            creati.append(contenitore.id)
+        from .cantina import TOLLERANZA_KG
+        # Transazione unica con lock sul maturatore: o nascono tutti i
+        # contenitori e il maturatore cala, o non succede niente.
+        with transaction.atomic():
+            maturatore = Maturatore.objects.select_for_update().get(pk=pk)
+            if kg_totale > Decimal(maturatore.kg_attuali) + TOLLERANZA_KG:
+                return Response(
+                    {'error': f'Quantità ({kg_totale}kg) supera il disponibile ({maturatore.kg_attuali}kg).'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            creati = []
+            for c, kg, cap in righe:
+                cap = max(cap, kg)
+                contenitore = ContenitoreStoccaggio.objects.create(
+                    utente=request.user,
+                    nome=c.get('nome', ''),
+                    tipo=c.get('tipo', 'secchio'),
+                    capacita_kg=cap,
+                    kg_attuali=kg,
+                    tipo_miele=maturatore.tipo_miele,
+                    maturatore=maturatore,
+                    data_riempimento=date.today(),
+                    stato='pieno' if kg >= cap else 'parziale',
+                )
+                creati.append(contenitore.id)
 
-        maturatore.kg_attuali = max(0, float(maturatore.kg_attuali) - kg_totale)
-        if maturatore.kg_attuali == 0:
-            maturatore.stato = 'svuotato'
-        maturatore.save()
+            maturatore.kg_attuali = max(Decimal('0'), Decimal(maturatore.kg_attuali) - kg_totale)
+            if maturatore.kg_attuali == 0:
+                maturatore.stato = 'svuotato'
+            maturatore.save()
 
         return Response({
             'contenitori_creati': len(creati),
-            'kg_trasferiti': kg_totale,
+            'kg_trasferiti': float(kg_totale),
             'maturatore_kg_rimanenti': float(maturatore.kg_attuali),
         })
 
@@ -2218,38 +2352,40 @@ class ContenitoreStoccaggioViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def invasetta(self, request, pk=None):
         """Crea un invasettamento da questo contenitore, scalando i kg."""
-        contenitore = self.get_object()
-        formato = int(request.data.get('formato_vasetto', 500))
-        numero = int(request.data.get('numero_vasetti', 0))
-        if numero <= 0:
+        self.get_object()  # permessi / 404
+        try:
+            formato = int(request.data.get('formato_vasetto', 500))
+            numero = int(request.data.get('numero_vasetti', 0))
+        except (TypeError, ValueError):
+            return Response({'error': 'Formato o numero vasetti non validi.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if numero <= 0 or formato <= 0:
             return Response({'error': 'Numero vasetti non valido.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        kg_usati = round((formato * numero) / 1000, 3)
-        if kg_usati > float(contenitore.kg_attuali):
-            return Response(
-                {'error': f'Quantità ({kg_usati}kg) supera il disponibile ({contenitore.kg_attuali}kg).'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
         from datetime import date
-        invasettamento = Invasettamento.objects.create(
-            utente=request.user,
-            data=request.data.get('data', date.today()),
-            smielatura=None,
-            contenitore=contenitore,
-            tipo_miele=contenitore.tipo_miele,
-            formato_vasetto=formato,
-            numero_vasetti=numero,
-            lotto=request.data.get('lotto') or '',
-            note=request.data.get('note', ''),
-        )
-
-        contenitore.kg_attuali = max(0, float(contenitore.kg_attuali) - kg_usati)
-        if contenitore.kg_attuali == 0:
-            contenitore.stato = 'vuoto'
-        elif contenitore.kg_attuali < float(contenitore.capacita_kg):
-            contenitore.stato = 'parziale'
-        contenitore.save()
+        from .cantina import kg_vasetti, stato_contenitore, TOLLERANZA_KG
+        kg_usati = kg_vasetti(formato, numero)
+        with transaction.atomic():
+            contenitore = ContenitoreStoccaggio.objects.select_for_update().get(pk=pk)
+            if kg_usati > Decimal(contenitore.kg_attuali) + TOLLERANZA_KG:
+                return Response(
+                    {'error': f'Quantità ({kg_usati}kg) supera il disponibile ({contenitore.kg_attuali}kg).'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            invasettamento = Invasettamento.objects.create(
+                utente=request.user,
+                data=request.data.get('data') or date.today(),
+                smielatura=None,
+                contenitore=contenitore,
+                tipo_miele=contenitore.tipo_miele,
+                formato_vasetto=formato,
+                numero_vasetti=numero,
+                lotto=request.data.get('lotto') or '',
+                note=request.data.get('note', ''),
+            )
+            contenitore.kg_attuali = max(Decimal('0'), Decimal(contenitore.kg_attuali) - kg_usati)
+            contenitore.stato = stato_contenitore(contenitore.kg_attuali, contenitore.capacita_kg)
+            contenitore.save()
 
         return Response(InvasettamentoSerializer(invasettamento, context={'request': request}).data, status=status.HTTP_201_CREATED)
 

@@ -100,6 +100,36 @@ class Apiario(models.Model):
 
     monitoraggio_meteo = models.BooleanField(default=True, help_text="Abilita il monitoraggio meteorologico per questo apiario")
 
+    # ── Dati ambientali della postazione (feature per i modelli predittivi) ──
+    # Altitudine, pendenza ed esposizione vengono ricavate dalle coordinate
+    # (vedi core/ambiente.py); restano modificabili a mano. La copertura del
+    # suolo è indicata dall'apicoltore.
+    ESPOSIZIONE_CHOICES = [
+        ('piano', 'Pianeggiante'),
+        ('N', 'Nord'), ('NE', 'Nord-Est'), ('E', 'Est'), ('SE', 'Sud-Est'),
+        ('S', 'Sud'), ('SO', 'Sud-Ovest'), ('O', 'Ovest'), ('NO', 'Nord-Ovest'),
+    ]
+    COPERTURA_SUOLO_CHOICES = [
+        ('bosco_latifoglie', 'Bosco di latifoglie'),
+        ('bosco_conifere', 'Bosco di conifere'),
+        ('prato_pascolo', 'Prati e pascoli'),
+        ('seminativi', 'Seminativi'),
+        ('frutteti_vigneti', 'Frutteti e vigneti'),
+        ('macchia_incolto', 'Macchia e incolti'),
+        ('urbano', 'Area urbana / giardini'),
+        ('misto', 'Misto'),
+    ]
+    altitudine_m = models.FloatField(
+        null=True, blank=True, help_text="Altitudine in metri sul livello del mare")
+    pendenza_gradi = models.FloatField(
+        null=True, blank=True, help_text="Pendenza media del terreno in gradi")
+    esposizione = models.CharField(
+        max_length=10, choices=ESPOSIZIONE_CHOICES, blank=True, default='',
+        help_text="Verso cui è rivolto il versante")
+    copertura_suolo = models.CharField(
+        max_length=30, choices=COPERTURA_SUOLO_CHOICES, blank=True, default='',
+        help_text="Copertura del suolo prevalente attorno all'apiario")
+
     # Aggiungere questa tupla alla classe Apiario
     VISIBILITA_CHOICES = [
         ('privato', 'Solo proprietario'),
@@ -756,6 +786,17 @@ class SmielaturaMelario(models.Model):
         max_digits=7, decimal_places=2, null=True, blank=True,
         help_text="Kg di miele attribuiti a questo melario (per analisi per-colonia)",
     )
+    # True se `kg_miele` è stato inserito a mano: la ripartizione automatica
+    # (core/cantina.py) non lo sovrascrive.
+    kg_manuale = models.BooleanField(default=False)
+    # Snapshot della colonia produttrice al momento del link. `melario.colonia`
+    # può cambiare in seguito (melario spostato o riusato): l'attribuzione
+    # della produzione deve restare alla colonia che ha fatto il miele.
+    colonia = models.ForeignKey(
+        'Colonia', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='raccolti_melari',
+        help_text="Colonia produttrice al momento della smielatura",
+    )
     data_link = models.DateTimeField(null=True, blank=True, auto_now_add=True)
 
     class Meta:
@@ -788,6 +829,14 @@ class Invasettamento(models.Model):
     )
     lotto = models.CharField(max_length=50, blank=True, null=True)
     stato = models.CharField(max_length=20, choices=STATO_VASETTI_CHOICES, default='disponibile')
+    # Kg che questo lotto ha prelevato direttamente dalla smielatura (lotti
+    # creati senza passare da maturatore/contenitore). Serve a restituirli
+    # con esattezza se il lotto viene modificato o eliminato. Resta 0 per i
+    # lotti nati da un contenitore e per quelli precedenti a questo campo.
+    kg_scalati_smielatura = models.DecimalField(
+        max_digits=7, decimal_places=2, default=0,
+        help_text="Kg prelevati direttamente dalla smielatura (auto-aggiornato).",
+    )
     utente = models.ForeignKey(User, on_delete=models.CASCADE)
     note = models.TextField(blank=True, null=True)
     data_registrazione = models.DateTimeField(auto_now_add=True)
@@ -902,6 +951,27 @@ class DettaglioVendita(models.Model):
     class Meta:
         verbose_name = "Dettaglio Vendita"
         verbose_name_plural = "Dettagli Vendita"
+
+
+class DettaglioVenditaLotto(models.Model):
+    """Vasetti che una riga di vendita ha scaricato da un lotto di cantina.
+
+    Una riga di vendita può attingere a più lotti (FIFO). Tenere traccia di
+    quanti vasetti sono usciti da ciascun lotto permette di restituirli
+    quando la vendita viene modificata o eliminata.
+    """
+    dettaglio = models.ForeignKey(
+        DettaglioVendita, on_delete=models.CASCADE, related_name='scarichi')
+    invasettamento = models.ForeignKey(
+        Invasettamento, on_delete=models.CASCADE, related_name='scarichi_vendita')
+    quantita = models.IntegerField()
+
+    class Meta:
+        verbose_name = "Scarico vasetti"
+        verbose_name_plural = "Scarichi vasetti"
+
+    def __str__(self):
+        return f"Dettaglio {self.dettaglio_id} ← lotto {self.invasettamento_id} x{self.quantita}"
 
 
 # ---- Cantina: maturatori e stoccaggio ----

@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import math
+from decimal import Decimal
 
 from rest_framework import serializers
 from django.conf import settings
@@ -66,7 +67,8 @@ class ApiarioSerializer(serializers.ModelSerializer):
             'id', 'nome', 'posizione', 'latitudine', 'longitudine',
             'note', 'monitoraggio_meteo', 'proprietario', 'proprietario_username',
             'proprietario_immagine_profilo',
-            'gruppo', 'condiviso_con_gruppo', 'visibilita_mappa'
+            'gruppo', 'condiviso_con_gruppo', 'visibilita_mappa',
+            'altitudine_m', 'pendenza_gradi', 'esposizione', 'copertura_suolo',
         ]
         read_only_fields = ['proprietario']
 
@@ -873,7 +875,9 @@ class InvasettamentoSerializer(serializers.ModelSerializer):
             'lotto', 'utente', 'utente_username', 'note',
             'data_registrazione', 'kg_totali', 'kg_disponibili',
         ]
-        read_only_fields = ['utente']
+        # I vasetti venduti li muove solo il server (vendite): un client che
+        # rimanda indietro il valore letto non deve poterlo sovrascrivere.
+        read_only_fields = ['utente', 'numero_vasetti_venduti']
         extra_kwargs = {
             'smielatura': {'required': False, 'allow_null': True},
             'contenitore': {'required': False, 'allow_null': True},
@@ -901,13 +905,96 @@ class InvasettamentoSerializer(serializers.ModelSerializer):
         return obj.kg_totali
 
     def validate(self, data):
-        if not data.get('smielatura') and not data.get('contenitore'):
+        inst = self.instance
+        smielatura = data.get('smielatura', inst.smielatura if inst else None)
+        contenitore = data.get('contenitore', inst.contenitore if inst else None)
+        # In creazione l'origine è obbligatoria. In modifica no: un lotto può
+        # averla persa (contenitore o smielatura eliminati) e deve restare
+        # modificabile.
+        if inst is None and not smielatura and not contenitore:
             raise serializers.ValidationError("Specificare almeno smielatura o contenitore.")
+        numero = data.get('numero_vasetti', inst.numero_vasetti if inst else None)
+        if numero is not None and numero <= 0:
+            raise serializers.ValidationError(
+                {'numero_vasetti': 'Il numero di vasetti deve essere maggiore di zero.'})
+        if inst is not None and numero is not None and numero < inst.numero_vasetti_venduti:
+            raise serializers.ValidationError({
+                'numero_vasetti': f'Di questo lotto sono già stati venduti '
+                                  f'{inst.numero_vasetti_venduti} vasetti.'
+            })
         return data
 
     def create(self, validated_data):
+        from django.db import transaction
+        from .cantina import kg_vasetti, sposta_kg_trasferiti, TOLLERANZA_KG
         validated_data['utente'] = self.context['request'].user
-        return super().create(validated_data)
+        smielatura = validated_data.get('smielatura')
+        contenitore = validated_data.get('contenitore')
+        kg = kg_vasetti(validated_data['formato_vasetto'], validated_data['numero_vasetti'])
+        with transaction.atomic():
+            if contenitore is not None:
+                self._muovi_contenitore(contenitore.pk, -kg)
+            elif smielatura is not None:
+                # Lotto fatto direttamente dalla smielatura: quei kg non
+                # possono finire anche in un maturatore.
+                smielatura.refresh_from_db()
+                if kg > smielatura.kg_residui + TOLLERANZA_KG:
+                    raise serializers.ValidationError({
+                        'numero_vasetti': f'Disponibili dalla smielatura: '
+                                          f'{smielatura.kg_residui} kg, richiesti: {kg} kg.'
+                    })
+                sposta_kg_trasferiti(smielatura.pk, kg)
+                validated_data['kg_scalati_smielatura'] = kg
+            return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        from django.db import transaction
+        from .cantina import kg_vasetti, sposta_kg_trasferiti, TOLLERANZA_KG
+        # L'origine del lotto non si cambia in modifica: i kg sono già stati
+        # scalati da lì.
+        validated_data.pop('smielatura', None)
+        validated_data.pop('contenitore', None)
+        kg_prima = kg_vasetti(instance.formato_vasetto, instance.numero_vasetti)
+        kg_dopo = kg_vasetti(
+            validated_data.get('formato_vasetto', instance.formato_vasetto),
+            validated_data.get('numero_vasetti', instance.numero_vasetti),
+        )
+        delta = kg_dopo - kg_prima
+        with transaction.atomic():
+            if delta != 0 and instance.contenitore_id:
+                self._muovi_contenitore(instance.contenitore_id, -delta)
+            elif delta != 0 and instance.smielatura_id and instance.kg_scalati_smielatura > 0:
+                smielatura = instance.smielatura
+                smielatura.refresh_from_db()
+                if delta > smielatura.kg_residui + TOLLERANZA_KG:
+                    raise serializers.ValidationError({
+                        'numero_vasetti': f'Disponibili dalla smielatura: '
+                                          f'{smielatura.kg_residui} kg in più, richiesti: {delta} kg.'
+                    })
+                sposta_kg_trasferiti(smielatura.pk, delta)
+                validated_data['kg_scalati_smielatura'] = max(
+                    Decimal('0'), instance.kg_scalati_smielatura + delta)
+            instance = super().update(instance, validated_data)
+            stato = 'venduto' if instance.vasetti_disponibili == 0 else 'disponibile'
+            if instance.stato != stato:
+                instance.stato = stato
+                instance.save(update_fields=['stato'])
+            return instance
+
+    @staticmethod
+    def _muovi_contenitore(contenitore_id, delta):
+        """Somma `delta` kg al contenitore (negativo = prelievo), con controllo."""
+        from .cantina import stato_contenitore, TOLLERANZA_KG
+        c = ContenitoreStoccaggio.objects.select_for_update().get(pk=contenitore_id)
+        nuovo = Decimal(c.kg_attuali) + delta
+        if nuovo < -TOLLERANZA_KG:
+            raise serializers.ValidationError({
+                'numero_vasetti': f'Quantità ({-delta} kg) superiore al disponibile '
+                                  f'nel contenitore ({c.kg_attuali} kg).'
+            })
+        c.kg_attuali = max(Decimal('0'), nuovo)
+        c.stato = stato_contenitore(c.kg_attuali, c.capacita_kg)
+        c.save(update_fields=['kg_attuali', 'stato'])
 
 
 
@@ -972,6 +1059,54 @@ class MatutatoreSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['utente'] = self.context['request'].user
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        """Correggere kg o smielatura di un maturatore riallinea i kg trasferiti.
+
+        Senza questo, un errore di battitura sui kg restava per sempre nel
+        conteggio della smielatura (che veniva aggiornato solo alla creazione).
+        """
+        from django.db import transaction
+        from .cantina import sposta_kg_trasferiti, TOLLERANZA_KG
+
+        kg_prima = Decimal(instance.kg_attuali or 0)
+        sm_prima = instance.smielatura_id
+        kg_dopo = Decimal(validated_data.get('kg_attuali', kg_prima))
+        sm_dopo = validated_data.get('smielatura', instance.smielatura)
+        sm_dopo_id = sm_dopo.pk if sm_dopo is not None else None
+
+        with transaction.atomic():
+            if sm_dopo_id == sm_prima:
+                delta = kg_dopo - kg_prima
+                if delta > 0 and sm_dopo is not None:
+                    sm_dopo.refresh_from_db()
+                    if delta > sm_dopo.kg_residui + TOLLERANZA_KG:
+                        raise serializers.ValidationError({
+                            'kg_attuali': f'Disponibili dalla smielatura: '
+                                          f'{sm_dopo.kg_residui} kg in più, richiesti: {delta} kg.'
+                        })
+                sposta_kg_trasferiti(sm_prima, delta)
+            else:
+                if sm_dopo is not None:
+                    sm_dopo.refresh_from_db()
+                    if kg_dopo > sm_dopo.kg_residui + TOLLERANZA_KG:
+                        raise serializers.ValidationError({
+                            'kg_attuali': f'Disponibili dalla smielatura: '
+                                          f'{sm_dopo.kg_residui} kg, richiesti: {kg_dopo} kg.'
+                        })
+                sposta_kg_trasferiti(sm_prima, -kg_prima)
+                sposta_kg_trasferiti(sm_dopo_id, kg_dopo)
+
+            # Lo stato segue il contenuto: un client che in modifica rimanda
+            # sempre 'in_maturazione' non deve riaprire un maturatore vuoto
+            # né far tornare indietro uno già pronto.
+            if kg_dopo <= 0:
+                validated_data['stato'] = 'svuotato'
+            elif instance.stato == 'svuotato':
+                validated_data['stato'] = 'in_maturazione'
+            elif instance.stato == 'pronto' and validated_data.get('stato') == 'in_maturazione':
+                validated_data['stato'] = 'pronto'
+            return super().update(instance, validated_data)
 
 
 # Serializzatore ContenitoreStoccaggio
@@ -1052,7 +1187,11 @@ class DettaglioVenditaSerializer(serializers.ModelSerializer):
 class VenditaSerializer(serializers.ModelSerializer):
     cliente_nome    = serializers.SerializerMethodField()
     utente_username = serializers.ReadOnlyField(source='utente.username')
-    dettagli        = DettaglioVenditaSerializer(many=True, read_only=True)
+    # Scrivibile: inviando `dettagli` insieme alla vendita il server crea (o
+    # sostituisce) le righe e scarica i vasetti dalla cantina in un'unica
+    # transazione. Se la chiave manca le righe esistenti non vengono toccate
+    # (compatibilità con i client che usano ancora `aggiungi_dettaglio`).
+    dettagli        = DettaglioVenditaSerializer(many=True, required=False)
     totale          = serializers.SerializerMethodField()
     gruppo_nome     = serializers.SerializerMethodField()
 
@@ -1082,9 +1221,43 @@ class VenditaSerializer(serializers.ModelSerializer):
     def get_gruppo_nome(self, obj):
         return obj.gruppo.nome if obj.gruppo_id else None
 
+    def validate_dettagli(self, value):
+        for riga in value:
+            if (riga.get('quantita') or 0) <= 0:
+                raise serializers.ValidationError('La quantità deve essere maggiore di zero.')
+        return value
+
+    @staticmethod
+    def _crea_dettagli(vendita, dettagli):
+        from .cantina import scarica_lotti
+        for riga in dettagli:
+            dettaglio = DettaglioVendita.objects.create(vendita=vendita, **riga)
+            scarica_lotti(dettaglio)
+
     def create(self, validated_data):
+        from django.db import transaction
+        dettagli = validated_data.pop('dettagli', None)
         validated_data['utente'] = self.context['request'].user
-        return super().create(validated_data)
+        with transaction.atomic():
+            vendita = super().create(validated_data)
+            if dettagli:
+                self._crea_dettagli(vendita, dettagli)
+        return vendita
+
+    def update(self, instance, validated_data):
+        from django.db import transaction
+        dettagli = validated_data.pop('dettagli', None)
+        with transaction.atomic():
+            vendita = super().update(instance, validated_data)
+            if dettagli is not None:
+                # Il pre_delete di ogni riga restituisce i vasetti ai lotti:
+                # poi le nuove righe li riscaricano con le quantità corrette.
+                for vecchio in list(vendita.dettagli.all()):
+                    vecchio.delete()
+                self._crea_dettagli(vendita, dettagli)
+        if hasattr(vendita, '_prefetched_objects_cache'):
+            vendita._prefetched_objects_cache.pop('dettagli', None)
+        return vendita
 
 
 # Serializzatore AnalisiTelaino
@@ -1383,7 +1556,8 @@ class SmielaturaMelarioSerializer(serializers.ModelSerializer):
     """Through-table serializer: kg miele per (smielatura, melario)."""
     class Meta:
         model = SmielaturaMelario
-        fields = ['id', 'smielatura', 'melario', 'kg_miele', 'stato_origine', 'data_link']
+        fields = ['id', 'smielatura', 'melario', 'colonia', 'kg_miele', 'kg_manuale',
+                  'stato_origine', 'data_link']
         read_only_fields = ['stato_origine', 'data_link']
 
 

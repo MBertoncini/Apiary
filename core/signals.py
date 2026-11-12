@@ -23,14 +23,15 @@ import threading
 from datetime import date, timedelta
 from decimal import Decimal
 
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import m2m_changed, post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.html import strip_tags
 
 from .models import (
-    Apiario, AdminBroadcast, Arnia, Attrezzatura, Colonia, Notifica, Nucleo,
-    Pagamento, SpesaAttrezzatura,
+    Apiario, AdminBroadcast, Arnia, Attrezzatura, Colonia, DettaglioVendita,
+    Maturatore, NomadismoEvent, Notifica, Nucleo, Pagamento, Smielatura,
+    SpesaAttrezzatura,
 )
 from .storia_regine import chiudi_storia_colonia
 
@@ -314,8 +315,116 @@ def contenitore_post_save_allinea_apiario(sender, instance, created, **kwargs):
     """Porta la colonia attiva nell'apiario in cui ora si trova il suo box."""
     if created:
         return
-    Colonia.objects.filter(
+    da_spostare = list(Colonia.objects.filter(
         **{_campo_contenitore(sender): instance},
         stato='attiva',
         data_fine__isnull=True,
-    ).exclude(apiario_id=instance.apiario_id).update(apiario_id=instance.apiario_id)
+    ).exclude(apiario_id=instance.apiario_id))
+    oggi = timezone.localdate()
+    for colonia in da_spostare:
+        # Lo spostamento cambia meteo e fioriture a cui la colonia è esposta:
+        # senza storico il dataset ML attribuirebbe tutto al nuovo apiario.
+        gia_registrato = NomadismoEvent.objects.filter(
+            colonia=colonia, apiario_destinazione_id=instance.apiario_id,
+            data_spostamento=oggi,
+        ).exists()
+        if not gia_registrato:
+            NomadismoEvent.objects.create(
+                colonia=colonia,
+                apiario_origine_id=colonia.apiario_id,
+                apiario_destinazione_id=instance.apiario_id,
+                data_spostamento=oggi,
+                motivo='Spostamento del contenitore',
+                utente_id=colonia.utente_id or instance.apiario.proprietario_id,
+            )
+        Colonia.objects.filter(pk=colonia.pk).update(apiario_id=instance.apiario_id)
+
+
+# ── Dati del terreno dell'apiario ────────────────────────────────────────────
+
+def _terreno_async(apiario_id: int, forza: bool) -> None:
+    try:
+        from .ambiente import aggiorna_dati_terreno
+        apiario = Apiario.objects.filter(pk=apiario_id).first()
+        if apiario is not None:
+            aggiorna_dati_terreno(apiario, forza=forza)
+    except Exception as e:
+        logger.warning("Calcolo dati terreno fallito per apiario %s: %s", apiario_id, e)
+
+
+@receiver(pre_save, sender=Apiario)
+def apiario_pre_save_coordinate(sender, instance, **kwargs):
+    """Ricorda le coordinate precedenti per capire se la postazione è cambiata."""
+    instance._coordinate_prev = None
+    if instance.pk:
+        instance._coordinate_prev = Apiario.objects.filter(pk=instance.pk).values_list(
+            'latitudine', 'longitudine').first()
+
+
+@receiver(post_save, sender=Apiario)
+def apiario_post_save_terreno(sender, instance, created, raw=False, **kwargs):
+    """Ricava altitudine, pendenza ed esposizione quando servono.
+
+    Alla prima volta riempie solo i campi vuoti; se le coordinate cambiano i
+    valori vecchi non valgono più e vengono ricalcolati.
+    """
+    if raw or not instance.has_coordinates():
+        return
+    prev = getattr(instance, '_coordinate_prev', None)
+    spostato = (
+        not created and prev is not None and prev[0] is not None
+        and (prev[0] != instance.latitudine or prev[1] != instance.longitudine)
+    )
+    if not spostato and instance.altitudine_m is not None and instance.esposizione:
+        return
+    threading.Thread(
+        target=_terreno_async, args=(instance.pk, spostato), daemon=True,
+    ).start()
+
+
+# ── Cantina: coerenza di kg e vasetti ────────────────────────────────────────
+
+@receiver(pre_delete, sender=Maturatore)
+def maturatore_pre_delete_restituisci_kg(sender, instance, **kwargs):
+    """Il miele ancora nel maturatore torna disponibile nella smielatura.
+
+    Un maturatore creato per errore, una volta eliminato, non deve lasciare
+    la smielatura "consumata". Il miele già passato ai contenitori non torna
+    indietro: `kg_attuali` è solo quello rimasto dentro.
+    """
+    from .cantina import sposta_kg_trasferiti
+    if instance.smielatura_id and instance.kg_attuali:
+        sposta_kg_trasferiti(instance.smielatura_id, -Decimal(str(instance.kg_attuali)))
+
+
+@receiver(pre_delete, sender=DettaglioVendita)
+def dettaglio_vendita_pre_delete_ripristina(sender, instance, **kwargs):
+    """Eliminando una riga di vendita (o l'intera vendita) i vasetti tornano
+    disponibili nei lotti da cui erano stati scaricati."""
+    from .cantina import ripristina_lotti
+    ripristina_lotti(instance)
+
+
+# ── Produzione per colonia ───────────────────────────────────────────────────
+
+@receiver(m2m_changed, sender=Smielatura.melari.through)
+def smielatura_melari_ripartisci_kg(sender, instance, action, pk_set, **kwargs):
+    """Ad ogni cambio dei melari ricalcola i kg attribuiti a ciascuno."""
+    from .cantina import aggancia_melari_smielatura, ripartisci_kg_smielatura
+    if action == 'post_add' and pk_set:
+        aggancia_melari_smielatura(instance, pk_set)
+        ripartisci_kg_smielatura(instance)
+    elif action == 'post_remove':
+        ripartisci_kg_smielatura(instance)
+
+
+@receiver(post_save, sender=Smielatura)
+def smielatura_post_save_ripartisci_kg(sender, instance, created, raw=False,
+                                       update_fields=None, **kwargs):
+    """Se cambia la quantità di miele, la ripartizione fra i melari la segue."""
+    if created or raw:
+        return
+    if update_fields is not None and 'quantita_miele' not in update_fields:
+        return
+    from .cantina import ripartisci_kg_smielatura
+    ripartisci_kg_smielatura(instance)
