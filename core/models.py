@@ -151,7 +151,18 @@ class Apiario(models.Model):
     def has_coordinates(self):
         """Controlla se l'apiario ha coordinate geografiche valide"""
         return self.latitudine is not None and self.longitudine is not None
-    
+
+    @classmethod
+    def scrivibili_da(cls, user):
+        """Apiari su cui l'utente può registrare dati: i propri e quelli
+        condivisi con un suo gruppo in cui ha ruolo admin o editor."""
+        gruppi = MembroGruppo.objects.filter(
+            utente=user, ruolo__in=['admin', 'editor']).values('gruppo')
+        return cls.objects.filter(
+            models.Q(proprietario=user)
+            | models.Q(condiviso_con_gruppo=True, gruppo__in=gruppi)
+        ).distinct()
+
     class Meta:
         verbose_name = "Apiario"
         verbose_name_plural = "Apiari"
