@@ -9,7 +9,7 @@
 # L'ultima riga stampata è sempre DEPLOY_OK <commit>, DEPLOY_NIENTE <commit>
 # oppure DEPLOY_FAIL <motivo>: la legge la sentinella di apiary-ops.
 #
-# Variabili sovrascrivibili: DB_NAME, WSGI_FILE, BACKUP_DIR, BACKUP_KEEP.
+# Variabili sovrascrivibili: WSGI_FILE, BACKUP_DIR, BACKUP_KEEP.
 
 set -uo pipefail
 
@@ -17,7 +17,6 @@ APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WSGI_FILE="${WSGI_FILE:-/var/www/cible99_pythonanywhere_com_wsgi.py}"
 BACKUP_DIR="${BACKUP_DIR:-$HOME/backups}"
 BACKUP_KEEP="${BACKUP_KEEP:-3}"
-DB_NAME="${DB_NAME:-Cible99\$apiary_db}"
 MODE="${1:-}"
 # La sentinella passa OPS_RUN per riconoscere l'esito di questa esecuzione
 # nell'output della console (che contiene anche quello dei deploy precedenti).
@@ -67,14 +66,39 @@ if [ "$MODE" = "--check" ]; then
 fi
 
 # 1. Backup del database (compresso, si tengono gli ultimi $BACKUP_KEEP)
+# Le credenziali si leggono dai settings di Django (che caricano ~/Apiary/.env):
+# la console Bash non ha le variabili del file WSGI e senza host mysqldump
+# proverebbe il socket locale, che su PythonAnywhere non esiste.
+# Vanno in un file temporaneo leggibile solo dall'utente, cosi' la password
+# non compare tra gli argomenti dei processi.
 mkdir -p "$BACKUP_DIR"
 BACKUP_FILE="$BACKUP_DIR/apiary_$(date +%Y%m%d_%H%M%S).sql.gz"
 echo "--- Backup in $BACKUP_FILE ---"
-if ! mysqldump --single-transaction --set-gtid-purged=OFF --no-tablespaces \
-        --column-statistics=0 "$DB_NAME" | gzip > "$BACKUP_FILE"; then
+DB_CNF="$(umask 077 && mktemp)" || fail "file temporaneo per il backup non creato"
+trap 'rm -f "$DB_CNF"' EXIT
+DB_INFO="$(DB_CNF="$DB_CNF" python - 2>&1 <<'PY'
+import os
+import django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'apiario_manager.settings')
+django.setup()
+from django.conf import settings
+db = settings.DATABASES['default']
+if 'mysql' not in db['ENGINE'] or not db.get('HOST'):
+    raise SystemExit('database non MySQL o host mancante nei settings')
+pw = (db.get('PASSWORD') or '').replace('\\', '\\\\').replace('"', '\\"')
+with open(os.environ['DB_CNF'], 'w') as f:
+    f.write('[client]\nuser=%s\npassword="%s"\nhost=%s\nport=%s\n' % (
+        db['USER'], pw, db['HOST'], db.get('PORT') or 3306))
+print(db['NAME'])
+PY
+)" || fail "credenziali del database non leggibili dai settings: $(echo "$DB_INFO" | tail -n 1)"
+DB_NAME="$(echo "$DB_INFO" | tail -n 1)"
+if ! mysqldump --defaults-extra-file="$DB_CNF" --single-transaction --set-gtid-purged=OFF \
+        --no-tablespaces --column-statistics=0 "$DB_NAME" | gzip > "$BACKUP_FILE"; then
     rm -f "$BACKUP_FILE"
     fail "backup del database non riuscito, deploy annullato"
 fi
+rm -f "$DB_CNF"
 ls -1t "$BACKUP_DIR"/apiary_*.sql.gz 2>/dev/null | tail -n +"$((BACKUP_KEEP + 1))" | xargs -r rm -f
 du -h "$BACKUP_FILE" | cut -f1 | sed 's/^/Dimensione backup: /'
 
