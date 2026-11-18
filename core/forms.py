@@ -9,6 +9,7 @@ from .models import (
     Invasettamento, Nucleo, ControlloNucleo, Maturatore, ContenitoreStoccaggio,
 )
 
+from django.db.models import Q
 from django.utils  import timezone
 
 class GruppoForm(forms.ModelForm):
@@ -79,6 +80,11 @@ class ApiarioGruppoForm(forms.ModelForm):
 
 class DateInput(forms.DateInput):
     input_type = 'date'
+
+    def __init__(self, attrs=None, format=None):
+        # <input type="date"> accetta solo aaaa-mm-gg: con la lingua italiana
+        # Django scriveva gg/mm/aaaa e il browser mostrava il campo vuoto.
+        super().__init__(attrs=attrs, format=format or '%Y-%m-%d')
 
 class ApiarioForm(forms.ModelForm):
     class Meta:
@@ -485,12 +491,23 @@ class TrattamentoSanitarioForm(forms.ModelForm):
             'arnie': forms.CheckboxSelectMultiple(),
         }
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, user=None, apiario_fisso=None, **kwargs):
         super().__init__(*args, **kwargs)
-        if 'apiario' in self.initial:
-            apiario_id = self.initial['apiario']
-            self.fields['arnie'].queryset = Arnia.objects.filter(apiario_id=apiario_id, attiva=True)
-        
+        if user is not None:
+            # Solo gli apiari su cui l'utente può scrivere (più quello attuale
+            # del trattamento in modifica, per non bloccare il salvataggio).
+            apiari = Apiario.scrivibili_da(user)
+            if self.instance.pk:
+                apiari = Apiario.objects.filter(
+                    Q(pk__in=apiari.values('pk')) | Q(pk=self.instance.apiario_id))
+            self.fields['apiario'].queryset = apiari.order_by('nome')
+        if apiario_fisso is not None:
+            # Un select disabilitato non viene inviato dal browser: con
+            # disabled=True Django usa il valore iniziale anche in POST.
+            self.initial['apiario'] = apiario_fisso.pk
+            self.fields['apiario'].disabled = True
+        self.fields['arnie'].queryset = self._arnie_selezionabili()
+
         # Aggiungiamo un campo nascosto per gestire la selezione di tutte le arnie
         self.fields['seleziona_tutte_arnie'] = forms.BooleanField(
             required=False,
@@ -504,7 +521,24 @@ class TrattamentoSanitarioForm(forms.ModelForm):
         self.fields['data_fine_blocco'].required = False
         self.fields['metodo_blocco'].required = False
         self.fields['note_blocco'].required = False
-    
+
+    def _arnie_selezionabili(self):
+        """Arnie dell'apiario scelto (o fisso, o del trattamento in modifica)."""
+        if self.is_bound and not self.fields['apiario'].disabled:
+            apiario_id = self.data.get(self.add_prefix('apiario'))
+        else:
+            apiario_id = self.initial.get('apiario') or self.instance.apiario_id
+        try:
+            apiario_id = int(apiario_id)
+        except (TypeError, ValueError):
+            return Arnia.objects.none()
+        if not self.fields['apiario'].queryset.filter(pk=apiario_id).exists():
+            return Arnia.objects.none()
+        filtro = Q(attiva=True)
+        if self.instance.pk:
+            filtro |= Q(pk__in=self.instance.arnie.values('pk'))
+        return Arnia.objects.filter(filtro, apiario_id=apiario_id)
+
     def clean(self):
         cleaned_data = super().clean()
         data_inizio = cleaned_data.get('data_inizio')

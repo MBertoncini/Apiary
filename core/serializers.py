@@ -6,6 +6,7 @@ from decimal import Decimal
 from rest_framework import serializers
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db.models import Q
 from .models import (
     Apiario, Arnia, Colonia, Nucleo, ControlloNucleo, ControlloArnia,
     Regina, StoriaRegine, Fioritura, FiorituraConferma,
@@ -501,6 +502,31 @@ class TrattamentoSanitarioSerializer(serializers.ModelSerializer):
             return obj.apiario.gruppo.nome if obj.apiario.gruppo_id else None
         except Exception:
             return None
+
+    def validate(self, attrs):
+        """Apiario, arnie e colonie devono essere dell'utente o dei suoi gruppi:
+        senza questo controllo l'API accettava id di altri utenti."""
+        request = self.context.get('request')
+        if request is None:
+            return attrs
+        user = request.user
+        apiario = attrs.get('apiario')
+        if apiario is not None and (
+                self.instance is None or apiario.pk != self.instance.apiario_id):
+            if not Apiario.scrivibili_da(user).filter(pk=apiario.pk).exists():
+                raise serializers.ValidationError({'apiario': 'Apiario non valido.'})
+        accessibili = Apiario.objects.filter(
+            Q(pk__in=Apiario.scrivibili_da(user).values('pk'))
+            | Q(gruppo__membri=user, condiviso_con_gruppo=True)
+        ).values('pk')
+        for campo in ('arnie', 'colonie'):
+            oggetti = attrs.get(campo) or []
+            ids = [o.pk for o in oggetti]
+            modello = Arnia if campo == 'arnie' else Colonia
+            if ids and modello.objects.filter(pk__in=ids).exclude(
+                    apiario__in=accessibili).exists():
+                raise serializers.ValidationError({campo: 'Elementi non validi.'})
+        return attrs
 
     def create(self, validated_data):
         validated_data['utente'] = self.context['request'].user

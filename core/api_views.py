@@ -639,9 +639,15 @@ class ArniaViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Filtra le arnie in base agli apiari accessibili all'utente.
+        Supporta il parametro opzionale ?apiario=<id> (usato dal form
+        trattamenti dell'app, che finora riceveva le arnie di tutti gli apiari).
         """
         apiari_accessibili = get_apiari_accessibili(self.request.user)
-        return Arnia.objects.filter(apiario__in=apiari_accessibili).order_by('id')
+        qs = Arnia.objects.filter(apiario__in=apiari_accessibili).order_by('id')
+        apiario_id = self.request.query_params.get('apiario')
+        if apiario_id and apiario_id.isdigit():
+            qs = qs.filter(apiario_id=int(apiario_id))
+        return qs
 
     def perform_create(self, serializer):
         user = self.request.user

@@ -1871,7 +1871,7 @@ def nuovo_trattamento(request, apiario_id=None):
 
     # Procedi con il salvataggio del trattamento
     if request.method == 'POST' and 'save' in request.POST:
-        form = TrattamentoSanitarioForm(request.POST)
+        form = TrattamentoSanitarioForm(request.POST, user=request.user, apiario_fisso=apiario)
         if form.is_valid():
             trattamento = form.save(commit=False)
             trattamento.utente = request.user
@@ -1924,23 +1924,10 @@ def nuovo_trattamento(request, apiario_id=None):
             if tipo_trattamento_info.giorni_blocco_covata > 0:
                 initial_data['data_fine_blocco'] = today + timedelta(days=tipo_trattamento_info.giorni_blocco_covata)
         
-        form = TrattamentoSanitarioForm(initial=initial_data)
-        
-        # Limita le opzioni alle arnie dell'apiario selezionato
-        if apiario:
-            form.fields['arnie'].queryset = Arnia.objects.filter(apiario=apiario, attiva=True)
-            # Disabilita il campo apiario se siamo già in un apiario specifico
-            form.fields['apiario'].disabled = True
-        elif 'apiario' in request.POST:
-            try:
-                apiario_id = int(request.POST.get('apiario'))
-                apiario = Apiario.objects.get(pk=apiario_id)
-                form.fields['arnie'].queryset = Arnia.objects.filter(apiario=apiario, attiva=True)
-            except (ValueError, Apiario.DoesNotExist):
-                form.fields['arnie'].queryset = Arnia.objects.none()
-        else:
-            form.fields['arnie'].queryset = Arnia.objects.none()
-    
+        # Il form limita apiari e arnie a quelli dell'utente; se siamo già
+        # in un apiario specifico il campo apiario resta fisso e disabilitato.
+        form = TrattamentoSanitarioForm(initial=initial_data, user=request.user, apiario_fisso=apiario)
+
     context = {
         'form': form,
         'apiario': apiario,
@@ -1982,7 +1969,7 @@ def modifica_trattamento(request, pk):
     tipo_trattamento_info = trattamento.tipo_trattamento
     
     if request.method == 'POST':
-        form = TrattamentoSanitarioForm(request.POST, instance=trattamento)
+        form = TrattamentoSanitarioForm(request.POST, instance=trattamento, user=request.user)
         if form.is_valid():
             trattamento = form.save(commit=False)
             
@@ -2015,19 +2002,11 @@ def modifica_trattamento(request, pk):
                 return redirect(f'gestione_trattamenti?gruppo_id={apiario.gruppo.id}')
             return redirect('gestione_trattamenti')
     else:
-        # Ottieni apiari a cui l'utente ha accesso
-        apiari_propri = Apiario.objects.filter(proprietario=request.user)
-        gruppi_utente = Gruppo.objects.filter(membri=request.user)
-        apiari_condivisi = Apiario.objects.filter(
-            gruppo__in=gruppi_utente, 
-            condiviso_con_gruppo=True
-        ).exclude(proprietario=request.user)
-        apiari_accessibili = (apiari_propri | apiari_condivisi).distinct()
-        
-        form = TrattamentoSanitarioForm(instance=trattamento, initial={'seleziona_tutte_arnie': seleziona_tutte})
-        # Limita gli apiari a quelli a cui l'utente ha accesso
-        form.fields['apiario'].queryset = apiari_accessibili
-    
+        # Il form limita apiari e arnie a quelli su cui l'utente può scrivere
+        form = TrattamentoSanitarioForm(
+            instance=trattamento, initial={'seleziona_tutte_arnie': seleziona_tutte},
+            user=request.user)
+
     context = {
         'form': form,
         'trattamento': trattamento,
