@@ -24,6 +24,7 @@ from .api_views import (
     NotificaViewSet,
     export_dati_excel,
 )
+from .ops_views import ops_errors, ops_stats, ops_status
 
 # Crea un router e registra i viewsets
 router = DefaultRouter()
@@ -110,4 +111,9 @@ urlpatterns = [
 
     # Esportazione dati utente in Excel (multi-foglio)
     path('export/excel/', export_dati_excel, name='api-export-excel'),
+
+    # Endpoint di servizio per i bot di gestione (header X-Ops-Token)
+    path('ops/status/', ops_status, name='api-ops-status'),
+    path('ops/errors/', ops_errors, name='api-ops-errors'),
+    path('ops/stats/', ops_stats, name='api-ops-stats'),
 ]

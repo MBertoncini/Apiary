@@ -1,0 +1,2 @@
+# Gli script eseguiti sul server Linux devono restare con fine riga LF
+*.sh text eol=lf
