@@ -5,6 +5,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from django.utils.translation import gettext as _
 from django.db.models import Sum, Count, Q
 from django.http import JsonResponse, HttpResponse
@@ -1861,17 +1862,15 @@ def nuovo_trattamento(request, apiario_id=None):
         return redirect('visualizza_apiario', apiario_id=apiario.id)
 
     # Ottieni informazioni sul tipo di trattamento selezionato
-    tipo_trattamento_info = None
-    if request.method == 'POST' and 'tipo_trattamento' in request.POST:
-        try:
-            tipo_id = int(request.POST.get('tipo_trattamento'))
-            tipo_trattamento_info = TipoTrattamento.objects.get(pk=tipo_id)
-        except (ValueError, TipoTrattamento.DoesNotExist):
-            pass
+    tipo_trattamento_info = _tipo_trattamento_da_post(request)
+
+    # Il form limita apiari e arnie a quelli dell'utente; se siamo già
+    # in un apiario specifico il campo apiario resta fisso e disabilitato.
+    form_kwargs = {'user': request.user, 'apiario_fisso': apiario}
 
     # Procedi con il salvataggio del trattamento
     if request.method == 'POST' and 'save' in request.POST:
-        form = TrattamentoSanitarioForm(request.POST, user=request.user, apiario_fisso=apiario)
+        form = TrattamentoSanitarioForm(request.POST, **form_kwargs)
         if form.is_valid():
             trattamento = form.save(commit=False)
             trattamento.utente = request.user
@@ -1909,32 +1908,67 @@ def nuovo_trattamento(request, apiario_id=None):
                 return redirect('visualizza_apiario', apiario_id=apiario.id)
             else:
                 return redirect('gestione_trattamenti')
+    elif request.method == 'POST':
+        # Ricaricamento (cambio apiario o tipo): mantieni i valori inseriti
+        # senza validare, così non compaiono errori su campi ancora da compilare.
+        initial_data = _initial_da_post(request)
+        _prepopola_blocco_covata(initial_data, tipo_trattamento_info)
+        form = TrattamentoSanitarioForm(initial=initial_data, **form_kwargs)
     else:
-        initial_data = {}
-        if apiario:
-            initial_data['apiario'] = apiario.id
-        
-        # Se è stato selezionato un tipo che richiede blocco covata, pre-popoliamo alcuni valori
-        if tipo_trattamento_info and tipo_trattamento_info.richiede_blocco_covata:
-            initial_data['blocco_covata_attivo'] = True
-            
-            # Calcoliamo una data di inizio per il blocco (potrebbe essere la stessa del trattamento)
-            today = timezone.now().date()
-            initial_data['data_inizio_blocco'] = today
-            if tipo_trattamento_info.giorni_blocco_covata > 0:
-                initial_data['data_fine_blocco'] = today + timedelta(days=tipo_trattamento_info.giorni_blocco_covata)
-        
-        # Il form limita apiari e arnie a quelli dell'utente; se siamo già
-        # in un apiario specifico il campo apiario resta fisso e disabilitato.
-        form = TrattamentoSanitarioForm(initial=initial_data, user=request.user, apiario_fisso=apiario)
+        initial_data = {'data_inizio': timezone.now().date()}
+        _prepopola_blocco_covata(initial_data, tipo_trattamento_info)
+        form = TrattamentoSanitarioForm(initial=initial_data, **form_kwargs)
 
     context = {
         'form': form,
         'apiario': apiario,
         'tipo_trattamento_info': tipo_trattamento_info,
     }
-    
+
     return render(request, 'trattamenti/form_trattamento.html', context)
+
+
+def _tipo_trattamento_da_post(request):
+    """Tipo di trattamento scelto nel form (POST), se valido."""
+    if request.method != 'POST':
+        return None
+    try:
+        return TipoTrattamento.objects.get(pk=int(request.POST.get('tipo_trattamento')))
+    except (TypeError, ValueError, TipoTrattamento.DoesNotExist):
+        return None
+
+
+def _initial_da_post(request):
+    """Valori del form inviato, da riusare come initial in un ricaricamento."""
+    initial = {k: v for k, v in request.POST.items() if k not in ('csrfmiddlewaretoken', 'save')}
+    initial['arnie'] = request.POST.getlist('arnie')
+    # Le checkbox non spuntate non vengono inviate: senza valore esplicito, in
+    # modifica ricomparirebbe quello salvato invece della scelta dell'utente.
+    for campo in ('seleziona_tutte_arnie', 'blocco_covata_attivo'):
+        initial[campo] = campo in request.POST
+    return initial
+
+
+def _prepopola_blocco_covata(initial_data, tipo_trattamento_info):
+    """Se il tipo richiede il blocco di covata, pre-compila i campi relativi."""
+    if not (tipo_trattamento_info and tipo_trattamento_info.richiede_blocco_covata):
+        return
+    if initial_data.get('blocco_covata_attivo'):
+        return  # già attivo: lascia le date scelte dall'utente
+    initial_data['blocco_covata_attivo'] = True
+    # La data di inizio blocco può essere già compilata (anche dal JS della
+    # pagina, che la copia dalla data di inizio): in quel caso la si tiene.
+    inizio = initial_data.get('data_inizio_blocco')
+    if isinstance(inizio, str):
+        try:
+            inizio = parse_date(inizio)
+        except ValueError:
+            inizio = None
+    if not inizio:
+        inizio = timezone.now().date()
+    initial_data['data_inizio_blocco'] = inizio
+    if not initial_data.get('data_fine_blocco') and tipo_trattamento_info.giorni_blocco_covata > 0:
+        initial_data['data_fine_blocco'] = inizio + timedelta(days=tipo_trattamento_info.giorni_blocco_covata)
 
 
 @login_required
@@ -1966,9 +2000,9 @@ def modifica_trattamento(request, pk):
     seleziona_tutte = len(arnie_trattamento) == 0 or arnie_trattamento == tutte_arnie_apiario
     
     # Ottieni informazioni sul tipo di trattamento selezionato
-    tipo_trattamento_info = trattamento.tipo_trattamento
-    
-    if request.method == 'POST':
+    tipo_trattamento_info = _tipo_trattamento_da_post(request) or trattamento.tipo_trattamento
+
+    if request.method == 'POST' and 'save' in request.POST:
         form = TrattamentoSanitarioForm(request.POST, instance=trattamento, user=request.user)
         if form.is_valid():
             trattamento = form.save(commit=False)
@@ -1999,8 +2033,16 @@ def modifica_trattamento(request, pk):
             
             # Redirect mantenendo il filtro gruppo se applicato
             if apiario.gruppo and apiario.condiviso_con_gruppo:
-                return redirect(f'gestione_trattamenti?gruppo_id={apiario.gruppo.id}')
+                return redirect(f"{reverse('gestione_trattamenti')}?gruppo_id={apiario.gruppo.id}")
             return redirect('gestione_trattamenti')
+    elif request.method == 'POST':
+        # Ricaricamento (cambio apiario o tipo): mantieni i valori inseriti, niente salvataggio
+        initial_data = _initial_da_post(request)
+        if tipo_trattamento_info.pk != trattamento.tipo_trattamento_id:
+            # Solo se il tipo è cambiato: non riattivare un blocco tolto di proposito
+            _prepopola_blocco_covata(initial_data, tipo_trattamento_info)
+        form = TrattamentoSanitarioForm(
+            instance=trattamento, initial=initial_data, user=request.user)
     else:
         # Il form limita apiari e arnie a quelli su cui l'utente può scrivere
         form = TrattamentoSanitarioForm(
@@ -2049,7 +2091,7 @@ def elimina_trattamento(request, pk):
         
         # Redirect mantenendo il filtro gruppo se applicato
         if gruppo_id:
-            return redirect(f'gestione_trattamenti?gruppo_id={gruppo_id}')
+            return redirect(f"{reverse('gestione_trattamenti')}?gruppo_id={gruppo_id}")
         return redirect('gestione_trattamenti')
     
     context = {
@@ -2167,7 +2209,7 @@ def cambio_stato_trattamento(request, pk, nuovo_stato):
     
     # Redirect mantenendo il filtro gruppo se applicato
     if apiario.gruppo and apiario.condiviso_con_gruppo:
-        return redirect(f'gestione_trattamenti?gruppo_id={apiario.gruppo.id}')
+        return redirect(f"{reverse('gestione_trattamenti')}?gruppo_id={apiario.gruppo.id}")
     return redirect('gestione_trattamenti')
 
 @login_required
@@ -3211,14 +3253,15 @@ def calendario_eventi_json(request):
     
     # ------------------- Recupero Eventi Regina -------------------
     # Controllare nel modello StoriaRegine per eventi di sostituzione/morte regine
+    # StoriaRegine e' legata alla colonia (non piu' all'arnia): si passa da li'
     storia_regine = StoriaRegine.objects.filter(
-        arnia__in=arnie_ids,
+        colonia__arnia__in=arnie_ids,
         data_inizio__gte=start_date,
         data_inizio__lte=end_date
-    ).select_related('arnia', 'arnia__apiario', 'regina')
-    
+    ).select_related('colonia__arnia', 'colonia__arnia__apiario', 'regina')
+
     for storia in storia_regine:
-        arnia = storia.arnia
+        arnia = storia.colonia.arnia
         apiario = arnia.apiario
         
         title = f"Nuova Regina - Arnia #{arnia.numero}"
