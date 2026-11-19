@@ -25,10 +25,10 @@ from .models import (
 class TrattamentoWebFormTests(TestCase):
 
     def setUp(self):
-        self.user = User.objects.create_user(username='dario', password='x-test-pw-123')
+        self.user = User.objects.create_user(username='utente_prova', password='x-test-pw-123')
         self.altro = User.objects.create_user(username='altro', password='x-test-pw-123')
-        self.apiario = Apiario.objects.create(nome='Navoi', proprietario=self.user)
-        self.apiario_altrui = Apiario.objects.create(nome='Segreto', proprietario=self.altro)
+        self.apiario = Apiario.objects.create(nome='Apiario Uno', proprietario=self.user)
+        self.apiario_altrui = Apiario.objects.create(nome='Apiario Altrui', proprietario=self.altro)
         self.arnia = Arnia.objects.create(
             apiario=self.apiario, numero=1, data_installazione=date(2026, 3, 1))
         self.arnia_altrui = Arnia.objects.create(
@@ -62,8 +62,8 @@ class TrattamentoWebFormTests(TestCase):
     def test_lista_apiari_solo_propri(self):
         resp = self.client.get(reverse('nuovo_trattamento'))
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'Navoi')
-        self.assertNotContains(resp, 'Segreto')
+        self.assertContains(resp, 'Apiario Uno')
+        self.assertNotContains(resp, 'Apiario Altrui')
 
     def test_nuovo_propone_la_data_di_oggi(self):
         resp = self.client.get(reverse('nuovo_trattamento'))
@@ -152,7 +152,7 @@ class TrattamentoWebFormTests(TestCase):
         t = self._trattamento()
         resp = self.client.get(reverse('modifica_trattamento', args=[t.pk]))
         self.assertContains(resp, 'value="2026-11-02"')
-        self.assertNotContains(resp, 'Segreto')
+        self.assertNotContains(resp, 'Apiario Altrui')
 
     def test_modifica_cambio_tipo_non_salva(self):
         t = self._trattamento()
@@ -188,11 +188,11 @@ class RedirectFiltroGruppoTests(TestCase):
     """Prima redirect('gestione_trattamenti?gruppo_id=..') sollevava NoReverseMatch."""
 
     def setUp(self):
-        self.user = User.objects.create_user(username='dario', password='x-test-pw-123')
+        self.user = User.objects.create_user(username='utente_prova', password='x-test-pw-123')
         self.gruppo = Gruppo.objects.create(nome='Gruppo', creatore=self.user)
         MembroGruppo.objects.create(utente=self.user, gruppo=self.gruppo, ruolo='admin')
         self.apiario = Apiario.objects.create(
-            nome='Navoi', proprietario=self.user, gruppo=self.gruppo, condiviso_con_gruppo=True)
+            nome='Apiario Uno', proprietario=self.user, gruppo=self.gruppo, condiviso_con_gruppo=True)
         self.tipo = TipoTrattamento.objects.create(nome='ApiBioxal', tempo_sospensione=0)
         self.client.force_login(self.user)
 
@@ -228,7 +228,7 @@ class RedirectFiltroGruppoTests(TestCase):
 class NotificheUrlTests(TestCase):
 
     def setUp(self):
-        self.user = User.objects.create_user(username='dario', password='x-test-pw-123')
+        self.user = User.objects.create_user(username='utente_prova', password='x-test-pw-123')
         self.client.force_login(self.user)
 
     def test_base_passa_al_js_la_url_del_centro_notifiche(self):
@@ -252,8 +252,8 @@ class NotificheUrlTests(TestCase):
 class ControlliApiarioApiTests(TestCase):
 
     def setUp(self):
-        self.user = User.objects.create_user(username='dario', password='x-test-pw-123')
-        self.apiario = Apiario.objects.create(nome='Navoi', proprietario=self.user)
+        self.user = User.objects.create_user(username='utente_prova', password='x-test-pw-123')
+        self.apiario = Apiario.objects.create(nome='Apiario Uno', proprietario=self.user)
         arnia = Arnia.objects.create(
             apiario=self.apiario, numero=1, data_installazione=date(2026, 3, 1))
         colonia = Colonia.objects.create(
@@ -280,7 +280,7 @@ class ControlliApiarioApiTests(TestCase):
         resp = self.client.get(self.url, {'detail': '1'})
         self.assertEqual(resp.status_code, 200)
         riga = resp.data[0]
-        self.assertEqual(riga['utente_username'], 'dario')
+        self.assertEqual(riga['utente_username'], 'utente_prova')
         self.assertEqual(riga['apiario_id'], self.apiario.pk)
         arnia_id = riga['arnia']
         per_arnia = self.client.get(f'/api/v1/arnie/{arnia_id}/controlli/')
@@ -295,8 +295,8 @@ class CalendarioRegineTests(TestCase):
     """StoriaRegine non ha piu' il campo arnia: il filtro sollevava FieldError."""
 
     def test_eventi_regina_nel_calendario(self):
-        user = User.objects.create_user(username='dario', password='x-test-pw-123')
-        apiario = Apiario.objects.create(nome='Navoi', proprietario=user)
+        user = User.objects.create_user(username='utente_prova', password='x-test-pw-123')
+        apiario = Apiario.objects.create(nome='Apiario Uno', proprietario=user)
         arnia = Arnia.objects.create(
             apiario=apiario, numero=3, data_installazione=date(2026, 3, 1))
         colonia = Colonia.objects.create(
@@ -314,7 +314,7 @@ class CalendarioRegineTests(TestCase):
 class DateInputIsoTests(TestCase):
 
     def test_vendita_mostra_la_data_in_formato_iso(self):
-        user = User.objects.create_user(username='dario', password='x-test-pw-123')
+        user = User.objects.create_user(username='utente_prova', password='x-test-pw-123')
         vendita = Vendita(utente=user, data=date(2026, 11, 2))
         html = str(VenditaForm(instance=vendita)['data'])
         self.assertIn('value="2026-11-02"', html)
