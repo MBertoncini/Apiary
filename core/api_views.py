@@ -209,6 +209,9 @@ class ApiarioViewSet(viewsets.ModelViewSet):
     def controlli(self, request, pk=None):
         """
         Restituisce i controlli recenti delle arnie di un apiario.
+
+        ?days=<n> (default 30). ?detail=1 restituisce i campi completi, come
+        /arnie/{id}/controlli/; senza il parametro la risposta resta quella breve.
         """
         apiario = self.get_object()
         # Recupera i controlli degli ultimi 30 giorni (default)
@@ -228,9 +231,16 @@ class ApiarioViewSet(viewsets.ModelViewSet):
         controlli = ControlloArnia.objects.filter(
             arnia__in=arnie_ids,
             data__gte=since_date
+        ).select_related(
+            'colonia__apiario', 'arnia__apiario', 'utente'
         ).order_by('-data')
-        
-        serializer = ControlloArniaListSerializer(controlli, many=True)
+
+        # ?detail=1: stessi campi di /arnie/{id}/controlli/, cosi' l'app allinea
+        # la cache di tutto l'apiario con una sola richiesta invece di una per arnia.
+        if request.query_params.get('detail') in ('1', 'true'):
+            serializer = ControlloArniaDetailSerializer(controlli, many=True)
+        else:
+            serializer = ControlloArniaListSerializer(controlli, many=True)
         return Response(serializer.data)
     
     @action(detail=True, methods=['get'])
@@ -686,8 +696,10 @@ class ArniaViewSet(viewsets.ModelViewSet):
         controlli = ControlloArnia.objects.filter(
             arnia=arnia,
             data__gte=since_date
+        ).select_related(
+            'colonia__apiario', 'arnia__apiario', 'utente'
         ).order_by('-data')
-        
+
         serializer = ControlloArniaDetailSerializer(controlli, many=True)
         return Response(serializer.data)
     
@@ -1176,7 +1188,11 @@ class TrattamentoSanitarioViewSet(viewsets.ModelViewSet):
         Supporta il parametro opzionale ?apiario=<id> per filtrare per apiario.
         """
         apiari_accessibili = get_apiari_accessibili(self.request.user)
-        qs = TrattamentoSanitario.objects.filter(apiario__in=apiari_accessibili)
+        qs = TrattamentoSanitario.objects.filter(
+            apiario__in=apiari_accessibili
+        ).select_related(
+            'apiario', 'apiario__gruppo', 'tipo_trattamento', 'utente'
+        ).prefetch_related('colonie', 'arnie')
         apiario_id = self.request.query_params.get('apiario')
         if apiario_id:
             qs = qs.filter(apiario__id=apiario_id)

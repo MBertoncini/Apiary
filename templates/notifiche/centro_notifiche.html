@@ -157,7 +157,7 @@ document.querySelectorAll('.notifica-action-btn[data-notifica-id]').forEach(func
     e.preventDefault();
     const id = this.dataset.notificaId;
     const href = this.getAttribute('href');
-    fetch(`/notifiche/${id}/segna-letta/`, {
+    fetch(`{% url 'centro_notifiche' %}${id}/segna-letta/`, {
       method: 'POST',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',

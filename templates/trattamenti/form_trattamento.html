@@ -114,8 +114,8 @@
                     </div>
 
                     <div class="d-flex justify-content-end">
-                        <input type="hidden" name="save" value="1">
-                        <button type="submit" class="btn btn-primary">
+                        {# "save" solo sul pulsante: i submit da JS (cambio apiario/tipo) ricaricano senza salvare #}
+                        <button type="submit" name="save" value="1" class="btn btn-primary">
                             <i class="bi bi-check-circle me-1"></i>{% if trattamento %}{% trans "Aggiorna Trattamento" %}{% else %}{% trans "Crea Trattamento" %}{% endif %}
                         </button>
                     </div>
@@ -270,6 +270,15 @@
 
         if (tipoTrattamentoSelect) {
             tipoTrattamentoSelect.addEventListener('change', function() {
+                document.getElementById('trattamentoForm').submit();
+            });
+        }
+
+        // Cambio apiario: ricarica per mostrare le arnie dell'apiario scelto
+        const apiarioSelect = document.getElementById('id_apiario');
+        if (apiarioSelect && !apiarioSelect.disabled) {
+            apiarioSelect.addEventListener('change', function() {
+                document.querySelectorAll('input[name="arnie"]').forEach(function(cb) { cb.checked = false; });
                 document.getElementById('trattamentoForm').submit();
             });
         }

@@ -134,6 +134,11 @@ else:
             'PASSWORD': os.getenv('DB_PASSWORD'),
             'HOST': os.getenv('DB_HOST'),
             'PORT': os.getenv('DB_PORT', '3306'),
+            # Riusa la connessione fra una richiesta e l'altra invece di riaprirla
+            # ogni volta. Deve restare sotto il wait_timeout di MySQL su
+            # PythonAnywhere (300s); l'health check scarta quelle gia' chiuse.
+            'CONN_MAX_AGE': 120,
+            'CONN_HEALTH_CHECKS': True,
             'OPTIONS': {
                 'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
                 'charset': 'utf8mb4',

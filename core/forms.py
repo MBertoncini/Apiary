@@ -537,7 +537,7 @@ class TrattamentoSanitarioForm(forms.ModelForm):
         filtro = Q(attiva=True)
         if self.instance.pk:
             filtro |= Q(pk__in=self.instance.arnie.values('pk'))
-        return Arnia.objects.filter(filtro, apiario_id=apiario_id)
+        return Arnia.objects.filter(filtro, apiario_id=apiario_id).order_by('numero')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -585,7 +585,7 @@ class ProfiloUpdateForm(forms.ModelForm):
     )
     data_nascita = forms.DateField(
         required=False,
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        widget=DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         label="Data di nascita"
     )
     bio = forms.CharField(
@@ -840,7 +840,7 @@ class VenditaForm(forms.ModelForm):
         model = Vendita
         fields = ['data', 'cliente', 'acquirente_nome', 'canale', 'pagamento', 'note']
         widgets = {
-            'data':           forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'data':           DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'cliente':        forms.Select(attrs={'class': 'form-control form-select'}),
             'acquirente_nome': forms.TextInput(attrs={'class': 'form-control'}),
             'canale':         forms.Select(attrs={'class': 'form-control form-select'}),
@@ -885,7 +885,7 @@ class InvasettamentoForm(forms.ModelForm):
         model = Invasettamento
         fields = ['data', 'tipo_miele', 'formato_vasetto', 'numero_vasetti', 'lotto', 'note']
         widgets = {
-            'data':           forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'data':           DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'tipo_miele':     forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'es. Acacia, Millefiori'}),
             'formato_vasetto':forms.Select(attrs={'class': 'form-control form-select'},
                                            choices=[(250,'250g'),(500,'500g'),(1000,'1kg')]),
@@ -910,7 +910,7 @@ class NucleoForm(forms.ModelForm):
             'apiario':           forms.Select(attrs={'class': 'form-control form-select'}),
             'numero':            forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
             'colore_hex':        forms.TextInput(attrs={'type': 'color', 'class': 'form-control form-control-color', 'style': 'width:60px;'}),
-            'data_installazione':forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'data_installazione':DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'note':              forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
 
@@ -928,7 +928,7 @@ class ControlloNucleoForm(forms.ModelForm):
         model = ControlloNucleo
         fields = ['data', 'n_telaini', 'forza_colonia', 'presenza_regina', 'note']
         widgets = {
-            'data':            forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'data':            DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'n_telaini':       forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 20}),
             'forza_colonia':   forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 5}),
             'presenza_regina': forms.Select(attrs={'class': 'form-control form-select'},
@@ -957,7 +957,7 @@ class MaturatoreForm(forms.ModelForm):
             'capacita_kg':       forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': '0.1'}),
             'kg_attuali':        forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': '0.1'}),
             'smielatura':        forms.Select(attrs={'class': 'form-control form-select'}),
-            'data_inizio':       forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'data_inizio':       DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'giorni_maturazione':forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 365}),
             'note':              forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
@@ -986,7 +986,7 @@ class ContenitoreStoccaggioForm(forms.ModelForm):
             'kg_attuali':       forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': '0.1'}),
             'tipo_miele':       forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'es. Millefiori, Acacia'}),
             'maturatore':       forms.Select(attrs={'class': 'form-control form-select'}),
-            'data_riempimento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'data_riempimento': DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'stato':            forms.Select(attrs={'class': 'form-control form-select'}),
             'note':             forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
@@ -1008,7 +1008,7 @@ class InvasettaDaContenitoreForm(forms.ModelForm):
         model = Invasettamento
         fields = ['data', 'tipo_miele', 'formato_vasetto', 'numero_vasetti', 'lotto', 'note']
         widgets = {
-            'data':           forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'data':           DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'tipo_miele':     forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'es. Acacia, Millefiori'}),
             'formato_vasetto':forms.Select(attrs={'class': 'form-control form-select'},
                                            choices=[(250,'250g'),(500,'500g'),(1000,'1 kg')]),

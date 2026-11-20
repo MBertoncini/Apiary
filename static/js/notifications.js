@@ -5,7 +5,10 @@
 (function () {
   'use strict';
 
-  const API_URL = '/notifiche/api/recenti/';
+  // Le URL stanno sotto il prefisso lingua (/it/app/notifiche/...): la base
+  // arriva dal template via {% url %}, cosi' non resta cablata nel JS.
+  const BASE_URL = (window.APIARY_NOTIFICHE_URLS || {}).base || '/app/notifiche/';
+  const API_URL = BASE_URL + 'api/recenti/';
   const POLL_INTERVAL = 60000; // 60 secondi
   const CSRF = () => document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
 
@@ -82,7 +85,7 @@
   }
 
   function segnaNotiLetta(id) {
-    return fetch(`/notifiche/${id}/segna-letta/`, {
+    return fetch(`${BASE_URL}${id}/segna-letta/`, {
       method: 'POST',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
@@ -92,7 +95,7 @@
   }
 
   function eliminaNotifica(id) {
-    return fetch(`/notifiche/${id}/elimina/`, {
+    return fetch(`${BASE_URL}${id}/elimina/`, {
       method: 'POST',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
@@ -102,7 +105,7 @@
   }
 
   function segnaTutteLette() {
-    return fetch('/notifiche/segna-tutte-lette/', {
+    return fetch(BASE_URL + 'segna-tutte-lette/', {
       method: 'POST',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
