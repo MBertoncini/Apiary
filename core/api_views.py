@@ -245,7 +245,9 @@ class ApiarioViewSet(viewsets.ModelViewSet):
         if vuole_dettaglio and get_apiari_accessibili(request.user).filter(
             pk=apiario.pk
         ).exists():
-            serializer = ControlloArniaDetailSerializer(controlli, many=True)
+            serializer = ControlloArniaDetailSerializer(
+                ControlloArnia.con_peso_precedente(controlli), many=True
+            )
         else:
             serializer = ControlloArniaListSerializer(controlli, many=True)
         return Response(serializer.data)
@@ -700,10 +702,10 @@ class ArniaViewSet(viewsets.ModelViewSet):
             
         since_date = timezone.now() - timedelta(days=days)
         
-        controlli = ControlloArnia.objects.filter(
+        controlli = ControlloArnia.con_peso_precedente(ControlloArnia.objects.filter(
             arnia=arnia,
             data__gte=since_date
-        ).select_related(
+        )).select_related(
             'colonia__apiario', 'arnia__apiario', 'utente'
         ).order_by('-data')
 
@@ -808,10 +810,10 @@ class ControlloArniaViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         apiari_accessibili = get_apiari_accessibili(self.request.user)
         # Filtra per colonia.apiario (nuovo) con fallback su arnia.apiario (legacy)
-        return ControlloArnia.objects.filter(
+        return ControlloArnia.con_peso_precedente(ControlloArnia.objects.filter(
             Q(colonia__apiario__in=apiari_accessibili) |
             Q(colonia__isnull=True, arnia__apiario__in=apiari_accessibili)
-        ).distinct()
+        ).distinct())
 
 
 class ReginaViewSet(viewsets.ModelViewSet):
@@ -957,7 +959,7 @@ class ColoniaViewSet(viewsets.ModelViewSet):
         if days > 0:
             since = timezone.now().date() - timedelta(days=days)
             qs = qs.filter(data__gte=since)
-        qs = qs.order_by('-data')
+        qs = ControlloArnia.con_peso_precedente(qs).order_by('-data')
         return Response(ControlloArniaDetailSerializer(qs, many=True, context={'request': request}).data)
 
     @action(detail=True, methods=['get'], url_path='regina')
@@ -2658,8 +2660,10 @@ def sync_data(request):
         apiari = apiari_accessibili
         arnie_accessibili = Arnia.objects.filter(apiario__in=apiari_accessibili)
         arnie = arnie_accessibili
-        controlli = ControlloArnia.objects.filter(arnia__in=arnie_accessibili)
-        
+        controlli = ControlloArnia.con_peso_precedente(
+            ControlloArnia.objects.filter(arnia__in=arnie_accessibili)
+        )
+
         try:
             regine = Regina.objects.filter(colonia__apiario__in=apiari_accessibili)
         except Exception as e:

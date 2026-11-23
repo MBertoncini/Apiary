@@ -2,7 +2,10 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.core.validators import MinValueValidator
+from django.db.models import OuterRef, Q, Subquery
 from datetime import timedelta
+from decimal import Decimal
 import uuid
 
 class Gruppo(models.Model):
@@ -440,11 +443,50 @@ class ControlloArnia(models.Model):
     regina_sostituita = models.BooleanField(default=False, help_text="La regina è stata sostituita durante questo controllo")
     sostituzione_scatola = models.BooleanField(default=False, help_text="La scatola (corpo nido) è stata sostituita")
     telaini_config = models.TextField(blank=True, null=True, help_text="JSON configuration of frame types and positions")
+    # Peso dell'arnia inserito a mano (facoltativo: le app che non lo conoscono non lo inviano)
+    peso_kg = models.DecimalField(
+        max_digits=6, decimal_places=2, null=True, blank=True,
+        validators=[MinValueValidator(Decimal('0'))],
+        help_text="Peso dell'arnia in kg"
+    )
 
     def __str__(self):
         if self.colonia:
             return f"Controllo Colonia {self.colonia_id} – {self.data}"
         return f"Controllo {self.arnia} – {self.data}"
+
+    # "Precedente" = data minore; a parità di data, id minore (inserito prima).
+
+    @classmethod
+    def con_peso_precedente(cls, queryset):
+        """Annota peso_precedente_kg (ultimo peso della stessa arnia prima del controllo) in una sola query."""
+        precedente = cls.objects.filter(
+            arnia=OuterRef('arnia'),
+            peso_kg__isnull=False,
+        ).filter(
+            Q(data__lt=OuterRef('data')) | Q(data=OuterRef('data'), pk__lt=OuterRef('pk'))
+        ).order_by('-data', '-pk').values('peso_kg')[:1]
+        return queryset.annotate(peso_precedente_kg=Subquery(
+            precedente, output_field=models.DecimalField(max_digits=6, decimal_places=2)
+        ))
+
+    @property
+    def peso_differenza_kg(self):
+        """Differenza in kg rispetto al controllo precedente della stessa arnia che ha un peso, o None."""
+        if self.peso_kg is None or not self.arnia_id:
+            return None
+        if hasattr(self, 'peso_precedente_kg'):
+            precedente = self.peso_precedente_kg
+        else:
+            prima = Q(data__lt=self.data)
+            if self.pk is not None:
+                prima |= Q(data=self.data, pk__lt=self.pk)
+            precedente = ControlloArnia.objects.filter(
+                prima, arnia_id=self.arnia_id, peso_kg__isnull=False,
+            ).order_by('-data', '-pk').values_list('peso_kg', flat=True).first()
+        if precedente is None:
+            return None
+        return Decimal(self.peso_kg) - Decimal(precedente)
 
     class Meta:
         verbose_name = "Controllo Arnia"

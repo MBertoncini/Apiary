@@ -156,11 +156,18 @@ class ControlloArniaForm(forms.ModelForm):
         fields = [
             'data', 'telaini_scorte', 'telaini_covata', 'presenza_regina', 
             'sciamatura', 'data_sciamatura', 'note_sciamatura',
-            'problemi_sanitari', 'note_problemi', 'note'
+            'problemi_sanitari', 'note_problemi', 'note', 'peso_kg'
         ]
+        labels = {
+            'peso_kg': "Peso arnia (kg)",
+        }
+        help_texts = {
+            'peso_kg': "Facoltativo",
+        }
         widgets = {
             'data': DateInput(),
             'data_sciamatura': DateInput(),
+            'peso_kg': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'inputmode': 'decimal'}),
             'note': forms.Textarea(attrs={'rows': 3}),
             'note_sciamatura': forms.Textarea(attrs={'rows': 2}),
             'note_problemi': forms.Textarea(attrs={'rows': 2}),

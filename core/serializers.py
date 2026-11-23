@@ -207,6 +207,15 @@ class ControlloArniaDetailSerializer(serializers.ModelSerializer):
     apiario_nome = serializers.SerializerMethodField()
     apiario_id   = serializers.SerializerMethodField()
     utente_username = serializers.ReadOnlyField(source='utente.username')
+    # Facoltativo: le versioni dell'app che non lo conoscono non lo inviano
+    peso_kg = serializers.DecimalField(
+        max_digits=6, decimal_places=2, min_value=Decimal('0'),
+        required=False, allow_null=True,
+    )
+    # Differenza dal controllo precedente (per data) della stessa arnia con un peso
+    peso_differenza_kg = serializers.DecimalField(
+        max_digits=7, decimal_places=2, read_only=True, allow_null=True,
+    )
 
     class Meta:
         model = ControlloArnia
@@ -218,7 +227,8 @@ class ControlloArniaDetailSerializer(serializers.ModelSerializer):
             'data_sciamatura', 'note_sciamatura', 'problemi_sanitari',
             'note_problemi', 'note', 'data_creazione',
             'regina_vista', 'uova_fresche', 'celle_reali',
-            'numero_celle_reali', 'regina_sostituita', 'sostituzione_scatola', 'telaini_config'
+            'numero_celle_reali', 'regina_sostituita', 'sostituzione_scatola', 'telaini_config',
+            'peso_kg', 'peso_differenza_kg',
         ]
         read_only_fields = ['utente']
 
@@ -243,6 +253,13 @@ class ControlloArniaDetailSerializer(serializers.ModelSerializer):
         if colonia and not validated_data.get('arnia') and colonia.arnia_id:
             validated_data['arnia_id'] = colonia.arnia_id
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        # Il peso precedente annotato dal queryset vale per la data di prima:
+        # dopo la modifica si ricalcola.
+        instance.__dict__.pop('peso_precedente_kg', None)
+        return instance
 
 
 # Serializzatore Controllo Arnia (versione lista)

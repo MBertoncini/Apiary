@@ -329,6 +329,15 @@
                         <small class="text-muted d-block">{% trans "Telaini scorte" %}</small>
                         <strong>{{ controllo.telaini_scorte }}</strong>
                       </div>
+                      {% if controllo.peso_kg is not None %}
+                      <div class="col-6">
+                        <small class="text-muted d-block">{% trans "Peso" %}</small>
+                        <strong>{{ controllo.peso_kg|floatformat:"-2" }} kg</strong>
+                        {% with diff=controllo.peso_differenza_kg %}{% if diff is not None %}
+                        <small class="text-muted">({% if diff > 0 %}+{% endif %}{{ diff|floatformat:"-2" }} kg)</small>
+                        {% endif %}{% endwith %}
+                      </div>
+                      {% endif %}
                       <div class="col-6">
                         <small class="text-muted d-block">{% trans "Presenza regina" %}</small>
                         <strong>{% if controllo.presenza_regina %}<span class="text-success">{% trans "Sì" %}</span>{% else %}<span class="text-danger">{% trans "No" %}</span>{% endif %}</strong>
