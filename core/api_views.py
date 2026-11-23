@@ -211,7 +211,9 @@ class ApiarioViewSet(viewsets.ModelViewSet):
         Restituisce i controlli recenti delle arnie di un apiario.
 
         ?days=<n> (default 30). ?detail=1 restituisce i campi completi, come
-        /arnie/{id}/controlli/; senza il parametro la risposta resta quella breve.
+        /arnie/{id}/controlli/, solo sugli apiari accessibili all'utente
+        (propri o condivisi col gruppo); sugli apiari solo pubblici e senza il
+        parametro la risposta resta quella breve.
         """
         apiario = self.get_object()
         # Recupera i controlli degli ultimi 30 giorni (default)
@@ -237,7 +239,12 @@ class ApiarioViewSet(viewsets.ModelViewSet):
 
         # ?detail=1: stessi campi di /arnie/{id}/controlli/, cosi' l'app allinea
         # la cache di tutto l'apiario con una sola richiesta invece di una per arnia.
-        if request.query_params.get('detail') in ('1', 'true'):
+        # Gli apiari solo pubblici restano sulla risposta breve: l'app la
+        # riconosce e ripiega sulle singole arnie.
+        vuole_dettaglio = request.query_params.get('detail') in ('1', 'true')
+        if vuole_dettaglio and get_apiari_accessibili(request.user).filter(
+            pk=apiario.pk
+        ).exists():
             serializer = ControlloArniaDetailSerializer(controlli, many=True)
         else:
             serializer = ControlloArniaListSerializer(controlli, many=True)
