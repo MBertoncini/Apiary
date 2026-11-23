@@ -74,9 +74,9 @@ def dashboard(request):
     
     # Ultimi controlli effettuati (considera solo arnie a cui l'utente ha accesso)
     arnie_accessibili = Arnia.objects.filter(apiario__in=apiari)
-    ultimi_controlli = ControlloArnia.objects.filter(
+    ultimi_controlli = ControlloArnia.con_peso_precedente(ControlloArnia.objects.filter(
         arnia__in=arnie_accessibili
-    ).order_by('-data')[:10]
+    )).order_by('-data')[:10]
     
     # Fioriture attuali: legate agli apiari dell'utente + senza apiario (proprie o del gruppo)
     utenti_gruppo = User.objects.filter(gruppi__in=gruppi_utente)

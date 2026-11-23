@@ -258,6 +258,14 @@
                                                 <div class="arnia-last-check mb-2">
                                                     <i class="bi bi-clock me-1"></i>{% trans "Controllo" %}: {{ controllo.data|date:"d/m/Y" }}
                                                 </div>
+                                                {% if controllo.peso_kg is not None %}
+                                                <div class="arnia-last-check mb-2 arnia-peso">
+                                                    <i class="bi bi-box-seam me-1"></i>{% trans "Peso" %}: {{ controllo.peso_kg|floatformat:"-2" }} kg
+                                                    {% with diff=controllo.peso_differenza_kg %}{% if diff is not None %}
+                                                    <span class="text-muted" title="{% trans 'Differenza dal controllo precedente con peso' %}">({% if diff > 0 %}+{% endif %}{{ diff|floatformat:"-2" }} kg)</span>
+                                                    {% endif %}{% endwith %}
+                                                </div>
+                                                {% endif %}
 
                                                 <!-- Barra telaini (stile Flutter) -->
                                                 <div class="mini-hive-wrap mb-3"
